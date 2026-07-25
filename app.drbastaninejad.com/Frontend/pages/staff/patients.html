@@ -1,0 +1,98 @@
+<!doctype html>
+<!--
+  MΛZ Medical CRM — Patient Master Index
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+-->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>بیماران — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+</head>
+<body data-shell="staff" data-nav="patients">
+  <div class="app-shell">
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>بیماران</h1>
+          <p class="subtitle">فهرست کامل بیماران ثبت‌شده — قابل جست‌وجو و فیلترپذیر.</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="location.href='../intake/intake.html'">+ افزودن بیمار</button>
+        </div>
+      </div>
+
+      <section class="panel" style="padding:1rem 1.5rem;margin-bottom:1.25rem;">
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
+          <input class="form-input" placeholder="جست‌وجو در نام، شماره یا کد ملی…" style="flex:1;min-width:240px" oninput="filterRows(this.value)"/>
+          <select class="form-select" style="max-width:180px" onchange="filterStatus(this.value)">
+            <option value="">همه وضعیت‌ها</option>
+            <option value="active">فعال</option>
+            <option value="pending">در انتظار</option>
+            <option value="new">جدید</option>
+          </select>
+        </div>
+      </section>
+
+      <div class="table-wrap">
+        <table class="data-table" id="patients-table">
+          <thead>
+            <tr>
+              <th>بیمار</th>
+              <th>شماره همراه</th>
+              <th>کد ملی</th>
+              <th>ویزیت</th>
+              <th>آخرین مراجعه</th>
+              <th>وضعیت</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script>
+    var ALL = [];
+    var filter = { q: '', status: '' };
+    function pillFor(s) {
+      var map = { active: ['evergreen','فعال'], pending: ['warning','در انتظار'], new: ['info','جدید'] };
+      var m = map[s] || ['muted', s];
+      return '<span class="pill ' + m[0] + '">' + m[1] + '</span>';
+    }
+    function render() {
+      var tbody = document.getElementById('tbody');
+      var q = filter.q.trim();
+      var rows = ALL.filter(function (p) {
+        if (filter.status && p.status !== filter.status) return false;
+        if (!q) return true;
+        return (p.name.indexOf(q) > -1) || (p.mobile.indexOf(q) > -1) || (p.national.indexOf(q) > -1);
+      });
+      if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">هیچ نتیجه‌ای یافت نشد.</td></tr>'; return; }
+      tbody.innerHTML = rows.map(function (p) {
+        var initials = p.name.split(' ').map(function (w){return w[0];}).slice(0,2).join('');
+        return '<tr>' +
+          '<td><div style="display:flex;gap:.6rem;align-items:center;"><span class="avatar-md">' + initials + '</span><strong>' + p.name + '</strong></div></td>' +
+          '<td style="direction:ltr;text-align:right">' + p.mobile + '</td>' +
+          '<td style="direction:ltr;text-align:right">' + p.national + '</td>' +
+          '<td>' + MAZCRM.toFaDigits(p.visits) + '</td>' +
+          '<td>' + p.last + '</td>' +
+          '<td>' + pillFor(p.status) + '</td>' +
+          '<td><a class="btn btn-ghost btn-sm" href="patient-detail.html?id=' + p.id + '">مشاهده →</a></td>' +
+        '</tr>';
+      }).join('');
+    }
+    function filterRows(v) { filter.q = MAZCRM.toEnDigits(v); render(); }
+    function filterStatus(v) { filter.status = v; render(); }
+
+    MAZCRM.api.listPatients().then(function (list) { ALL = list; render(); });
+  </script>
+</body>
+</html>

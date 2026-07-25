@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- MΛZ Medical CRM — Notification prefs · MAZ//ID · © 2026 -->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>اعلان‌ها و تنظیمات</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+  <style>
+    .toggle-row { display:flex;justify-content:space-between;align-items:center;padding:1rem 0;border-bottom:1px solid var(--border); }
+    .toggle-row:last-child { border-bottom:none; }
+  </style>
+</head>
+<body data-shell="patient" data-nav="notifications">
+  <div class="app-shell">
+    <main class="main">
+      <div class="topbar"><div><h1>اعلان‌ها و تنظیمات</h1><p class="subtitle">نحوه ارتباط ما با شما را کنترل کنید</p></div></div>
+
+      <section class="panel">
+        <h3 style="margin-bottom:1rem">تنظیمات اعلان‌ها</h3>
+        <div class="toggle-row">
+          <div><div style="font-weight:600">یادآور نوبت — پیامک</div><div style="font-size:.78rem;color:var(--muted)">۲۴ ساعت قبل از نوبت</div></div>
+          <label class="switch"><input type="checkbox" checked/><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div style="font-weight:600">یادآور نوبت — ایمیل</div><div style="font-size:.78rem;color:var(--muted)">۴۸ ساعت قبل از نوبت</div></div>
+          <label class="switch"><input type="checkbox" checked/><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div style="font-weight:600">یادآور دارو</div><div style="font-size:.78rem;color:var(--muted)">پیامک روزانه در طول دوره درمان</div></div>
+          <label class="switch"><input type="checkbox"/><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div style="font-weight:600">اطلاع‌رسانی درباره خدمات جدید</div><div style="font-size:.78rem;color:var(--muted)">ایمیل ماهانه — اختیاری</div></div>
+          <label class="switch"><input type="checkbox"/><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div><div style="font-weight:600">تخفیف‌ها و کمپین‌ها</div><div style="font-size:.78rem;color:var(--muted)">پیامک تبلیغاتی</div></div>
+          <label class="switch"><input type="checkbox"/><span class="slider"></span></label>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:1.25rem"><button class="btn btn-primary btn-sm">ذخیره تنظیمات</button></div>
+      </section>
+    </main>
+  </div>
+  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+</body>
+</html>

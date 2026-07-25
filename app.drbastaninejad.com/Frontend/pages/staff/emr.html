@@ -1,0 +1,124 @@
+<!doctype html>
+<!--
+  MΛZ Medical CRM — Dynamic EMR Editor (Rhinoplasty template shown)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+-->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>پرونده الکترونیک — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <style>
+    .emr-layout { display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start; }
+    @media (max-width:900px){ .emr-layout { grid-template-columns:1fr; } }
+    .template-pills { display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem; }
+    .template-pills button { border:1px solid var(--border);background:var(--surface);padding:.45rem 1rem;border-radius:999px;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit; }
+    .template-pills button.active { background:var(--evergreen);color:#fff;border-color:var(--evergreen); }
+    .checkbox-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.6rem; }
+    .cb-item { display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;border:1px solid var(--border);border-radius:var(--radius-md);cursor:pointer;font-size:.85rem;user-select:none; }
+    .cb-item input { accent-color:var(--evergreen); }
+    .cb-item:has(input:checked) { background:var(--evergreen-soft);border-color:var(--evergreen);color:var(--evergreen-dark);font-weight:600; }
+    .media-slot { border:2px dashed var(--border);border-radius:var(--radius-md);padding:1.5rem;text-align:center;color:var(--muted);font-size:.85rem;cursor:pointer; }
+    .media-slot:hover { border-color:var(--evergreen);color:var(--evergreen); }
+  </style>
+</head>
+<body data-shell="staff" data-nav="emr">
+  <div class="app-shell">
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>پرونده الکترونیک بیمار</h1>
+          <p class="subtitle">مریم احمدی · ویزیت پیگیری هفته دوم — ۱۴۰۵/۰۴/۱۲</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm">پیش‌نویس</button>
+          <button class="btn btn-primary btn-sm">امضا و ذخیره</button>
+        </div>
+      </div>
+
+      <div class="template-pills">
+        <button>عمومی</button>
+        <button class="active">رینوپلاستی — بعد از عمل</button>
+        <button>رینوپلاستی — قبل از عمل</button>
+        <button>مشاوره اولیه</button>
+        <button>+ افزودن قالب</button>
+      </div>
+
+      <div class="emr-layout">
+        <div style="display:flex;flex-direction:column;gap:1.5rem;">
+          <!-- Fixed fields -->
+          <section class="panel">
+            <div class="panel-header"><div><h3>یادداشت بالینی — SOAP</h3></div></div>
+            <div class="input-group">
+              <label class="form-label">شکایت اصلی (Subjective)</label>
+              <textarea class="form-textarea" rows="2" placeholder="بیمار احساس تورم خفیف در ناحیه بینی دارد…"></textarea>
+            </div>
+            <div class="input-group">
+              <label class="form-label">معاینه (Objective)</label>
+              <textarea class="form-textarea" rows="2" placeholder="بینی: تورم خفیف باقی‌مانده، بدون کبودی، بخیه‌ها ترمیم شده…"></textarea>
+            </div>
+            <div class="input-group">
+              <label class="form-label">تشخیص (Assessment)</label>
+              <textarea class="form-textarea" rows="2" placeholder="روند طبیعی بهبود پس از رینوپلاستی، هفته دوم"></textarea>
+            </div>
+            <div class="input-group">
+              <label class="form-label">برنامه درمان (Plan)</label>
+              <textarea class="form-textarea" rows="2" placeholder="ادامه محدودیت فعالیت. ویزیت بعدی: ۲ هفته دیگر."></textarea>
+            </div>
+          </section>
+
+          <!-- Specialty-specific: rhinoplasty -->
+          <section class="panel">
+            <div class="panel-header"><div><h3>ارزیابی تخصصی — رینوپلاستی</h3><p>فیلدهای اختصاصی این قالب</p></div></div>
+
+            <label class="form-label">موارد قابل مشاهده</label>
+            <div class="checkbox-grid" style="margin-bottom:1.25rem;">
+              <label class="cb-item"><input type="checkbox"/> تورم خفیف</label>
+              <label class="cb-item"><input type="checkbox" checked/> بدون خونریزی</label>
+              <label class="cb-item"><input type="checkbox"/> کبودی زیر چشم</label>
+              <label class="cb-item"><input type="checkbox"/> عفونت</label>
+              <label class="cb-item"><input type="checkbox"/> نامتقارنی</label>
+              <label class="cb-item"><input type="checkbox"/> ترشح</label>
+            </div>
+
+            <label class="form-label">تصاویر مقایسه‌ای (قبل / بعد)</label>
+            <div class="media-slot">📷 برای بارگذاری تصاویر کلیک یا فایل را رها کنید</div>
+          </section>
+        </div>
+
+        <!-- AI Copilot side panel -->
+        <aside class="panel" style="background:linear-gradient(135deg,#f8fafc,#eef2ff);border-color:#dbeafe;position:sticky;top:1rem;">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;">
+            <span style="background:var(--maz-primary);color:#fff;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:700;font-family:var(--font-mono)">Dr. Copilot</span>
+            <strong style="font-size:.95rem">دستیار هوشمند</strong>
+          </div>
+          <p style="font-size:.82rem;color:var(--muted);line-height:1.7;margin-bottom:1rem;">پیش‌نویس یادداشت بر اساس ویزیت‌های قبلی و پروتکل کلینیک:</p>
+          <div style="background:var(--surface);padding:.9rem 1rem;border-radius:var(--radius-md);border:1px solid var(--border);font-size:.82rem;line-height:1.75;margin-bottom:.75rem;">
+            بیمار در وضعیت هفته دوم پس از رینوپلاستی است. تورم بینی ۳۰٪ کاهش یافته و روند بهبود مطلوب است. توصیه به ادامه محدودیت ورزش تا ۴ هفته و اجتناب از ضربه.
+          </div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm">درج در Assessment</button>
+            <button class="btn btn-secondary btn-sm">ویرایش</button>
+          </div>
+          <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid #dbeafe;font-size:.7rem;color:var(--muted);font-family:var(--font-mono);">
+            model: <strong style="color:var(--maz-primary-dark)">claude-3-sonnet</strong><br>
+            tier: premium (clinical) · latency: 1.2s
+          </div>
+
+          <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #dbeafe;">
+            <label class="form-label" style="font-size:.72rem">درخواست جدید</label>
+            <textarea class="form-textarea" rows="3" placeholder="مثال: خلاصه ۳ خطی از تاریخچه بیمار…" style="font-size:.82rem;"></textarea>
+            <button class="btn btn-ghost btn-sm" style="margin-top:.5rem;width:100%;">اجرا</button>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<!--
+  MΛZ Medical CRM — Staff Dashboard
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+-->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>داشبورد — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+</head>
+<body data-shell="staff" data-nav="dashboard">
+  <div class="app-shell">
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>سلام دکتر باستانی‌نژاد 👋</h1>
+          <p class="subtitle">امروز چهارشنبه، ۱۴ مرداد ۱۴۰۵ — ۴ نوبت باقی‌مانده تا پایان روز.</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm" type="button" onclick="location.href='../intake/intake.html'">+ پذیرش جدید</button>
+          <button class="btn btn-primary btn-sm" type="button" onclick="location.href='calendar.html'">+ نوبت جدید</button>
+        </div>
+      </div>
+
+      <!-- KPI cards -->
+      <div class="kpi-grid" id="kpis">
+        <div class="kpi-card" onclick="location.href='calendar.html'">
+          <div class="kpi-label">نوبت‌های امروز</div>
+          <div class="kpi-value" id="kpi-today">—</div>
+          <div class="kpi-delta up">▲ ۲ نسبت به دیروز</div>
+        </div>
+        <div class="kpi-card" onclick="location.href='patients.html'">
+          <div class="kpi-label">پذیرش‌های در انتظار</div>
+          <div class="kpi-value" id="kpi-pending">—</div>
+          <div class="kpi-delta">نیاز به بررسی</div>
+        </div>
+        <div class="kpi-card" onclick="location.href='billing.html'">
+          <div class="kpi-label">درآمد امروز (تومان)</div>
+          <div class="kpi-value" id="kpi-revenue">—</div>
+          <div class="kpi-delta up">▲ ۱۲٪ نسبت به هفته گذشته</div>
+        </div>
+        <div class="kpi-card" onclick="location.href='tasks.html'">
+          <div class="kpi-label">وظایف باز</div>
+          <div class="kpi-value" id="kpi-tasks">—</div>
+          <div class="kpi-delta">۲ عدد فوری</div>
+        </div>
+      </div>
+
+      <div class="grid-main">
+        <!-- Today's schedule -->
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>برنامه امروز</h3>
+              <p>مرتب‌شده بر اساس ساعت</p>
+            </div>
+            <a href="calendar.html" class="btn btn-ghost btn-sm">مشاهده تقویم ←</a>
+          </div>
+          <div id="today-list"></div>
+        </section>
+
+        <!-- Needs attention -->
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h3>نیازمند توجه</h3>
+              <p>موارد ثبت‌نشده یا در حال انتظار</p>
+            </div>
+          </div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:.75rem;">
+            <li style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;background:var(--warning-soft);border-radius:var(--radius-md);">
+              <div>
+                <div style="font-weight:600;font-size:.9rem">۴ پذیرش تأیید‌نشده</div>
+                <div style="font-size:.78rem;color:var(--muted)">فرم‌های ورودی منتظر بررسی</div>
+              </div>
+              <a href="patients.html" class="pill warning">بررسی</a>
+            </li>
+            <li style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;background:var(--info-soft);border-radius:var(--radius-md);">
+              <div>
+                <div style="font-weight:600;font-size:.9rem">۲ رضایت‌نامه امضا نشده</div>
+                <div style="font-size:.78rem;color:var(--muted)">قبل از عمل جراحی امروز</div>
+              </div>
+              <a href="emr.html" class="pill info">اقدام</a>
+            </li>
+            <li style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;background:var(--error-soft);border-radius:var(--radius-md);">
+              <div>
+                <div style="font-weight:600;font-size:.9rem">۱ پرداخت ناموفق</div>
+                <div style="font-size:.78rem;color:var(--muted)">درگاه Zarinpal — فاکتور #۱۰۳۷</div>
+              </div>
+              <a href="billing.html" class="pill error">بررسی</a>
+            </li>
+          </ul>
+
+          <!-- AI Copilot card -->
+          <div style="margin-top:1.25rem;padding:1rem;background:linear-gradient(135deg,#f8fafc,#eef2ff);border-radius:var(--radius-md);border:1px solid #dbeafe">
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+              <span style="background:var(--maz-primary);color:#fff;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:700;font-family:var(--font-mono)">Dr. Copilot</span>
+              <strong style="font-size:.85rem">پیشنهاد هوش مصنوعی</strong>
+            </div>
+            <p style="font-size:.82rem;color:var(--graphite);line-height:1.7">۳ بیمار امروز داروی ضد‌انعقاد مصرف می‌کنند. توصیه می‌شود قبل از جراحی، ارزیابی مجدد INR انجام شود.</p>
+            <div style="margin-top:.5rem;display:flex;gap:.5rem;">
+              <button class="btn btn-primary btn-sm">پذیرش</button>
+              <button class="btn btn-secondary btn-sm">ویرایش</button>
+              <button class="btn btn-ghost btn-sm">رد کردن</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script>
+    // Populate KPIs + today's list
+    MAZCRM.api.getDashboardKpis().then(function (k) {
+      document.getElementById('kpi-today').textContent   = MAZCRM.toFaDigits(k.today);
+      document.getElementById('kpi-pending').textContent = MAZCRM.toFaDigits(k.pending);
+      document.getElementById('kpi-revenue').textContent = k.revenue;
+      document.getElementById('kpi-tasks').textContent   = MAZCRM.toFaDigits(k.tasks);
+    });
+
+    MAZCRM.api.listAppointments().then(function (list) {
+      var pillClass = { confirmed: 'evergreen', scheduled: 'info' };
+      var pillTxt   = { confirmed: 'تأیید شده', scheduled: 'در انتظار تأیید' };
+      var html = list.map(function (a) {
+        return '<div style="display:flex;align-items:center;gap:1rem;padding:.9rem 0;border-bottom:1px solid var(--border);">' +
+                 '<div style="width:56px;text-align:center;background:var(--evergreen-soft);border-radius:var(--radius-md);padding:.4rem .3rem;flex-shrink:0">' +
+                   '<strong style="display:block;font-size:1rem;color:var(--evergreen)">' + a.date + '</strong>' +
+                   '<span style="font-size:.68rem;color:var(--muted)">' + a.month + '</span>' +
+                 '</div>' +
+                 '<div style="flex:1;min-width:0">' +
+                   '<strong style="font-size:.9rem;display:block">' + a.patient + ' — ' + a.reason + '</strong>' +
+                   '<span style="font-size:.78rem;color:var(--muted)">ساعت ' + a.time + '</span>' +
+                 '</div>' +
+                 '<span class="pill ' + pillClass[a.status] + '">' + pillTxt[a.status] + '</span>' +
+               '</div>';
+      }).join('');
+      document.getElementById('today-list').innerHTML = html;
+    });
+  </script>
+</body>
+</html>

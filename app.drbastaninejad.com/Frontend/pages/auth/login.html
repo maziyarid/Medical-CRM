@@ -1,0 +1,164 @@
+<!doctype html>
+<!--
+  MΛZ Medical CRM — Staff Login (OTP + password)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+-->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ورود کارکنان — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <style>
+    .auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+    .auth-card { max-width: 440px; width: 100%; }
+    .auth-card .brand { display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-bottom: 1.5rem; }
+    .auth-card .brand-mark { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--evergreen), var(--evergreen-dark)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; }
+    .auth-card h1 { font-size: 1.25rem; text-align: center; margin-bottom: 0.35rem; }
+    .auth-card .sub { text-align: center; color: var(--muted); font-size: 0.85rem; margin-bottom: 1.75rem; }
+    .otp-boxes { display: flex; gap: 0.55rem; justify-content: center; margin: 1rem 0; direction: ltr; }
+    .otp-boxes input { width: 48px; height: 56px; text-align: center; font-size: 1.25rem; font-weight: 700; border: 1px solid var(--border); border-radius: var(--radius-md); }
+    .otp-boxes input:focus { outline: none; border-color: var(--evergreen); box-shadow: 0 0 0 3px rgba(47,125,50,0.15); }
+    .resend { text-align: center; margin-top: 0.75rem; font-size: 0.82rem; color: var(--muted); }
+    .resend a { font-weight: 600; }
+    .step { display: none; }
+    .step.active { display: block; }
+    .divider { text-align: center; margin: 1.25rem 0; color: var(--muted); font-size: 0.78rem; position: relative; }
+    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: var(--border); }
+    .divider::before { inset-inline-start: 0; }
+    .divider::after { inset-inline-end: 0; }
+    .demo-hint { background: var(--info-soft); color: var(--info); padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.8rem; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <main class="auth-wrap">
+    <div class="card auth-card">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">MΛZ</div>
+        <div style="font-weight:700">Medical CRM</div>
+      </div>
+      <h1>ورود کارکنان</h1>
+      <p class="sub">پزشک، منشی، پرستار یا مدیر — با شماره همراه ثبت‌شده وارد شوید.</p>
+
+      <div class="demo-hint">دموی MVP: کد OTP همیشه <strong>12345</strong> است.</div>
+
+      <!-- Step 1 — mobile -->
+      <form class="step active" id="step-mobile" novalidate>
+        <div class="input-group">
+          <label class="form-label required" for="mobile">شماره همراه</label>
+          <input class="form-input" id="mobile" type="tel" inputmode="numeric" placeholder="09121234567" autocomplete="tel-national" required/>
+          <div class="form-hint">شماره ۱۱ رقمی شروع با ۰۹</div>
+          <div class="form-error" id="err-mobile" hidden></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">ارسال کد تأیید</button>
+
+        <div class="divider">یا</div>
+
+        <div class="input-group">
+          <label class="form-label" for="password">ورود با رمز عبور</label>
+          <input class="form-input" id="password" type="password" autocomplete="current-password" placeholder="••••••••"/>
+        </div>
+        <button type="button" class="btn btn-secondary" style="width:100%" onclick="loginWithPassword()">ورود با رمز عبور</button>
+      </form>
+
+      <!-- Step 2 — OTP -->
+      <form class="step" id="step-otp" novalidate>
+        <p class="sub" id="otp-msg">کد ۵ رقمی برای شماره وارد شده ارسال شد.</p>
+        <div class="otp-boxes" id="otp">
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="رقم اول"/>
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="رقم دوم"/>
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="رقم سوم"/>
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="رقم چهارم"/>
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="رقم پنجم"/>
+        </div>
+        <div class="form-error" id="err-otp" hidden></div>
+        <button type="submit" class="btn btn-primary" style="width:100%">تأیید و ورود</button>
+        <div class="resend" id="resend">
+          ارسال مجدد کد در <span id="countdown">۴۵</span> ثانیه
+        </div>
+        <div style="text-align:center;margin-top:1rem;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="backToMobile()">← تغییر شماره</button>
+        </div>
+      </form>
+
+      <div class="brand-footer">
+        <div class="maz-sig">M<span class="z">Λ</span>Z <span style="opacity:.5">//</span> ID</div>
+        <div>© 2026 دکتر شاهین باستانی‌نژاد — ساخته شده توسط Maziyar</div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast-container" aria-live="polite"></div>
+
+  <script src="../../assets/js/app.js"></script>
+  <script>
+    var stepMobile = document.getElementById('step-mobile');
+    var stepOtp    = document.getElementById('step-otp');
+    var otpInputs  = document.querySelectorAll('#otp input');
+
+    stepMobile.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var mobile = MAZCRM.toEnDigits(document.getElementById('mobile').value.trim());
+      var err = document.getElementById('err-mobile');
+      err.hidden = true;
+      if (!MAZCRM.isValidMobile(mobile)) {
+        err.textContent = 'شماره همراه نامعتبر است.'; err.hidden = false; return;
+      }
+      MAZCRM.api.sendOtp(mobile).then(function () {
+        stepMobile.classList.remove('active');
+        stepOtp.classList.add('active');
+        document.getElementById('otp-msg').textContent = 'کد ۵ رقمی برای ' + mobile + ' ارسال شد.';
+        otpInputs[0].focus();
+        startCountdown();
+      }).catch(function (e) { MAZCRM.toast(e.message, 'error'); });
+    });
+
+    stepOtp.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var code = Array.from(otpInputs).map(function (i) { return MAZCRM.toEnDigits(i.value); }).join('');
+      var err = document.getElementById('err-otp');
+      err.hidden = true;
+      if (code.length !== 5) { err.textContent = 'کد را کامل وارد کنید.'; err.hidden = false; return; }
+      MAZCRM.api.verifyOtp('09000000000', code).then(function () {
+        MAZCRM.toast('ورود موفق — در حال انتقال...', 'success');
+        setTimeout(function () { location.href = '../staff/dashboard.html'; }, 700);
+      }).catch(function (e) { err.textContent = e.message; err.hidden = false; });
+    });
+
+    // OTP auto-advance
+    otpInputs.forEach(function (input, idx) {
+      input.addEventListener('input', function (e) {
+        e.target.value = MAZCRM.toEnDigits(e.target.value).replace(/\D/g, '');
+        if (e.target.value && idx < otpInputs.length - 1) otpInputs[idx+1].focus();
+      });
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Backspace' && !e.target.value && idx > 0) otpInputs[idx-1].focus();
+      });
+    });
+
+    function backToMobile() {
+      stepOtp.classList.remove('active');
+      stepMobile.classList.add('active');
+      otpInputs.forEach(function (i) { i.value = ''; });
+    }
+    function loginWithPassword() {
+      MAZCRM.toast('ورود با رمز عبور — دموی MVP', 'success');
+      setTimeout(function () { location.href = '../staff/dashboard.html'; }, 500);
+    }
+    function startCountdown() {
+      var s = 45;
+      var el = document.getElementById('countdown');
+      var t = setInterval(function () {
+        s -= 1; el.textContent = MAZCRM.toFaDigits(s);
+        if (s <= 0) {
+          clearInterval(t);
+          document.getElementById('resend').innerHTML = '<a href="#" onclick="startCountdown();return false;">ارسال مجدد کد</a>';
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>

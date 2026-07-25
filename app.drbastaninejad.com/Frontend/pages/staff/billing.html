@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- MΛZ Medical CRM — Billing · Author: MAZ//ID · © 2026 Maziyar -->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>صورتحساب — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+</head>
+<body data-shell="staff" data-nav="billing">
+  <div class="app-shell">
+    <main class="main">
+      <div class="topbar">
+        <div><h1>صورتحساب و پرداخت</h1><p class="subtitle">فاکتورها، پرداخت‌ها و درگاه‌های شاپرکی</p></div>
+        <div class="topbar-actions"><button class="btn btn-primary btn-sm">+ فاکتور جدید</button></div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">درآمد این ماه</div><div class="kpi-value">۴۸۲م</div><div class="kpi-delta up">▲ ۱۸٪</div></div>
+        <div class="kpi-card"><div class="kpi-label">پرداخت‌های در انتظار</div><div class="kpi-value">۱۲</div><div class="kpi-delta">مبلغ کل: ۸۹م</div></div>
+        <div class="kpi-card"><div class="kpi-label">پرداخت‌های ناموفق</div><div class="kpi-value" style="color:var(--error)">۳</div><div class="kpi-delta down">نیاز به پیگیری</div></div>
+        <div class="kpi-card"><div class="kpi-label">میانگین فاکتور</div><div class="kpi-value">۱۸م</div><div class="kpi-delta">۷ روز اخیر</div></div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>شماره</th><th>بیمار</th><th>مبلغ (تومان)</th><th>وضعیت</th><th>روش</th><th>تاریخ</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>#۱۰۴۲</td><td>مریم احمدی</td><td>۱۸,۵۰۰,۰۰۰</td><td><span class="pill success">پرداخت شد</span></td><td>Zarinpal</td><td>۱۴۰۵/۰۴/۱۲</td><td><button class="btn btn-ghost btn-sm">مشاهده</button></td></tr>
+            <tr><td>#۱۰۴۱</td><td>رضا محمدی</td><td>۳,۲۰۰,۰۰۰</td><td><span class="pill warning">در انتظار</span></td><td>IDPay</td><td>۱۴۰۵/۰۴/۱۱</td><td><button class="btn btn-ghost btn-sm">پیگیری</button></td></tr>
+            <tr><td>#۱۰۴۰</td><td>سارا کریمی</td><td>۹,۰۰۰,۰۰۰</td><td><span class="pill success">پرداخت شد</span></td><td>کارت</td><td>۱۴۰۵/۰۴/۱۰</td><td><button class="btn btn-ghost btn-sm">مشاهده</button></td></tr>
+            <tr><td>#۱۰۳۹</td><td>علی رستمی</td><td>۱۲,۵۰۰,۰۰۰</td><td><span class="pill info">در انتظار بیمه</span></td><td>—</td><td>۱۴۰۵/۰۴/۰۹</td><td><button class="btn btn-ghost btn-sm">بررسی</button></td></tr>
+            <tr><td>#۱۰۳۷</td><td>ندا صالحی</td><td>۵,۸۰۰,۰۰۰</td><td><span class="pill error">ناموفق</span></td><td>Zarinpal</td><td>۱۴۰۵/۰۴/۰۸</td><td><button class="btn btn-primary btn-sm">پرداخت مجدد</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+</body>
+</html>

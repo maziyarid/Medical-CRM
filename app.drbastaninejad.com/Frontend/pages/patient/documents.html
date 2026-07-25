@@ -1,0 +1,52 @@
+<!doctype html>
+<!-- MΛZ Medical CRM — Patient Documents · MAZ//ID · © 2026 -->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>مستندات — داشبورد بیمار</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+  <style>
+    .doc-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem; }
+    .doc-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-align:center;transition:transform var(--transition-fast); }
+    .doc-card:hover { transform:translateY(-2px);box-shadow:var(--shadow); }
+    .doc-icon { width:56px;height:56px;background:var(--evergreen-soft);color:var(--evergreen);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.5rem; }
+    .doc-card h4 { font-size:.85rem;margin-bottom:.35rem; }
+    .doc-card small { color:var(--muted);font-size:.72rem;display:block;margin-bottom:1rem; }
+  </style>
+</head>
+<body data-shell="patient" data-nav="documents">
+  <div class="app-shell">
+    <main class="main">
+      <div class="topbar"><div><h1>مستندات و فایل‌ها</h1><p class="subtitle">رضایت‌نامه‌ها، نتایج آزمایش و تصاویر پزشکی شما</p></div></div>
+
+      <section class="panel">
+        <div class="doc-grid">
+          <div class="doc-card">
+            <div class="doc-icon">📄</div><h4>رضایت‌نامه جراحی</h4><small>PDF · 1.2 MB · ۱۴۰۵/۰۳/۲۷</small>
+            <button class="btn btn-secondary btn-sm">دانلود</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">🩻</div><h4>عکس‌های قبل از عمل</h4><small>ZIP · 8.5 MB · ۱۴۰۵/۰۳/۲۵</small>
+            <button class="btn btn-secondary btn-sm">دانلود</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">🧪</div><h4>آزمایش پیش از عمل</h4><small>PDF · 340 KB · ۱۴۰۵/۰۳/۲۰</small>
+            <button class="btn btn-secondary btn-sm">دانلود</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">📋</div><h4>فاکتور #۱۰۲۴</h4><small>PDF · 45 KB · ۱۴۰۵/۰۳/۲۸</small>
+            <button class="btn btn-secondary btn-sm">دانلود</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">💊</div><h4>نسخه دارویی پس از عمل</h4><small>PDF · 80 KB · ۱۴۰۵/۰۳/۲۸</small>
+            <button class="btn btn-secondary btn-sm">دانلود</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+</body>
+</html>

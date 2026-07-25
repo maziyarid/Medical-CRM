@@ -1,0 +1,64 @@
+<!doctype html>
+<!-- MΛZ Medical CRM — Settings · Author: MAZ//ID · © 2026 Maziyar -->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>تنظیمات — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+</head>
+<body data-shell="staff" data-nav="settings">
+  <div class="app-shell">
+    <main class="main">
+      <div class="topbar"><div><h1>تنظیمات</h1><p class="subtitle">پیکربندی کلینیک، کاربران و یکپارچه‌سازی‌ها</p></div></div>
+
+      <div class="grid-2" style="gap:1.5rem;align-items:start">
+        <section class="panel">
+          <div class="panel-header"><div><h3>اطلاعات کلینیک</h3></div></div>
+          <div class="input-group"><label class="form-label">نام کلینیک</label><input class="form-input" value="کلینیک تخصصی دکتر شاهین باستانی‌نژاد"/></div>
+          <div class="input-group"><label class="form-label">شماره تماس</label><input class="form-input" value="021-88112233" style="direction:ltr;text-align:right"/></div>
+          <div class="input-group"><label class="form-label">آدرس</label><textarea class="form-textarea" rows="2">تهران، خیابان ولیعصر، ...</textarea></div>
+          <div class="input-group"><label class="form-label">منطقه زمانی</label><select class="form-select"><option>Asia/Tehran (پیش‌فرض)</option></select></div>
+          <button class="btn btn-primary btn-sm">ذخیره</button>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header"><div><h3>یکپارچه‌سازی‌ها</h3></div></div>
+          <div style="display:flex;flex-direction:column;gap:.75rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem;background:var(--porcelain);border-radius:var(--radius-md)"><div><strong style="font-size:.9rem">کاوه‌نگار (SMS)</strong><div style="font-size:.78rem;color:var(--muted)">خط خدماتی: 3000...</div></div><span class="pill success">فعال</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem;background:var(--porcelain);border-radius:var(--radius-md)"><div><strong style="font-size:.9rem">Zarinpal</strong><div style="font-size:.78rem;color:var(--muted)">درگاه پرداخت</div></div><span class="pill success">فعال</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem;background:var(--porcelain);border-radius:var(--radius-md)"><div><strong style="font-size:.9rem">ArvanCloud S3</strong><div style="font-size:.78rem;color:var(--muted)">ذخیره‌سازی تصاویر</div></div><span class="pill success">فعال</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem;background:var(--porcelain);border-radius:var(--radius-md)"><div><strong style="font-size:.9rem">OpenRouter (AI)</strong><div style="font-size:.78rem;color:var(--muted)">Dr. Copilot — ۷ مدل فعال</div></div><span class="pill success">فعال</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem;background:var(--porcelain);border-radius:var(--radius-md)"><div><strong style="font-size:.9rem">SQL Server Mirror</strong><div style="font-size:.78rem;color:var(--muted)">همگام‌سازی ثانویه</div></div><span class="pill muted">غیرفعال (v1.5)</span></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header"><div><h3>کاربران و دسترسی‌ها (RBAC)</h3></div><button class="btn btn-primary btn-sm">+ افزودن</button></div>
+          <div class="table-wrap" style="box-shadow:none;border:none;">
+            <table class="data-table">
+              <thead><tr><th>کاربر</th><th>نقش</th><th>وضعیت</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>دکتر شاهین باستانی‌نژاد</td><td>مدیر کل + پزشک</td><td><span class="pill success">فعال</span></td><td><button class="btn btn-ghost btn-sm">ویرایش</button></td></tr>
+                <tr><td>فاطمه رضایی</td><td>منشی</td><td><span class="pill success">فعال</span></td><td><button class="btn btn-ghost btn-sm">ویرایش</button></td></tr>
+                <tr><td>نگار حسینی</td><td>پرستار</td><td><span class="pill success">فعال</span></td><td><button class="btn btn-ghost btn-sm">ویرایش</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header"><div><h3>قالب‌های EMR</h3></div><button class="btn btn-primary btn-sm">+ قالب جدید</button></div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:.5rem;">
+            <li style="padding:.75rem;background:var(--porcelain);border-radius:var(--radius-md);display:flex;justify-content:space-between;"><span>رینوپلاستی — قبل از عمل</span><span class="pill evergreen">v3</span></li>
+            <li style="padding:.75rem;background:var(--porcelain);border-radius:var(--radius-md);display:flex;justify-content:space-between;"><span>رینوپلاستی — بعد از عمل</span><span class="pill evergreen">v2</span></li>
+            <li style="padding:.75rem;background:var(--porcelain);border-radius:var(--radius-md);display:flex;justify-content:space-between;"><span>مشاوره اولیه</span><span class="pill evergreen">v1</span></li>
+          </ul>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+</body>
+</html>

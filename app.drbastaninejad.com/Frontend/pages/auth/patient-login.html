@@ -1,0 +1,103 @@
+<!doctype html>
+<!--
+  MΛZ Medical CRM — Patient Login (OTP only)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+-->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ورود بیمار — داشبورد دکتر باستانی‌نژاد</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <style>
+    .auth-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1.5rem; }
+    .auth-card { max-width:440px; width:100%; }
+    .auth-card .brand-mark { width:56px; height:56px; margin:0 auto 1rem; border-radius:14px; background:linear-gradient(135deg,var(--evergreen),var(--evergreen-dark)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.15rem; }
+    .auth-card h1 { font-size:1.2rem; text-align:center; margin-bottom:.35rem; }
+    .auth-card .sub { text-align:center; color:var(--muted); font-size:.85rem; margin-bottom:1.5rem; }
+    .otp-boxes { display:flex; gap:.55rem; justify-content:center; margin:1rem 0; direction:ltr; }
+    .otp-boxes input { width:48px; height:56px; text-align:center; font-size:1.25rem; font-weight:700; border:1px solid var(--border); border-radius:var(--radius-md); }
+    .otp-boxes input:focus { outline:none; border-color:var(--evergreen); box-shadow:0 0 0 3px rgba(47,125,50,.15); }
+    .demo-hint { background:var(--info-soft); color:var(--info); padding:.7rem 1rem; border-radius:var(--radius-md); font-size:.8rem; margin-bottom:1rem; }
+    .step { display:none; } .step.active { display:block; }
+  </style>
+</head>
+<body>
+  <main class="auth-wrap">
+    <div class="card auth-card">
+      <div class="brand-mark" aria-hidden="true">MΛZ</div>
+      <h1>ورود به داشبورد بیمار</h1>
+      <p class="sub">با شماره همراهی که در فرم پذیرش وارد کرده‌اید وارد شوید.</p>
+
+      <div class="demo-hint">دموی MVP: کد OTP همیشه <strong>12345</strong> است.</div>
+
+      <form class="step active" id="step-mobile">
+        <div class="input-group">
+          <label class="form-label required" for="mobile">شماره همراه</label>
+          <input class="form-input" id="mobile" type="tel" inputmode="numeric" placeholder="09121234567" autocomplete="tel-national" required/>
+          <div class="form-error" id="err-mobile" hidden></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">ارسال کد تأیید</button>
+        <p style="text-align:center;margin-top:1.25rem;font-size:.85rem;color:var(--muted)">
+          هنوز پرونده تشکیل نداده‌اید؟ <a href="../intake/intake.html">تشکیل پرونده اولیه</a>
+        </p>
+      </form>
+
+      <form class="step" id="step-otp">
+        <p class="sub" id="otp-msg">کد ۵ رقمی ارسال شد.</p>
+        <div class="otp-boxes" id="otp">
+          <input type="text" inputmode="numeric" maxlength="1"/>
+          <input type="text" inputmode="numeric" maxlength="1"/>
+          <input type="text" inputmode="numeric" maxlength="1"/>
+          <input type="text" inputmode="numeric" maxlength="1"/>
+          <input type="text" inputmode="numeric" maxlength="1"/>
+        </div>
+        <div class="form-error" id="err-otp" hidden></div>
+        <button type="submit" class="btn btn-primary" style="width:100%">ورود</button>
+      </form>
+
+      <div class="brand-footer">
+        <div class="maz-sig">M<span class="z">Λ</span>Z <span style="opacity:.5">//</span> ID</div>
+        <div>© 2026 دکتر شاهین باستانی‌نژاد</div>
+      </div>
+    </div>
+  </main>
+  <div class="toast-container"></div>
+  <script src="../../assets/js/app.js"></script>
+  <script>
+    var sm = document.getElementById('step-mobile'), so = document.getElementById('step-otp');
+    var otp = document.querySelectorAll('#otp input');
+    sm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var m = MAZCRM.toEnDigits(document.getElementById('mobile').value.trim());
+      var err = document.getElementById('err-mobile'); err.hidden = true;
+      if (!MAZCRM.isValidMobile(m)) { err.textContent='شماره نامعتبر'; err.hidden=false; return; }
+      MAZCRM.api.sendOtp(m).then(function () {
+        sm.classList.remove('active'); so.classList.add('active'); otp[0].focus();
+        document.getElementById('otp-msg').textContent = 'کد ۵ رقمی برای ' + m + ' ارسال شد.';
+      });
+    });
+    so.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var code = Array.from(otp).map(function (i){return MAZCRM.toEnDigits(i.value);}).join('');
+      var err = document.getElementById('err-otp'); err.hidden = true;
+      MAZCRM.api.verifyOtp('09', code).then(function () {
+        MAZCRM.toast('ورود موفق','success');
+        setTimeout(function(){ location.href='../patient/overview.html'; }, 600);
+      }).catch(function (e) { err.textContent=e.message; err.hidden=false; });
+    });
+    otp.forEach(function (i, idx) {
+      i.addEventListener('input', function (e) {
+        e.target.value = MAZCRM.toEnDigits(e.target.value).replace(/\D/g,'');
+        if (e.target.value && idx < otp.length-1) otp[idx+1].focus();
+      });
+      i.addEventListener('keydown', function (e) {
+        if (e.key==='Backspace' && !e.target.value && idx>0) otp[idx-1].focus();
+      });
+    });
+  </script>
+</body>
+</html>

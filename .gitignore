@@ -1,0 +1,41 @@
+# MΛZ Medical CRM — MAZ//ID
+
+# ---------- Secrets & env ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+credentials.json
+secrets/
+
+# ---------- PHP / Laravel (for the future backend) ----------
+/vendor/
+/node_modules/
+composer.phar
+composer.lock
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/bootstrap/cache/*
+
+# ---------- OS / editor ----------
+.DS_Store
+Thumbs.db
+._*
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ---------- Local dev artefacts ----------
+dist/
+build/
+tmp/
+*.log
+
+# ---------- Frontend ----------
+# We deliberately vendor no node_modules — pure static HTML/CSS/JS

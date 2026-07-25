@@ -1,0 +1,126 @@
+<!doctype html>
+<!--
+  MΛZ Medical CRM — Patient Master View + Timeline
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+-->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>پرونده بیمار — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <style>
+    .patient-header { display:flex;gap:1.25rem;align-items:center;padding:1.5rem 2rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:1.5rem;flex-wrap:wrap; }
+    .patient-header .avatar-lg { width:76px;height:76px;border-radius:50%;background:var(--evergreen-soft);color:var(--evergreen);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.5rem;flex-shrink:0; }
+    .patient-header .meta strong { font-size:1.15rem; }
+    .patient-header .meta small { display:block;color:var(--muted);font-size:.82rem;margin-top:.15rem; }
+    .patient-header .actions { margin-inline-start:auto;display:flex;gap:.5rem;flex-wrap:wrap; }
+    .tabs { display:flex;gap:.25rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem;overflow-x:auto; }
+    .tab { padding:.75rem 1.25rem;background:none;border:none;border-bottom:2px solid transparent;font-family:inherit;font-size:.9rem;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap; }
+    .tab.active { color:var(--evergreen);border-bottom-color:var(--evergreen); }
+    .timeline { position:relative;padding-inline-start:2rem; }
+    .timeline::before { content:'';position:absolute;inset-inline-start:.5rem;top:0;bottom:0;width:2px;background:var(--border); }
+    .tl-item { position:relative;padding:1rem 0 1.25rem 0; }
+    .tl-item::before { content:'';position:absolute;inset-inline-start:-1.7rem;top:1.5rem;width:14px;height:14px;border-radius:50%;background:var(--evergreen);border:3px solid var(--surface);box-shadow:0 0 0 2px var(--evergreen-soft); }
+    .tl-item .tl-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:.9rem 1.1rem; }
+    .tl-item .tl-meta { font-size:.72rem;color:var(--muted);margin-bottom:.35rem; }
+    .tl-item h4 { font-size:.95rem;margin-bottom:.35rem; }
+    .tl-item p { font-size:.85rem;color:var(--muted); }
+  </style>
+</head>
+<body data-shell="staff" data-nav="patients">
+  <div class="app-shell">
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1 style="font-size:1.1rem;color:var(--muted)"><a href="patients.html" style="color:var(--muted)">بیماران</a> › پرونده بیمار</h1>
+        </div>
+      </div>
+
+      <div class="patient-header">
+        <div class="avatar-lg">م ا</div>
+        <div class="meta">
+          <strong>مریم احمدی</strong>
+          <small>۰۹۱۲۱۲۳۴۵۶۷ · کد ملی ۰۰۷۹۶۴۳۱۷۸ · متولد ۱۳۷۰/۰۵/۱۲</small>
+          <div style="margin-top:.5rem;display:flex;gap:.35rem;flex-wrap:wrap;">
+            <span class="pill evergreen">حساب فعال</span>
+            <span class="pill success">بیمه تأیید شده</span>
+            <span class="pill muted">جراحی بینی</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary btn-sm">+ نوبت جدید</button>
+          <button class="btn btn-secondary btn-sm">ویرایش</button>
+          <button class="btn btn-ghost btn-sm">پیام</button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab active" role="tab">تایم‌لاین</button>
+        <button class="tab" role="tab">اطلاعات فردی</button>
+        <button class="tab" role="tab">تاریخچه پزشکی</button>
+        <button class="tab" role="tab">مدارک و تصاویر</button>
+        <button class="tab" role="tab">صورتحساب</button>
+        <button class="tab" role="tab">یادداشت‌های داخلی</button>
+      </div>
+
+      <div class="grid-main">
+        <section>
+          <div class="timeline">
+            <div class="tl-item"><div class="tl-card">
+              <div class="tl-meta">۱۴۰۵/۰۴/۱۲ — پرونده الکترونیک</div>
+              <h4>ویزیت پیگیری — هفته دوم پس از عمل</h4>
+              <p>روند بهبود مناسب. تورم کاهش یافته. توصیه به ادامه محدودیت فعالیت به مدت ۲ هفته.</p>
+              <div style="margin-top:.5rem;display:flex;gap:.35rem"><span class="pill evergreen">امضا شده</span><span class="pill info">توسط دکتر باستانی‌نژاد</span></div>
+            </div></div>
+            <div class="tl-item"><div class="tl-card">
+              <div class="tl-meta">۱۴۰۵/۰۴/۰۵ — صورتحساب</div>
+              <h4>فاکتور #۱۰۲۴ — پرداخت شد</h4>
+              <p>مبلغ ۱۸,۵۰۰,۰۰۰ تومان از طریق زرین‌پال</p>
+              <div style="margin-top:.5rem;display:flex;gap:.35rem"><span class="pill success">پرداخت شده</span></div>
+            </div></div>
+            <div class="tl-item"><div class="tl-card">
+              <div class="tl-meta">۱۴۰۵/۰۳/۲۸ — تصاویر</div>
+              <h4>۶ عکس پیش‌عمل بارگذاری شد</h4>
+              <p>نمای روبرو، نیم‌رخ چپ، نیم‌رخ راست، سه‌ربع‌رخ چپ و راست، نمای پایین.</p>
+            </div></div>
+            <div class="tl-item"><div class="tl-card">
+              <div class="tl-meta">۱۴۰۵/۰۳/۱۵ — پذیرش</div>
+              <h4>تشکیل پرونده اولیه</h4>
+              <p>فرم پذیرش دیجیتال — بدون سابقه بیماری قابل توجه.</p>
+              <div style="margin-top:.5rem;display:flex;gap:.35rem"><span class="pill evergreen">تأیید شده</span><span class="pill muted">منبع: اینستاگرام</span></div>
+            </div></div>
+          </div>
+        </section>
+
+        <aside style="display:flex;flex-direction:column;gap:1.25rem;">
+          <div class="panel" style="padding:1.25rem 1.5rem;">
+            <h3 style="font-size:.95rem;margin-bottom:.75rem;">خلاصه پزشکی</h3>
+            <div style="display:flex;flex-direction:column;gap:.5rem;font-size:.85rem;">
+              <div><small style="color:var(--muted)">تاریخچه</small><div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.2rem"><span class="pill evergreen">فشار خون</span><span class="pill evergreen">حساسیت دارویی</span></div></div>
+              <div><small style="color:var(--muted)">داروها</small><div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.2rem"><span class="pill muted">داروی فشار</span><span class="pill muted">آسپرین</span></div></div>
+            </div>
+          </div>
+          <div class="panel" style="padding:1.25rem 1.5rem;background:linear-gradient(135deg,#f8fafc,#eef2ff);border-color:#dbeafe">
+            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;">
+              <span style="background:var(--maz-primary);color:#fff;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:700;font-family:var(--font-mono)">Dr. Copilot</span>
+              <strong style="font-size:.85rem">پیش‌نویس یادداشت</strong>
+            </div>
+            <p style="font-size:.82rem;line-height:1.75">بیمار در وضعیت هفته دوم پس از رینوپلاستی است. تورم بینی ۳۰٪ کاهش یافته. توصیه به ادامه محدودیت ورزش تا ۴ هفته. پیشنهاد ویزیت بعدی: ۲ هفته دیگر.</p>
+            <div style="margin-top:.5rem;display:flex;gap:.5rem;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm">پذیرش و ذخیره</button>
+              <button class="btn btn-secondary btn-sm">ویرایش</button>
+            </div>
+            <div style="margin-top:.5rem;font-size:.7rem;color:var(--muted);font-family:var(--font-mono)">model: claude-3-haiku · tier: mid · cost: $0.0021</div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+</body>
+</html>

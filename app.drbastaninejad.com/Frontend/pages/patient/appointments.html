@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- MΛZ Medical CRM — Patient Appointments · MAZ//ID · © 2026 -->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>نوبت‌ها و یادآور — داشبورد بیمار</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+</head>
+<body data-shell="patient" data-nav="appointments">
+  <div class="app-shell">
+    <main class="main">
+      <div class="topbar"><div><h1>نوبت‌های من</h1><p class="subtitle">نوبت‌های شما توسط پذیرش کلینیک ثبت می‌شود</p></div></div>
+
+      <section class="panel">
+        <h3 style="margin-bottom:1rem">نوبت‌های پیش رو</h3>
+        <div style="display:flex;flex-direction:column;gap:.75rem;">
+          <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--porcelain);border-radius:var(--radius-md);">
+            <div style="width:64px;text-align:center;background:var(--evergreen);color:#fff;border-radius:var(--radius-md);padding:.5rem"><strong style="display:block;font-size:1.15rem">۱۴</strong><span style="font-size:.72rem;opacity:.9">مرداد</span></div>
+            <div style="flex:1"><strong style="font-size:.95rem">ویزیت پیگیری — جراحی بینی</strong><div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">پنجشنبه · ساعت ۱۰:۳۰ · دکتر باستانی‌نژاد</div></div>
+            <span class="pill evergreen">تأیید شده</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--porcelain);border-radius:var(--radius-md);">
+            <div style="width:64px;text-align:center;background:var(--info);color:#fff;border-radius:var(--radius-md);padding:.5rem"><strong style="display:block;font-size:1.15rem">۰۲</strong><span style="font-size:.72rem;opacity:.9">شهریور</span></div>
+            <div style="flex:1"><strong style="font-size:.95rem">مشاوره جراحی ترمیمی</strong><div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">دوشنبه · ساعت ۱۶:۰۰</div></div>
+            <span class="pill info">در انتظار تأیید</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top:1.5rem;">
+        <h3 style="margin-bottom:1rem">تاریخچه نوبت‌ها</h3>
+        <div class="table-wrap" style="box-shadow:none;border:none;">
+          <table class="data-table">
+            <thead><tr><th>تاریخ</th><th>موضوع</th><th>وضعیت</th></tr></thead>
+            <tbody>
+              <tr><td>۱۴۰۵/۰۳/۲۸</td><td>جراحی رینوپلاستی</td><td><span class="pill success">انجام شد</span></td></tr>
+              <tr><td>۱۴۰۵/۰۳/۱۰</td><td>مشاوره اولیه</td><td><span class="pill success">انجام شد</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+</body>
+</html>

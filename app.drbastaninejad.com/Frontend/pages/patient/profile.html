@@ -1,0 +1,108 @@
+<!doctype html>
+<!--
+  MΛZ Medical CRM — Patient Profile
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Adapted from client-provided dashboard_profile_mockup.html into the design system.
+-->
+<html dir="rtl" lang="fa">
+<head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>پروفایل من — داشبورد بیمار</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+  <style>
+    .profile-card { padding:2rem 1.5rem;text-align:center; }
+    .avatar-upload { position:relative;width:116px;height:116px;margin:0 auto 1rem; }
+    .avatar-placeholder { width:116px;height:116px;border-radius:50%;background:var(--evergreen-soft);color:var(--evergreen);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;border:3px solid #fff;box-shadow:0 4px 14px rgba(47,125,50,.18); }
+    .avatar-edit { position:absolute;bottom:-2px;inset-inline-start:-2px;width:36px;height:36px;border-radius:50%;background:var(--evergreen);border:3px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer; }
+    .toggle-row { display:flex;justify-content:space-between;align-items:center;padding:.95rem 0;border-bottom:1px solid var(--border); }
+    .toggle-row:last-child { border-bottom:none; }
+    .med-tag-list { display:flex;flex-wrap:wrap;gap:.55rem; }
+    .med-tag { background:var(--evergreen-soft);color:var(--evergreen-dark);font-size:.82rem;font-weight:600;padding:.4rem .85rem;border-radius:999px; }
+    .readonly-note { background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:.78rem;padding:.7rem .9rem;border-radius:.6rem;margin-top:1rem;line-height:1.7; }
+  </style>
+</head>
+<body data-shell="patient" data-nav="profile">
+  <div class="app-shell">
+    <main class="main">
+      <div class="topbar">
+        <div><h1>پروفایل من</h1><p class="subtitle">اطلاعات شخصی، تصویر پروفایل و تنظیمات حساب کاربری خود را مدیریت کنید.</p></div>
+        <div class="topbar-actions"><div class="avatar-chip"><div class="avatar-md">م ا</div><span class="who">مریم احمدی</span></div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:300px 1fr;gap:1.75rem;align-items:start;" class="profile-grid">
+        <aside class="card profile-card">
+          <div class="avatar-upload">
+            <div class="avatar-placeholder">م ا</div>
+            <button class="avatar-edit" aria-label="تغییر تصویر پروفایل"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+          </div>
+          <h2 style="font-size:1.1rem">مریم احمدی</h2>
+          <p style="color:var(--muted);font-size:.8rem;margin:.15rem 0 1rem">۰۹۱۲۱۲۳۴۵۶۷</p>
+          <span class="pill evergreen">حساب فعال</span>
+          <div style="display:flex;justify-content:space-around;border-top:1px solid var(--border);padding-top:1rem;margin-top:1.25rem">
+            <div><strong style="display:block;font-size:1.1rem">۳</strong><span style="font-size:.72rem;color:var(--muted)">نوبت‌ها</span></div>
+            <div><strong style="display:block;font-size:1.1rem">۱</strong><span style="font-size:.72rem;color:var(--muted)">پرونده</span></div>
+            <div><strong style="display:block;font-size:1.1rem">۲۰۲۶</strong><span style="font-size:.72rem;color:var(--muted)">عضویت</span></div>
+          </div>
+        </aside>
+
+        <div style="display:flex;flex-direction:column;gap:1.75rem;">
+
+          <section class="panel">
+            <div class="panel-header">
+              <div><h3>اطلاعات شخصی</h3><p>این اطلاعات از فرم تشکیل پرونده اولیه شما دریافت شده است.</p></div>
+              <button class="btn btn-ghost btn-sm">ویرایش</button>
+            </div>
+            <div class="grid-2">
+              <div class="input-group"><label class="form-label">نام</label><input class="form-input" disabled value="مریم"/></div>
+              <div class="input-group"><label class="form-label">نام خانوادگی</label><input class="form-input" disabled value="احمدی"/></div>
+              <div class="input-group"><label class="form-label">شماره همراه (تأییدشده)</label><input class="form-input" disabled value="09121234567" style="direction:ltr;text-align:right"/></div>
+              <div class="input-group"><label class="form-label">ایمیل</label><input class="form-input" type="email" value="maryam.ahmadi@example.com" style="direction:ltr;text-align:right"/></div>
+              <div class="input-group"><label class="form-label">تاریخ تولد</label><input class="form-input" disabled value="۱۳۷۰/۰۵/۱۲"/></div>
+              <div class="input-group"><label class="form-label">شهر</label><input class="form-input" disabled value="تهران، منطقه ۵"/></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:.5rem"><button class="btn btn-secondary btn-sm">انصراف</button><button class="btn btn-primary btn-sm">ذخیره تغییرات</button></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header"><div><h3>خلاصه پرونده پزشکی</h3><p>این بخش فقط قابل مشاهده است؛ برای اصلاح با مرکز تماس بگیرید.</p></div></div>
+            <p class="form-label">تاریخچه پزشکی ثبت‌شده</p>
+            <div class="med-tag-list"><span class="med-tag">فشار خون بالا</span><span class="med-tag">حساسیت به دارو و غذا</span></div>
+            <p class="form-label" style="margin-top:1.25rem">داروهای مصرفی</p>
+            <div class="med-tag-list"><span class="med-tag">داروهای فشار خون</span><span class="med-tag">آسپرین</span></div>
+            <div class="readonly-note">⚠ این اطلاعات در زمان تشکیل پرونده اولیه ثبت شده و برای اصلاح یا به‌روزرسانی باید با پذیرش مرکز تماس بگیرید.</div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header"><div><h3>تنظیمات اعلان‌ها</h3><p>نحوه دریافت یادآور نوبت را مشخص کنید.</p></div></div>
+            <div class="toggle-row">
+              <div><div style="font-weight:600;font-size:.9rem">یادآور نوبت از طریق ایمیل</div><div style="font-size:.78rem;color:var(--muted)">ارسال یادآور پیش از زمان نوبت</div></div>
+              <label class="switch"><input type="checkbox" checked/><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div><div style="font-weight:600;font-size:.9rem">یادآور از طریق پیامک</div><div style="font-size:.78rem;color:var(--muted)">پیامک یادآور نوبت</div></div>
+              <label class="switch"><input type="checkbox" checked/><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div><div style="font-weight:600;font-size:.9rem">ایمیل‌های اطلاع‌رسانی</div><div style="font-size:.78rem;color:var(--muted)">اخبار و مطالب پزشکی</div></div>
+              <label class="switch"><input type="checkbox"/><span class="slider"></span></label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header"><div><h3>امنیت حساب کاربری</h3><p>رمز عبور خود را به‌روزرسانی کنید.</p></div></div>
+            <div class="grid-2">
+              <div class="input-group"><label class="form-label">رمز عبور جدید</label><input class="form-input" type="password" placeholder="••••••••"/></div>
+              <div class="input-group"><label class="form-label">تکرار رمز عبور</label><input class="form-input" type="password" placeholder="••••••••"/></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary btn-sm">به‌روزرسانی رمز عبور</button></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+  <style>@media (max-width:900px){ .profile-grid { grid-template-columns:1fr !important; } }</style>
+  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+</body>
+</html>
