@@ -55,3 +55,31 @@ so the shell is always renderable during backend rollout.
 Patients index/detail, Calendar (day/week/month/agenda), EMR dynamic editor, Media viewer,
 Billing/invoices, Task board, Analytics, Staff/RBAC, Settings/template builder — all specified
 in `Medical CRM.md` §4–5 and ready to implement against this same shell and brand tokens.
+
+
+## Patients module (implemented)
+
+Files added:
+- `app/Models/Patient.php` — search (paginated, clinic-scoped) + `timeline()` (UNION across
+  intakes, appointments, EMR notes, invoices — ordered newest-first per design brief §5.4).
+- `app/Core/Model.php`, `app/Core/Database.php` — base PDO model/singleton shared by all modules.
+- `app/Controllers/PatientController.php` — `index`, `show`, `store`, `update`, all clinic-scoped
+  and RBAC-gated (`patients.view` / `patients.manage`).
+- `app/Services/PatientService.php` — staff-initiated patient creation (dedupes by mobile),
+  distinct from the public intake auto-account flow.
+- `config/routes.patients.php` — route registrations for `/api/v1/patients[/:id]`.
+- `public/assets/js/patients.js` — list view (search debounce, pagination, clickable rows) +
+  detail view (sticky header, timeline with type badges: پذیرش/نوبت/یادداشت بالینی/فاکتور).
+- `public/index.html` — added `#view-patients` and `#view-patient-detail` sections.
+- `public/assets/js/app.js` — `showSection()` now toggles between Overview/Patients views.
+
+### API contract
+```
+GET  /api/v1/patients?q=&page=&per_page=   -> { rows: [...], total, page, per_page }
+GET  /api/v1/patients/{id}                 -> { patient: {...}, timeline: [...] }
+POST /api/v1/patients                      -> { id }   (validates mobile + Code Meli)
+PUT  /api/v1/patients/{id}                 -> { id }
+```
+
+Timeline entry types: `intake`, `appointment`, `emr_note`, `invoice` — each mapped client-side
+to a Persian label and status badge colour, matching the brand token system.

@@ -87,10 +87,32 @@ async function loadOverview() {
   }
 }
 
+function showSection(view) {
+  document.querySelectorAll('#view-root > section').forEach(sec => {
+    sec.style.display = 'none';
+  });
+  const map = { overview: 'view-overview', patients: 'view-patients' };
+  const sectionId = map[view];
+  if (sectionId) {
+    const el = document.getElementById(sectionId);
+    if (el) el.style.display = 'block';
+  }
+}
+
 function navigate(view) {
   state.view = view;
   setActiveNav(view);
-  if (view === 'overview') loadOverview();
+  if (view === 'overview') {
+    showSection('overview');
+    loadOverview();
+  } else if (view === 'patients') {
+    showSection('patients');
+    document.getElementById('view-patient-detail').style.display = 'none';
+    PatientsModule.load();
+  } else {
+    // Modules not yet scaffolded — keep shell usable without a hard error
+    document.querySelectorAll('#view-root > section').forEach(sec => sec.style.display = 'none');
+  }
 }
 
 document.querySelectorAll('.nav-item').forEach(item => {
@@ -108,6 +130,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+PatientsModule.init();
 navigate('overview');
 
 if ('serviceWorker' in navigator) {
