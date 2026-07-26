@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>داشبورد مدیریت | دکتر شاهین باستانی‌نژاد</title>
+<meta name="theme-color" content="#2F7D32">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/theme.css">
+<link rel="manifest" href="manifest.json">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <img src="assets/img/logo.svg" alt="لوگو" onerror="this.style.display='none'">
+      <strong>MZ Medical CRM</strong>
+    </div>
+    <nav class="nav-group">
+      <div class="nav-label">اصلی</div>
+      <a class="nav-item active" data-view="overview">داشبورد کلی</a>
+      <a class="nav-item" data-view="patients">پرونده بیماران</a>
+      <a class="nav-item" data-view="calendar">تقویم نوبت‌دهی</a>
+      <a class="nav-item" data-view="intake">پذیرش / فرم ورود</a>
+    </nav>
+    <nav class="nav-group">
+      <div class="nav-label">پرونده بالینی</div>
+      <a class="nav-item" data-view="emr">EMR پرونده الکترونیک</a>
+      <a class="nav-item" data-view="media">تصاویر و اسناد</a>
+      <a class="nav-item" data-view="ai-copilot">دستیار هوش مصنوعی</a>
+    </nav>
+    <nav class="nav-group">
+      <div class="nav-label">مدیریت</div>
+      <a class="nav-item" data-view="billing">مالی و صورتحساب</a>
+      <a class="nav-item" data-view="tasks">وظایف تیم</a>
+      <a class="nav-item" data-view="analytics">آنالیتیکس و بازاریابی</a>
+      <a class="nav-item" data-view="staff">کاربران و نقش‌ها</a>
+      <a class="nav-item" data-view="settings">تنظیمات و قالب‌ها</a>
+    </nav>
+    <div class="user-box">
+      <div class="avatar">ش.ب</div>
+      <div>
+        <div style="font-weight:700;font-size:.85rem">دکتر باستانی‌نژاد</div>
+        <div style="font-size:.72rem;color:var(--muted)">مدیر ارشد</div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="page-title">داشبورد کلی</h1>
+        <div class="sub" id="page-sub">خلاصه وضعیت کلینیک امروز</div>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" id="search-btn" title="جستجوی سراسری (Ctrl+K)">⌘K</button>
+        <button class="icon-btn" title="اعلان‌ها">🔔</button>
+        <button class="btn btn-primary" id="new-btn">+ جدید</button>
+        <button class="icon-btn" id="menu-toggle" style="display:none">☰</button>
+      </div>
+    </header>
+
+    <main class="content" id="view-root">
+      <section id="view-overview">
+        <div class="metric-grid" id="metric-grid">
+          <div class="metric-card skeleton" style="height:96px"></div>
+          <div class="metric-card skeleton" style="height:96px"></div>
+          <div class="metric-card skeleton" style="height:96px"></div>
+          <div class="metric-card skeleton" style="height:96px"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.3fr .7fr;gap:1.25rem" id="overview-grid">
+          <div class="card">
+            <h3 style="margin:0 0 1rem">نیازمند توجه</h3>
+            <table class="data-table" id="attention-table">
+              <thead><tr><th>بیمار</th><th>مورد</th><th>وضعیت</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h3 style="margin:0 0 1rem">نوبت‌های امروز</h3>
+            <div id="today-list"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
