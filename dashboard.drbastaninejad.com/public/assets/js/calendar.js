@@ -6,6 +6,13 @@ const CalendarModule = (() => {
   const MONTHS_FA = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
   const WORK_START = 8, WORK_END = 20;
 
+
+  function fmtTime(dateStr) {
+    const d = new Date(dateStr);
+    const pad = (n) => String(n).padStart(2, '0');
+    return Jalali.toPersianDigits(`${pad(d.getHours())}:${pad(d.getMinutes())}`);
+  }
+
   function fmtDate(d) { return d.toISOString().slice(0, 10); }
   function startOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
   function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
@@ -35,12 +42,13 @@ const CalendarModule = (() => {
     const { from, to } = rangeForView();
     const label = document.getElementById('cal-range-label');
     if (state.view === 'month') {
-      label.textContent = `${MONTHS_FA[from.getMonth()]} ${from.getFullYear()}`;
+      const { jy, jm } = Jalali.toJalali(from);
+      label.textContent = `${Jalali.MONTHS_FA[jm - 1]} ${Jalali.toPersianDigits(jy)}`;
     } else if (state.view === 'day') {
-      label.textContent = `${WEEKDAYS_FA[from.getDay()]} ${from.getDate()} ${MONTHS_FA[from.getMonth()]}`;
+      label.textContent = Jalali.formatFull(from);
     } else {
       const toLabel = addDays(to, -1);
-      label.textContent = `${from.getDate()} ${MONTHS_FA[from.getMonth()]} — ${toLabel.getDate()} ${MONTHS_FA[toLabel.getMonth()]}`;
+      label.textContent = `${Jalali.formatShort(from)} — ${Jalali.formatShort(toLabel)}`;
     }
   }
 
@@ -77,7 +85,7 @@ const CalendarModule = (() => {
                  style="background:var(--evergreen-soft);border-right:3px solid var(--evergreen);border-radius:.4rem;
                         padding:.25rem .5rem;margin:${compact ? '1px 0' : '2px 20px 2px 2px'};font-size:.72rem;cursor:grab">
               <div style="font-weight:700;color:var(--graphite)">${ev.patient_name}</div>
-              <div style="color:var(--muted)">${new Date(ev.start).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'})} · ${ev.reason || ''}</div>
+              <div style="color:var(--muted)">${fmtTime(ev.start)} · ${ev.reason || ''}</div>
               <span class="badge badge-${ev.badge}" style="margin-top:2px">${ev.status}</span>
             </div>`).join('')}
         </div>`;
@@ -95,10 +103,13 @@ const CalendarModule = (() => {
   function renderWeekView() {
     const from = startOfWeek(state.anchor);
     const days = Array.from({ length: 7 }, (_, i) => addDays(from, i));
-    const header = days.map(d => `
+    const header = days.map(d => {
+      const { jd } = Jalali.toJalali(d);
+      return `
       <div style="flex:1;text-align:center;font-size:.75rem;font-weight:700;padding:.5rem 0;border-bottom:2px solid var(--border)">
-        ${WEEKDAYS_FA[d.getDay()]}<br><span style="color:var(--muted);font-weight:400">${d.getDate()}</span>
-      </div>`).join('');
+        ${WEEKDAYS_FA[d.getDay()]}<br><span style="color:var(--muted);font-weight:400">${Jalali.toPersianDigits(jd)}</span>
+      </div>`;
+    }).join('');
     const cols = days.map(d => renderDayColumn(d, true)).join('');
     document.getElementById('calendar-body').innerHTML =
       `<div style="display:flex">${header}</div><div style="display:flex">${cols}</div>`;
@@ -113,13 +124,14 @@ const CalendarModule = (() => {
     const body = cells.map(d => {
       const inMonth = d.getMonth() === from.getMonth();
       const dayEvents = eventsForDay(d);
+      const { jd } = Jalali.toJalali(d);
       return `
         <div class="cal-month-cell" data-date="${fmtDate(d)}"
              style="border:1px solid var(--border);min-height:88px;padding:.35rem;background:${inMonth ? '#fff' : 'var(--porcelain)'};opacity:${inMonth ? 1 : .5}">
-          <div style="font-size:.75rem;font-weight:600;color:var(--graphite)">${d.getDate()}</div>
+          <div style="font-size:.75rem;font-weight:600;color:var(--graphite)">${Jalali.toPersianDigits(jd)}</div>
           ${dayEvents.slice(0,3).map(ev => `
             <div class="badge badge-${ev.badge}" style="display:block;margin-top:2px;font-size:.65rem;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-              ${new Date(ev.start).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'})} ${ev.patient_name}
+              ${fmtTime(ev.start)} ${ev.patient_name}
             </div>`).join('')}
           ${dayEvents.length > 3 ? `<div style="font-size:.65rem;color:var(--muted);margin-top:2px">+${dayEvents.length - 3} بیشتر</div>` : ''}
         </div>`;
@@ -146,13 +158,13 @@ const CalendarModule = (() => {
       return `
         <div style="margin-bottom:1rem">
           <div style="font-weight:700;font-size:.85rem;margin-bottom:.5rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)">
-            ${WEEKDAYS_FA[d.getDay()]} ${d.getDate()} ${MONTHS_FA[d.getMonth()]}
+            ${Jalali.formatFull(d)}
           </div>
           ${grouped[k].map(ev => `
             <div style="display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;border-bottom:1px solid var(--border)">
               <div>
                 <div style="font-weight:600;font-size:.85rem">${ev.patient_name}</div>
-                <div style="font-size:.72rem;color:var(--muted)">${new Date(ev.start).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'})} · ${ev.reason || ''}</div>
+                <div style="font-size:.72rem;color:var(--muted)">${fmtTime(ev.start)} · ${ev.reason || ''}</div>
               </div>
               <span class="badge badge-${ev.badge}">${ev.status}</span>
             </div>`).join('')}
@@ -175,9 +187,13 @@ const CalendarModule = (() => {
   }
 
   function attachDnD() {
-    document.querySelectorAll('.cal-event').forEach(ev => {
-      ev.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', ev.dataset.id);
+    document.querySelectorAll('.cal-event').forEach(evEl => {
+      evEl.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', evEl.dataset.id);
+      });
+      evEl.addEventListener('dblclick', () => {
+        const ev = state.events.find(x => String(x.id) === evEl.dataset.id);
+        if (ev) EmrModule.open(ev.patient_id, ev.id);
       });
     });
     document.querySelectorAll('.cal-slot').forEach(slot => {

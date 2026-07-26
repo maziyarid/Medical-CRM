@@ -134,7 +134,48 @@
     </main>
   </div>
 </div>
+
+      <div id="emr-drawer" class="hidden" style="position:fixed;inset:0;background:rgba(37,39,44,.45);z-index:100;display:none">
+        <div style="position:absolute;top:0;left:0;bottom:0;width:min(560px,92vw);background:#fff;box-shadow:var(--shadow-lg);
+                    display:flex;flex-direction:column;padding:1.5rem;overflow-y:auto">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+            <h3 style="margin:0">یادداشت بالینی جدید</h3>
+            <button class="icon-btn" id="emr-close-btn">✕</button>
+          </div>
+          <div class="input-group" style="margin-bottom:1rem">
+            <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:.4rem">شرح شکایت اصلی *</label>
+            <textarea id="emr-chief-complaint" rows="2" style="width:100%;border:1px solid var(--border);border-radius:.6rem;padding:.6rem;font-family:inherit"></textarea>
+          </div>
+          <div class="input-group" style="margin-bottom:1rem">
+            <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:.4rem">تشخیص</label>
+            <input id="emr-diagnosis" type="text" style="width:100%;border:1px solid var(--border);border-radius:.6rem;padding:.6rem;font-family:inherit">
+          </div>
+          <div class="input-group" style="margin-bottom:1rem">
+            <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:.4rem">برنامه درمانی</label>
+            <textarea id="emr-plan" rows="3" style="width:100%;border:1px solid var(--border);border-radius:.6rem;padding:.6rem;font-family:inherit"></textarea>
+          </div>
+
+          <div class="card" style="background:var(--evergreen-soft);border-color:var(--evergreen);margin-bottom:1rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+              <strong style="font-size:.85rem;color:var(--evergreen)">دستیار هوش مصنوعی — نیاز به تایید</strong>
+              <button class="btn btn-secondary" id="emr-ai-suggest-btn" style="font-size:.75rem;padding:.35rem .8rem">پیشنهاد بگیر</button>
+            </div>
+            <div id="emr-ai-draft" style="font-size:.82rem;color:var(--graphite);display:none;background:#fff;border:1px solid var(--border);border-radius:.5rem;padding:.6rem;margin-bottom:.5rem"></div>
+            <div id="emr-ai-actions" style="display:none;gap:.5rem">
+              <button class="btn btn-primary" id="emr-ai-accept" style="font-size:.75rem;padding:.35rem .8rem">پذیرش و افزودن به برنامه</button>
+              <button class="btn btn-ghost" id="emr-ai-discard" style="font-size:.75rem;padding:.35rem .8rem">رد کردن</button>
+            </div>
+          </div>
+
+          <div style="margin-top:auto;display:flex;gap:.75rem">
+            <button class="btn btn-primary" id="emr-save-btn" style="flex:1">ذخیره یادداشت</button>
+            <button class="btn btn-ghost" id="emr-cancel-btn">انصراف</button>
+          </div>
+        </div>
+      </div>
+<script src="assets/js/emr.js"></script>
 <script src="assets/js/patients.js"></script>
+<script src="assets/js/jalali.js"></script>
 <script src="assets/js/calendar.js"></script>
 <script src="assets/js/app.js"></script>
 </body>

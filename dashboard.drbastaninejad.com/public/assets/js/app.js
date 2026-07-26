@@ -133,6 +133,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+EmrModule.init();
 PatientsModule.init();
 CalendarModule.init();
 navigate('overview');

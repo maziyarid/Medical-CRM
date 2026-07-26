@@ -108,9 +108,10 @@ const PatientsModule = (() => {
             <div style="color:var(--muted);font-size:.85rem;margin-top:2px" dir="ltr">${p.mobile || ''} ${p.national_id ? '· ' + p.national_id : ''}</div>
           </div>
           <span class="badge badge-${p.insurance_status === 'active' ? 'success' : 'muted'}">بیمه: ${p.insurance_status || 'نامشخص'}</span>
-          <button class="btn btn-secondary" style="font-size:.82rem">+ نوبت جدید</button>
+          <button class="btn btn-secondary" id="patient-write-note-btn" style="font-size:.82rem">+ یادداشت بالینی</button>
           <button class="btn btn-ghost" style="font-size:.82rem">ویرایش</button>
         </div>`;
+      document.getElementById('patient-write-note-btn').addEventListener('click', () => EmrModule.open(id));
       renderTimeline(res.data.timeline);
     } catch (e) {
       headerEl.innerHTML = '<div style="color:var(--error)">خطا در بارگذاری پرونده بیمار</div>';

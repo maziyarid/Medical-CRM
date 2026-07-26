@@ -122,3 +122,41 @@ PATCH /api/v1/appointments/{id}/status                    -> { id, status }
 - Reminder-sent indicator on each appointment card is not yet rendered — `reminder_sent_at`
   column exists in the schema and should be surfaced once the SMS/email reminder timing decision
   (ROADMAP.md open question #1) is confirmed.
+
+
+## Dynamic EMR Editor (implemented) — connects Patients + Calendar
+
+Files added:
+- `app/Models/EmrRecord.php` — `forPatient()` (timeline-ready, joined with author name),
+  `templatesForSpecialty()` (schema-driven form templates per Medical CRM.md §5.7).
+- `app/Controllers/EmrController.php` — `index` (patient's notes), `templates`, `store`
+  (fixed fields: chief_complaint/diagnosis/plan + specialty_fields JSON blob), `draftNote`
+  (AI Copilot — returns text only, `requires_review: true` always set, never auto-saved).
+- `app/Services/AiRouterService.php` — placeholder wrapper for the OpenRouter integration
+  (see OpenRouter Router Service Spec doc); returns a clearly-labelled placeholder string
+  so the "AI draft — review required" UI card is never mistaken for real clinical content.
+- `config/routes.emr.php` — `/api/v1/patients/{id}/emr`, `/api/v1/emr/templates`,
+  `/api/v1/ai/emr-draft`, all RBAC-gated (`emr.view` / `emr.edit`).
+- `public/assets/js/emr.js` — slide-in drawer with chief complaint / diagnosis / plan fields,
+  an AI Copilot card with explicit Accept/Discard actions (never auto-saves), launched from:
+  - Patient detail header ("+ یادداشت بالینی" button)
+  - Calendar event (double-click an appointment to open a note pre-linked to that appointment)
+
+This is the module tying Patients and Calendar together, per your request to finish the
+connected module before moving to other work.
+
+## Jalali (Shamsi) calendar fix (implemented)
+
+- `public/assets/js/jalali.js` — dependency-free Gregorian↔Jalali conversion (public-domain
+  algorithm), Persian digit conversion, and formatting helpers (`formatFull`, `formatShort`,
+  `formatNumeric`). Backend continues to store all timestamps as UTC/Gregorian — Jalali is a
+  display-only layer, per the non-negotiable Iranian market constraint in Medical CRM.md §3/§6.7.
+- `public/assets/js/calendar.js` — updated to use Jalali for: range label (day/week/month/agenda
+  headers), week-view day numbers, month-view day-of-month cells, agenda date headers, and
+  event time display (now in Persian digits).
+- **Still open**: Patients module (`patients.js`) still renders `last_visit` and timeline
+  timestamps in Gregorian via `toLocaleDateString('fa-IR')` — this needs the same `Jalali.*`
+  helpers applied next (tracked in `PROJECT_CHECKLIST.md` §2).
+
+See `PROJECT_CHECKLIST.md` at the repo root for the full remaining roadmap and action items
+split between AI-buildable work and decisions that require your input.
