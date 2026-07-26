@@ -83,3 +83,42 @@ PUT  /api/v1/patients/{id}                 -> { id }
 
 Timeline entry types: `intake`, `appointment`, `emr_note`, `invoice` — each mapped client-side
 to a Persian label and status badge colour, matching the brand token system.
+
+
+## Calendar / Scheduling module (implemented)
+
+Files added:
+- `app/Models/Appointment.php` — `inRange()` (clinic + optional provider filter, joined with
+  patient name for display) and `hasConflict()` (interval-overlap check using duration_minutes,
+  excludes cancelled appointments) — implements conflict detection from Medical CRM.md §5.6.
+- `app/Controllers/AppointmentController.php` — `index` (range query for calendar rendering),
+  `store` (quick-create with server-side conflict check, HTTP 409 on overlap), `reschedule`
+  (drag-and-drop target, re-checks conflict excluding itself), `updateStatus` (scheduled →
+  confirmed/cancelled/completed).
+- `app/Services/AppointmentService.php` — creation wrapper; deliberately does NOT trigger
+  reminder emails/SMS yet (reminder timing is still an open question per ROADMAP.md §11).
+- `config/routes.appointments.php` — `/api/v1/appointments`, `/api/v1/appointments/{id}/reschedule`,
+  `/api/v1/appointments/{id}/status`, all RBAC-gated (`appointments.view` / `appointments.manage`).
+- `public/assets/js/calendar.js` — Day / Week / Month / Agenda views, previous/next/today
+  navigation, native HTML5 drag-and-drop reschedule (day/week grid), colour-coded status badges,
+  working-hours grid (08:00–20:00). Month view shows up to 3 events per cell with a "+N more"
+  overflow indicator.
+- `public/index.html` — added `#view-calendar` section with view-switch buttons.
+
+### API contract
+```
+GET   /api/v1/appointments?from=&to=&provider_id=        -> { events: [...] }
+POST  /api/v1/appointments                                -> { id }  (409 on time conflict)
+PATCH /api/v1/appointments/{id}/reschedule                -> { id }  (409 on time conflict)
+PATCH /api/v1/appointments/{id}/status                    -> { id, status }
+```
+
+### Notes for the next agent
+- Jalali (Shamsi) date display is NOT yet wired into calendar.js — it currently renders Gregorian
+  with Persian weekday/month names only. Swap in `JalaliService`-equivalent client-side formatting
+  before shipping to production, per the non-negotiable Iranian market constraint in Medical CRM.md §3.
+- Self-booking (patient-initiated slot picking) is explicitly deferred per ROADMAP.md — this
+  module is staff-only quick-create/drag-reschedule, matching that decision.
+- Reminder-sent indicator on each appointment card is not yet rendered — `reminder_sent_at`
+  column exists in the schema and should be surfaced once the SMS/email reminder timing decision
+  (ROADMAP.md open question #1) is confirmed.

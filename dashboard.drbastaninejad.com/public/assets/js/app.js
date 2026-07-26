@@ -91,7 +91,7 @@ function showSection(view) {
   document.querySelectorAll('#view-root > section').forEach(sec => {
     sec.style.display = 'none';
   });
-  const map = { overview: 'view-overview', patients: 'view-patients' };
+  const map = { overview: 'view-overview', patients: 'view-patients', calendar: 'view-calendar' };
   const sectionId = map[view];
   if (sectionId) {
     const el = document.getElementById(sectionId);
@@ -109,6 +109,9 @@ function navigate(view) {
     showSection('patients');
     document.getElementById('view-patient-detail').style.display = 'none';
     PatientsModule.load();
+  } else if (view === 'calendar') {
+    showSection('calendar');
+    CalendarModule.load();
   } else {
     // Modules not yet scaffolded — keep shell usable without a hard error
     document.querySelectorAll('#view-root > section').forEach(sec => sec.style.display = 'none');
@@ -131,6 +134,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 PatientsModule.init();
+CalendarModule.init();
 navigate('overview');
 
 if ('serviceWorker' in navigator) {

@@ -103,6 +103,26 @@
         </div>
       </section>
 
+      <section id="view-calendar" style="display:none">
+        <div class="card" style="margin-bottom:1.25rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+            <div style="display:flex;gap:.4rem">
+              <button class="btn btn-ghost" id="cal-prev" style="padding:.5rem .8rem">→</button>
+              <button class="btn btn-ghost" id="cal-today" style="padding:.5rem .9rem;font-size:.82rem">امروز</button>
+              <button class="btn btn-ghost" id="cal-next" style="padding:.5rem .8rem">←</button>
+              <strong id="cal-range-label" style="align-self:center;margin-right:.5rem;font-size:.95rem"></strong>
+            </div>
+            <div style="display:flex;gap:.4rem" id="cal-view-switch">
+              <button class="btn btn-secondary" data-cal-view="day" style="padding:.45rem .9rem;font-size:.82rem">روز</button>
+              <button class="btn btn-ghost" data-cal-view="week" style="padding:.45rem .9rem;font-size:.82rem">هفته</button>
+              <button class="btn btn-ghost" data-cal-view="month" style="padding:.45rem .9rem;font-size:.82rem">ماه</button>
+              <button class="btn btn-ghost" data-cal-view="agenda" style="padding:.45rem .9rem;font-size:.82rem">فهرست</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" id="calendar-body" style="min-height:520px"></div>
+      </section>
+
       <section id="view-patient-detail" style="display:none">
         <button class="btn btn-ghost" id="back-to-patients" style="margin-bottom:1rem">→ بازگشت به فهرست بیماران</button>
         <div class="card" id="patient-header" style="margin-bottom:1.25rem"></div>
@@ -115,6 +135,7 @@
   </div>
 </div>
 <script src="assets/js/patients.js"></script>
+<script src="assets/js/calendar.js"></script>
 <script src="assets/js/app.js"></script>
 </body>
 </html>
