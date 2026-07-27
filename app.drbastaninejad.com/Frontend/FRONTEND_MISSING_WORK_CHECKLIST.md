@@ -1,8 +1,23 @@
 <!-- MAZ//ID · Dr. Shahin Bastaninejad Medical Platform · frontend gap checklist -->
 # Frontend Missing Work Checklist
 
-**Scope:** `Medical-CRM/app.drbastaninejad.com/Frontend/`  
+**Scope:** `Medical-CRM/app.drbastaninejad.com/Frontend/`
 **Rule:** pages already exist in the repository. Treat this as a wiring, quality, and missing-capability checklist—not permission to rebuild duplicate screens.
+
+## Audience split (added 2026-07-27, confirmed with product owner)
+
+Two frontends live inside the `Medical-CRM` repository. Both are retained; both consume the **same** backend contracts.
+
+| Tree | Owns | Audience |
+|---|---|---|
+| **`app.drbastaninejad.com/Frontend/`** (this folder) | Public intake wizard, auth (staff + patient), patient portal (6 pages), staff CRM (9 pages). Per-page HTML, RTL, mobile-first. | Real end users — patients and clinic staff on their production URLs. |
+| **`dashboard.drbastaninejad.com/public/`** | Backend track's SPA shell for live-testing the API. | Backend developers; not a customer-facing surface. |
+
+**Endpoint contract source of truth:** [`dashboard.drbastaninejad.com/docs/API_CONTRACT.md`](../../dashboard.drbastaninejad.com/docs/API_CONTRACT.md). This folder consumes those endpoints **verbatim** — same paths, same payload keys, same status codes. Never invent parallel endpoints for the two frontends.
+
+**New endpoint names go through `UNIFIED_MASTER_PLAN.md` first** (per `SPACE_COORDINATION_PROTOCOL.md` §6). If a wiring task in this checklist needs an endpoint that does not exist in `API_CONTRACT.md`, tag it `TODO(API-CONTRACT)` and request it from the Backend track by describing the need — never coin the path yourself.
+
+**Shared client-side code** (`jalali.js` conversion algorithm, response envelope shape) that already exists inside the SPA is copied verbatim into `Frontend/assets/js/` rather than reimplemented, to keep the two frontends bit-for-bit consistent.
 
 ## Cross-cutting
 

@@ -97,3 +97,23 @@ Files touched:
 - drbst/Frontend/FRONTEND_DESIGNER_AGENT_PROMPT.md (new)
 Schema/API changes: none
 Blocking questions raised: none — frontend agents should begin repository audit (Phase A) per UNIFIED_MASTER_PLAN.md before wiring any API.
+
+
+## [2026-07-27 13:10] — Track: Frontend — Agent/Chat: MAZ//ID Frontend Implementation Agent
+Phase: 4 (Dashboard UI) — audit before wiring
+Completed: Repository audit for both frontends (`app.drbastaninejad.com/Frontend/` per-page HTML and `dashboard.drbastaninejad.com/public/` SPA) and `drbst/Frontend/` marketing site; classified every page done/partial/mock-only/missing; marked `drbst/Front-end Design/` as LEGACY (archived, no deletion pending user approval); added audience-split clarification to `FRONTEND_MISSING_WORK_CHECKLIST.md` naming `dashboard.drbastaninejad.com/docs/API_CONTRACT.md` as the shared endpoint contract source of truth.
+Files touched:
+- Medical-CRM/REPOSITORY_AUDIT.md (new)
+- Medical-CRM/app.drbastaninejad.com/Frontend/FRONTEND_MISSING_WORK_CHECKLIST.md (updated: audience-split section)
+- drbst/Front-end Design/README.LEGACY.md (new)
+Schema/API changes: none (frontend track — no schema/API authority).
+Blocking questions raised (recorded in REPOSITORY_AUDIT.md §6, requested from Backend track through UNIFIED_MASTER_PLAN.md amendment):
+- GET /api/v1/patient/overview
+- GET /api/v1/patient/documents
+- GET/PATCH /api/v1/patient/notification-preferences
+- GET /api/v1/media/{uuid}/url (signed short-TTL read URL)
+- Full billing surface (list, detail, Zarinpal/IDPay redirect callback status enum)
+- Full tasks surface (Kanban CRUD + status/priority enums)
+- Full analytics surface (referral-source conversion, date-range)
+- Full settings surface (clinic, working hours, users, roles, EMR template builder)
+- drbst appointment CTA handoff: link to app.drbastaninejad.com/intake vs. new marketing lead endpoint (recommendation in audit: link to intake — avoid duplicating OTP/national-ID/signature logic).
