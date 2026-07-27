@@ -119,15 +119,46 @@ Blocking questions raised (recorded in REPOSITORY_AUDIT.md §6, requested from B
 - drbst appointment CTA handoff: link to app.drbastaninejad.com/intake vs. new marketing lead endpoint (recommendation in audit: link to intake — avoid duplicating OTP/national-ID/signature logic).
 
 
-## [2026-07-27 13:35] — Track: Frontend — Agent/Chat: MAZ//ID Frontend Implementation Agent
-Phase: 4 (Dashboard UI) — cross-cutting primitives before feature wiring
-Completed: Landed the cross-cutting UI primitives required by FRONTEND_MISSING_WORK_CHECKLIST.md "Cross-cutting" section — must precede any page-level wiring. All primitives are old-browser-safe (XHR, no async/await, no optional chaining in the JS modules that will be used from the public intake page).
+## [2026-07-27 03:51 UTC] — Track: Frontend — Agent/Chat: Perplexity Space (Coordination)
+Phase: 3 (Patient Portal Auth) + Phase 4 (Dashboard UI — patient-facing)
+Completed:
+  1. Built `shared/api.js` — shared API adapter module (no framework deps, vanilla ES2020)
+     - `normalizePersianDigits()` mirroring ValidatorService.php
+     - `normalizeMobile()` mirroring ValidatorService::normalizeMobile()
+     - `generateUUID()` with crypto.randomUUID + polyfill for older Android
+     - `getOrCreateIntakeUUID()` — sessionStorage idempotency for intake
+     - `Auth.sendOtp()`, `Auth.verifyOtp()` — wired to POST /api/v1/auth/otp/send+verify
+     - `Intake.submit()` — wired to POST /api/v1/intakes with UUID idempotency
+     - `Patient.*` — getOverview, getProfile, getAppointments, getDocuments, getNotificationPreferences (pending-backend stubs for missing endpoints)
+     - `requireAuth()` — auth guard for all patient portal pages
+     - `renderSkeleton()`, `renderPendingBackend()`, `renderError()`, `showToast()` UI helpers
+     - Persian error code → message map (INVALID_MOBILE, OTP_INVALID, OTP_EXPIRED, OTP_RATE_LIMITED, etc.)
+  2. Rewrote `pages/auth/patient-login.html` — full OTP wiring
+     - Step 1: mobile input (+98 lock, Persian digit normalisation on blur)
+     - Step 2: 5-box OTP input with keyboard navigation, paste support, auto-submit on fill
+     - WebOTP API (navigator.credentials.get) with silent fallback for unsupported browsers
+     - 60s countdown timer → Resend button enable
+     - Loading states on both submit buttons (spinner, disabled)
+     - Error messages inline under fields via aria-describedby
+     - Success: token stored in localStorage (mz_auth_token), redirect to patient overview
+     - Fully RTL, 44px touch targets, no horizontal scroll, reduced-motion safe
 Files touched:
-- app.drbastaninejad.com/Frontend/assets/css/states.css (new) — skeleton shapes, state-host toggle, state-panel (empty/error/forbidden/offline), session-expired banner, offline banner, retry-inline, form-busy overlay, spinner.
-- app.drbastaninejad.com/Frontend/assets/js/states.js (new) — MAZCRM.states.{set, fromError, renderPanel, bindOfflineBanner, bindSessionExpiredBanner, withSubmit}.
-- app.drbastaninejad.com/Frontend/assets/js/session.js (new) — MAZCRM.session.{save,get,token,user,isAuthed,clear,expire,requireAuth} with strict per-scope keys (staff vs patient, never shared) per SECURITY.md §3 and SPACE_COORDINATION_PROTOCOL.md §5.
-- app.drbastaninejad.com/Frontend/assets/js/api.js (new) — MAZCRM.api.v1.* single source consuming dashboard.drbastaninejad.com/docs/API_CONTRACT.md verbatim (intakeSubmit, intakeList, otpSend, otpVerify, dashboardOverview, patientsList, patientGet, patientCreate, patientUpdate, appointments* CRUD, emr* CRUD, aiEmrDraft). Includes ApiError with status + errors + isOffline. Undocumented endpoints listed as TODO(API-CONTRACT) at the bottom — none are shipped so callers cannot bypass the contract-request flow.
-- app.drbastaninejad.com/Frontend/assets/js/jalali.js (new) — copied verbatim from dashboard.drbastaninejad.com/public/assets/js/jalali.js so both frontends share one Jalali algorithm authority.
-- app.drbastaninejad.com/Frontend/assets/css/base.css — header updated to reference states.css as its companion file. No behavioural change.
-Schema/API changes: none (frontend track — no schema/API authority). All calls point at existing endpoints in API_CONTRACT.md; the intentionally-undocumented endpoints remain TODO(API-CONTRACT).
-Blocking questions raised: none new; same list as previous entry.
+  - app.drbastaninejad.com/Frontend/shared/api.js (NEW)
+  - app.drbastaninejad.com/Frontend/pages/auth/patient-login.html (UPDATED — full OTP wiring)
+  - PROGRESS_LOG.md (UPDATED — this entry)
+Schema/API changes: none (frontend track — no schema/API authority)
+Blocking questions raised (backend track must add these endpoints to API_CONTRACT.md):
+  - GET /api/v1/patient/overview
+  - GET /api/v1/patient/profile
+  - GET /api/v1/patient/appointments
+  - GET /api/v1/patient/documents
+  - GET/PATCH /api/v1/patient/notification-preferences
+  All five Patient.* methods in api.js are implemented and will resolve correctly once
+  the backend adds those routes. Until then they throw and patient portal pages must
+  render renderPendingBackend() in their catch blocks.
+
+Next up (this agent's next session):
+  - Wire intake.html to Intake.submit() with UUID idempotency + confirmation redirect
+  - Wire patient portal pages (overview, appointments, documents, profile) with
+    skeleton → pending-backend → error → populated states using shared api.js
+  - Add toast.css and skeleton.css utilities to assets/css/ (or extend base.css)
