@@ -1,0 +1,132 @@
+/* MAZ//ID · Dr. Shahin Bastaninejad Medical Platform */
+/*
+ * ============================================================================
+ *  Cross-cutting UI states — skeleton · empty · error · forbidden · offline · retry
+ * ----------------------------------------------------------------------------
+ *  Depends : tokens.css, base.css
+ *  Required by every data-driven page per FRONTEND_MISSING_WORK_CHECKLIST.md.
+ *
+ *  Usage:
+ *    <div class="state-host" data-state="loading|empty|error|forbidden|offline">
+ *      <div class="state state-loading">...skeletons...</div>
+ *      <div class="state state-empty">...empty message...</div>
+ *      ...
+ *      <div class="state state-ready">...actual content...</div>
+ *    </div>
+ *  Toggle via states.js: MAZCRM.states.set(host, 'loading' | 'ready' | ...).
+ *  Only the matching .state child is displayed.
+ * ============================================================================
+ */
+
+/* ---------- State-host visibility switch ---------- */
+.state-host > .state { display: none; }
+.state-host[data-state="loading"]   > .state-loading   { display: block; }
+.state-host[data-state="ready"]     > .state-ready     { display: block; }
+.state-host[data-state="empty"]     > .state-empty     { display: block; }
+.state-host[data-state="error"]     > .state-error     { display: block; }
+.state-host[data-state="forbidden"] > .state-forbidden { display: block; }
+.state-host[data-state="offline"]   > .state-offline   { display: block; }
+
+/* ---------- Skeleton primitives ---------- */
+/* .skeleton lives in base.css (shimmer keyframes); extend here with shapes. */
+.skel-line   { height: 0.85rem; border-radius: var(--radius-sm); margin: 0.35rem 0; }
+.skel-line-lg { height: 1.15rem; border-radius: var(--radius-sm); margin: 0.4rem 0; }
+.skel-block  { height: 4.5rem; border-radius: var(--radius-md); margin: 0.5rem 0; }
+.skel-card   { height: 6.5rem; border-radius: var(--radius); margin-bottom: 1rem; }
+.skel-circle { border-radius: 50%; }
+.skel-w-25 { width: 25%; } .skel-w-33 { width: 33%; } .skel-w-50 { width: 50%; }
+.skel-w-66 { width: 66%; } .skel-w-75 { width: 75%; } .skel-w-90 { width: 90%; }
+.skel-w-full { width: 100%; }
+.skel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+
+/* ---------- State panels (empty · error · forbidden · offline) ---------- */
+.state-panel {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  max-width: 460px;
+  margin: 0 auto;
+}
+.state-panel .state-icon {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+.state-panel.state-empty     .state-icon { background: var(--evergreen-soft); color: var(--evergreen); }
+.state-panel.state-error     .state-icon { background: var(--error-soft);     color: var(--error); }
+.state-panel.state-forbidden .state-icon { background: var(--warning-soft);   color: var(--warning); }
+.state-panel.state-offline   .state-icon { background: #eef2ff;                color: var(--info); }
+
+.state-panel h3 { font-size: 1.05rem; margin-bottom: 0.5rem; color: var(--graphite); }
+.state-panel p  { font-size: 0.9rem; color: var(--muted); margin-bottom: 1.25rem; line-height: 1.75; }
+.state-panel .state-actions { display: flex; justify-content: center; gap: 0.6rem; flex-wrap: wrap; }
+
+/* ---------- Session-expired banner (top-of-page) ---------- */
+.session-banner {
+  position: sticky; top: 0; z-index: 90;
+  background: var(--warning-soft);
+  border-bottom: 1px solid #fed7aa;
+  color: #9a3412;
+  padding: 0.75rem 1.25rem;
+  display: flex; align-items: center; gap: 0.75rem;
+  font-size: 0.85rem; font-weight: 500;
+}
+.session-banner .session-banner-actions { margin-inline-start: auto; display: flex; gap: 0.5rem; }
+.session-banner .btn { min-height: 36px; padding: 0.35rem 0.8rem; font-size: 0.78rem; }
+
+/* ---------- Offline / network banner ---------- */
+.offline-banner {
+  position: fixed; inset-inline: 0; bottom: 0;
+  background: var(--graphite); color: #fff;
+  padding: 0.7rem 1rem;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  font-size: 0.85rem; font-weight: 500;
+  z-index: 9998;
+  animation: slideUp 200ms cubic-bezier(.4,0,.2,1);
+}
+.offline-banner::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--error); animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* ---------- Retry inline block ---------- */
+.retry-inline {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.5rem; padding: 1rem;
+  color: var(--muted); font-size: 0.85rem;
+}
+.retry-inline .btn-ghost { padding: 0.35rem 0.9rem; }
+
+/* ---------- Progressive-form disabled overlay (for submission-in-flight) ---------- */
+.form-busy {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.65;
+}
+.form-busy::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(247, 248, 246, 0.4);
+  border-radius: inherit;
+}
+
+/* Spinner (used inside buttons + retry-inline) */
+.spinner {
+  display: inline-block;
+  width: 1em; height: 1em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+  vertical-align: -0.15em;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/*
+ * ============================================================================
+ *  End of file — MAZ//ID · © 2026 Dr. Shahin Bastaninejad
+ * ============================================================================
+ */

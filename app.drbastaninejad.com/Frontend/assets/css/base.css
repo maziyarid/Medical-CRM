@@ -1,3 +1,4 @@
+/* MAZ//ID · Dr. Shahin Bastaninejad Medical Platform */
 /*
  * ============================================================================
  *  MΛZ Medical CRM — Base + Reset + Shared Components
@@ -5,6 +6,8 @@
  *  Author  : MAZ//ID (Maziyar) · maziyarid@gmail.com
  *  License : Proprietary — © 2026 Maziyar / Dr. Shahin Bastaninejad
  *  Depends : tokens.css
+ *  Companion: states.css — link it explicitly on every data-driven page
+ *             (skeleton / empty / error / forbidden / offline / retry primitives).
  * ============================================================================
  */
 

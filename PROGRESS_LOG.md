@@ -117,3 +117,17 @@ Blocking questions raised (recorded in REPOSITORY_AUDIT.md §6, requested from B
 - Full analytics surface (referral-source conversion, date-range)
 - Full settings surface (clinic, working hours, users, roles, EMR template builder)
 - drbst appointment CTA handoff: link to app.drbastaninejad.com/intake vs. new marketing lead endpoint (recommendation in audit: link to intake — avoid duplicating OTP/national-ID/signature logic).
+
+
+## [2026-07-27 13:35] — Track: Frontend — Agent/Chat: MAZ//ID Frontend Implementation Agent
+Phase: 4 (Dashboard UI) — cross-cutting primitives before feature wiring
+Completed: Landed the cross-cutting UI primitives required by FRONTEND_MISSING_WORK_CHECKLIST.md "Cross-cutting" section — must precede any page-level wiring. All primitives are old-browser-safe (XHR, no async/await, no optional chaining in the JS modules that will be used from the public intake page).
+Files touched:
+- app.drbastaninejad.com/Frontend/assets/css/states.css (new) — skeleton shapes, state-host toggle, state-panel (empty/error/forbidden/offline), session-expired banner, offline banner, retry-inline, form-busy overlay, spinner.
+- app.drbastaninejad.com/Frontend/assets/js/states.js (new) — MAZCRM.states.{set, fromError, renderPanel, bindOfflineBanner, bindSessionExpiredBanner, withSubmit}.
+- app.drbastaninejad.com/Frontend/assets/js/session.js (new) — MAZCRM.session.{save,get,token,user,isAuthed,clear,expire,requireAuth} with strict per-scope keys (staff vs patient, never shared) per SECURITY.md §3 and SPACE_COORDINATION_PROTOCOL.md §5.
+- app.drbastaninejad.com/Frontend/assets/js/api.js (new) — MAZCRM.api.v1.* single source consuming dashboard.drbastaninejad.com/docs/API_CONTRACT.md verbatim (intakeSubmit, intakeList, otpSend, otpVerify, dashboardOverview, patientsList, patientGet, patientCreate, patientUpdate, appointments* CRUD, emr* CRUD, aiEmrDraft). Includes ApiError with status + errors + isOffline. Undocumented endpoints listed as TODO(API-CONTRACT) at the bottom — none are shipped so callers cannot bypass the contract-request flow.
+- app.drbastaninejad.com/Frontend/assets/js/jalali.js (new) — copied verbatim from dashboard.drbastaninejad.com/public/assets/js/jalali.js so both frontends share one Jalali algorithm authority.
+- app.drbastaninejad.com/Frontend/assets/css/base.css — header updated to reference states.css as its companion file. No behavioural change.
+Schema/API changes: none (frontend track — no schema/API authority). All calls point at existing endpoints in API_CONTRACT.md; the intentionally-undocumented endpoints remain TODO(API-CONTRACT).
+Blocking questions raised: none new; same list as previous entry.
