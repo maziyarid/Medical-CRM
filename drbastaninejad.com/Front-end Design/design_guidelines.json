@@ -1,0 +1,97 @@
+{
+  "theme": "hybrid_fullstack",
+  "direction": "Luxury Medical Editorial - Awwwards Level",
+  "rtl_guidelines": {
+    "direction": "rtl",
+    "tailwind_classes": "Use logical properties: ms-* (margin-inline-start), me-*, ps-*, pe-*, text-start, text-end, border-s-*, rounded-s-*"
+  },
+  "typography": {
+    "primary_font": "Vazirmatn, sans-serif",
+    "display_font": "Morabba, Kalameh, or Vazirmatn (Black weight)",
+    "cdn_links": [
+      "https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css"
+    ],
+    "scale": {
+      "h1": "text-5xl md:text-6xl lg:text-7xl tracking-tighter leading-[1.1] font-black",
+      "h2": "text-4xl md:text-5xl tracking-tight leading-tight",
+      "h3": "text-2xl md:text-3xl",
+      "body": "text-base md:text-lg leading-relaxed font-light",
+      "overline": "text-xs tracking-[0.2em] uppercase font-bold text-[#B6905E]"
+    }
+  },
+  "colors": {
+    "light": {
+      "background": "#F7F8F6",
+      "surface": "#FFFFFF",
+      "primary": "#2F7D32",
+      "primary_dark": "#235F27",
+      "accent_brass": "#B6905E",
+      "text_primary": "#25272C",
+      "text_secondary": "#6A7078",
+      "border": "#E4E8E3",
+      "soft_sage": "#E4F0E4"
+    },
+    "dark": {
+      "background": "#25272C",
+      "surface": "#2B2E33",
+      "primary": "#2F7D32",
+      "primary_dark": "#235F27",
+      "accent_brass": "#B6905E",
+      "text_primary": "#F7F8F6",
+      "text_secondary": "#8FA0B2",
+      "border": "#3B3E45",
+      "soft_sage": "#1A221C"
+    }
+  },
+  "motion_and_interaction": {
+    "scrolling": "Lenis for smooth momentum scrolling. Mandatory for premium feel.",
+    "hero_reveal": "Masked line-by-line reveal using Framer Motion (initial Y offset, opacity 0 to 1, staggerChildren).",
+    "parallax": "Subtle parallax on hero images and abstract shapes using Framer Motion useScroll and useTransform.",
+    "hover_states": "Images scale up slightly (scale-105) inside a hidden overflow container. Buttons use pill shape with subtle shadow.",
+    "marquee": "Slow editorial marquee for clinic philosophy or services using react-fast-marquee."
+  },
+  "components": {
+    "buttons": "Pill-shaped (rounded-full). Solid Brass or Primary Green background. Minimal padding py-3 px-8. Hover: subtle shadow and color darkening. Do not use generic square buttons.",
+    "cards": "Minimalist borders (1px solid border color). No heavy shadows. Flat rectangular surfaces.",
+    "forms": "Shadcn UI customized. Minimalist floating labels or clean underlined inputs. Very stark, medical precision.",
+    "icons": "Use custom SVGs or `iconoir-react` (premium thin line style). Tinted in Accent Brass or Primary Green."
+  },
+  "sections_layout": {
+    "header": "Sticky glassmorphism header (backdrop-blur-xl bg-[#F7F8F6]/70 dark:bg-[#25272C]/70). Must have theme toggle and RTL nav layout.",
+    "hero": "Asymmetric split. Right (RTL start): Massive typography (line masked). Left (RTL end): Editorial clipped frame image of a facial profile.",
+    "services_grid": "Bento box layout. Mixed spans (col-span-1, col-span-2) using large negative space. No generic equal-size grids.",
+    "manifesto": "Numbered chapters using large typography (e.g., '۰۱'). Editorial scrolling layout.",
+    "before_after": "Elegant side-by-side clipped frames with hover reveals.",
+    "doctor_profile": "High-contrast editorial layout. Large typography intersecting with the doctor's portrait.",
+    "appointment": "Multi-step registration form using Shadcn. Cardless, sharp borders, carefully validated.",
+    "footer": "Massive bottom padding. Very large typography for the brand name. Minimalist links."
+  },
+  "image_urls": {
+    "hero_abstract": {
+      "url": "https://images.pexels.com/photos/36025194/pexels-photo-36025194.jpeg",
+      "description": "Green abstract organic shape for parallax background elements"
+    },
+    "hero_patient": {
+      "url": "https://images.pexels.com/photos/37524408/pexels-photo-37524408.jpeg",
+      "description": "Elegant woman profile in black and white, excellent for Awwwards-level clinical elegance"
+    },
+    "clinic_interior": {
+      "url": "https://images.pexels.com/photos/16571735/pexels-photo-16571735.jpeg",
+      "description": "Luxury medical clinic interior for 'About Clinic' section"
+    },
+    "doctor_portrait": {
+      "url": "https://images.pexels.com/photos/6762862/pexels-photo-6762862.jpeg",
+      "description": "Professional male doctor portrait"
+    }
+  },
+  "instructions_to_main_agent": [
+    "CRITICAL: Set dir='rtl' on the root HTML or main wrapper element.",
+    "CRITICAL: Use Tailwind logical properties exclusively for margins/paddings (ps-, pe-, ms-, me-, text-start, text-end) to ensure RTL layout functions perfectly.",
+    "Install and setup 'lenis' for smooth scrolling.",
+    "Install 'framer-motion' for all kinetic reveals (hero mask text, staggered fades, scroll animations).",
+    "Implement Shadcn UI for the Appointment Form, ensuring RTL direction is passed into components (Radix primitives usually support a `dir='rtl'` prop on their Root components).",
+    "Ensure both Light and Dark modes are fully supported and toggleable.",
+    "Avoid standard Bootstrap/Tailwind blocky grids. Use the 'Bento' or 'Tetris' grid styles."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": "Do not use generic centralized layouts. Avoid default Shadcn card looks; go for 'cardless' or ultra-minimal 1px borders. Create depth through layered design elements with z-index hierarchy. All interactive and key informational elements MUST include a data-testid attribute."
+}
