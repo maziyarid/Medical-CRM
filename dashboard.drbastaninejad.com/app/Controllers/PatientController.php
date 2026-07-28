@@ -95,7 +95,7 @@ final class PatientController extends Controller
         }
 
         $nationalId = $in['national_id'] ?? null;
-        if ($nationalId && !ValidatorService::isValidCodeMeli($nationalId)) {
+        if ($nationalId && !ValidatorService::isValidNationalId($nationalId)) {
             return $this->error('کد ملی نامعتبر است', 422);
         }
 

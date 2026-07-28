@@ -10,8 +10,8 @@
 **Base URL:** `https://app.drbastaninejad.com/api/v1`  
 **Content-Type:** `application/json` (all requests and responses)  
 **Charset:** UTF-8  
-**Version:** 1.0 — Phase A+B live | Phase C pending  
-**Last updated:** 2026-07-27
+**Version:** 1.1 — Phase A+B+C live
+**Last updated:** 2026-07-27 (Phase C implemented)
 
 ---
 
@@ -36,7 +36,8 @@ Authorization: Bearer {raw_token}
 - Token is obtained via `POST /auth/otp/verify`
 - Stored client-side in `localStorage` under key `mz_auth_token`
 - Server stores SHA-256 hash of the raw token in `auth_tokens` table
-- Never expires in Phase A+B (expiry logic is Phase C)
+- Expiry enforced in `AuthMiddleware` against `auth_tokens.expires_at`
+- Revocation enforced against `auth_tokens.revoked_at`
 - `user_type` discriminator in `auth_tokens`: `patient` | `staff`
 
 ### Rate limiting (OTP)
@@ -180,7 +181,7 @@ Staff password login (receptionist, nurse, doctor, superadmin). Not yet implemen
 }
 ```
 
-**Planned success response** `200`
+**Success response** `200`
 ```json
 {
   "success": true,
@@ -331,7 +332,7 @@ Paginated intake queue for staff (receptionist, doctor, superadmin).
 
 Summary card data for the patient portal home screen.
 
-**Planned success response** `200`
+**Success response** `200`
 ```json
 {
   "success": true,
@@ -356,7 +357,7 @@ Summary card data for the patient portal home screen.
 
 Patient's own editable profile fields.
 
-**Planned success response** `200`
+**Success response** `200`
 ```json
 {
   "success": true,
@@ -382,7 +383,7 @@ List of patient's own appointments (read-only).
 
 **Query params:** `page` (int, default 1), `per_page` (int, default 10).
 
-**Planned success response** `200`
+**Success response** `200`
 ```json
 {
   "success": true,
@@ -410,7 +411,7 @@ List of patient's own appointments (read-only).
 
 Patient's uploaded media files with short-lived signed download URLs.
 
-**Planned success response** `200`
+**Success response** `200`
 ```json
 {
   "success": true,
@@ -435,7 +436,7 @@ Patient's uploaded media files with short-lived signed download URLs.
 
 ### `GET /patient/notification-preferences` ⚠️ PENDING 🔒 AUTH REQUIRED
 
-**Planned success response** `200`
+**Success response** `200`
 ```json
 {
   "success": true,
@@ -450,7 +451,7 @@ Patient's uploaded media files with short-lived signed download URLs.
 
 ---
 
-### `PATCH /patient/notification-preferences` ⚠️ PENDING 🔒 AUTH REQUIRED
+### `PATCH /patient/notification-preferences` ✅ LIVE 🔒 AUTH REQUIRED
 
 Update one or more notification preferences. Send only the keys you want to change (partial update).
 
