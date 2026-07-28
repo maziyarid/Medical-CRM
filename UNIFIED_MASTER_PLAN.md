@@ -128,5 +128,60 @@ These were raised in both threads and remain unanswered:
 
 ---
 
+
+---
+
+## 6. Phase C implementation addendum (2026-07-27) — locked decisions
+
+These decisions were made during the Phase C implementation session. They must not be relitigated without a new explicit §6 amendment.
+
+### 6.1 Field-name normalisation contract (IntakeController)
+
+The public intake form (`intake.html`) sends a camelCase JSON payload:
+`firstName`, `lastName`, `fatherName`, `nationalId`, `birthDate`, `homeTel`, `homeAd`, `visitReason`, `isTransfer`.
+
+The PHP backend has always expected snake_case: `first_name`, `last_name`, etc.
+This mismatch was safe so far because the frontend calls the **mock** API, not the real backend.
+
+**Locked decision:** The normalisation happens in `IntakeController::normalisePayload()` — a single, documented mapping in one file. The frontend payload contract is **not changed** (old-browser-safe JS cannot be broken). The mapping is:
+
+| Frontend key | DB / backend key |
+|---|---|
+| `firstName`  | `first_name` |
+| `lastName`   | `last_name` |
+| `fatherName` | `father_name` |
+| `nationalId` | `national_id` |
+| `birthDate`  | `birth_date_jalali` |
+| `homeTel`    | `home_tel` (stored in `raw_payload` only; not a top-level DB column) |
+| `homeAd`     | `home_address` |
+| `visitReason`| `visit_reason` |
+| `isTransfer` | `is_transfer` |
+| `email`      | `email` (no rename needed) |
+| `description`| `description` (no rename needed — but field is `chief_complaint` on the DB row; see below) |
+
+Note: the frontend sends `description` as free-text notes; the backend maps this to `intakes.chief_complaint` for the MVP (per frozen Sheet column mapping in §2). `visitReason` maps to the new `intakes.visit_reason` column.
+
+### 6.2 Google Sheets column contract
+
+The frozen 19-column Sheet contract (columns A–K in `GoogleSheetsService`) must not be changed.
+Two new fields (`email`, `visit_reason`) are appended as columns **L** and **M** only.
+Any future additions must use columns N onward. The Sheet tab name and spreadsheet ID are not touched.
+
+### 6.3 Sheets sync outcome tracking
+
+A new `sheets_sync_status` column is added to `intakes` (migration 006):
+- `'pending'` — row committed to DB; Sheets write not yet attempted (should not persist after a normal request cycle, but covers a process-kill scenario).
+- `'ok'` — Sheets append confirmed (API returned `updates` key).
+- `'failed'` — Sheets throw caught; row is in DB but not in Sheet.
+- `'skipped'` — Sheets not configured (env vars missing); expected in dev/staging.
+
+**Idempotent re-try rule:** the idempotent 200 path re-attempts the Sheets write if and only if `sheets_sync_status != 'ok'`. It does not alter the DB row on a re-try failure (non-fatal, same as the initial write).
+
+### 6.4 Schema divergence between docs/SCHEMA.md and migration 001
+
+`docs/SCHEMA.md §3.4` (the 22-table long-term target) and migration 001 (the operational intake table) intentionally differ. Migration 001 is the source of truth for the running system. `docs/SCHEMA.md` is the migration target for Phase 1 database foundation. No code should be written against `docs/SCHEMA.md` until the full migration is run; all PHP code targets migration 001's shape.
+
+---
+
 *M•Z — MAZ//ID*
 *Unified 2026-07-26*

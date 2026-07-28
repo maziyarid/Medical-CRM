@@ -162,3 +162,74 @@ Next up (this agent's next session):
   - Wire patient portal pages (overview, appointments, documents, profile) with
     skeleton → pending-backend → error → populated states using shared api.js
   - Add toast.css and skeleton.css utilities to assets/css/ (or extend base.css)
+
+## [2026-07-27] — Track: Backend — Agent/Chat: Bob (MAZ//ID Bob Agent)
+Phase: C (Middleware, Config, SMS Provider Chain, Patient Portal Routes + Controller)
+Completed:
+  1. **AuthMiddleware** (`app/Middleware/AuthMiddleware.php`) — NEW
+     - Bearer token extraction, SHA-256 hash validation against `auth_tokens`
+     - `expires_at` and `revoked_at` enforcement
+     - Resolves staff from `users` table (with role JOIN) and patients from `patients` table
+     - Populates `$req->user` with `{ id, uuid, clinic_id, role, user_type }` for downstream
+  2. **RbacMiddleware** (`app/Middleware/RbacMiddleware.php`) — NEW
+     - `super_admin` bypass
+     - Patient `user_type` restricted to `patient.*` namespaced permissions
+     - Staff permissions resolved from `roles → role_user → permission_role → permissions` JOINs
+  3. **config/database.php** — NEW
+     - All connection params from ENV: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`
+     - `DEFAULT_CLINIC_ID` and `APP_ENV` surfaced for downstream use
+     - Required by `App\Core\Database::conn()` which was already calling `require BASE_PATH . '/config/database.php'`
+  4. **SmsProviderChain** (`app/Services/SmsProviderChain.php`) — NEW
+     - Chain-of-responsibility: Kavenegar → Ghasedak → FarazSMS → TSMS → LogSmsProvider
+     - Chain order configurable via `SMS_PROVIDERS` env var (comma-separated)
+     - Each provider implements `SmsProvider` interface: `sendOtp()` + `sendReminder()`
+     - `LogSmsProvider` always last — logs OTP to `error_log` in non-production; never throws
+     - All real providers guarded by missing-key check — throw `RuntimeException` to advance chain
+  5. **Migration 004** (`database/migrations/004_add_email_visit_reason_to_intakes.sql`) — NEW
+     - Adds `email VARCHAR(120) NULL` and `visit_reason VARCHAR(120) NULL` to `intakes`
+     - Per UNIFIED_MASTER_PLAN.md §1 (fields captured live by frontend but missing from schema)
+     - Idempotent via `ADD COLUMN IF NOT EXISTS`
+  6. **Migration 005** (`database/migrations/005_add_password_hash_to_patients.sql`) — NEW
+     - Adds `email`, `email_verified_at`, `password_hash`, `marketing_email_optin` to `patients`
+     - Per UNIFIED_MASTER_PLAN.md Phase 3: patient portal auth on the existing `patients` table
+     - Idempotent; adds `UNIQUE INDEX` on `email`
+  7. **PatientPortalController** (`app/Controllers/PatientPortalController.php`) — NEW
+     - 7 methods: overview, profile, updateProfile, appointments, documents,
+       notificationPreferences, updateNotificationPreferences
+     - All clinic-scoped and patient-id-scoped to the authenticated user
+  8. **config/routes.patients.php** — UPDATED
+     - Added `PatientPortalController` import
+     - Added 7 patient portal routes (GET + PATCH), all gated behind
+       `AuthMiddleware` + `RbacMiddleware('patient.self')`
+  9. **app/Core/Controller.php** — UPDATED
+     - Added `validationError(array $errors): array` (used by OtpController, IntakeController)
+     - Added `$meta` optional parameter to `success()` (used by IntakeController::index)
+     - Standardised `error()` envelope to match `API_CONTRACT.md` shape
+  10. **app/Controllers/PatientController.php** — BUG FIX
+      - `ValidatorService::isValidCodeMeli()` → `isValidNationalId()` (method name was wrong,
+        would have thrown a fatal error on every staff-created patient)
+  11. **docs/API_CONTRACT.md** — UPDATED
+      - Version bumped to 1.1
+      - All Section 3 patient portal endpoints marked ✅ LIVE
+      - Auth model note updated: expiry/revocation enforced in AuthMiddleware
+Files touched:
+  - dashboard.drbastaninejad.com/app/Middleware/AuthMiddleware.php (NEW)
+  - dashboard.drbastaninejad.com/app/Middleware/RbacMiddleware.php (NEW)
+  - dashboard.drbastaninejad.com/config/database.php (NEW)
+  - dashboard.drbastaninejad.com/app/Services/SmsProviderChain.php (NEW)
+  - dashboard.drbastaninejad.com/database/migrations/004_add_email_visit_reason_to_intakes.sql (NEW)
+  - dashboard.drbastaninejad.com/database/migrations/005_add_password_hash_to_patients.sql (NEW)
+  - dashboard.drbastaninejad.com/app/Controllers/PatientPortalController.php (NEW)
+  - dashboard.drbastaninejad.com/config/routes.patients.php (UPDATED)
+  - dashboard.drbastaninejad.com/app/Core/Controller.php (UPDATED)
+  - dashboard.drbastaninejad.com/app/Controllers/PatientController.php (BUG FIX)
+  - docs/API_CONTRACT.md (UPDATED)
+Schema/API changes:
+  - intakes: +email, +visit_reason (migration 004)
+  - patients: +email, +email_verified_at, +password_hash, +marketing_email_optin (migration 005)
+  - 7 new patient portal API endpoints now LIVE (Section 3 of API_CONTRACT.md)
+Blocking questions raised: none
+Note: The Mistral AI session summary that preceded this entry described Phase C as
+  "complete with 7 files created" but none of those files were actually committed to
+  the repository. This Bob session is the actual implementation commit.
+
