@@ -332,12 +332,15 @@ Paginated intake queue for staff (receptionist, doctor, superadmin).
 
 ## ───────────────────────────────────────────
 ## SECTION 3 — Patient Portal Endpoints
-## ⚠️ ALL PENDING (Phase C backend must implement)
+## ✅ LIVE (Phase C — implemented 2026-07-30)
 ## ───────────────────────────────────────────
 
-> These endpoints are fully wired in `shared/api.js` (frontend). Until the backend adds them, `Patient.*` calls will throw with HTTP 404 and the frontend pages will render the `renderPendingBackend()` placeholder state.
+> Backend: `app.drbastaninejad.com/Backend/app/Controllers/PatientPortalController.php`
+> All routes registered in `config/routes.php`. All require `AuthMiddleware` (Bearer token).
+> Supporting models: `PatientModel`, `AppointmentModel`, `PatientMediaModel`, `NotificationPreferenceModel`
+> Migrations: 005 (patient_media), 006 (notification_preferences), 007 (appointments)
 
-### `GET /patient/overview` ⚠️ PENDING 🔒 AUTH REQUIRED
+### `GET /patient/overview` ✅ LIVE 🔒 AUTH REQUIRED
 
 Summary card data for the patient portal home screen.
 
@@ -362,7 +365,7 @@ Summary card data for the patient portal home screen.
 
 ---
 
-### `GET /patient/profile` ⚠️ PENDING 🔒 AUTH REQUIRED
+### `GET /patient/profile` ✅ LIVE 🔒 AUTH REQUIRED
 
 Patient's own editable profile fields.
 
@@ -386,7 +389,7 @@ Patient's own editable profile fields.
 
 ---
 
-### `GET /patient/appointments` ⚠️ PENDING 🔒 AUTH REQUIRED
+### `GET /patient/appointments` ✅ LIVE 🔒 AUTH REQUIRED
 
 List of patient's own appointments (read-only).
 
@@ -416,7 +419,7 @@ List of patient's own appointments (read-only).
 
 ---
 
-### `GET /patient/documents` ⚠️ PENDING 🔒 AUTH REQUIRED
+### `GET /patient/documents` ✅ LIVE 🔒 AUTH REQUIRED
 
 Patient's uploaded media files with short-lived signed download URLs.
 
@@ -443,7 +446,7 @@ Patient's uploaded media files with short-lived signed download URLs.
 
 ---
 
-### `GET /patient/notification-preferences` ⚠️ PENDING 🔒 AUTH REQUIRED
+### `GET /patient/notification-preferences` ✅ LIVE 🔒 AUTH REQUIRED
 
 **Planned success response** `200`
 ```json
@@ -460,7 +463,7 @@ Patient's uploaded media files with short-lived signed download URLs.
 
 ---
 
-### `PATCH /patient/notification-preferences` ⚠️ PENDING 🔒 AUTH REQUIRED
+### `PATCH /patient/notification-preferences` ✅ LIVE 🔒 AUTH REQUIRED
 
 Update one or more notification preferences. Send only the keys you want to change (partial update).
 

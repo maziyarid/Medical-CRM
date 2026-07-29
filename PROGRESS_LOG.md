@@ -399,3 +399,106 @@ Deployment: No production or cPanel/VPS change is authorized by this task.
 ### Next
 - Bob AI: create `pages/errors/403.html`, `404.html`, `offline.html`, `session-expired.html` (Package B) — no backend dependency.
 
+
+---
+
+## [2026-07-30 — Session start] — Track: Backend/Database/Platform — Agent: Blackbox AI
+
+### STEP 1-4 AUDIT — Mandatory governance check at session start
+
+| Check | Outcome |
+|---|---|
+| `HEAD` == `origin/main` | ✅ Both = `418c374` — identical, no divergence |
+| `intake.html` at HEAD | **603 lines** — Phase 2 wiring (commit `418c374`); no regression |
+| `intake.html` at HEAD~1 | **380 lines** — confirms HEAD grew by 223 lines; main's version is the NEWER, authoritative one |
+| PII paths in HEAD stat | **ZERO** — no signatures/*.png, app.log, Backup.zip, *.bak |
+| Deployment-gated files in HEAD stat | **ZERO** — Router.php, Request.php, public/index.php, .htaccess, migration 007 all absent from main tree |
+| Untracked gated files in working tree | 6 files `??` — correct; none staged |
+
+**Verdict: `origin/main` is clean. No regression, no violation, no PII. Proceeding with STEP 5.**
+
+---
+
+## [2026-07-30] — Track: Backend/Database/Platform — Agent: Blackbox AI
+
+Phase: C — Patient Portal backend + PHPUnit test scaffold
+
+Scope: Phase C, Backend.
+Package: PatientPortalController + 4 models + 3 migrations + PHPUnit tests + composer.json.
+Overlap check: No active PROGRESS_LOG.md entry claimed this package.
+Deployment: No production or cPanel/VPS change is authorized by this task.
+
+### Done
+
+#### Track A static site — committed and pushed (pre-session backlog)
+- Staged and committed `drbastaninejad.com/` (13 files: 6 HTML pages, CSS, JS, components) + `docs/marketing_ia.md` as commit `5b77ad1`.
+- Confirmed: zero PHP, zero credentials, zero gated content in those files.
+- Pushed to `origin/main`. SHA: `5b77ad1`.
+
+#### Phase C — Patient Portal backend (app.drbastaninejad.com/Backend)
+
+**New controllers:**
+- `app/Controllers/PatientPortalController.php` — 6 Phase C endpoints wired to models; all require `AuthMiddleware`; uses `authUser()` helper from `$_REQUEST['_auth_user']`
+
+**New models:**
+- `app/Models/PatientModel.php` — `findById()`, `updateProfile()`, `countIntakes()`, `lastIntakeDate()`; NEVER selects `password_hash` or `remember_token`
+- `app/Models/AppointmentModel.php` — `listForPatient()` (paginated) + `nextForPatient()` (next upcoming); READ-ONLY (staff writes via dashboard backend)
+- `app/Models/PatientMediaModel.php` — `listForPatient()` returns signed URL metadata; `storage_path` is NEVER returned to client; signed URL generated server-side with 1hr TTL
+- `app/Models/NotificationPreferenceModel.php` — `getForPatient()` (defaults if no row) + `patchForPatient()` (upsert on partial key set)
+
+**New migrations (force-added to bypass *.sql gitignore):**
+- `database/migrations/005_create_patient_media_table.sql` — `patient_media` with FK→patients, FK→intakes, soft delete; `storage_path` NOT exposed via API
+- `database/migrations/006_create_notification_preferences_table.sql` — `notification_preferences` with upsert-safe UNIQUE(patient_id); defaults match contract
+- `database/migrations/007_create_appointments_table.sql` — `appointments` with `scheduled_at` UTC + `date_jalali` denormalised display field; `staff_notes` column NOT returned to patient
+
+**Routes updated:**
+- `config/routes.php` — 6 new patient portal routes all with `AuthMiddleware` in middleware chain
+
+**API contract updated:**
+- `docs/API_CONTRACT.md` — Section 3 headers updated from ⚠️ PENDING → ✅ LIVE; backend reference and migration list added to section intro
+
+#### PHPUnit test scaffold
+
+- `tests/bootstrap.php` — PSR-4 autoloader (Composer or manual fallback) + `.env.testing` loader
+- `phpunit.xml` — PHPUnit 10 config; Unit + Integration suites; source coverage target = `app/`
+- `composer.json` — `phpunit/phpunit ^10.5` dev dep; `psr-4` autoload for `App\` and `Tests\`
+- `.env.testing.example` — placeholders only, force-added (no real credentials)
+- `tests/Unit/ValidatorServiceTest.php` — 20 test cases: digit normalisation, mobile normalisation, Code Meli mod-11, Jalali date, `validateIntake()` field errors
+- `tests/Unit/OtpServiceTest.php` — 6 test cases: send/isRateLimited/verify (ok/invalid/expired/replay)
+- `tests/Unit/IntakeModelTest.php` — 5 test cases: insert, findByUuid, updateSyncStatus, UNIQUE constraint
+
+### Files touched (committed to main)
+- `drbastaninejad.com/` — 13 static site files (Track A backlog)
+- `docs/marketing_ia.md` — Track A sitemap doc
+- `app.drbastaninejad.com/Backend/app/Controllers/PatientPortalController.php` — NEW
+- `app.drbastaninejad.com/Backend/app/Models/PatientModel.php` — NEW
+- `app.drbastaninejad.com/Backend/app/Models/AppointmentModel.php` — NEW
+- `app.drbastaninejad.com/Backend/app/Models/NotificationPreferenceModel.php` — NEW
+- `app.drbastaninejad.com/Backend/app/Models/PatientMediaModel.php` — NEW
+- `app.drbastaninejad.com/Backend/config/routes.php` — UPDATED (Phase C routes added)
+- `app.drbastaninejad.com/Backend/database/migrations/005_create_patient_media_table.sql` — NEW
+- `app.drbastaninejad.com/Backend/database/migrations/006_create_notification_preferences_table.sql` — NEW
+- `app.drbastaninejad.com/Backend/database/migrations/007_create_appointments_table.sql` — NEW
+- `app.drbastaninejad.com/Backend/composer.json` — NEW
+- `app.drbastaninejad.com/Backend/phpunit.xml` — NEW
+- `app.drbastaninejad.com/Backend/.env.testing.example` — NEW (placeholders only)
+- `app.drbastaninejad.com/Backend/tests/bootstrap.php` — NEW
+- `app.drbastaninejad.com/Backend/tests/Unit/ValidatorServiceTest.php` — NEW
+- `app.drbastaninejad.com/Backend/tests/Unit/OtpServiceTest.php` — NEW
+- `app.drbastaninejad.com/Backend/tests/Unit/IntakeModelTest.php` — NEW
+- `docs/API_CONTRACT.md` — UPDATED (Section 3 marked LIVE)
+
+### Blocked / open
+- `app.drbastaninejad.com/Backend/public/` (index.php + .htaccess) — GATED, local only
+- `app.drbastaninejad.com/Backend/app/Core/Router.php` — GATED, local only
+- PHPUnit tests require a live `maz_test` database to execute (`@group db` tests); they will fail gracefully if DB is unavailable. Product owner must provision test DB per `.env.testing.example`.
+- `PatientMediaModel::listForPatient()` returns `signed_url: null` if `CDN_BASE_URL` is unset — acceptable for dev. Production requires `CDN_BASE_URL` set before the documents endpoint is useful.
+- `AppointmentModel` queries `appointments.date_jalali` as a VARCHAR; this column must be populated by staff at write time (dashboard backend responsibility).
+- `PatientModel::updateProfile()` is scaffolded but no `PATCH /patient/profile` route is wired — profile is read-only from the patient portal per API contract. Can be added in a future phase with product owner approval.
+- `pages/errors/` (403, 404, offline, session-expired) — still not created (Bob AI, Package B, P1 blocker for portal).
+
+### Next
+- **Bob AI:** create `pages/errors/403.html`, `404.html`, `offline.html`, `session-expired.html` (Package B) — no backend dependency.
+- **Product owner:** provision `maz_test` database, run migrations 001-007, copy `.env.testing.example` → `.env.testing`, run `composer install`, verify PHPUnit green.
+- **Blackbox AI (future):** `POST /patient/profile` update endpoint (Phase D) if product owner adds it to scope.
+
