@@ -131,3 +131,30 @@ Phase: 0/4 prep — Canonical page inventory + P0 wireframe package start
 ### Next
 - Grok: Produce P0 low-fidelity wireframe descriptions + representative images; hand top-priority to Bob AI for responsive prototypes.
 - Bob AI: Convert P0 wireframes to responsive HTML/CSS prototypes using tokens.css + RTL.
+
+## [2026-07-29 12:05 UTC] — Track: Documentation / Frontend Design — Agent: Grok (xAI)
+Phase: 0/4 — P0 low-fidelity wireframe descriptions complete
+
+### Done
+- Re-confirmed docs/pages.md as sole canonical page inventory.
+- Produced RTL-first, mobile-first, token-aligned low-fidelity wireframe descriptions for all 8 P0 screens:
+  1. Intake step 1 (personal)
+  2. Intake step 2 (medical)
+  3. Intake step 3 (signature & confirmation)
+  4. Login (mobile + OTP)
+  5. Patient Overview
+  6. Staff Global Dashboard
+  7. Staff Inbox
+  8. Public Home
+- No backend contracts, table names, routes, or deployment actions changed.
+
+### Files touched
+- PROGRESS_LOG.md (this entry)
+
+### Blocked / open
+- Visual PNG export and high-fidelity Figma / responsive HTML prototypes owned by Bob AI (frontend track).
+- tokens.css / component library still expected from Bob AI.
+
+### Next
+- Bob AI: convert the 8 P0 descriptions into responsive prototypes using brand tokens and full RTL.
+- Grok available for additional shared-component sketches or rationale expansion on request.
