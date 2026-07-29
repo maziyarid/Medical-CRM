@@ -9,6 +9,12 @@
 >
 > Agents should deliver finished files and implementation notes for download. The product owner will handle local rotation, file-manager upload, and testing on the local Windows environment when each package is complete.
 ---
+Agents must end each completed package with a clear handoff note stating:
+1. the files finished,
+2. the files changed,
+3. whether the package is ready to download,
+4. whether any human-only local action remains.
+Do not wait for the product owner’s local rotation or file-manager upload before marking code/document work complete.
 
 ## 🎯 Track 1: UX Improvements for Medical CRM
 **Goal:** Make the CRM **faster, more intuitive, and Persian-first** while keeping the current stack (Laravel backend + static frontend).
