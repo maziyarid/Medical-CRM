@@ -1,52 +1,240 @@
 <!doctype html>
-<!-- MΛZ Medical CRM — Patient Overview · Author: MAZ//ID · © 2026 Maziyar -->
+<!--
+  MΛZ Medical CRM — Patient Overview (Production-wired)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  API:  GET /patient/overview  ⚠️ PENDING — renders pending-backend state until live
+  Note: requireAuth() guard redirects to patient-login if no token.
+        Once the endpoint is live, data-state will flip from pending → ready automatically.
+-->
 <html dir="rtl" lang="fa">
 <head>
-  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>نمای کلی — داشبورد بیمار</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    /* Slot visibility controlled by data-state */
+    [data-state] .slot-loading,
+    [data-state] .slot-ready,
+    [data-state] .slot-pending,
+    [data-state] .slot-error { display: none !important; }
+    [data-state="loading"]  .slot-loading  { display: block !important; }
+    [data-state="ready"]    .slot-ready    { display: block !important; }
+    [data-state="pending"]  .slot-pending  { display: block !important; }
+    [data-state="error"]    .slot-error    { display: block !important; }
+    /* KPI skeleton */
+    .kpi-skeleton { height: 80px; border-radius: var(--radius); }
+  </style>
 </head>
 <body data-shell="patient" data-nav="overview">
   <div class="app-shell">
     <main class="main">
+
+      <!-- Topbar — populated once data loads -->
       <div class="topbar">
-        <div><h1>سلام، مریم عزیز 🌿</h1><p class="subtitle">نمای کلی حساب و نوبت‌های شما</p></div>
-        <div class="topbar-actions"><div class="avatar-chip"><div class="avatar-md">م ا</div><span class="who">مریم احمدی</span></div></div>
-      </div>
-
-      <div class="kpi-grid">
-        <div class="kpi-card"><div class="kpi-label">نوبت بعدی</div><div class="kpi-value" style="font-size:1.2rem">۱۴ مرداد — ۱۰:۳۰</div><div class="kpi-delta">جراحی پیگیری</div></div>
-        <div class="kpi-card"><div class="kpi-label">پرونده‌های ثبت‌شده</div><div class="kpi-value">۳</div><div class="kpi-delta">آخرین: ۱۴۰۵/۰۴/۱۲</div></div>
-        <div class="kpi-card"><div class="kpi-label">مستندات</div><div class="kpi-value">۵</div><div class="kpi-delta">قابل دانلود</div></div>
-      </div>
-
-      <div class="grid-main">
-        <section class="panel">
-          <div class="panel-header"><div><h3>نوبت‌های پیش رو</h3></div><a href="appointments.html" class="btn btn-ghost btn-sm">مشاهده همه ←</a></div>
-          <div style="display:flex;align-items:center;gap:1rem;padding:.9rem 0;border-bottom:1px solid var(--border);">
-            <div style="width:56px;text-align:center;background:var(--evergreen-soft);border-radius:var(--radius-md);padding:.4rem .3rem"><strong style="display:block;font-size:1rem;color:var(--evergreen)">۱۴</strong><span style="font-size:.68rem;color:var(--muted)">مرداد</span></div>
-            <div style="flex:1"><strong>ویزیت پیگیری — جراحی بینی</strong><div style="font-size:.78rem;color:var(--muted)">ساعت ۱۰:۳۰ · کلینیک دکتر باستانی‌نژاد</div></div>
-            <span class="pill evergreen">تأیید شده</span>
+        <div>
+          <h1 id="greeting-head">نمای کلی حساب شما</h1>
+          <p class="subtitle">نوبت‌ها، مستندات و یادآوری‌های مهم</p>
+        </div>
+        <div class="topbar-actions">
+          <div class="avatar-chip" id="avatar-chip" hidden>
+            <div class="avatar-md" id="avatar-initials" aria-hidden="true">؟</div>
+            <span class="who" id="avatar-name">…</span>
           </div>
-          <div style="display:flex;align-items:center;gap:1rem;padding:.9rem 0;">
-            <div style="width:56px;text-align:center;background:var(--evergreen-soft);border-radius:var(--radius-md);padding:.4rem .3rem"><strong style="display:block;font-size:1rem;color:var(--evergreen)">۰۲</strong><span style="font-size:.68rem;color:var(--muted)">شهریور</span></div>
-            <div style="flex:1"><strong>مشاوره جراحی ترمیمی</strong><div style="font-size:.78rem;color:var(--muted)">ساعت ۱۶:۰۰</div></div>
-            <span class="pill info">در انتظار تأیید</span>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-header"><div><h3>یادآوری‌های مهم</h3></div></div>
-          <ul style="list-style:none;display:flex;flex-direction:column;gap:.75rem">
-            <li style="padding:.75rem;background:var(--warning-soft);border-radius:var(--radius-md);font-size:.85rem">💊 لطفاً از ۴۸ ساعت قبل از عمل، مصرف آسپرین را متوقف کنید.</li>
-            <li style="padding:.75rem;background:var(--info-soft);border-radius:var(--radius-md);font-size:.85rem">📷 قبل از ویزیت بعدی، ۳ عکس از بینی (روبرو + دو نیم‌رخ) بارگذاری کنید.</li>
-          </ul>
-        </section>
+        </div>
       </div>
+
+      <!-- Main content host -->
+      <div id="overview-host" data-state="loading">
+
+        <!-- ── Loading ── -->
+        <div class="slot-loading" aria-hidden="true">
+          <div class="kpi-grid">
+            <div class="skeleton kpi-skeleton"></div>
+            <div class="skeleton kpi-skeleton"></div>
+            <div class="skeleton kpi-skeleton"></div>
+          </div>
+          <div class="grid-main" style="margin-top:1.5rem">
+            <div class="skeleton" style="height:200px;border-radius:var(--radius)"></div>
+            <div class="skeleton" style="height:200px;border-radius:var(--radius)"></div>
+          </div>
+        </div>
+
+        <!-- ── Pending backend ── -->
+        <div class="slot-pending">
+          <div class="state-panel state-pending" role="status">
+            <div class="state-icon" aria-hidden="true">⏳</div>
+            <h3>در انتظار پیاده‌سازی بک‌اند</h3>
+            <p>
+              این صفحه به <code>GET /patient/overview</code> متکی است که هنوز پیاده‌سازی نشده.
+              پس از استقرار اندپوینت، داده‌های واقعی شما اینجا نمایش داده می‌شود.
+            </p>
+            <div class="state-actions">
+              <a class="btn btn-secondary btn-sm" href="appointments.html">نوبت‌های من →</a>
+              <a class="btn btn-ghost btn-sm" href="profile.html">پروفایل</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Ready ── (shown once API responds) -->
+        <div class="slot-ready">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-label">نوبت بعدی</div>
+              <div class="kpi-value" id="ov-next-appt" style="font-size:1.2rem">—</div>
+              <div class="kpi-delta" id="ov-next-reason">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">پرونده‌های ثبت‌شده</div>
+              <div class="kpi-value" id="ov-records">—</div>
+              <div class="kpi-delta" id="ov-records-sub">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">مستندات</div>
+              <div class="kpi-value" id="ov-docs">—</div>
+              <div class="kpi-delta">قابل دانلود</div>
+            </div>
+          </div>
+
+          <div class="grid-main" style="margin-top:1.5rem">
+            <section class="panel">
+              <div class="panel-header">
+                <div><h3>نوبت‌های پیش رو</h3></div>
+                <a href="appointments.html" class="btn btn-ghost btn-sm">مشاهده همه ←</a>
+              </div>
+              <div id="ov-upcoming-list" role="list"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header"><div><h3>یادآوری‌های مهم</h3></div></div>
+              <ul id="ov-reminders" style="list-style:none;display:flex;flex-direction:column;gap:.75rem"></ul>
+            </section>
+          </div>
+        </div>
+
+        <!-- ── Error ── -->
+        <div class="slot-error">
+          <div class="state-panel state-error" role="alert">
+            <div class="state-icon" aria-hidden="true">⚠️</div>
+            <h3>خطا در بارگذاری اطلاعات</h3>
+            <p id="ov-error-msg">لطفاً دوباره تلاش کنید.</p>
+            <div class="state-actions">
+              <button type="button" class="btn btn-secondary btn-sm"
+                      onclick="loadOverview()">تلاش مجدد</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /#overview-host -->
+
     </main>
   </div>
-  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { requireAuth, Patient, renderPendingBackend, showToast }
+      from '../../shared/api.js';
+
+    // ── Auth guard ──────────────────────────────────────────────────────────
+    if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
+
+    function toFa(n) {
+      return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+
+    function fillAvatar(name) {
+      const initials = String(name || '').split(' ')
+        .map(w => w[0] || '').slice(0, 2).join('');
+      document.getElementById('avatar-initials').textContent = initials || '؟';
+      document.getElementById('avatar-name').textContent = name || '';
+      document.getElementById('avatar-chip').hidden = false;
+      document.getElementById('greeting-head').textContent =
+        'سلام، ' + (name || 'کاربر گرامی') + ' 🌿';
+    }
+
+    window.loadOverview = async function () {
+      const host = document.getElementById('overview-host');
+      MAZCRM.states.set(host, 'loading');
+      try {
+        const res = await Patient.getOverview();
+        const d   = res.data || {};
+
+        // Avatar / greeting
+        fillAvatar(d.full_name || d.name || '');
+
+        // KPI values
+        document.getElementById('ov-next-appt').textContent =
+          d.next_appointment_jalali || d.next_appointment || '—';
+        document.getElementById('ov-next-reason').textContent =
+          d.next_appointment_reason || '—';
+        document.getElementById('ov-records').textContent =
+          toFa(d.emr_count ?? d.records_count ?? '—');
+        document.getElementById('ov-records-sub').textContent =
+          d.last_emr_jalali ? ('آخرین: ' + d.last_emr_jalali) : '—';
+        document.getElementById('ov-docs').textContent =
+          toFa(d.documents_count ?? d.docs_count ?? '—');
+
+        // Upcoming appointments list
+        const upcoming = d.upcoming_appointments || [];
+        const pillMap  = {
+          confirmed: ['evergreen', 'تأیید شده'],
+          scheduled: ['info',      'در انتظار تأیید'],
+          pending:   ['warning',   'در انتظار'],
+        };
+        const list = document.getElementById('ov-upcoming-list');
+        list.innerHTML = upcoming.length
+          ? upcoming.slice(0, 3).map(a => {
+              const st = pillMap[a.status] || ['muted', a.status || '—'];
+              return '<div role="listitem" style="display:flex;align-items:center;gap:1rem;' +
+                'padding:.9rem 0;border-bottom:1px solid var(--border);">' +
+                '<div style="min-width:0;flex:1">' +
+                  '<strong style="display:block;font-size:.9rem">' + (a.reason || a.title || '—') + '</strong>' +
+                  '<span style="font-size:.78rem;color:var(--muted)">' +
+                    (a.date_jalali || a.date || '') +
+                    (a.time ? ' — ساعت ' + a.time : '') +
+                  '</span>' +
+                '</div>' +
+                '<span class="pill ' + st[0] + '">' + st[1] + '</span>' +
+              '</div>';
+            }).join('')
+          : '<div class="state-panel state-empty" role="status" style="padding:1rem 0">' +
+              '<h3 style="font-size:.9rem">نوبت آینده‌ای ثبت نشده است</h3>' +
+            '</div>';
+
+        // Reminders list
+        const reminders = d.reminders || [];
+        const remEl = document.getElementById('ov-reminders');
+        remEl.innerHTML = reminders.map(r =>
+          '<li style="padding:.75rem;background:var(--info-soft);' +
+          'border-radius:var(--radius-md);font-size:.85rem">' +
+          (r.icon ? r.icon + ' ' : '') + r.text +
+          '</li>'
+        ).join('') || '<li style="color:var(--muted);font-size:.85rem">یادآوری فعالی وجود ندارد.</li>';
+
+        MAZCRM.states.set(host, 'ready');
+      } catch (err) {
+        // 404 / 501 = endpoint not yet deployed
+        if (err.httpStatus === 404 || err.httpStatus === 501 || err.httpStatus === 501) {
+          MAZCRM.states.set(host, 'pending');
+        } else if (err.httpStatus === 401) {
+          window.location.replace('../auth/patient-login.html');
+        } else {
+          document.getElementById('ov-error-msg').textContent =
+            err.message || 'خطای سرور. لطفاً دوباره تلاش کنید.';
+          MAZCRM.states.set(host, 'error');
+        }
+      }
+    };
+
+    loadOverview();
+  </script>
 </body>
 </html>

@@ -1,60 +1,198 @@
 <!doctype html>
-<!-- MΛZ Medical CRM — Analytics · Author: MAZ//ID · © 2026 Maziyar -->
+<!--
+  MΛZ Medical CRM — Analytics & Reports (Upgraded)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Data:  ❌ NOT IN CONTRACT — hard-coded mock data.
+         Wire once backend provides analytics endpoints.
+  Auth:  Staff Bearer token required.
+-->
 <html dir="rtl" lang="fa">
 <head>
-  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>گزارش‌ها — MΛZ Medical CRM</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
   <style>
-    .chart-box { height:280px;background:linear-gradient(180deg,var(--evergreen-soft) 0%,transparent 100%);border-radius:var(--radius-md);position:relative;overflow:hidden; }
-    .chart-bars { display:flex;align-items:end;gap:.7rem;padding:1rem;height:100%; }
-    .chart-bars .bar { flex:1;background:linear-gradient(180deg,var(--evergreen),var(--evergreen-dark));border-radius:6px 6px 0 0;position:relative; }
-    .chart-bars .bar span { position:absolute;bottom:-1.4rem;inset-inline-start:0;inset-inline-end:0;text-align:center;font-size:.72rem;color:var(--muted); }
+    /* ── Bar chart ── */
+    .chart-box {
+      height: 240px;
+      background: linear-gradient(180deg, var(--evergreen-soft) 0%, transparent 100%);
+      border-radius: var(--radius-md);
+      position: relative; overflow: hidden;
+      padding-bottom: 1.8rem;
+    }
+    .chart-bars {
+      display: flex; align-items: flex-end; gap: .5rem;
+      padding: 1rem 1rem 0; height: 100%;
+    }
+    .chart-bars .bar {
+      flex: 1;
+      background: linear-gradient(180deg, var(--evergreen), var(--evergreen-dark));
+      border-radius: 6px 6px 0 0;
+      position: relative; min-width: 0;
+      transition: opacity var(--transition-fast);
+    }
+    .chart-bars .bar:hover { opacity: .85; }
+    .chart-bars .bar span {
+      position: absolute; bottom: -1.6rem;
+      inset-inline-start: 0; inset-inline-end: 0;
+      text-align: center; font-size: .7rem; color: var(--muted);
+    }
+    /* ── Referral bar ── */
+    .ref-bar { height: 6px; border-radius: 3px; background: var(--evergreen); display: inline-block; }
+    /* ── Date range switcher ── */
+    .date-switch {
+      display: inline-flex; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 3px; gap: 2px;
+    }
+    .date-switch button {
+      border: none; background: none; padding: .38rem .85rem;
+      border-radius: var(--radius-sm); font-size: .8rem; font-weight: 600;
+      color: var(--muted); cursor: pointer; font-family: inherit;
+    }
+    .date-switch button.active { background: var(--evergreen-soft); color: var(--evergreen); }
+    /* ── Pending notice ── */
+    .pending-notice {
+      background: #f8fafc; border: 1px dashed var(--border); color: var(--muted);
+      font-size: .78rem; padding: .65rem .9rem; border-radius: var(--radius-md);
+      text-align: center; margin-bottom: 1.5rem;
+    }
   </style>
 </head>
 <body data-shell="staff" data-nav="analytics">
   <div class="app-shell">
     <main class="main">
-      <div class="topbar"><div><h1>گزارش‌ها و تحلیل‌ها</h1><p class="subtitle">۳۰ روز اخیر</p></div></div>
 
-      <div class="kpi-grid">
-        <div class="kpi-card"><div class="kpi-label">مراجعین جدید</div><div class="kpi-value">۸۷</div><div class="kpi-delta up">▲ ۲۴٪</div></div>
-        <div class="kpi-card"><div class="kpi-label">نرخ تبدیل مشاوره → عمل</div><div class="kpi-value">۳۲٪</div><div class="kpi-delta up">▲ ۴٪</div></div>
-        <div class="kpi-card"><div class="kpi-label">درآمد ماه</div><div class="kpi-value">۴۸۲م</div><div class="kpi-delta up">▲ ۱۸٪</div></div>
-        <div class="kpi-card"><div class="kpi-label">نرخ بازگشت بیمار</div><div class="kpi-value">۶۸٪</div><div class="kpi-delta">۶ ماه اخیر</div></div>
+      <div class="topbar">
+        <div>
+          <h1>گزارش‌ها و تحلیل‌ها</h1>
+          <p class="subtitle">داده‌های نمونه — در انتظار اندپوینت‌های بک‌اند</p>
+        </div>
+        <div class="topbar-actions">
+          <div class="date-switch" role="group" aria-label="بازه زمانی">
+            <button class="active">۳۰ روز</button>
+            <button>۳ ماه</button>
+            <button>سال</button>
+          </div>
+        </div>
       </div>
 
-      <div class="grid-2" style="gap:1.5rem;">
+      <!-- Pending-backend inline notice -->
+      <div class="pending-notice" role="note">
+        ⏳ صفحه گزارش‌ها در انتظار تعریف اندپوینت‌های آنالیتیک در <code>docs/API_CONTRACT.md</code> است.
+        داده‌های نمایش‌داده‌شده نمونه هستند.
+      </div>
+
+      <!-- KPI cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">مراجعین جدید</div>
+          <div class="kpi-value">۸۷</div>
+          <div class="kpi-delta up">▲ ۲۴٪ نسبت به ماه قبل</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">نرخ تبدیل مشاوره → عمل</div>
+          <div class="kpi-value">۳۲٪</div>
+          <div class="kpi-delta up">▲ ۴٪</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">درآمد ماه (تومان)</div>
+          <div class="kpi-value">۴۸۲م</div>
+          <div class="kpi-delta up">▲ ۱۸٪</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">نرخ بازگشت بیمار</div>
+          <div class="kpi-value">۶۸٪</div>
+          <div class="kpi-delta">۶ ماه اخیر</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="gap:1.5rem;margin-top:1.5rem">
+
+        <!-- Bar chart -->
         <section class="panel">
-          <div class="panel-header"><div><h3>مراجعین جدید — ماه گذشته</h3><p>روزانه</p></div></div>
-          <div class="chart-box">
+          <div class="panel-header">
+            <div><h3>مراجعین جدید — هفته‌ای</h3><p>۳۰ روز گذشته</p></div>
+          </div>
+          <div class="chart-box" role="img" aria-label="نمودار میله‌ای مراجعین جدید">
             <div class="chart-bars">
-              <div class="bar" style="height:40%"><span>ش</span></div>
-              <div class="bar" style="height:55%"><span>ی</span></div>
-              <div class="bar" style="height:68%"><span>د</span></div>
-              <div class="bar" style="height:45%"><span>س</span></div>
-              <div class="bar" style="height:72%"><span>چ</span></div>
-              <div class="bar" style="height:80%"><span>پ</span></div>
-              <div class="bar" style="height:35%"><span>ج</span></div>
+              <div class="bar" style="height:40%"><span>هـ۱</span></div>
+              <div class="bar" style="height:55%"><span>هـ۲</span></div>
+              <div class="bar" style="height:68%"><span>هـ۳</span></div>
+              <div class="bar" style="height:82%"><span>هـ۴</span></div>
             </div>
           </div>
         </section>
 
+        <!-- Referral sources -->
         <section class="panel">
-          <div class="panel-header"><div><h3>منابع مراجعه</h3><p>توزیع کانال‌ها</p></div></div>
-          <ul style="list-style:none;display:flex;flex-direction:column;gap:.75rem;font-size:.88rem;">
-            <li style="display:flex;justify-content:space-between;align-items:center;"><span>اینستاگرام</span><span style="display:flex;align-items:center;gap:.5rem"><span style="width:80px;height:6px;background:var(--evergreen);border-radius:3px"></span><strong>۴۲٪</strong></span></li>
-            <li style="display:flex;justify-content:space-between;align-items:center;"><span>معرفی دوستان</span><span style="display:flex;align-items:center;gap:.5rem"><span style="width:60px;height:6px;background:var(--evergreen);border-radius:3px"></span><strong>۲۸٪</strong></span></li>
-            <li style="display:flex;justify-content:space-between;align-items:center;"><span>گوگل</span><span style="display:flex;align-items:center;gap:.5rem"><span style="width:35px;height:6px;background:var(--evergreen);border-radius:3px"></span><strong>۱۸٪</strong></span></li>
-            <li style="display:flex;justify-content:space-between;align-items:center;"><span>وب‌سایت</span><span style="display:flex;align-items:center;gap:.5rem"><span style="width:20px;height:6px;background:var(--evergreen);border-radius:3px"></span><strong>۸٪</strong></span></li>
-            <li style="display:flex;justify-content:space-between;align-items:center;"><span>سایر</span><span style="display:flex;align-items:center;gap:.5rem"><span style="width:10px;height:6px;background:var(--muted);border-radius:3px"></span><strong>۴٪</strong></span></li>
+          <div class="panel-header">
+            <div><h3>منابع مراجعه</h3><p>توزیع کانال‌های ورودی بیماران</p></div>
+          </div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:.9rem;font-size:.88rem;" role="list">
+            <li style="display:flex;justify-content:space-between;align-items:center;">
+              <span>اینستاگرام</span>
+              <span style="display:flex;align-items:center;gap:.5rem">
+                <span class="ref-bar" style="width:80px"></span>
+                <strong>۴۲٪</strong>
+              </span>
+            </li>
+            <li style="display:flex;justify-content:space-between;align-items:center;">
+              <span>معرفی دوستان</span>
+              <span style="display:flex;align-items:center;gap:.5rem">
+                <span class="ref-bar" style="width:56px"></span>
+                <strong>۲۸٪</strong>
+              </span>
+            </li>
+            <li style="display:flex;justify-content:space-between;align-items:center;">
+              <span>گوگل</span>
+              <span style="display:flex;align-items:center;gap:.5rem">
+                <span class="ref-bar" style="width:36px"></span>
+                <strong>۱۸٪</strong>
+              </span>
+            </li>
+            <li style="display:flex;justify-content:space-between;align-items:center;">
+              <span>وب‌سایت</span>
+              <span style="display:flex;align-items:center;gap:.5rem">
+                <span class="ref-bar" style="width:16px"></span>
+                <strong>۸٪</strong>
+              </span>
+            </li>
+            <li style="display:flex;justify-content:space-between;align-items:center;">
+              <span>سایر</span>
+              <span style="display:flex;align-items:center;gap:.5rem">
+                <span class="ref-bar" style="width:8px;background:var(--muted)"></span>
+                <strong>۴٪</strong>
+              </span>
+            </li>
           </ul>
         </section>
-      </div>
+
+      </div><!-- /.grid-2 -->
+
     </main>
   </div>
-  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script>
+    // Date switch — visual only until analytics endpoints documented
+    document.querySelectorAll('.date-switch button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.date-switch button').forEach(function (b) {
+          b.classList.remove('active');
+        });
+        btn.classList.add('active');
+      });
+    });
+  </script>
 </body>
 </html>

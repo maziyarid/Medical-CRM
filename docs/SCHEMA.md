@@ -5,9 +5,20 @@
 **Version:** 1.0 · **Author:** MAZ//ID · **Date:** 25 July 2026
 **Engine:** MySQL 8.x · `InnoDB` · `utf8mb4_unicode_ci`
 
-> This document is the **source of truth** for the DDL. Any migration must
-> stay consistent with the tables here. Total: **22 tables** covering the
-> entire MVP + growth path.
+> This document is the **long-term target schema** (22 tables, full normalized
+> EMR, multi-tenant). It is **not** the operational schema currently running.
+>
+> **Operational shape:** the actual live table DDL is in
+> `dashboard.drbastaninejad.com/database/migrations/001–007_*.sql`.
+> Those migration files are the current source of truth for what MySQL actually
+> contains. The `intakes` table in migration 001, for example, uses
+> `submission_uuid`, a flat denormalised shape, and a different `status` enum
+> than this document — this is intentional (see `UNIFIED_MASTER_PLAN.md §6.4`).
+>
+> **Do not** write PHP code against this document's DDL until the full
+> migration from migrations → this schema has been planned and executed.
+> All current PHP (`app/Controllers`, `app/Models`) targets the migrations
+> shape, not this document.
 
 ---
 

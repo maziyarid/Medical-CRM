@@ -1,7 +1,9 @@
 <!doctype html>
 <!--
-  MΛZ Medical CRM — Patient Master Index
+  MΛZ Medical CRM — Patient Master Index (Production-wired)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  API:  GET /patients  ✅ LIVE (staff auth required)
+  Note: Uses shared/api.js — no more MAZCRM.api.listPatients() mock.
 -->
 <html dir="rtl" lang="fa">
 <head>
@@ -11,25 +13,43 @@
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    /* skeleton rows for table body */
+    .tr-skeleton td { padding: 0 !important; border: none !important; }
+    .tr-skeleton-inner {
+      height: 52px; border-radius: var(--radius-md); margin: .3rem .75rem;
+    }
+  </style>
 </head>
 <body data-shell="staff" data-nav="patients">
   <div class="app-shell">
     <main class="main">
+
       <div class="topbar">
         <div>
           <h1>بیماران</h1>
           <p class="subtitle">فهرست کامل بیماران ثبت‌شده — قابل جست‌وجو و فیلترپذیر.</p>
         </div>
         <div class="topbar-actions">
-          <button class="btn btn-primary btn-sm" onclick="location.href='../intake/intake.html'">+ افزودن بیمار</button>
+          <button class="btn btn-primary btn-sm"
+                  onclick="location.href='../intake/intake.html'">+ افزودن بیمار</button>
         </div>
       </div>
 
       <section class="panel" style="padding:1rem 1.5rem;margin-bottom:1.25rem;">
         <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
-          <input class="form-input" placeholder="جست‌وجو در نام، شماره یا کد ملی…" style="flex:1;min-width:240px" oninput="filterRows(this.value)"/>
-          <select class="form-select" style="max-width:180px" onchange="filterStatus(this.value)">
+          <input class="form-input" id="search-input"
+                 placeholder="جست‌وجو در نام، شماره یا کد ملی…"
+                 style="flex:1;min-width:240px"
+                 aria-label="جست‌وجوی بیمار"
+                 oninput="filterRows(this.value)"/>
+          <select class="form-select" style="max-width:180px"
+                  aria-label="فیلتر وضعیت"
+                  onchange="filterStatus(this.value)">
             <option value="">همه وضعیت‌ها</option>
             <option value="active">فعال</option>
             <option value="pending">در انتظار</option>
@@ -38,61 +58,179 @@
         </div>
       </section>
 
-      <div class="table-wrap">
-        <table class="data-table" id="patients-table">
-          <thead>
-            <tr>
-              <th>بیمار</th>
-              <th>شماره همراه</th>
-              <th>کد ملی</th>
-              <th>ویزیت</th>
-              <th>آخرین مراجعه</th>
-              <th>وضعیت</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
+      <!-- Table host with data-state -->
+      <div id="table-host" data-state="loading">
+
+        <!-- Loading state -->
+        <div class="slot-loading" aria-hidden="true">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>بیمار</th><th>شماره همراه</th><th>کد ملی</th>
+                  <th>ویزیت</th><th>آخرین مراجعه</th><th>وضعیت</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody-skeleton">
+                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:94%"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:88%"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:96%"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:82%"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Ready state -->
+        <div class="slot-ready">
+          <div class="table-wrap">
+            <table class="data-table" id="patients-table">
+              <thead>
+                <tr>
+                  <th>بیمار</th><th>شماره همراه</th><th>کد ملی</th>
+                  <th>ویزیت</th><th>آخرین مراجعه</th><th>وضعیت</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Error state -->
+        <div class="slot-error">
+          <div class="state-panel state-error" role="alert">
+            <div class="state-icon" aria-hidden="true">⚠️</div>
+            <h3>بارگذاری لیست بیماران ناموفق بود</h3>
+            <p id="patients-error-msg">لطفاً دوباره تلاش کنید.</p>
+            <div class="state-actions">
+              <button type="button" class="btn btn-secondary btn-sm"
+                      onclick="loadPatients()">تلاش مجدد</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /#table-host -->
+
     </main>
   </div>
 
   <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
-  <script>
-    var ALL = [];
-    var filter = { q: '', status: '' };
+  <script type="module">
+    import { isAuthenticated, getToken, showToast } from '../../shared/api.js';
+
+    // ── Auth guard ──────────────────────────────────────────────────────────
+    if (!isAuthenticated()) {
+      window.location.replace('../auth/login.html');
+    }
+
+    const API_BASE = 'https://app.drbastaninejad.com/api/v1';
+    let ALL = [];
+    const filter = { q: '', status: '' };
+
+    function toFa(n) {
+      return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+
     function pillFor(s) {
-      var map = { active: ['evergreen','فعال'], pending: ['warning','در انتظار'], new: ['info','جدید'] };
-      var m = map[s] || ['muted', s];
+      const map = {
+        active:  ['evergreen', 'فعال'],
+        pending: ['warning',   'در انتظار'],
+        new:     ['info',      'جدید'],
+      };
+      const m = map[s] || ['muted', s || '—'];
       return '<span class="pill ' + m[0] + '">' + m[1] + '</span>';
     }
+
     function render() {
-      var tbody = document.getElementById('tbody');
-      var q = filter.q.trim();
-      var rows = ALL.filter(function (p) {
+      const tbody = document.getElementById('tbody');
+      const q = filter.q.trim();
+      const rows = ALL.filter(p => {
         if (filter.status && p.status !== filter.status) return false;
         if (!q) return true;
-        return (p.name.indexOf(q) > -1) || (p.mobile.indexOf(q) > -1) || (p.national.indexOf(q) > -1);
+        const name     = (p.first_name + ' ' + p.last_name).toLowerCase();
+        const mobile   = String(p.mobile || '');
+        const national = String(p.national_id || '');
+        return name.includes(q) || mobile.includes(q) || national.includes(q);
       });
-      if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">هیچ نتیجه‌ای یافت نشد.</td></tr>'; return; }
-      tbody.innerHTML = rows.map(function (p) {
-        var initials = p.name.split(' ').map(function (w){return w[0];}).slice(0,2).join('');
+
+      if (!rows.length) {
+        tbody.innerHTML =
+          '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">' +
+            (ALL.length ? 'هیچ نتیجه‌ای یافت نشد.' : 'هنوز بیماری ثبت نشده است.') +
+          '</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(p => {
+        const fullName = ((p.first_name || '') + ' ' + (p.last_name || '')).trim();
+        const initials = fullName.split(' ').map(w => w[0] || '').slice(0, 2).join('');
+        const visits   = p.visits_count ?? p.visits ?? '—';
+        const lastVisit = p.last_visit_jalali || p.last_visit || '—';
         return '<tr>' +
-          '<td><div style="display:flex;gap:.6rem;align-items:center;"><span class="avatar-md">' + initials + '</span><strong>' + p.name + '</strong></div></td>' +
-          '<td style="direction:ltr;text-align:right">' + p.mobile + '</td>' +
-          '<td style="direction:ltr;text-align:right">' + p.national + '</td>' +
-          '<td>' + MAZCRM.toFaDigits(p.visits) + '</td>' +
-          '<td>' + p.last + '</td>' +
+          '<td><div style="display:flex;gap:.6rem;align-items:center;">' +
+            '<span class="avatar-md" aria-hidden="true">' + initials + '</span>' +
+            '<strong>' + fullName + '</strong>' +
+          '</div></td>' +
+          '<td style="direction:ltr;text-align:right">' + (p.mobile || '—') + '</td>' +
+          '<td style="direction:ltr;text-align:right">' + (p.national_id || '—') + '</td>' +
+          '<td>' + toFa(visits) + '</td>' +
+          '<td>' + lastVisit + '</td>' +
           '<td>' + pillFor(p.status) + '</td>' +
           '<td><a class="btn btn-ghost btn-sm" href="patient-detail.html?id=' + p.id + '">مشاهده →</a></td>' +
         '</tr>';
       }).join('');
     }
-    function filterRows(v) { filter.q = MAZCRM.toEnDigits(v); render(); }
-    function filterStatus(v) { filter.status = v; render(); }
 
-    MAZCRM.api.listPatients().then(function (list) { ALL = list; render(); });
+    window.filterRows = function (v) {
+      filter.q = v.replace(/[\u06F0-\u06F9]/g, d => d.charCodeAt(0) - 0x06F0)
+                  .replace(/[\u0660-\u0669]/g, d => d.charCodeAt(0) - 0x0660);
+      render();
+    };
+    window.filterStatus = function (v) { filter.status = v; render(); };
+
+    window.loadPatients = async function () {
+      const host = document.getElementById('table-host');
+      MAZCRM.states.set(host, 'loading');
+      try {
+        const token = getToken();
+        const res = await fetch(API_BASE + '/patients', {
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': token ? 'Bearer ' + token : '',
+          }
+        });
+        const data = await res.json();
+        if (!res.ok || data.success === false) {
+          const code = data?.error?.code || (res.status === 401 ? 'UNAUTHORIZED' : 'SERVER_ERROR');
+          throw { code, httpStatus: res.status };
+        }
+        ALL = data.data?.patients ?? data.data ?? [];
+        render();
+        MAZCRM.states.set(host, 'ready');
+      } catch (err) {
+        // 401 / 404 before auth middleware is deployed → deployment gate
+        if (err.httpStatus === 401 || err.httpStatus === 404) {
+          // Show pending-backend notice inline
+          document.getElementById('table-host').innerHTML =
+            '<div class="state-panel state-empty" role="status">' +
+              '<div class="state-icon" aria-hidden="true">⏳</div>' +
+              '<h3>در انتظار استقرار بک‌اند</h3>' +
+              '<p>لیست بیماران پس از اجرای مهاجرت‌ها و استقرار AuthMiddleware در دسترس خواهد بود.</p>' +
+            '</div>';
+        } else {
+          const errMsg = err.code === 'NETWORK_ERROR'
+            ? 'اتصال اینترنت را بررسی کنید.'
+            : 'خطای سرور — لطفاً دوباره تلاش کنید.';
+          document.getElementById('patients-error-msg').textContent = errMsg;
+          MAZCRM.states.set(host, 'error');
+        }
+      }
+    };
+
+    loadPatients();
   </script>
 </body>
 </html>

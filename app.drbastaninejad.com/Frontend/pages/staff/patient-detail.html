@@ -1,7 +1,9 @@
 <!doctype html>
 <!--
-  MΛZ Medical CRM — Patient Master View + Timeline
+  MΛZ Medical CRM — Patient Master View + Timeline (Upgraded)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Data:  ❌ NOT IN CONTRACT — hard-coded mock; wire once patient-detail endpoint documented.
+  Auth:  Staff Bearer token required.
 -->
 <html dir="rtl" lang="fa">
 <head>
@@ -11,7 +13,10 @@
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
   <style>
     .patient-header { display:flex;gap:1.25rem;align-items:center;padding:1.5rem 2rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:1.5rem;flex-wrap:wrap; }
     .patient-header .avatar-lg { width:76px;height:76px;border-radius:50%;background:var(--evergreen-soft);color:var(--evergreen);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.5rem;flex-shrink:0; }
@@ -58,13 +63,19 @@
         </div>
       </div>
 
-      <div class="tabs" role="tablist">
-        <button class="tab active" role="tab">تایم‌لاین</button>
-        <button class="tab" role="tab">اطلاعات فردی</button>
-        <button class="tab" role="tab">تاریخچه پزشکی</button>
-        <button class="tab" role="tab">مدارک و تصاویر</button>
-        <button class="tab" role="tab">صورتحساب</button>
-        <button class="tab" role="tab">یادداشت‌های داخلی</button>
+      <div class="tabs" role="tablist" aria-label="بخش‌های پرونده بیمار">
+        <button class="tab active" role="tab" aria-selected="true"
+                onclick="switchTab(this,0)">تایم‌لاین</button>
+        <button class="tab" role="tab" aria-selected="false"
+                onclick="switchTab(this,1)">اطلاعات فردی</button>
+        <button class="tab" role="tab" aria-selected="false"
+                onclick="switchTab(this,2)">تاریخچه پزشکی</button>
+        <button class="tab" role="tab" aria-selected="false"
+                onclick="switchTab(this,3)">مدارک و تصاویر</button>
+        <button class="tab" role="tab" aria-selected="false"
+                onclick="switchTab(this,4)">صورتحساب</button>
+        <button class="tab" role="tab" aria-selected="false"
+                onclick="switchTab(this,5)">یادداشت‌های داخلی</button>
       </div>
 
       <div class="grid-main">
@@ -121,6 +132,15 @@
     </main>
   </div>
   <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
+  <script>
+    function switchTab(btn, idx) {
+      document.querySelectorAll('.tabs .tab').forEach(function (t, i) {
+        t.classList.toggle('active', i === idx);
+        t.setAttribute('aria-selected', String(i === idx));
+      });
+    }
+  </script>
 </body>
 </html>

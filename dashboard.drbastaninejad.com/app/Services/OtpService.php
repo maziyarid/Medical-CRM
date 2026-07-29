@@ -14,7 +14,7 @@ use App\Core\Database;
  *   verify()      — return 'ok' | 'invalid' | 'expired'
  *   issueToken()  — create or refresh a bearer token row, return user payload
  *
- * SMS dispatch delegates to SmsService (existing or stub).
+ * SMS dispatch delegates to SmsProviderChain (Kavenegar→Ghasedak→FarazSMS→TSMS→Log).
  * Table: otp_codes (mobile, code, purpose, expires_at, used_at, created_at)
  */
 final class OtpService
@@ -52,17 +52,9 @@ final class OtpService
              VALUES (?, ?, "login", ?, UTC_TIMESTAMP())'
         )->execute([$mobile, password_hash($code, PASSWORD_BCRYPT), $expiresAt]);
 
-        // Dispatch SMS — try real service, fall back gracefully
-        try {
-            $sms = new SmsService();
-            $sms->sendOtp($mobile, $code);
-        } catch (\Throwable $e) {
-            error_log('[OtpService] SMS dispatch failed: ' . $e->getMessage());
-            // In development/staging mode, log OTP to error log
-            if (($_ENV['APP_ENV'] ?? 'production') !== 'production') {
-                error_log("[OtpService][DEV] OTP for $mobile: $code");
-            }
-        }
+        // Dispatch SMS via provider chain (Kavenegar→Ghasedak→FarazSMS→TSMS→Log).
+        // SmsProviderChain never throws — LogSmsProvider is the final fallback.
+        (new SmsProviderChain())->sendOtp($mobile, $code);
 
         return true;
     }

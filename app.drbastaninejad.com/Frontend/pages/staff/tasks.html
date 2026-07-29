@@ -1,54 +1,210 @@
 <!doctype html>
-<!-- MΛZ Medical CRM — Task Kanban · Author: MAZ//ID · © 2026 Maziyar -->
+<!--
+  MΛZ Medical CRM — Task Kanban (Upgraded)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Data:  ❌ NOT IN CONTRACT — hard-coded mock; wire once tasks endpoints documented.
+  Auth:  Staff Bearer token required.
+-->
 <html dir="rtl" lang="fa">
 <head>
-  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>وظایف — MΛZ Medical CRM</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
   <style>
-    .kanban { display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem; }
-    @media (max-width:900px){ .kanban { grid-template-columns:1fr; } }
-    .col { background:var(--porcelain);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;min-height:400px; }
-    .col h3 { font-size:.88rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center; }
-    .col h3 .count { background:var(--surface);color:var(--muted);padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:700; }
-    .task-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:.85rem 1rem;margin-bottom:.6rem;cursor:grab;transition:box-shadow var(--transition-fast); }
-    .task-card:hover { box-shadow:var(--shadow-sm); }
-    .task-card .title { font-size:.88rem;font-weight:600;margin-bottom:.4rem; }
-    .task-card .meta { display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted); }
-    .task-card .prio { display:inline-block;width:3px;height:14px;vertical-align:middle;border-radius:2px;margin-inline-end:.3rem; }
-    .prio.high { background:var(--error); } .prio.mid { background:var(--warning); } .prio.low { background:var(--muted); }
+    /* ── Kanban layout ── */
+    .kanban {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) { .kanban { grid-template-columns: 1fr; } }
+
+    .kanban-col {
+      background: var(--porcelain);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      min-height: 360px;
+    }
+    .kanban-col-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1rem; font-size: .88rem; font-weight: 700;
+    }
+    .col-count {
+      background: var(--surface); color: var(--muted);
+      padding: 2px 10px; border-radius: 999px;
+      font-size: .72rem; font-weight: 700;
+    }
+    /* ── Task card ── */
+    .task-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: .85rem 1rem;
+      margin-bottom: .6rem;
+      cursor: grab;
+      transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+    }
+    .task-card:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+    .task-card:last-child { margin-bottom: 0; }
+    .task-title { font-size: .88rem; font-weight: 600; margin-bottom: .4rem; display: flex; align-items: center; gap: .4rem; }
+    .task-meta  { display: flex; justify-content: space-between; font-size: .72rem; color: var(--muted); }
+    /* Priority indicator */
+    .prio { display: inline-block; width: 4px; height: 14px; vertical-align: middle; border-radius: 2px; flex-shrink: 0; }
+    .prio-high   { background: var(--error); }
+    .prio-mid    { background: var(--warning); }
+    .prio-low    { background: var(--muted); }
+    /* Done column opacity */
+    .kanban-col--done .task-card { opacity: .65; }
+    /* ── Add task button ── */
+    .add-task-btn {
+      width: 100%; border: 1.5px dashed var(--border); background: none;
+      border-radius: var(--radius-md); padding: .6rem;
+      color: var(--muted); font-size: .82rem; cursor: pointer;
+      font-family: inherit; transition: border-color var(--transition-fast), color var(--transition-fast);
+      margin-top: .6rem; min-height: 44px;
+    }
+    .add-task-btn:hover { border-color: var(--evergreen); color: var(--evergreen); }
+    /* ── Pending notice ── */
+    .pending-notice {
+      background: #f8fafc; border: 1px dashed var(--border); color: var(--muted);
+      font-size: .78rem; padding: .65rem .9rem; border-radius: var(--radius-md);
+      text-align: center; margin-bottom: 1.5rem;
+    }
   </style>
 </head>
 <body data-shell="staff" data-nav="tasks">
   <div class="app-shell">
     <main class="main">
+
       <div class="topbar">
-        <div><h1>وظایف و کارها</h1><p class="subtitle">مدیریت وظایف تیم — قابل کشیدن بین ستون‌ها</p></div>
-        <button class="btn btn-primary btn-sm">+ وظیفه جدید</button>
-      </div>
-      <div class="kanban">
-        <div class="col">
-          <h3>در انتظار <span class="count">۴</span></h3>
-          <div class="task-card"><div class="title"><span class="prio high"></span>پیگیری بیمه بیمار #۱۰۳۹</div><div class="meta"><span>منشی</span><span>امروز</span></div></div>
-          <div class="task-card"><div class="title"><span class="prio mid"></span>تماس یادآوری با ۵ بیمار فردا</div><div class="meta"><span>منشی</span><span>امروز عصر</span></div></div>
-          <div class="task-card"><div class="title"><span class="prio low"></span>سفارش گاز استریل</div><div class="meta"><span>پرستار</span><span>هفته آینده</span></div></div>
-          <div class="task-card"><div class="title"><span class="prio mid"></span>بازبینی رضایت‌نامه‌های امضا نشده</div><div class="meta"><span>دکتر</span><span>فردا</span></div></div>
+        <div>
+          <h1>وظایف و کارها</h1>
+          <p class="subtitle">مدیریت وظایف تیم — داده‌های نمونه</p>
         </div>
-        <div class="col">
-          <h3>در حال انجام <span class="count">۲</span></h3>
-          <div class="task-card"><div class="title"><span class="prio high"></span>آماده‌سازی اتاق عمل ۲</div><div class="meta"><span>پرستار</span><span>۱۴:۰۰</span></div></div>
-          <div class="task-card"><div class="title"><span class="prio mid"></span>تنظیم قرارداد جدید بیمه ایران</div><div class="meta"><span>مدیر</span><span>۳ روز مانده</span></div></div>
-        </div>
-        <div class="col">
-          <h3>انجام شده <span class="count">۸</span></h3>
-          <div class="task-card" style="opacity:.7"><div class="title"><span class="prio mid"></span>پاسخ به تیکت #۲۳</div><div class="meta"><span>منشی</span><span>دیروز</span></div></div>
-          <div class="task-card" style="opacity:.7"><div class="title"><span class="prio low"></span>به‌روزرسانی وب‌سایت — تعرفه‌ها</div><div class="meta"><span>مدیر</span><span>۲ روز پیش</span></div></div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" onclick="alert('در انتظار پیاده‌سازی بک‌اند')">
+            + وظیفه جدید
+          </button>
         </div>
       </div>
+
+      <!-- Pending-backend inline notice -->
+      <div class="pending-notice" role="note">
+        ⏳ مدیریت وظایف در انتظار تعریف اندپوینت‌های Tasks در <code>docs/API_CONTRACT.md</code> است.
+        داده‌های نمایش‌داده‌شده نمونه هستند.
+      </div>
+
+      <div class="kanban" role="region" aria-label="تابلوی وظایف Kanban">
+
+        <!-- Column 1: Todo -->
+        <div class="kanban-col" role="group" aria-label="در انتظار">
+          <div class="kanban-col-head">
+            در انتظار <span class="col-count">۴</span>
+          </div>
+
+          <article class="task-card" draggable="true" aria-label="پیگیری بیمه — اولویت بالا">
+            <div class="task-title">
+              <span class="prio prio-high" aria-label="اولویت بالا"></span>
+              پیگیری بیمه بیمار #۱۰۳۹
+            </div>
+            <div class="task-meta"><span>منشی</span><span>امروز</span></div>
+          </article>
+
+          <article class="task-card" draggable="true" aria-label="تماس یادآوری بیماران">
+            <div class="task-title">
+              <span class="prio prio-mid" aria-label="اولویت متوسط"></span>
+              تماس یادآوری با ۵ بیمار فردا
+            </div>
+            <div class="task-meta"><span>منشی</span><span>امروز عصر</span></div>
+          </article>
+
+          <article class="task-card" draggable="true" aria-label="سفارش گاز استریل">
+            <div class="task-title">
+              <span class="prio prio-low" aria-label="اولویت پایین"></span>
+              سفارش گاز استریل
+            </div>
+            <div class="task-meta"><span>پرستار</span><span>هفته آینده</span></div>
+          </article>
+
+          <article class="task-card" draggable="true" aria-label="بازبینی رضایت‌نامه‌ها">
+            <div class="task-title">
+              <span class="prio prio-mid" aria-label="اولویت متوسط"></span>
+              بازبینی رضایت‌نامه‌های امضانشده
+            </div>
+            <div class="task-meta"><span>دکتر</span><span>فردا</span></div>
+          </article>
+
+          <button class="add-task-btn" onclick="alert('در انتظار پیاده‌سازی بک‌اند')">
+            + افزودن وظیفه
+          </button>
+        </div>
+
+        <!-- Column 2: In progress -->
+        <div class="kanban-col" role="group" aria-label="در حال انجام">
+          <div class="kanban-col-head">
+            در حال انجام <span class="col-count">۲</span>
+          </div>
+
+          <article class="task-card" draggable="true" aria-label="آماده‌سازی اتاق عمل">
+            <div class="task-title">
+              <span class="prio prio-high" aria-label="اولویت بالا"></span>
+              آماده‌سازی اتاق عمل ۲
+            </div>
+            <div class="task-meta"><span>پرستار</span><span>۱۴:۰۰</span></div>
+          </article>
+
+          <article class="task-card" draggable="true" aria-label="قرارداد بیمه ایران">
+            <div class="task-title">
+              <span class="prio prio-mid" aria-label="اولویت متوسط"></span>
+              تنظیم قرارداد جدید بیمه ایران
+            </div>
+            <div class="task-meta"><span>مدیر</span><span>۳ روز مانده</span></div>
+          </article>
+
+          <button class="add-task-btn" onclick="alert('در انتظار پیاده‌سازی بک‌اند')">
+            + افزودن وظیفه
+          </button>
+        </div>
+
+        <!-- Column 3: Done -->
+        <div class="kanban-col kanban-col--done" role="group" aria-label="انجام شده">
+          <div class="kanban-col-head">
+            انجام شده <span class="col-count">۸</span>
+          </div>
+
+          <article class="task-card" aria-label="پاسخ تیکت ۲۳">
+            <div class="task-title">
+              <span class="prio prio-mid" aria-label="اولویت متوسط"></span>
+              پاسخ به تیکت #۲۳
+            </div>
+            <div class="task-meta"><span>منشی</span><span>دیروز</span></div>
+          </article>
+
+          <article class="task-card" aria-label="به‌روزرسانی تعرفه‌ها">
+            <div class="task-title">
+              <span class="prio prio-low" aria-label="اولویت پایین"></span>
+              به‌روزرسانی وب‌سایت — تعرفه‌ها
+            </div>
+            <div class="task-meta"><span>مدیر</span><span>۲ روز پیش</span></div>
+          </article>
+        </div>
+
+      </div><!-- /.kanban -->
+
     </main>
   </div>
-  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
 </body>
 </html>

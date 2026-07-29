@@ -1,108 +1,346 @@
 <!doctype html>
 <!--
-  MΛZ Medical CRM — Patient Profile
+  MΛZ Medical CRM — Patient Profile (Production-wired)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  Adapted from client-provided dashboard_profile_mockup.html into the design system.
+  API:  GET  /patient/profile   ⚠️ PENDING — renders pending-backend state until live
+        PATCH /patient/profile  ⚠️ PENDING — save button renders pending-backend state
+  Note: requireAuth() guard; pending states rendered per-section, not whole-page,
+        so the page structure remains navigable even when the API is not yet live.
 -->
 <html dir="rtl" lang="fa">
 <head>
-  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>پروفایل من — داشبورد بیمار</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
   <style>
-    .profile-card { padding:2rem 1.5rem;text-align:center; }
-    .avatar-upload { position:relative;width:116px;height:116px;margin:0 auto 1rem; }
-    .avatar-placeholder { width:116px;height:116px;border-radius:50%;background:var(--evergreen-soft);color:var(--evergreen);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;border:3px solid #fff;box-shadow:0 4px 14px rgba(47,125,50,.18); }
-    .avatar-edit { position:absolute;bottom:-2px;inset-inline-start:-2px;width:36px;height:36px;border-radius:50%;background:var(--evergreen);border:3px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer; }
-    .toggle-row { display:flex;justify-content:space-between;align-items:center;padding:.95rem 0;border-bottom:1px solid var(--border); }
-    .toggle-row:last-child { border-bottom:none; }
-    .med-tag-list { display:flex;flex-wrap:wrap;gap:.55rem; }
-    .med-tag { background:var(--evergreen-soft);color:var(--evergreen-dark);font-size:.82rem;font-weight:600;padding:.4rem .85rem;border-radius:999px; }
-    .readonly-note { background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;font-size:.78rem;padding:.7rem .9rem;border-radius:.6rem;margin-top:1rem;line-height:1.7; }
+    [data-state] .slot-loading,
+    [data-state] .slot-ready,
+    [data-state] .slot-pending,
+    [data-state] .slot-error { display: none !important; }
+    [data-state="loading"]  .slot-loading  { display: block !important; }
+    [data-state="ready"]    .slot-ready    { display: block !important; }
+    [data-state="pending"]  .slot-pending  { display: block !important; }
+    [data-state="error"]    .slot-error    { display: block !important; }
+
+    .profile-card { padding: 2rem 1.5rem; text-align: center; }
+    .avatar-upload { position: relative; width: 116px; height: 116px; margin: 0 auto 1rem; }
+    .avatar-placeholder {
+      width: 116px; height: 116px; border-radius: 50%;
+      background: var(--evergreen-soft); color: var(--evergreen);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; font-weight: 700;
+      border: 3px solid #fff; box-shadow: 0 4px 14px rgba(47,125,50,.18);
+    }
+    .toggle-row { display: flex; justify-content: space-between; align-items: center;
+                  padding: .95rem 0; border-bottom: 1px solid var(--border); }
+    .toggle-row:last-child { border-bottom: none; }
+    .med-tag-list { display: flex; flex-wrap: wrap; gap: .55rem; }
+    .med-tag {
+      background: var(--evergreen-soft); color: var(--evergreen-dark);
+      font-size: .82rem; font-weight: 600;
+      padding: .4rem .85rem; border-radius: 999px;
+    }
+    .readonly-note {
+      background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
+      font-size: .78rem; padding: .7rem .9rem; border-radius: .6rem;
+      margin-top: 1rem; line-height: 1.7;
+    }
+    /* Pending inline notice for PATCH */
+    .patch-pending {
+      background: #f8fafc; border: 1px dashed var(--border); color: var(--muted);
+      font-size: .78rem; padding: .65rem .9rem; border-radius: var(--radius-md);
+      margin-top: .75rem; text-align: center;
+    }
+    /* Skeleton for profile card */
+    .profile-skel-avatar { width: 116px; height: 116px; border-radius: 50%; margin: 0 auto 1rem; }
+    .profile-skel-line { height: 14px; border-radius: 6px; margin: .5rem auto; }
+    @media (max-width: 900px) { .profile-grid { grid-template-columns: 1fr !important; } }
   </style>
 </head>
 <body data-shell="patient" data-nav="profile">
   <div class="app-shell">
     <main class="main">
+
       <div class="topbar">
-        <div><h1>پروفایل من</h1><p class="subtitle">اطلاعات شخصی، تصویر پروفایل و تنظیمات حساب کاربری خود را مدیریت کنید.</p></div>
-        <div class="topbar-actions"><div class="avatar-chip"><div class="avatar-md">م ا</div><span class="who">مریم احمدی</span></div></div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:300px 1fr;gap:1.75rem;align-items:start;" class="profile-grid">
-        <aside class="card profile-card">
-          <div class="avatar-upload">
-            <div class="avatar-placeholder">م ا</div>
-            <button class="avatar-edit" aria-label="تغییر تصویر پروفایل"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+        <div>
+          <h1>پروفایل من</h1>
+          <p class="subtitle">اطلاعات شخصی و تنظیمات حساب کاربری</p>
+        </div>
+        <div class="topbar-actions">
+          <div class="avatar-chip" id="hdr-avatar-chip" hidden>
+            <div class="avatar-md" id="hdr-avatar-initials" aria-hidden="true">؟</div>
+            <span class="who" id="hdr-avatar-name">…</span>
           </div>
-          <h2 style="font-size:1.1rem">مریم احمدی</h2>
-          <p style="color:var(--muted);font-size:.8rem;margin:.15rem 0 1rem">۰۹۱۲۱۲۳۴۵۶۷</p>
-          <span class="pill evergreen">حساب فعال</span>
-          <div style="display:flex;justify-content:space-around;border-top:1px solid var(--border);padding-top:1rem;margin-top:1.25rem">
-            <div><strong style="display:block;font-size:1.1rem">۳</strong><span style="font-size:.72rem;color:var(--muted)">نوبت‌ها</span></div>
-            <div><strong style="display:block;font-size:1.1rem">۱</strong><span style="font-size:.72rem;color:var(--muted)">پرونده</span></div>
-            <div><strong style="display:block;font-size:1.1rem">۲۰۲۶</strong><span style="font-size:.72rem;color:var(--muted)">عضویت</span></div>
-          </div>
-        </aside>
-
-        <div style="display:flex;flex-direction:column;gap:1.75rem;">
-
-          <section class="panel">
-            <div class="panel-header">
-              <div><h3>اطلاعات شخصی</h3><p>این اطلاعات از فرم تشکیل پرونده اولیه شما دریافت شده است.</p></div>
-              <button class="btn btn-ghost btn-sm">ویرایش</button>
-            </div>
-            <div class="grid-2">
-              <div class="input-group"><label class="form-label">نام</label><input class="form-input" disabled value="مریم"/></div>
-              <div class="input-group"><label class="form-label">نام خانوادگی</label><input class="form-input" disabled value="احمدی"/></div>
-              <div class="input-group"><label class="form-label">شماره همراه (تأییدشده)</label><input class="form-input" disabled value="09121234567" style="direction:ltr;text-align:right"/></div>
-              <div class="input-group"><label class="form-label">ایمیل</label><input class="form-input" type="email" value="maryam.ahmadi@example.com" style="direction:ltr;text-align:right"/></div>
-              <div class="input-group"><label class="form-label">تاریخ تولد</label><input class="form-input" disabled value="۱۳۷۰/۰۵/۱۲"/></div>
-              <div class="input-group"><label class="form-label">شهر</label><input class="form-input" disabled value="تهران، منطقه ۵"/></div>
-            </div>
-            <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:.5rem"><button class="btn btn-secondary btn-sm">انصراف</button><button class="btn btn-primary btn-sm">ذخیره تغییرات</button></div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-header"><div><h3>خلاصه پرونده پزشکی</h3><p>این بخش فقط قابل مشاهده است؛ برای اصلاح با مرکز تماس بگیرید.</p></div></div>
-            <p class="form-label">تاریخچه پزشکی ثبت‌شده</p>
-            <div class="med-tag-list"><span class="med-tag">فشار خون بالا</span><span class="med-tag">حساسیت به دارو و غذا</span></div>
-            <p class="form-label" style="margin-top:1.25rem">داروهای مصرفی</p>
-            <div class="med-tag-list"><span class="med-tag">داروهای فشار خون</span><span class="med-tag">آسپرین</span></div>
-            <div class="readonly-note">⚠ این اطلاعات در زمان تشکیل پرونده اولیه ثبت شده و برای اصلاح یا به‌روزرسانی باید با پذیرش مرکز تماس بگیرید.</div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-header"><div><h3>تنظیمات اعلان‌ها</h3><p>نحوه دریافت یادآور نوبت را مشخص کنید.</p></div></div>
-            <div class="toggle-row">
-              <div><div style="font-weight:600;font-size:.9rem">یادآور نوبت از طریق ایمیل</div><div style="font-size:.78rem;color:var(--muted)">ارسال یادآور پیش از زمان نوبت</div></div>
-              <label class="switch"><input type="checkbox" checked/><span class="slider"></span></label>
-            </div>
-            <div class="toggle-row">
-              <div><div style="font-weight:600;font-size:.9rem">یادآور از طریق پیامک</div><div style="font-size:.78rem;color:var(--muted)">پیامک یادآور نوبت</div></div>
-              <label class="switch"><input type="checkbox" checked/><span class="slider"></span></label>
-            </div>
-            <div class="toggle-row">
-              <div><div style="font-weight:600;font-size:.9rem">ایمیل‌های اطلاع‌رسانی</div><div style="font-size:.78rem;color:var(--muted)">اخبار و مطالب پزشکی</div></div>
-              <label class="switch"><input type="checkbox"/><span class="slider"></span></label>
-            </div>
-          </section>
-
-          <section class="panel">
-            <div class="panel-header"><div><h3>امنیت حساب کاربری</h3><p>رمز عبور خود را به‌روزرسانی کنید.</p></div></div>
-            <div class="grid-2">
-              <div class="input-group"><label class="form-label">رمز عبور جدید</label><input class="form-input" type="password" placeholder="••••••••"/></div>
-              <div class="input-group"><label class="form-label">تکرار رمز عبور</label><input class="form-input" type="password" placeholder="••••••••"/></div>
-            </div>
-            <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary btn-sm">به‌روزرسانی رمز عبور</button></div>
-          </section>
         </div>
       </div>
+
+      <!-- Whole-page host -->
+      <div id="profile-host" data-state="loading">
+
+        <!-- ── Loading ── -->
+        <div class="slot-loading" aria-hidden="true">
+          <div style="display:grid;grid-template-columns:300px 1fr;gap:1.75rem" class="profile-grid">
+            <div class="card" style="padding:2rem;text-align:center">
+              <div class="skeleton profile-skel-avatar"></div>
+              <div class="skeleton profile-skel-line" style="width:60%"></div>
+              <div class="skeleton profile-skel-line" style="width:40%"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:1.75rem">
+              <div class="skeleton" style="height:200px;border-radius:var(--radius)"></div>
+              <div class="skeleton" style="height:160px;border-radius:var(--radius)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Pending backend ── -->
+        <div class="slot-pending">
+          <div class="state-panel state-pending" role="status">
+            <div class="state-icon" aria-hidden="true">⏳</div>
+            <h3>در انتظار پیاده‌سازی بک‌اند</h3>
+            <p>
+              پروفایل به <code>GET /patient/profile</code> متکی است که هنوز پیاده‌سازی نشده.
+              پس از استقرار اندپوینت، اطلاعات شما اینجا نمایش داده می‌شود.
+            </p>
+            <div class="state-actions">
+              <a class="btn btn-secondary btn-sm" href="overview.html">← نمای کلی</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Ready ── -->
+        <div class="slot-ready">
+          <div style="display:grid;grid-template-columns:300px 1fr;gap:1.75rem;align-items:start"
+               class="profile-grid">
+
+            <!-- Sidebar card -->
+            <aside class="card profile-card">
+              <div class="avatar-upload">
+                <div class="avatar-placeholder" id="prof-avatar" aria-hidden="true">؟</div>
+              </div>
+              <h2 id="prof-fullname" style="font-size:1.1rem">—</h2>
+              <p id="prof-mobile" style="color:var(--muted);font-size:.8rem;margin:.15rem 0 1rem">—</p>
+              <span class="pill evergreen">حساب فعال</span>
+              <div style="display:flex;justify-content:space-around;border-top:1px solid var(--border);
+                          padding-top:1rem;margin-top:1.25rem">
+                <div>
+                  <strong id="prof-stat-appts" style="display:block;font-size:1.1rem">—</strong>
+                  <span style="font-size:.72rem;color:var(--muted)">نوبت‌ها</span>
+                </div>
+                <div>
+                  <strong id="prof-stat-emr" style="display:block;font-size:1.1rem">—</strong>
+                  <span style="font-size:.72rem;color:var(--muted)">پرونده</span>
+                </div>
+              </div>
+            </aside>
+
+            <div style="display:flex;flex-direction:column;gap:1.75rem">
+
+              <!-- Personal info section -->
+              <section class="panel" id="personal-section">
+                <div class="panel-header">
+                  <div>
+                    <h3>اطلاعات شخصی</h3>
+                    <p>این اطلاعات از فرم تشکیل پرونده اولیه شما دریافت شده است.</p>
+                  </div>
+                  <button class="btn btn-ghost btn-sm" id="btn-edit-toggle"
+                          onclick="toggleEdit()">ویرایش</button>
+                </div>
+                <form id="profile-form" novalidate>
+                  <div class="grid-2">
+                    <div class="input-group">
+                      <label class="form-label" for="pf-first">نام</label>
+                      <input class="form-input" id="pf-first" name="first_name" disabled/>
+                    </div>
+                    <div class="input-group">
+                      <label class="form-label" for="pf-last">نام خانوادگی</label>
+                      <input class="form-input" id="pf-last" name="last_name" disabled/>
+                    </div>
+                    <div class="input-group">
+                      <label class="form-label">شماره همراه (تأییدشده)</label>
+                      <input class="form-input" id="pf-mobile" disabled
+                             style="direction:ltr;text-align:right"/>
+                    </div>
+                    <div class="input-group">
+                      <label class="form-label" for="pf-email">ایمیل</label>
+                      <input class="form-input" id="pf-email" name="email" type="email"
+                             style="direction:ltr;text-align:right"/>
+                    </div>
+                    <div class="input-group">
+                      <label class="form-label">تاریخ تولد</label>
+                      <input class="form-input" id="pf-dob" disabled/>
+                    </div>
+                    <div class="input-group">
+                      <label class="form-label">شهر</label>
+                      <input class="form-input" id="pf-city" disabled/>
+                    </div>
+                  </div>
+                  <div id="form-actions" style="display:none;justify-content:flex-end;gap:.5rem;margin-top:.5rem">
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            onclick="cancelEdit()">انصراف</button>
+                    <button type="submit" class="btn btn-primary btn-sm"
+                            id="btn-save-profile">ذخیره تغییرات</button>
+                  </div>
+                  <!-- PATCH /patient/profile is PENDING — shown after user clicks save -->
+                  <div id="patch-pending-note" class="patch-pending" hidden>
+                    ⏳ ذخیره‌سازی به <code>PATCH /patient/profile</code> متکی است که هنوز
+                    پیاده‌سازی نشده. تغییرات شما پس از استقرار بک‌اند ذخیره خواهد شد.
+                  </div>
+                  <div class="form-error" id="patch-error" role="alert" hidden></div>
+                </form>
+              </section>
+
+              <!-- Medical summary — read-only -->
+              <section class="panel">
+                <div class="panel-header">
+                  <div>
+                    <h3>خلاصه پرونده پزشکی</h3>
+                    <p>برای اصلاح با مرکز تماس بگیرید.</p>
+                  </div>
+                </div>
+                <p class="form-label">تاریخچه پزشکی</p>
+                <div class="med-tag-list" id="med-history-tags">
+                  <span style="color:var(--muted);font-size:.82rem">بارگذاری…</span>
+                </div>
+                <p class="form-label" style="margin-top:1.25rem">داروهای مصرفی</p>
+                <div class="med-tag-list" id="med-drugs-tags">
+                  <span style="color:var(--muted);font-size:.82rem">بارگذاری…</span>
+                </div>
+                <div class="readonly-note">
+                  ⚠ این اطلاعات در زمان تشکیل پرونده اولیه ثبت شده و برای اصلاح باید با پذیرش مرکز تماس بگیرید.
+                </div>
+              </section>
+
+            </div><!-- /.right column -->
+          </div><!-- /.profile-grid -->
+        </div><!-- /.slot-ready -->
+
+        <!-- ── Error ── -->
+        <div class="slot-error">
+          <div class="state-panel state-error" role="alert">
+            <div class="state-icon" aria-hidden="true">⚠️</div>
+            <h3>خطا در بارگذاری پروفایل</h3>
+            <p id="profile-error-msg">لطفاً دوباره تلاش کنید.</p>
+            <div class="state-actions">
+              <button type="button" class="btn btn-secondary btn-sm"
+                      onclick="loadProfile()">تلاش مجدد</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /#profile-host -->
+
     </main>
   </div>
-  <style>@media (max-width:900px){ .profile-grid { grid-template-columns:1fr !important; } }</style>
-  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { requireAuth, Patient, showToast } from '../../shared/api.js';
+
+    if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
+
+    let _isEditing = false;
+
+    function populateForm(d) {
+      // Sidebar
+      const full = ((d.first_name || '') + ' ' + (d.last_name || '')).trim();
+      const initials = full.split(' ').map(w => w[0] || '').slice(0, 2).join('');
+      document.getElementById('prof-avatar').textContent   = initials || '؟';
+      document.getElementById('prof-fullname').textContent = full || '—';
+      document.getElementById('prof-mobile').textContent   = d.mobile || '—';
+      document.getElementById('prof-stat-appts').textContent =
+        String(d.appointments_count ?? '—').replace(/\d/g, c => '۰۱۲۳۴۵۶۷۸۹'[c]);
+      document.getElementById('prof-stat-emr').textContent =
+        String(d.emr_count ?? '—').replace(/\d/g, c => '۰۱۲۳۴۵۶۷۸۹'[c]);
+      // Header chip
+      document.getElementById('hdr-avatar-initials').textContent = initials || '؟';
+      document.getElementById('hdr-avatar-name').textContent     = full || '—';
+      document.getElementById('hdr-avatar-chip').hidden = false;
+      // Form fields
+      document.getElementById('pf-first').value  = d.first_name  || '';
+      document.getElementById('pf-last').value   = d.last_name   || '';
+      document.getElementById('pf-mobile').value = d.mobile      || '';
+      document.getElementById('pf-email').value  = d.email       || '';
+      document.getElementById('pf-dob').value    = d.birth_date_jalali || d.birth_date || '';
+      document.getElementById('pf-city').value   = d.city        || '';
+      // Medical summary tags
+      const histTags = (d.medical_history || []).map(t =>
+        '<span class="med-tag">' + t + '</span>').join('');
+      document.getElementById('med-history-tags').innerHTML =
+        histTags || '<span style="color:var(--muted);font-size:.82rem">اطلاعاتی ثبت نشده</span>';
+      const drugTags = (d.medications || []).map(t =>
+        '<span class="med-tag">' + t + '</span>').join('');
+      document.getElementById('med-drugs-tags').innerHTML =
+        drugTags || '<span style="color:var(--muted);font-size:.82rem">اطلاعاتی ثبت نشده</span>';
+    }
+
+    window.toggleEdit = function () {
+      _isEditing = !_isEditing;
+      document.getElementById('pf-email').disabled   = !_isEditing;
+      document.getElementById('form-actions').style.display = _isEditing ? 'flex' : 'none';
+      document.getElementById('btn-edit-toggle').textContent = _isEditing ? 'لغو' : 'ویرایش';
+      document.getElementById('patch-pending-note').hidden = true;
+      document.getElementById('patch-error').hidden = true;
+    };
+
+    window.cancelEdit = function () {
+      _isEditing = false;
+      document.getElementById('pf-email').disabled = true;
+      document.getElementById('form-actions').style.display = 'none';
+      document.getElementById('btn-edit-toggle').textContent = 'ویرایش';
+      document.getElementById('patch-pending-note').hidden = true;
+      document.getElementById('patch-error').hidden = true;
+    };
+
+    // Profile form submit → PATCH /patient/profile (PENDING)
+    document.getElementById('profile-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      document.getElementById('patch-pending-note').hidden = false;
+      // PATCH endpoint is PENDING — show the note and do not throw.
+      // Once backend adds PATCH /patient/profile, uncomment:
+      /*
+      const btn = document.getElementById('btn-save-profile');
+      btn.disabled = true;
+      try {
+        await Patient.updateProfile({ email: document.getElementById('pf-email').value });
+        showToast('تغییرات ذخیره شد.', 'success');
+        cancelEdit();
+      } catch (err) {
+        document.getElementById('patch-error').textContent = err.message;
+        document.getElementById('patch-error').hidden = false;
+      } finally { btn.disabled = false; }
+      */
+    });
+
+    window.loadProfile = async function () {
+      const host = document.getElementById('profile-host');
+      MAZCRM.states.set(host, 'loading');
+      try {
+        const res = await Patient.getProfile();
+        populateForm(res.data || {});
+        MAZCRM.states.set(host, 'ready');
+      } catch (err) {
+        if (err.httpStatus === 404 || err.httpStatus === 501) {
+          MAZCRM.states.set(host, 'pending');
+        } else if (err.httpStatus === 401) {
+          window.location.replace('../auth/patient-login.html');
+        } else {
+          document.getElementById('profile-error-msg').textContent =
+            err.message || 'خطای سرور.';
+          MAZCRM.states.set(host, 'error');
+        }
+      }
+    };
+
+    loadProfile();
+  </script>
 </body>
 </html>

@@ -1,52 +1,124 @@
 <!doctype html>
-<!-- MΛZ Medical CRM — Patient Medical Record (read-only) · MAZ//ID · © 2026 -->
+<!--
+  MΛZ Medical CRM — Patient Medical Records (Upgraded)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Data:  ❌ NOT IN CONTRACT — no GET /patient/records endpoint defined yet.
+         Hard-coded read-only timeline. Wire when backend adds endpoint.
+  Auth:  Patient Bearer token required — requireAuth() guard.
+-->
 <html dir="rtl" lang="fa">
 <head>
-  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>پرونده پزشکی — داشبورد بیمار</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    /* ── Timeline ── */
+    .records-timeline { position: relative; padding-inline-start: 1.75rem; }
+    .records-timeline::before {
+      content: ''; position: absolute;
+      inset-inline-start: .45rem; top: 0; bottom: 0;
+      width: 2px; background: var(--border);
+    }
+    .tl-entry { position: relative; padding: 1rem 0; }
+    .tl-dot {
+      position: absolute; inset-inline-start: -1.38rem; top: 1.45rem;
+      width: 13px; height: 13px; border-radius: 50%;
+      background: var(--evergreen); border: 2.5px solid var(--porcelain);
+    }
+    .tl-card {
+      background: var(--porcelain); border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+    }
+    .tl-card .tl-meta { font-size: .75rem; color: var(--muted); margin-bottom: .3rem; }
+    .tl-card h4 { margin: 0 0 .3rem; font-size: .95rem; }
+    .tl-card p  { font-size: .85rem; color: var(--muted); line-height: 1.7; margin: 0; }
+    /* ── Pending notice ── */
+    .pending-notice {
+      background: #f8fafc; border: 1px dashed var(--border); color: var(--muted);
+      font-size: .78rem; padding: .65rem .9rem; border-radius: var(--radius-md);
+      text-align: center; margin-bottom: 1.5rem;
+    }
+  </style>
 </head>
 <body data-shell="patient" data-nav="records">
   <div class="app-shell">
     <main class="main">
-      <div class="topbar"><div><h1>پرونده پزشکی من</h1><p class="subtitle">فقط قابل مشاهده — برای اصلاح با مرکز تماس بگیرید</p></div></div>
-      <section class="panel">
-        <h3 style="margin-bottom:1rem">ویزیت‌ها و یادداشت‌های پزشک</h3>
-        <div style="position:relative;padding-inline-start:1.5rem;">
-          <div style="position:absolute;inset-inline-start:.3rem;top:0;bottom:0;width:2px;background:var(--border);"></div>
 
-          <div style="position:relative;padding:1rem 0;">
-            <div style="position:absolute;inset-inline-start:-1.2rem;top:1.5rem;width:12px;height:12px;border-radius:50%;background:var(--evergreen);"></div>
-            <div style="background:var(--porcelain);padding:1rem 1.25rem;border-radius:var(--radius-md);">
-              <div style="font-size:.75rem;color:var(--muted)">۱۴۰۵/۰۴/۱۲ · دکتر باستانی‌نژاد</div>
-              <h4 style="margin:.3rem 0">ویزیت پیگیری — هفته دوم پس از عمل</h4>
-              <p style="font-size:.85rem;color:var(--muted);line-height:1.75">روند بهبود مناسب. تورم بینی کاهش یافته. توصیه به ادامه محدودیت فعالیت به مدت ۲ هفته.</p>
-            </div>
-          </div>
-
-          <div style="position:relative;padding:1rem 0;">
-            <div style="position:absolute;inset-inline-start:-1.2rem;top:1.5rem;width:12px;height:12px;border-radius:50%;background:var(--evergreen);"></div>
-            <div style="background:var(--porcelain);padding:1rem 1.25rem;border-radius:var(--radius-md);">
-              <div style="font-size:.75rem;color:var(--muted)">۱۴۰۵/۰۳/۲۸ · دکتر باستانی‌نژاد</div>
-              <h4 style="margin:.3rem 0">جراحی رینوپلاستی</h4>
-              <p style="font-size:.85rem;color:var(--muted);line-height:1.75">عمل بدون عارضه انجام شد. بیمار در بیدارسازی هوشیار و پایدار.</p>
-            </div>
-          </div>
-
-          <div style="position:relative;padding:1rem 0;">
-            <div style="position:absolute;inset-inline-start:-1.2rem;top:1.5rem;width:12px;height:12px;border-radius:50%;background:var(--evergreen);"></div>
-            <div style="background:var(--porcelain);padding:1rem 1.25rem;border-radius:var(--radius-md);">
-              <div style="font-size:.75rem;color:var(--muted)">۱۴۰۵/۰۳/۱۵ · تشکیل پرونده</div>
-              <h4 style="margin:.3rem 0">پذیرش اولیه</h4>
-              <p style="font-size:.85rem;color:var(--muted);line-height:1.75">فرم پذیرش دیجیتال تکمیل و امضا شده — بدون سابقه بیماری قابل توجه.</p>
-            </div>
-          </div>
+      <div class="topbar">
+        <div>
+          <h1>پرونده پزشکی من</h1>
+          <p class="subtitle">فقط قابل مشاهده — برای اصلاح با مرکز تماس بگیرید</p>
         </div>
+      </div>
+
+      <!-- Pending-backend notice -->
+      <div class="pending-notice" role="note">
+        ⏳ پرونده پزشکی در انتظار تعریف اندپوینت مربوطه در <code>docs/API_CONTRACT.md</code> است.
+        داده‌های نمایش‌داده‌شده نمونه هستند.
+      </div>
+
+      <section class="panel">
+        <h3 style="margin-bottom:1.25rem">ویزیت‌ها و یادداشت‌های پزشک</h3>
+
+        <div class="records-timeline" role="list">
+
+          <div class="tl-entry" role="listitem">
+            <div class="tl-dot" aria-hidden="true"></div>
+            <div class="tl-card">
+              <div class="tl-meta">۱۴۰۵/۰۴/۱۲ · دکتر باستانی‌نژاد · ویزیت پیگیری</div>
+              <h4>ویزیت پیگیری — هفته دوم پس از عمل</h4>
+              <p>روند بهبود مناسب. تورم بینی کاهش یافته. توصیه به ادامه محدودیت فعالیت به مدت ۲ هفته.</p>
+              <div style="margin-top:.5rem;display:flex;gap:.35rem">
+                <span class="pill evergreen">امضا شده</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tl-entry" role="listitem">
+            <div class="tl-dot" aria-hidden="true"></div>
+            <div class="tl-card">
+              <div class="tl-meta">۱۴۰۵/۰۳/۲۸ · دکتر باستانی‌نژاد · عمل جراحی</div>
+              <h4>جراحی رینوپلاستی</h4>
+              <p>عمل بدون عارضه انجام شد. بیمار در بیدارسازی هوشیار و پایدار.</p>
+              <div style="margin-top:.5rem;display:flex;gap:.35rem">
+                <span class="pill info">ثبت شده</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tl-entry" role="listitem">
+            <div class="tl-dot" aria-hidden="true"></div>
+            <div class="tl-card">
+              <div class="tl-meta">۱۴۰۵/۰۳/۱۵ · تشکیل پرونده</div>
+              <h4>پذیرش اولیه</h4>
+              <p>فرم پذیرش دیجیتال تکمیل و امضا شده — بدون سابقه بیماری قابل توجه.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <p style="font-size:.78rem;color:var(--muted);margin-top:1.25rem;padding-top:.75rem;border-top:1px solid var(--border)">
+          ⚠ این اطلاعات توسط تیم پزشکی ثبت شده و فقط قابل مشاهده است.
+          برای اصلاح با پذیرش مرکز تماس بگیرید.
+        </p>
       </section>
+
     </main>
   </div>
-  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { requireAuth } from '../../shared/api.js';
+    if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
+  </script>
 </body>
 </html>

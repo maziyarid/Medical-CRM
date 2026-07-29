@@ -1,7 +1,13 @@
 <!doctype html>
 <!--
-  MΛZ Medical CRM — Staff Dashboard
+  MΛZ Medical CRM — Staff Dashboard (Production-wired)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  API:  GET /dashboard/kpis  ✅ LIVE (auth middleware pending deploy)
+        GET /intakes          ✅ LIVE  (staff auth required)
+  Note: Both endpoints require Bearer token. The deployment gate
+        (migrations 001-007 not run on live DB) means this page will show
+        the "deployment gate" state in production until migrations run.
+        The data-state host pattern is used; states.css drives visibility.
 -->
 <html dir="rtl" lang="fa">
 <head>
@@ -11,45 +17,124 @@
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    /* KPI skeleton sizing */
+    .kpi-skeleton { height: 88px; border-radius: var(--radius); }
+    /* Appointment skeleton row */
+    .appt-skeleton { height: 68px; border-radius: var(--radius-md); margin-bottom: .6rem; }
+    /* Deployment-gate notice */
+    .gate-banner {
+      display: flex; align-items: flex-start; gap: .75rem;
+      background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
+      border-radius: var(--radius); padding: 1rem 1.25rem;
+      font-size: .82rem; line-height: 1.7; margin-bottom: 1.25rem;
+    }
+    .gate-banner strong { display: block; margin-bottom: .25rem; font-size: .88rem; }
+    /* Hide all state slots by default; states.css + data-state makes them visible */
+    [data-state] .slot-loading,
+    [data-state] .slot-ready,
+    [data-state] .slot-error { display: none !important; }
+    [data-state="loading"] .slot-loading { display: block !important; }
+    [data-state="ready"]   .slot-ready   { display: block !important; }
+    [data-state="error"]   .slot-error   { display: block !important; }
+    /* KPI value placeholder while loading */
+    .kpi-value.loading { color: transparent; background: var(--skeleton-bg); border-radius: 4px;
+      animation: skeleton-shimmer 1.4s ease-in-out infinite; min-width: 2rem; display: inline-block; }
+    @keyframes skeleton-shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+  </style>
 </head>
 <body data-shell="staff" data-nav="dashboard">
   <div class="app-shell">
-    <main class="main">
+    <main class="main" id="dashboard-main">
+
       <div class="topbar">
         <div>
-          <h1>سلام دکتر باستانی‌نژاد 👋</h1>
-          <p class="subtitle">امروز چهارشنبه، ۱۴ مرداد ۱۴۰۵ — ۴ نوبت باقی‌مانده تا پایان روز.</p>
+          <h1 id="greeting">سلام دکتر باستانی‌نژاد 👋</h1>
+          <p class="subtitle" id="date-sub">در حال بارگذاری…</p>
         </div>
         <div class="topbar-actions">
-          <button class="btn btn-secondary btn-sm" type="button" onclick="location.href='../intake/intake.html'">+ پذیرش جدید</button>
-          <button class="btn btn-primary btn-sm" type="button" onclick="location.href='calendar.html'">+ نوبت جدید</button>
+          <button class="btn btn-secondary btn-sm" type="button"
+                  onclick="location.href='../intake/intake.html'">+ پذیرش جدید</button>
+          <button class="btn btn-primary btn-sm" type="button"
+                  onclick="location.href='calendar.html'">+ نوبت جدید</button>
         </div>
       </div>
 
-      <!-- KPI cards -->
-      <div class="kpi-grid" id="kpis">
-        <div class="kpi-card" onclick="location.href='calendar.html'">
-          <div class="kpi-label">نوبت‌های امروز</div>
-          <div class="kpi-value" id="kpi-today">—</div>
-          <div class="kpi-delta up">▲ ۲ نسبت به دیروز</div>
-        </div>
-        <div class="kpi-card" onclick="location.href='patients.html'">
-          <div class="kpi-label">پذیرش‌های در انتظار</div>
-          <div class="kpi-value" id="kpi-pending">—</div>
-          <div class="kpi-delta">نیاز به بررسی</div>
-        </div>
-        <div class="kpi-card" onclick="location.href='billing.html'">
-          <div class="kpi-label">درآمد امروز (تومان)</div>
-          <div class="kpi-value" id="kpi-revenue">—</div>
-          <div class="kpi-delta up">▲ ۱۲٪ نسبت به هفته گذشته</div>
-        </div>
-        <div class="kpi-card" onclick="location.href='tasks.html'">
-          <div class="kpi-label">وظایف باز</div>
-          <div class="kpi-value" id="kpi-tasks">—</div>
-          <div class="kpi-delta">۲ عدد فوری</div>
+      <!-- ── Deployment-gate banner ── shown until auth middleware is live ── -->
+      <div class="gate-banner" id="deploy-gate" hidden aria-live="polite">
+        <span aria-hidden="true" style="font-size:1.1rem">⚠️</span>
+        <div>
+          <strong>سرور در حال راه‌اندازی است</strong>
+          داده‌های واقعی پس از اجرای مهاجرت‌های پایگاه‌داده (001–007) و استقرار
+          AuthMiddleware در دسترس خواهند بود. تا آن زمان داشبورد در حالت
+          آفلاین/نمونه نمایش داده می‌شود.
         </div>
       </div>
+
+      <!-- ── KPI grid ── -->
+      <div class="kpi-grid" id="kpis" data-state="loading">
+
+        <div class="slot-loading">
+          <div class="kpi-grid" aria-hidden="true">
+            <div class="skeleton kpi-skeleton"></div>
+            <div class="skeleton kpi-skeleton"></div>
+            <div class="skeleton kpi-skeleton"></div>
+            <div class="skeleton kpi-skeleton"></div>
+          </div>
+        </div>
+
+        <div class="slot-ready">
+          <div class="kpi-grid">
+            <div class="kpi-card" role="button" tabindex="0"
+                 onclick="location.href='calendar.html'"
+                 onkeydown="if(event.key==='Enter')location.href='calendar.html'">
+              <div class="kpi-label">نوبت‌های امروز</div>
+              <div class="kpi-value" id="kpi-today">—</div>
+              <div class="kpi-delta up" id="kpi-today-delta"></div>
+            </div>
+            <div class="kpi-card" role="button" tabindex="0"
+                 onclick="location.href='patients.html'"
+                 onkeydown="if(event.key==='Enter')location.href='patients.html'">
+              <div class="kpi-label">پذیرش‌های در انتظار</div>
+              <div class="kpi-value" id="kpi-pending">—</div>
+              <div class="kpi-delta">نیاز به بررسی</div>
+            </div>
+            <div class="kpi-card" role="button" tabindex="0"
+                 onclick="location.href='billing.html'"
+                 onkeydown="if(event.key==='Enter')location.href='billing.html'">
+              <div class="kpi-label">درآمد امروز (تومان)</div>
+              <div class="kpi-value" id="kpi-revenue">—</div>
+              <div class="kpi-delta up" id="kpi-revenue-delta"></div>
+            </div>
+            <div class="kpi-card" role="button" tabindex="0"
+                 onclick="location.href='tasks.html'"
+                 onkeydown="if(event.key==='Enter')location.href='tasks.html'">
+              <div class="kpi-label">وظایف باز</div>
+              <div class="kpi-value" id="kpi-tasks">—</div>
+              <div class="kpi-delta">۲ عدد فوری</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slot-error">
+          <div class="state-panel state-error" role="alert">
+            <div class="state-icon" aria-hidden="true">⚠️</div>
+            <h3>بارگذاری KPI ناموفق بود</h3>
+            <p id="kpi-error-msg">لطفاً صفحه را رفرش کنید.</p>
+            <div class="state-actions">
+              <button type="button" class="btn btn-secondary btn-sm"
+                      onclick="loadDashboard()">تلاش مجدد</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /.kpi-grid wrapper -->
 
       <div class="grid-main">
         <!-- Today's schedule -->
@@ -57,11 +142,37 @@
           <div class="panel-header">
             <div>
               <h3>برنامه امروز</h3>
-              <p>مرتب‌شده بر اساس ساعت</p>
+              <p>مرتب‌شده بر اساس ساعت نوبت</p>
             </div>
             <a href="calendar.html" class="btn btn-ghost btn-sm">مشاهده تقویم ←</a>
           </div>
-          <div id="today-list"></div>
+
+          <div id="today-host" data-state="loading">
+
+            <!-- loading -->
+            <div class="slot-loading" aria-hidden="true">
+              <div class="skeleton appt-skeleton"></div>
+              <div class="skeleton appt-skeleton" style="width:90%"></div>
+              <div class="skeleton appt-skeleton" style="width:80%"></div>
+            </div>
+
+            <!-- ready -->
+            <div class="slot-ready">
+              <div id="today-list" role="list"></div>
+            </div>
+
+            <!-- error -->
+            <div class="slot-error">
+              <div class="state-panel state-error" role="alert">
+                <h3>خطا در بارگذاری برنامه</h3>
+                <p id="appt-error-msg"></p>
+                <div class="state-actions">
+                  <button type="button" class="btn btn-secondary btn-sm"
+                          onclick="loadAppointments()">تلاش مجدد</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- Needs attention -->
@@ -73,36 +184,35 @@
             </div>
           </div>
           <ul style="list-style:none;display:flex;flex-direction:column;gap:.75rem;">
-            <li style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;background:var(--warning-soft);border-radius:var(--radius-md);">
+            <li style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;
+                       background:var(--warning-soft);border-radius:var(--radius-md);">
               <div>
-                <div style="font-weight:600;font-size:.9rem">۴ پذیرش تأیید‌نشده</div>
+                <div style="font-weight:600;font-size:.9rem">پذیرش‌های تأیید‌نشده</div>
                 <div style="font-size:.78rem;color:var(--muted)">فرم‌های ورودی منتظر بررسی</div>
               </div>
               <a href="patients.html" class="pill warning">بررسی</a>
             </li>
-            <li style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;background:var(--info-soft);border-radius:var(--radius-md);">
+            <li style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;
+                       background:var(--info-soft);border-radius:var(--radius-md);">
               <div>
-                <div style="font-weight:600;font-size:.9rem">۲ رضایت‌نامه امضا نشده</div>
+                <div style="font-weight:600;font-size:.9rem">رضایت‌نامه‌های امضا‌نشده</div>
                 <div style="font-size:.78rem;color:var(--muted)">قبل از عمل جراحی امروز</div>
               </div>
               <a href="emr.html" class="pill info">اقدام</a>
             </li>
-            <li style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;background:var(--error-soft);border-radius:var(--radius-md);">
-              <div>
-                <div style="font-weight:600;font-size:.9rem">۱ پرداخت ناموفق</div>
-                <div style="font-size:.78rem;color:var(--muted)">درگاه Zarinpal — فاکتور #۱۰۳۷</div>
-              </div>
-              <a href="billing.html" class="pill error">بررسی</a>
-            </li>
           </ul>
 
-          <!-- AI Copilot card -->
-          <div style="margin-top:1.25rem;padding:1rem;background:linear-gradient(135deg,#f8fafc,#eef2ff);border-radius:var(--radius-md);border:1px solid #dbeafe">
+          <!-- AI Copilot -->
+          <div style="margin-top:1.25rem;padding:1rem;background:linear-gradient(135deg,#f8fafc,#eef2ff);
+                      border-radius:var(--radius-md);border:1px solid #dbeafe">
             <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
-              <span style="background:var(--maz-primary);color:#fff;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:700;font-family:var(--font-mono)">Dr. Copilot</span>
+              <span style="background:var(--maz-primary);color:#fff;padding:2px 8px;border-radius:6px;
+                           font-size:.7rem;font-weight:700;font-family:var(--font-mono)">Dr. Copilot</span>
               <strong style="font-size:.85rem">پیشنهاد هوش مصنوعی</strong>
             </div>
-            <p style="font-size:.82rem;color:var(--graphite);line-height:1.7">۳ بیمار امروز داروی ضد‌انعقاد مصرف می‌کنند. توصیه می‌شود قبل از جراحی، ارزیابی مجدد INR انجام شود.</p>
+            <p style="font-size:.82rem;color:var(--graphite);line-height:1.7">
+              بیماران امروز با سابقه داروی ضد‌انعقاد نیاز به ارزیابی مجدد INR قبل از جراحی دارند.
+            </p>
             <div style="margin-top:.5rem;display:flex;gap:.5rem;">
               <button class="btn btn-primary btn-sm">پذیرش</button>
               <button class="btn btn-secondary btn-sm">ویرایش</button>
@@ -110,39 +220,154 @@
             </div>
           </div>
         </section>
-      </div>
+      </div><!-- /.grid-main -->
+
     </main>
   </div>
 
   <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
-  <script>
-    // Populate KPIs + today's list
-    MAZCRM.api.getDashboardKpis().then(function (k) {
-      document.getElementById('kpi-today').textContent   = MAZCRM.toFaDigits(k.today);
-      document.getElementById('kpi-pending').textContent = MAZCRM.toFaDigits(k.pending);
-      document.getElementById('kpi-revenue').textContent = k.revenue;
-      document.getElementById('kpi-tasks').textContent   = MAZCRM.toFaDigits(k.tasks);
-    });
+  <script type="module">
+    import { Auth, isAuthenticated, getToken, renderPendingBackend, showToast }
+      from '../../shared/api.js';
 
-    MAZCRM.api.listAppointments().then(function (list) {
-      var pillClass = { confirmed: 'evergreen', scheduled: 'info' };
-      var pillTxt   = { confirmed: 'تأیید شده', scheduled: 'در انتظار تأیید' };
-      var html = list.map(function (a) {
-        return '<div style="display:flex;align-items:center;gap:1rem;padding:.9rem 0;border-bottom:1px solid var(--border);">' +
-                 '<div style="width:56px;text-align:center;background:var(--evergreen-soft);border-radius:var(--radius-md);padding:.4rem .3rem;flex-shrink:0">' +
-                   '<strong style="display:block;font-size:1rem;color:var(--evergreen)">' + a.date + '</strong>' +
-                   '<span style="font-size:.68rem;color:var(--muted)">' + a.month + '</span>' +
-                 '</div>' +
-                 '<div style="flex:1;min-width:0">' +
-                   '<strong style="font-size:.9rem;display:block">' + a.patient + ' — ' + a.reason + '</strong>' +
-                   '<span style="font-size:.78rem;color:var(--muted)">ساعت ' + a.time + '</span>' +
-                 '</div>' +
-                 '<span class="pill ' + pillClass[a.status] + '">' + pillTxt[a.status] + '</span>' +
-               '</div>';
-      }).join('');
-      document.getElementById('today-list').innerHTML = html;
-    });
+    // ── Auth guard ──────────────────────────────────────────────────────────
+    if (!isAuthenticated()) {
+      window.location.replace('../auth/login.html');
+    }
+
+    // ── Jalali date for subtitle ─────────────────────────────────────────────
+    (function () {
+      try {
+        const jd = new Intl.DateTimeFormat('fa-IR', {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        }).format(new Date());
+        document.getElementById('date-sub').textContent = jd;
+      } catch { /* Intl not available — leave placeholder */ }
+    }());
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    const API_BASE = 'https://app.drbastaninejad.com/api/v1';
+
+    async function apiFetch(path) {
+      const token = getToken();
+      const res = await fetch(API_BASE + path, {
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': token ? 'Bearer ' + token : '',
+        }
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        const code = data?.error?.code || (res.status === 401 ? 'UNAUTHORIZED' : 'SERVER_ERROR');
+        throw { code, httpStatus: res.status, raw: data };
+      }
+      return data;
+    }
+
+    function toFa(n) {
+      return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+
+    function isDeploymentGate(err) {
+      // 401 before auth middleware is deployed, or 404 when route doesn't exist yet
+      return err && (err.httpStatus === 401 || err.httpStatus === 404 || err.httpStatus === 503);
+    }
+
+    // ── KPI loader ───────────────────────────────────────────────────────────
+    window.loadDashboard = async function () {
+      const kpisHost = document.getElementById('kpis');
+      MAZCRM.states.set(kpisHost, 'loading');
+      try {
+        const res = await apiFetch('/dashboard/kpis');
+        const k = res.data || res; // handle both wrapper shapes defensively
+        document.getElementById('kpi-today').textContent   = toFa(k.today_appointments ?? k.today ?? '—');
+        document.getElementById('kpi-pending').textContent = toFa(k.pending_intakes ?? k.pending ?? '—');
+        document.getElementById('kpi-revenue').textContent = k.revenue_today_formatted ?? k.revenue ?? '—';
+        document.getElementById('kpi-tasks').textContent   = toFa(k.open_tasks ?? k.tasks ?? '—');
+        const delta = document.getElementById('kpi-today-delta');
+        if (k.today_delta) delta.textContent = '▲ ' + toFa(k.today_delta) + ' نسبت به دیروز';
+        MAZCRM.states.set(kpisHost, 'ready');
+      } catch (err) {
+        if (isDeploymentGate(err)) {
+          // Show gate banner and fall back to ready state with placeholder values
+          document.getElementById('deploy-gate').hidden = false;
+          document.getElementById('kpi-today').textContent   = '—';
+          document.getElementById('kpi-pending').textContent = '—';
+          document.getElementById('kpi-revenue').textContent = '—';
+          document.getElementById('kpi-tasks').textContent   = '—';
+          MAZCRM.states.set(kpisHost, 'ready');
+        } else {
+          document.getElementById('kpi-error-msg').textContent =
+            err.code === 'NETWORK_ERROR'
+              ? 'اتصال اینترنت را بررسی کنید.'
+              : 'خطای سرور — لطفاً دوباره تلاش کنید.';
+          MAZCRM.states.set(kpisHost, 'error');
+        }
+      }
+    };
+
+    // ── Intakes / appointment list loader ────────────────────────────────────
+    window.loadAppointments = async function () {
+      const host = document.getElementById('today-host');
+      MAZCRM.states.set(host, 'loading');
+      try {
+        const res = await apiFetch('/intakes');
+        const list = (res.data?.intakes ?? res.data ?? []).slice(0, 10);
+        const statusMap = {
+          confirmed:  ['evergreen', 'تأیید شده'],
+          scheduled:  ['info',      'در انتظار تأیید'],
+          submitted:  ['warning',   'ثبت‌شده'],
+          cancelled:  ['muted',     'لغو شده'],
+        };
+        const container = document.getElementById('today-list');
+        if (!list.length) {
+          container.innerHTML =
+            '<div class="state-panel state-empty" role="status">' +
+              '<div class="state-icon" aria-hidden="true">🌿</div>' +
+              '<h3>برنامه‌ای برای امروز ثبت نشده</h3>' +
+            '</div>';
+        } else {
+          container.innerHTML = list.map(function (a) {
+            const st = statusMap[a.status] || ['muted', a.status || '—'];
+            const name = (a.first_name || '') + ' ' + (a.last_name || '');
+            const reason = a.chief_complaint || a.reason || '—';
+            const time = a.appointment_time || a.time || '';
+            return '<div role="listitem" style="display:flex;align-items:center;gap:1rem;' +
+              'padding:.9rem 0;border-bottom:1px solid var(--border);">' +
+              '<div style="min-width:0;flex:1">' +
+                '<strong style="font-size:.9rem;display:block">' +
+                  name.trim() + (reason !== '—' ? ' — ' + reason : '') +
+                '</strong>' +
+                (time ? '<span style="font-size:.78rem;color:var(--muted)">ساعت ' + time + '</span>' : '') +
+              '</div>' +
+              '<span class="pill ' + st[0] + '">' + st[1] + '</span>' +
+            '</div>';
+          }).join('');
+        }
+        MAZCRM.states.set(host, 'ready');
+      } catch (err) {
+        if (isDeploymentGate(err)) {
+          document.getElementById('today-host').innerHTML =
+            '<div class="state-panel state-empty" role="status">' +
+              '<div class="state-icon" aria-hidden="true">⏳</div>' +
+              '<h3>در انتظار استقرار بک‌اند</h3>' +
+              '<p>پس از اجرای مهاجرت‌ها، برنامه امروز اینجا نمایش داده می‌شود.</p>' +
+            '</div>';
+        } else {
+          document.getElementById('appt-error-msg').textContent =
+            err.code === 'NETWORK_ERROR'
+              ? 'اتصال اینترنت را بررسی کنید.'
+              : 'خطا در بارگذاری نوبت‌ها.';
+          MAZCRM.states.set(host, 'error');
+        }
+      }
+    };
+
+    // Bootstrap
+    loadDashboard();
+    loadAppointments();
   </script>
 </body>
 </html>

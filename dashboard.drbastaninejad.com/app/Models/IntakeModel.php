@@ -21,11 +21,29 @@ final class IntakeModel extends Model
     public function findByUuid(string $submissionUuid): ?array
     {
         $stmt = $this->db()->prepare(
-            'SELECT id, patient_uuid, status FROM intakes WHERE submission_uuid = ? LIMIT 1'
+            'SELECT id, patient_uuid, status, sheets_sync_status,
+                    submission_uuid, first_name, last_name, mobile, national_id,
+                    birth_date, service_type, chief_complaint, preferred_date,
+                    email, visit_reason, created_at
+             FROM intakes WHERE submission_uuid = ? LIMIT 1'
         );
         $stmt->execute([$submissionUuid]);
         $row = $stmt->fetch();
         return $row ?: null;
+    }
+
+    /**
+     * Record the outcome of the Google Sheets dual-write.
+     * Called after every appendIntake() attempt — both on first write and re-try.
+     *
+     * @param int    $intakeId   intakes.id (auto-increment PK)
+     * @param string $status     'ok' | 'failed' | 'skipped' | 'pending'
+     */
+    public function updateSyncStatus(int $intakeId, string $status): void
+    {
+        $this->db()->prepare(
+            'UPDATE intakes SET sheets_sync_status = ? WHERE id = ?'
+        )->execute([$status, $intakeId]);
     }
 
     /**

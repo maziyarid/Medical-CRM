@@ -1,7 +1,9 @@
 <!doctype html>
 <!--
-  MΛZ Medical CRM — Dynamic EMR Editor (Rhinoplasty template shown)
+  MΛZ Medical CRM — EMR Editor (Upgraded)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Data:  ❌ NOT IN CONTRACT — hard-coded mock; wire once EMR endpoints documented.
+  Auth:  Staff Bearer token required.
 -->
 <html dir="rtl" lang="fa">
 <head>
@@ -11,7 +13,10 @@
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
   <style>
     .emr-layout { display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start; }
     @media (max-width:900px){ .emr-layout { grid-template-columns:1fr; } }
@@ -119,6 +124,7 @@
     </main>
   </div>
   <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
 </body>
 </html>

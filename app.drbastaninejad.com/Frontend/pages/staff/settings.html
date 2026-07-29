@@ -1,64 +1,274 @@
 <!doctype html>
-<!-- MΛZ Medical CRM — Settings · Author: MAZ//ID · © 2026 Maziyar -->
+<!--
+  MΛZ Medical CRM — Settings (Upgraded)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Data:  ❌ NOT IN CONTRACT — hard-coded mock; save buttons show PENDING notice.
+  Auth:  Staff Bearer token required.
+-->
 <html dir="rtl" lang="fa">
 <head>
-  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>تنظیمات — MΛZ Medical CRM</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    /* ── Settings page tabs ── */
+    .settings-tabs {
+      display: flex; gap: .25rem; border-bottom: 1px solid var(--border);
+      margin-bottom: 1.75rem; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    }
+    .settings-tab {
+      padding: .7rem 1.25rem; background: none; border: none;
+      border-bottom: 2px solid transparent; font-family: inherit;
+      font-size: .88rem; font-weight: 600; color: var(--muted);
+      cursor: pointer; white-space: nowrap; min-height: 44px;
+    }
+    .settings-tab.active { color: var(--evergreen); border-bottom-color: var(--evergreen); }
+    .settings-panel { display: none; }
+    .settings-panel.active { display: block; }
+    /* ── Integration row ── */
+    .integration-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .9rem 1rem; background: var(--porcelain);
+      border-radius: var(--radius-md); margin-bottom: .65rem;
+    }
+    .integration-row:last-child { margin-bottom: 0; }
+    .integration-row strong { display: block; font-size: .9rem; }
+    .integration-row small { font-size: .75rem; color: var(--muted); }
+    /* ── Pending notice ── */
+    .patch-pending {
+      background: #f8fafc; border: 1px dashed var(--border); color: var(--muted);
+      font-size: .78rem; padding: .65rem .9rem; border-radius: var(--radius-md);
+      margin-top: .75rem; text-align: center;
+    }
+  </style>
 </head>
 <body data-shell="staff" data-nav="settings">
   <div class="app-shell">
     <main class="main">
-      <div class="topbar"><div><h1>تنظیمات</h1><p class="subtitle">پیکربندی کلینیک، کاربران و یکپارچه‌سازی‌ها</p></div></div>
 
-      <div class="grid-2" style="gap:1.5rem;align-items:start">
-        <section class="panel">
-          <div class="panel-header"><div><h3>اطلاعات کلینیک</h3></div></div>
-          <div class="input-group"><label class="form-label">نام کلینیک</label><input class="form-input" value="کلینیک تخصصی دکتر شاهین باستانی‌نژاد"/></div>
-          <div class="input-group"><label class="form-label">شماره تماس</label><input class="form-input" value="021-88112233" style="direction:ltr;text-align:right"/></div>
-          <div class="input-group"><label class="form-label">آدرس</label><textarea class="form-textarea" rows="2">تهران، خیابان ولیعصر، ...</textarea></div>
-          <div class="input-group"><label class="form-label">منطقه زمانی</label><select class="form-select"><option>Asia/Tehran (پیش‌فرض)</option></select></div>
-          <button class="btn btn-primary btn-sm">ذخیره</button>
-        </section>
+      <div class="topbar">
+        <div>
+          <h1>تنظیمات</h1>
+          <p class="subtitle">پیکربندی کلینیک، کاربران و یکپارچه‌سازی‌ها</p>
+        </div>
+      </div>
 
-        <section class="panel">
-          <div class="panel-header"><div><h3>یکپارچه‌سازی‌ها</h3></div></div>
-          <div style="display:flex;flex-direction:column;gap:.75rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem;background:var(--porcelain);border-radius:var(--radius-md)"><div><strong style="font-size:.9rem">کاوه‌نگار (SMS)</strong><div style="font-size:.78rem;color:var(--muted)">خط خدماتی: 3000...</div></div><span class="pill success">فعال</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem;background:var(--porcelain);border-radius:var(--radius-md)"><div><strong style="font-size:.9rem">Zarinpal</strong><div style="font-size:.78rem;color:var(--muted)">درگاه پرداخت</div></div><span class="pill success">فعال</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem;background:var(--porcelain);border-radius:var(--radius-md)"><div><strong style="font-size:.9rem">ArvanCloud S3</strong><div style="font-size:.78rem;color:var(--muted)">ذخیره‌سازی تصاویر</div></div><span class="pill success">فعال</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem;background:var(--porcelain);border-radius:var(--radius-md)"><div><strong style="font-size:.9rem">OpenRouter (AI)</strong><div style="font-size:.78rem;color:var(--muted)">Dr. Copilot — ۷ مدل فعال</div></div><span class="pill success">فعال</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:.85rem;background:var(--porcelain);border-radius:var(--radius-md)"><div><strong style="font-size:.9rem">SQL Server Mirror</strong><div style="font-size:.78rem;color:var(--muted)">همگام‌سازی ثانویه</div></div><span class="pill muted">غیرفعال (v1.5)</span></div>
+      <!-- Settings tabs -->
+      <div class="settings-tabs" role="tablist" aria-label="بخش‌های تنظیمات">
+        <button class="settings-tab active" role="tab" aria-selected="true"
+                data-panel="clinic" onclick="switchTab(this, 'clinic')">اطلاعات کلینیک</button>
+        <button class="settings-tab" role="tab" aria-selected="false"
+                data-panel="integrations" onclick="switchTab(this, 'integrations')">یکپارچه‌سازی‌ها</button>
+        <button class="settings-tab" role="tab" aria-selected="false"
+                data-panel="users" onclick="switchTab(this, 'users')">کاربران و دسترسی</button>
+        <button class="settings-tab" role="tab" aria-selected="false"
+                data-panel="emr-templates" onclick="switchTab(this, 'emr-templates')">قالب‌های EMR</button>
+        <button class="settings-tab" role="tab" aria-selected="false"
+                data-panel="hours" onclick="switchTab(this, 'hours')">ساعت کاری</button>
+      </div>
+
+      <!-- Panel: Clinic info -->
+      <div class="settings-panel active" id="panel-clinic" role="tabpanel">
+        <section class="panel" style="max-width:640px">
+          <div class="panel-header">
+            <div><h3>اطلاعات کلینیک</h3><p>این اطلاعات در سایت و فرم پذیرش نمایش داده می‌شود.</p></div>
+          </div>
+          <div class="grid-2">
+            <div class="input-group" style="grid-column:1/-1">
+              <label class="form-label" for="clinic-name">نام کلینیک</label>
+              <input class="form-input" id="clinic-name" value="کلینیک تخصصی دکتر شاهین باستانی‌نژاد"/>
+            </div>
+            <div class="input-group">
+              <label class="form-label" for="clinic-phone">شماره تماس</label>
+              <input class="form-input" id="clinic-phone" value="021-88112233"
+                     style="direction:ltr;text-align:right"/>
+            </div>
+            <div class="input-group">
+              <label class="form-label" for="clinic-tz">منطقه زمانی</label>
+              <select class="form-select" id="clinic-tz">
+                <option>Asia/Tehran (پیش‌فرض)</option>
+              </select>
+            </div>
+            <div class="input-group" style="grid-column:1/-1">
+              <label class="form-label" for="clinic-address">آدرس</label>
+              <textarea class="form-textarea" id="clinic-address" rows="2">تهران، خیابان ولیعصر، ...</textarea>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:.75rem">
+            <button class="btn btn-primary btn-sm" onclick="showPatchPending(this)">ذخیره</button>
+          </div>
+          <div class="patch-pending" id="clinic-pending" hidden>
+            ⏳ ذخیره‌سازی اطلاعات کلینیک به اندپوینت تنظیمات بک‌اند متکی است که هنوز تعریف نشده.
           </div>
         </section>
+      </div>
 
+      <!-- Panel: Integrations -->
+      <div class="settings-panel" id="panel-integrations" role="tabpanel">
+        <section class="panel" style="max-width:640px">
+          <div class="panel-header"><div><h3>یکپارچه‌سازی‌ها</h3><p>سرویس‌های خارجی متصل به CRM</p></div></div>
+          <div class="integration-row">
+            <div><strong>کاوه‌نگار (SMS)</strong><small>خط خدماتی: 3000...</small></div>
+            <span class="pill success">فعال</span>
+          </div>
+          <div class="integration-row">
+            <div><strong>Zarinpal</strong><small>درگاه پرداخت</small></div>
+            <span class="pill success">فعال</span>
+          </div>
+          <div class="integration-row">
+            <div><strong>ArvanCloud S3</strong><small>ذخیره‌سازی تصاویر</small></div>
+            <span class="pill success">فعال</span>
+          </div>
+          <div class="integration-row">
+            <div><strong>OpenRouter (AI)</strong><small>Dr. Copilot — ۷ مدل فعال</small></div>
+            <span class="pill success">فعال</span>
+          </div>
+          <div class="integration-row">
+            <div><strong>SQL Server Mirror</strong><small>همگام‌سازی ثانویه</small></div>
+            <span class="pill muted">غیرفعال (v1.5)</span>
+          </div>
+          <div class="patch-pending" style="display:block;margin-top:1rem" role="note">
+            ⏳ ویرایش کلیدهای API به اندپوینت تنظیمات بک‌اند متکی است که هنوز تعریف نشده.
+          </div>
+        </section>
+      </div>
+
+      <!-- Panel: Users (RBAC) -->
+      <div class="settings-panel" id="panel-users" role="tabpanel">
         <section class="panel">
-          <div class="panel-header"><div><h3>کاربران و دسترسی‌ها (RBAC)</h3></div><button class="btn btn-primary btn-sm">+ افزودن</button></div>
-          <div class="table-wrap" style="box-shadow:none;border:none;">
+          <div class="panel-header">
+            <div><h3>کاربران و دسترسی‌ها (RBAC)</h3></div>
+            <button class="btn btn-primary btn-sm" onclick="showPatchPending(this)">+ افزودن</button>
+          </div>
+          <div class="table-wrap" style="box-shadow:none;border:none">
             <table class="data-table">
-              <thead><tr><th>کاربر</th><th>نقش</th><th>وضعیت</th><th></th></tr></thead>
+              <thead>
+                <tr><th>کاربر</th><th>نقش</th><th>وضعیت</th><th></th></tr>
+              </thead>
               <tbody>
-                <tr><td>دکتر شاهین باستانی‌نژاد</td><td>مدیر کل + پزشک</td><td><span class="pill success">فعال</span></td><td><button class="btn btn-ghost btn-sm">ویرایش</button></td></tr>
-                <tr><td>فاطمه رضایی</td><td>منشی</td><td><span class="pill success">فعال</span></td><td><button class="btn btn-ghost btn-sm">ویرایش</button></td></tr>
-                <tr><td>نگار حسینی</td><td>پرستار</td><td><span class="pill success">فعال</span></td><td><button class="btn btn-ghost btn-sm">ویرایش</button></td></tr>
+                <tr>
+                  <td>دکتر شاهین باستانی‌نژاد</td>
+                  <td>مدیر کل + پزشک</td>
+                  <td><span class="pill success">فعال</span></td>
+                  <td><button class="btn btn-ghost btn-sm" onclick="showPatchPending(this)">ویرایش</button></td>
+                </tr>
+                <tr>
+                  <td>فاطمه رضایی</td>
+                  <td>منشی</td>
+                  <td><span class="pill success">فعال</span></td>
+                  <td><button class="btn btn-ghost btn-sm" onclick="showPatchPending(this)">ویرایش</button></td>
+                </tr>
+                <tr>
+                  <td>نگار حسینی</td>
+                  <td>پرستار</td>
+                  <td><span class="pill success">فعال</span></td>
+                  <td><button class="btn btn-ghost btn-sm" onclick="showPatchPending(this)">ویرایش</button></td>
+                </tr>
               </tbody>
             </table>
           </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-header"><div><h3>قالب‌های EMR</h3></div><button class="btn btn-primary btn-sm">+ قالب جدید</button></div>
-          <ul style="list-style:none;display:flex;flex-direction:column;gap:.5rem;">
-            <li style="padding:.75rem;background:var(--porcelain);border-radius:var(--radius-md);display:flex;justify-content:space-between;"><span>رینوپلاستی — قبل از عمل</span><span class="pill evergreen">v3</span></li>
-            <li style="padding:.75rem;background:var(--porcelain);border-radius:var(--radius-md);display:flex;justify-content:space-between;"><span>رینوپلاستی — بعد از عمل</span><span class="pill evergreen">v2</span></li>
-            <li style="padding:.75rem;background:var(--porcelain);border-radius:var(--radius-md);display:flex;justify-content:space-between;"><span>مشاوره اولیه</span><span class="pill evergreen">v1</span></li>
-          </ul>
+          <div class="patch-pending" id="users-pending" hidden>
+            ⏳ مدیریت کاربران به اندپوینت RBAC بک‌اند متکی است که هنوز تعریف نشده.
+          </div>
         </section>
       </div>
+
+      <!-- Panel: EMR Templates -->
+      <div class="settings-panel" id="panel-emr-templates" role="tabpanel">
+        <section class="panel" style="max-width:640px">
+          <div class="panel-header">
+            <div><h3>قالب‌های EMR</h3><p>قالب‌های تخصصی پرونده الکترونیک</p></div>
+            <button class="btn btn-primary btn-sm" onclick="showPatchPending(this)">+ قالب جدید</button>
+          </div>
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:.6rem">
+            <li style="padding:.85rem 1rem;background:var(--porcelain);border-radius:var(--radius-md);display:flex;justify-content:space-between;align-items:center">
+              <span>رینوپلاستی — قبل از عمل</span>
+              <div style="display:flex;gap:.4rem;align-items:center">
+                <span class="pill evergreen">v3</span>
+                <button class="btn btn-ghost btn-sm" onclick="showPatchPending(this)">ویرایش</button>
+              </div>
+            </li>
+            <li style="padding:.85rem 1rem;background:var(--porcelain);border-radius:var(--radius-md);display:flex;justify-content:space-between;align-items:center">
+              <span>رینوپلاستی — بعد از عمل</span>
+              <div style="display:flex;gap:.4rem;align-items:center">
+                <span class="pill evergreen">v2</span>
+                <button class="btn btn-ghost btn-sm" onclick="showPatchPending(this)">ویرایش</button>
+              </div>
+            </li>
+            <li style="padding:.85rem 1rem;background:var(--porcelain);border-radius:var(--radius-md);display:flex;justify-content:space-between;align-items:center">
+              <span>مشاوره اولیه</span>
+              <div style="display:flex;gap:.4rem;align-items:center">
+                <span class="pill evergreen">v1</span>
+                <button class="btn btn-ghost btn-sm" onclick="showPatchPending(this)">ویرایش</button>
+              </div>
+            </li>
+          </ul>
+          <div class="patch-pending" id="emr-pending" hidden>
+            ⏳ ویرایش قالب‌های EMR به اندپوینت تنظیمات بک‌اند متکی است.
+          </div>
+        </section>
+      </div>
+
+      <!-- Panel: Working Hours -->
+      <div class="settings-panel" id="panel-hours" role="tabpanel">
+        <section class="panel" style="max-width:640px">
+          <div class="panel-header"><div><h3>ساعت کاری کلینیک</h3><p>روزهای فعال و بازه زمانی</p></div></div>
+          <div style="display:flex;flex-direction:column;gap:.75rem">
+            <div v-for="day in ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه']"
+                 style="display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:var(--porcelain);border-radius:var(--radius-md)">
+              <span style="font-size:.9rem;min-width:100px">شنبه</span>
+              <span style="font-size:.88rem;direction:ltr">08:00 – 20:00</span>
+              <span class="pill evergreen">فعال</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:var(--porcelain);border-radius:var(--radius-md)">
+              <span style="font-size:.9rem;min-width:100px">جمعه</span>
+              <span style="font-size:.88rem;color:var(--muted)">تعطیل</span>
+              <span class="pill muted">غیرفعال</span>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:.75rem">
+            <button class="btn btn-primary btn-sm" onclick="showPatchPending(this)">ذخیره</button>
+          </div>
+          <div class="patch-pending" id="hours-pending" hidden>
+            ⏳ ذخیره ساعت کاری به اندپوینت تنظیمات بک‌اند متکی است.
+          </div>
+        </section>
+      </div>
+
     </main>
   </div>
-  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script>
+    function switchTab(btn, panel) {
+      document.querySelectorAll('.settings-tab').forEach(function (t) {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.settings-panel').forEach(function (p) {
+        p.classList.remove('active');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      var el = document.getElementById('panel-' + panel);
+      if (el) el.classList.add('active');
+    }
+    function showPatchPending(triggerBtn) {
+      // Find nearest pending notice or show global toast
+      var pending = triggerBtn.closest('section')
+        ? triggerBtn.closest('section').querySelector('.patch-pending')
+        : null;
+      if (pending) { pending.hidden = false; }
+    }
+  </script>
 </body>
 </html>

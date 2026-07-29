@@ -1,48 +1,238 @@
 <!doctype html>
-<!-- MΛZ Medical CRM — Patient Appointments · MAZ//ID · © 2026 -->
+<!--
+  MΛZ Medical CRM — Patient Appointments (Production-wired)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  API:  GET /patient/appointments  ⚠️ PENDING — renders pending-backend state until live
+  Note: requireAuth() guard; Jalali dates displayed via Intl API.
+-->
 <html dir="rtl" lang="fa">
 <head>
-  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>نوبت‌ها و یادآور — داشبورد بیمار</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>نوبت‌ها — داشبورد بیمار</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    [data-state] .slot-loading,
+    [data-state] .slot-ready,
+    [data-state] .slot-pending,
+    [data-state] .slot-error { display: none !important; }
+    [data-state="loading"]  .slot-loading  { display: block !important; }
+    [data-state="ready"]    .slot-ready    { display: block !important; }
+    [data-state="pending"]  .slot-pending  { display: block !important; }
+    [data-state="error"]    .slot-error    { display: block !important; }
+    /* Appointment card */
+    .appt-card {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem; background: var(--porcelain);
+      border-radius: var(--radius-md); margin-bottom: .75rem;
+    }
+    .appt-date-block {
+      min-width: 64px; text-align: center;
+      border-radius: var(--radius-md);
+      padding: .5rem .3rem; flex-shrink: 0;
+    }
+    .appt-date-block strong { display: block; font-size: 1.15rem; }
+    .appt-date-block span   { font-size: .72rem; opacity: .85; }
+    /* Skeleton cards */
+    .appt-skeleton { height: 76px; border-radius: var(--radius-md); margin-bottom: .75rem; }
+  </style>
 </head>
 <body data-shell="patient" data-nav="appointments">
   <div class="app-shell">
     <main class="main">
-      <div class="topbar"><div><h1>نوبت‌های من</h1><p class="subtitle">نوبت‌های شما توسط پذیرش کلینیک ثبت می‌شود</p></div></div>
 
-      <section class="panel">
-        <h3 style="margin-bottom:1rem">نوبت‌های پیش رو</h3>
-        <div style="display:flex;flex-direction:column;gap:.75rem;">
-          <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--porcelain);border-radius:var(--radius-md);">
-            <div style="width:64px;text-align:center;background:var(--evergreen);color:#fff;border-radius:var(--radius-md);padding:.5rem"><strong style="display:block;font-size:1.15rem">۱۴</strong><span style="font-size:.72rem;opacity:.9">مرداد</span></div>
-            <div style="flex:1"><strong style="font-size:.95rem">ویزیت پیگیری — جراحی بینی</strong><div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">پنجشنبه · ساعت ۱۰:۳۰ · دکتر باستانی‌نژاد</div></div>
-            <span class="pill evergreen">تأیید شده</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--porcelain);border-radius:var(--radius-md);">
-            <div style="width:64px;text-align:center;background:var(--info);color:#fff;border-radius:var(--radius-md);padding:.5rem"><strong style="display:block;font-size:1.15rem">۰۲</strong><span style="font-size:.72rem;opacity:.9">شهریور</span></div>
-            <div style="flex:1"><strong style="font-size:.95rem">مشاوره جراحی ترمیمی</strong><div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">دوشنبه · ساعت ۱۶:۰۰</div></div>
-            <span class="pill info">در انتظار تأیید</span>
+      <div class="topbar">
+        <div>
+          <h1>نوبت‌های من</h1>
+          <p class="subtitle">نوبت‌های شما توسط پذیرش کلینیک ثبت می‌شود</p>
+        </div>
+      </div>
+
+      <div id="appts-host" data-state="loading">
+
+        <!-- ── Loading ── -->
+        <div class="slot-loading" aria-hidden="true">
+          <div class="skeleton appt-skeleton"></div>
+          <div class="skeleton appt-skeleton" style="width:95%"></div>
+          <div class="skeleton appt-skeleton" style="width:88%"></div>
+          <div class="skeleton" style="height:180px;border-radius:var(--radius);margin-top:1.5rem"></div>
+        </div>
+
+        <!-- ── Pending backend ── -->
+        <div class="slot-pending">
+          <div class="state-panel state-pending" role="status">
+            <div class="state-icon" aria-hidden="true">⏳</div>
+            <h3>در انتظار پیاده‌سازی بک‌اند</h3>
+            <p>
+              لیست نوبت‌ها به <code>GET /patient/appointments</code> متکی است که هنوز
+              پیاده‌سازی نشده. پس از استقرار اندپوینت، نوبت‌های شما اینجا نمایش داده می‌شود.
+            </p>
+            <div class="state-actions">
+              <a class="btn btn-secondary btn-sm" href="overview.html">← بازگشت به نمای کلی</a>
+            </div>
           </div>
         </div>
-      </section>
 
-      <section class="panel" style="margin-top:1.5rem;">
-        <h3 style="margin-bottom:1rem">تاریخچه نوبت‌ها</h3>
-        <div class="table-wrap" style="box-shadow:none;border:none;">
-          <table class="data-table">
-            <thead><tr><th>تاریخ</th><th>موضوع</th><th>وضعیت</th></tr></thead>
-            <tbody>
-              <tr><td>۱۴۰۵/۰۳/۲۸</td><td>جراحی رینوپلاستی</td><td><span class="pill success">انجام شد</span></td></tr>
-              <tr><td>۱۴۰۵/۰۳/۱۰</td><td>مشاوره اولیه</td><td><span class="pill success">انجام شد</span></td></tr>
-            </tbody>
-          </table>
+        <!-- ── Ready ── -->
+        <div class="slot-ready">
+          <section class="panel">
+            <h3 style="margin-bottom:1rem">نوبت‌های پیش رو</h3>
+            <div id="upcoming-list" role="list"></div>
+          </section>
+
+          <section class="panel" style="margin-top:1.5rem">
+            <h3 style="margin-bottom:1rem">تاریخچه نوبت‌ها</h3>
+            <div class="table-wrap" style="box-shadow:none;border:none">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>تاریخ</th>
+                    <th>موضوع</th>
+                    <th>وضعیت</th>
+                  </tr>
+                </thead>
+                <tbody id="history-tbody"></tbody>
+              </table>
+            </div>
+          </section>
         </div>
-      </section>
+
+        <!-- ── Error ── -->
+        <div class="slot-error">
+          <div class="state-panel state-error" role="alert">
+            <div class="state-icon" aria-hidden="true">⚠️</div>
+            <h3>خطا در بارگذاری نوبت‌ها</h3>
+            <p id="appts-error-msg">لطفاً دوباره تلاش کنید.</p>
+            <div class="state-actions">
+              <button type="button" class="btn btn-secondary btn-sm"
+                      onclick="loadAppointments()">تلاش مجدد</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /#appts-host -->
+
     </main>
   </div>
-  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { requireAuth, Patient } from '../../shared/api.js';
+
+    if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
+
+    // Status → [pill class, Persian label]
+    const STATUS_MAP = {
+      confirmed:  ['evergreen', 'تأیید شده'],
+      scheduled:  ['info',      'در انتظار تأیید'],
+      pending:    ['warning',   'در انتظار'],
+      done:       ['success',   'انجام شد'],
+      completed:  ['success',   'انجام شد'],
+      cancelled:  ['muted',     'لغو شده'],
+    };
+
+    function pillFor(s) {
+      const m = STATUS_MAP[s] || ['muted', s || '—'];
+      return '<span class="pill ' + m[0] + '">' + m[1] + '</span>';
+    }
+
+    // Convert ISO date string to Jalali display if no jalali field provided
+    function jalaliFromIso(iso) {
+      if (!iso) return '—';
+      try {
+        return new Intl.DateTimeFormat('fa-IR', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        }).format(new Date(iso));
+      } catch { return iso; }
+    }
+
+    window.loadAppointments = async function () {
+      const host = document.getElementById('appts-host');
+      MAZCRM.states.set(host, 'loading');
+      try {
+        const res  = await Patient.getAppointments();
+        const data = res.data || {};
+        const upcoming = data.upcoming || data.appointments?.filter(a =>
+          ['confirmed','scheduled','pending'].includes(a.status)) || [];
+        const history  = data.history  || data.appointments?.filter(a =>
+          ['done','completed','cancelled'].includes(a.status)) || [];
+
+        // ── Upcoming cards ────────────────────────────────────────────────
+        const upEl = document.getElementById('upcoming-list');
+        if (!upcoming.length) {
+          upEl.innerHTML =
+            '<div class="state-panel state-empty" style="padding:1rem 0" role="status">' +
+              '<h3 style="font-size:.9rem">نوبت آینده‌ای ثبت نشده است</h3>' +
+            '</div>';
+        } else {
+          const colorMap = {
+            confirmed: { bg: 'var(--evergreen)', color: '#fff' },
+            scheduled: { bg: 'var(--info)',      color: '#fff' },
+            pending:   { bg: 'var(--warning)',   color: '#fff' },
+          };
+          upEl.innerHTML = upcoming.map(a => {
+            const jalali = a.date_jalali || jalaliFromIso(a.date);
+            const dayStr = a.day_jalali || '';
+            const monthStr = a.month_jalali || '';
+            const c = colorMap[a.status] || { bg: 'var(--porcelain)', color: 'var(--graphite)' };
+            return '<div role="listitem" class="appt-card">' +
+              '<div class="appt-date-block" style="background:' + c.bg + ';color:' + c.color + '">' +
+                '<strong>' + (dayStr || jalali.split(' ')[1] || jalali) + '</strong>' +
+                '<span>' + (monthStr || '') + '</span>' +
+              '</div>' +
+              '<div style="flex:1;min-width:0">' +
+                '<strong style="font-size:.95rem;display:block">' + (a.reason || a.title || '—') + '</strong>' +
+                '<div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">' +
+                  jalali + (a.time ? ' · ساعت ' + a.time : '') +
+                  (a.doctor ? ' · دکتر ' + a.doctor : '') +
+                '</div>' +
+              '</div>' +
+              pillFor(a.status) +
+            '</div>';
+          }).join('');
+        }
+
+        // ── History table ─────────────────────────────────────────────────
+        const tbody = document.getElementById('history-tbody');
+        if (!history.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="3" style="text-align:center;padding:1.5rem;color:var(--muted)">' +
+              'تاریخچه نوبتی ثبت نشده است.' +
+            '</td></tr>';
+        } else {
+          tbody.innerHTML = history.map(a => {
+            const jalali = a.date_jalali || jalaliFromIso(a.date);
+            return '<tr>' +
+              '<td>' + jalali + '</td>' +
+              '<td>' + (a.reason || a.title || '—') + '</td>' +
+              '<td>' + pillFor(a.status) + '</td>' +
+            '</tr>';
+          }).join('');
+        }
+
+        MAZCRM.states.set(host, 'ready');
+      } catch (err) {
+        if (err.httpStatus === 404 || err.httpStatus === 501) {
+          MAZCRM.states.set(host, 'pending');
+        } else if (err.httpStatus === 401) {
+          window.location.replace('../auth/patient-login.html');
+        } else {
+          document.getElementById('appts-error-msg').textContent =
+            err.message || 'خطای سرور. لطفاً دوباره تلاش کنید.';
+          MAZCRM.states.set(host, 'error');
+        }
+      }
+    };
+
+    loadAppointments();
+  </script>
 </body>
 </html>

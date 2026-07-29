@@ -1,52 +1,231 @@
 <!doctype html>
-<!-- MΛZ Medical CRM — Patient Documents · MAZ//ID · © 2026 -->
+<!--
+  MΛZ Medical CRM — Patient Documents (Production-wired)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  API:  GET /patient/documents  ⚠️ PENDING — renders pending-backend state until live
+  Note: When live, the API returns signed URLs with expiry. The page checks
+        doc.url_expires_at and renders an "expired" overlay if the URL has expired.
+        requireAuth() guard protects the page.
+-->
 <html dir="rtl" lang="fa">
 <head>
-  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>مستندات — داشبورد بیمار</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="../../assets/css/tokens.css"/><link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
   <style>
-    .doc-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem; }
-    .doc-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-align:center;transition:transform var(--transition-fast); }
-    .doc-card:hover { transform:translateY(-2px);box-shadow:var(--shadow); }
-    .doc-icon { width:56px;height:56px;background:var(--evergreen-soft);color:var(--evergreen);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.5rem; }
-    .doc-card h4 { font-size:.85rem;margin-bottom:.35rem; }
-    .doc-card small { color:var(--muted);font-size:.72rem;display:block;margin-bottom:1rem; }
+    [data-state] .slot-loading,
+    [data-state] .slot-ready,
+    [data-state] .slot-pending,
+    [data-state] .slot-error { display: none !important; }
+    [data-state="loading"]  .slot-loading  { display: block !important; }
+    [data-state="ready"]    .slot-ready    { display: block !important; }
+    [data-state="pending"]  .slot-pending  { display: block !important; }
+    [data-state="error"]    .slot-error    { display: block !important; }
+
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .doc-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem; text-align: center;
+      transition: transform var(--transition-fast);
+      position: relative; overflow: hidden;
+    }
+    .doc-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .doc-icon {
+      width: 56px; height: 56px;
+      background: var(--evergreen-soft); color: var(--evergreen);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem; font-size: 1.5rem;
+    }
+    .doc-card h4  { font-size: .85rem; margin-bottom: .35rem; }
+    .doc-card small { color: var(--muted); font-size: .72rem; display: block; margin-bottom: 1rem; }
+    /* Expired URL overlay */
+    .doc-expired-overlay {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: rgba(255,255,255,.9); backdrop-filter: blur(2px);
+      font-size: .78rem; color: var(--error); gap: .35rem;
+    }
+    .doc-expired-overlay strong { font-size: .85rem; }
+    /* Skeleton doc cards */
+    .doc-skel { height: 180px; border-radius: var(--radius); }
   </style>
 </head>
 <body data-shell="patient" data-nav="documents">
   <div class="app-shell">
     <main class="main">
-      <div class="topbar"><div><h1>مستندات و فایل‌ها</h1><p class="subtitle">رضایت‌نامه‌ها، نتایج آزمایش و تصاویر پزشکی شما</p></div></div>
 
-      <section class="panel">
-        <div class="doc-grid">
-          <div class="doc-card">
-            <div class="doc-icon">📄</div><h4>رضایت‌نامه جراحی</h4><small>PDF · 1.2 MB · ۱۴۰۵/۰۳/۲۷</small>
-            <button class="btn btn-secondary btn-sm">دانلود</button>
-          </div>
-          <div class="doc-card">
-            <div class="doc-icon">🩻</div><h4>عکس‌های قبل از عمل</h4><small>ZIP · 8.5 MB · ۱۴۰۵/۰۳/۲۵</small>
-            <button class="btn btn-secondary btn-sm">دانلود</button>
-          </div>
-          <div class="doc-card">
-            <div class="doc-icon">🧪</div><h4>آزمایش پیش از عمل</h4><small>PDF · 340 KB · ۱۴۰۵/۰۳/۲۰</small>
-            <button class="btn btn-secondary btn-sm">دانلود</button>
-          </div>
-          <div class="doc-card">
-            <div class="doc-icon">📋</div><h4>فاکتور #۱۰۲۴</h4><small>PDF · 45 KB · ۱۴۰۵/۰۳/۲۸</small>
-            <button class="btn btn-secondary btn-sm">دانلود</button>
-          </div>
-          <div class="doc-card">
-            <div class="doc-icon">💊</div><h4>نسخه دارویی پس از عمل</h4><small>PDF · 80 KB · ۱۴۰۵/۰۳/۲۸</small>
-            <button class="btn btn-secondary btn-sm">دانلود</button>
+      <div class="topbar">
+        <div>
+          <h1>مستندات و فایل‌ها</h1>
+          <p class="subtitle">رضایت‌نامه‌ها، نتایج آزمایش و تصاویر پزشکی شما</p>
+        </div>
+      </div>
+
+      <div id="docs-host" data-state="loading">
+
+        <!-- ── Loading ── -->
+        <div class="slot-loading" aria-hidden="true">
+          <div class="panel">
+            <div class="doc-grid">
+              <div class="skeleton doc-skel"></div>
+              <div class="skeleton doc-skel"></div>
+              <div class="skeleton doc-skel"></div>
+              <div class="skeleton doc-skel" style="opacity:.7"></div>
+              <div class="skeleton doc-skel" style="opacity:.5"></div>
+            </div>
           </div>
         </div>
-      </section>
+
+        <!-- ── Pending backend ── -->
+        <div class="slot-pending">
+          <div class="state-panel state-pending" role="status">
+            <div class="state-icon" aria-hidden="true">⏳</div>
+            <h3>در انتظار پیاده‌سازی بک‌اند</h3>
+            <p>
+              مستندات به <code>GET /patient/documents</code> متکی است که هنوز پیاده‌سازی نشده.
+              پس از استقرار اندپوینت، فایل‌های شما اینجا نمایش داده می‌شود.
+            </p>
+            <div class="state-actions">
+              <a class="btn btn-secondary btn-sm" href="overview.html">← نمای کلی</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Ready ── -->
+        <div class="slot-ready">
+          <section class="panel">
+            <div id="doc-grid-container" class="doc-grid" role="list"></div>
+          </section>
+        </div>
+
+        <!-- ── Empty (sub-state shown inside ready when no docs) ── -->
+
+        <!-- ── Error ── -->
+        <div class="slot-error">
+          <div class="state-panel state-error" role="alert">
+            <div class="state-icon" aria-hidden="true">⚠️</div>
+            <h3>خطا در بارگذاری مستندات</h3>
+            <p id="docs-error-msg">لطفاً دوباره تلاش کنید.</p>
+            <div class="state-actions">
+              <button type="button" class="btn btn-secondary btn-sm"
+                      onclick="loadDocuments()">تلاش مجدد</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /#docs-host -->
+
     </main>
   </div>
-  <script src="../../assets/js/app.js"></script><script src="../../assets/js/chrome.js"></script>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { requireAuth, Patient, showToast } from '../../shared/api.js';
+
+    if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
+
+    // Icon map by document type / mime
+    const ICON_MAP = {
+      pdf:   '📄',
+      image: '🩻',
+      zip:   '📦',
+      lab:   '🧪',
+      invoice: '📋',
+      prescription: '💊',
+      default: '📎',
+    };
+
+    function iconFor(doc) {
+      const t = (doc.type || doc.mime_type || '').toLowerCase();
+      if (t.includes('pdf'))   return ICON_MAP.pdf;
+      if (t.includes('image') || t.includes('png') || t.includes('jpg')) return ICON_MAP.image;
+      if (t.includes('zip'))   return ICON_MAP.zip;
+      if (t === 'lab')         return ICON_MAP.lab;
+      if (t === 'invoice')     return ICON_MAP.invoice;
+      if (t === 'prescription') return ICON_MAP.prescription;
+      return ICON_MAP.default;
+    }
+
+    function isExpired(doc) {
+      if (!doc.url_expires_at) return false;
+      return new Date(doc.url_expires_at) < new Date();
+    }
+
+    window.loadDocuments = async function () {
+      const host = document.getElementById('docs-host');
+      MAZCRM.states.set(host, 'loading');
+      try {
+        const res  = await Patient.getDocuments();
+        const docs = res.data?.documents ?? res.data ?? [];
+        const container = document.getElementById('doc-grid-container');
+
+        if (!docs.length) {
+          container.innerHTML =
+            '<div class="state-panel state-empty" role="status" style="grid-column:1/-1">' +
+              '<div class="state-icon" aria-hidden="true">🌿</div>' +
+              '<h3>هنوز مستندی بارگذاری نشده است</h3>' +
+            '</div>';
+        } else {
+          container.innerHTML = docs.map(doc => {
+            const expired = isExpired(doc);
+            const icon    = iconFor(doc);
+            const sizeStr = doc.size_formatted || doc.size || '';
+            const dateStr = doc.created_jalali || doc.created_at || '';
+            const label   = sizeStr && dateStr
+              ? sizeStr + ' · ' + dateStr
+              : (sizeStr || dateStr || '');
+
+            const expiredOverlay = expired
+              ? '<div class="doc-expired-overlay" role="alert">' +
+                  '<strong>لینک منقضی شده</strong>' +
+                  '<span>برای دریافت لینک جدید صبر کنید یا با کلینیک تماس بگیرید.</span>' +
+                '</div>'
+              : '';
+
+            const downloadBtn = expired
+              ? '<button class="btn btn-secondary btn-sm" disabled>لینک منقضی شده</button>'
+              : '<a class="btn btn-secondary btn-sm" href="' + (doc.url || '#') +
+                '" download target="_blank" rel="noopener">دانلود</a>';
+
+            return '<div role="listitem" class="doc-card">' +
+              expiredOverlay +
+              '<div class="doc-icon" aria-hidden="true">' + icon + '</div>' +
+              '<h4>' + (doc.title || doc.name || 'سند پزشکی') + '</h4>' +
+              '<small>' + label + '</small>' +
+              downloadBtn +
+            '</div>';
+          }).join('');
+        }
+
+        MAZCRM.states.set(host, 'ready');
+      } catch (err) {
+        if (err.httpStatus === 404 || err.httpStatus === 501) {
+          MAZCRM.states.set(host, 'pending');
+        } else if (err.httpStatus === 401) {
+          window.location.replace('../auth/patient-login.html');
+        } else {
+          document.getElementById('docs-error-msg').textContent =
+            err.message || 'خطای سرور. لطفاً دوباره تلاش کنید.';
+          MAZCRM.states.set(host, 'error');
+        }
+      }
+    };
+
+    loadDocuments();
+  </script>
 </body>
 </html>

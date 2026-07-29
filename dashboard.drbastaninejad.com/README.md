@@ -1,162 +1,327 @@
-# dashboard.drbastaninejad.com — Admin/CRM Dashboard
+# dashboard.drbastaninejad.com — PHP MVC Backend
 
-Part of the single-admin, multi-subdomain Medical CRM platform for Dr. Shahin Bastaninejad.
-This subdomain hosts the staff-facing CRM shell (Overview, Patients, Calendar, EMR, Media,
-AI Copilot, Billing, Tasks, Analytics, Staff/RBAC, Settings) and the patient-facing portal
-lives under the same brand system, sharing the MySQL database and PHP MVC backend defined
-in `app.drbastaninejad.com`.
+<!-- MAZ//ID · © 2026 Maziyar / Dr. Shahin Bastaninejad -->
 
-## Structure
+> **For Blackbox:** This README is your authoritative onboarding document.
+> Read it fully before touching any file. All architecture decisions are locked.
+> Do not introduce Composer, Laravel, Symfony, or any external framework.
+> Do not change the namespace convention, response envelope shape, or database layer.
+
+---
+
+## 1. Architecture overview
+
+| Layer | Technology | Notes |
+|---|---|---|
+| Language | PHP 8.1+ | `declare(strict_types=1)` on every file |
+| Database | MySQL 8 / MariaDB 10.6+ | InnoDB, utf8mb4, UTC timestamps only |
+| HTTP dispatch | Custom `App\Core\Router` + `App\Core\Request` | No external routing library |
+| Autoloading | PSR-4 via `spl_autoload_register` in `public/index.php` | No Composer |
+| Auth | Bearer token (SHA-256 hash stored in `auth_tokens` table) | Enforced in `AuthMiddleware` |
+| RBAC | Permission table join via `RbacMiddleware` | `super_admin` bypasses all checks |
+| Timezone | All DB writes in UTC; Jalali only at presentation layer | Never store Jalali dates |
+| SMS | Chain-of-responsibility (`SmsProviderChain`) | Kavenegar → Ghasedak → FarazSMS → TSMS → LogSmsProvider |
+| Google Sheets | Service-account JWT, APCu token cache | Non-fatal; MariaDB is source of truth |
+
+---
+
+## 2. Directory map
+
 ```
 dashboard.drbastaninejad.com/
-├── public/                 # DocumentRoot — never expose app/ or config/ to the web
-│   ├── index.html          # SPA shell: sidebar nav + topbar + dynamic view root
-│   ├── manifest.json        # PWA manifest (installable, RTL, brand theme colour)
-│   ├── sw.js                # Service worker: offline shell caching
+│
+├── public/                         ← DocumentRoot (point Apache/LiteSpeed here)
+│   ├── index.php                   ← ONLY entry point; all requests route through this
+│   ├── .htaccess                   ← Rewrites everything to index.php; blocks dotfiles
+│   ├── index.html                  ← Staff SPA shell (sidebar + topbar)
+│   ├── manifest.json               ← PWA manifest
+│   ├── sw.js                       ← Service worker stub
 │   └── assets/
-│       ├── css/theme.css    # Locked brand tokens (Evergreen/Graphite/Porcelain) — see Medical CRM design brief
-│       └── js/app.js        # Client-side router + API fetch layer
+│       ├── css/theme.css           ← Brand tokens (locked — do not modify colours)
+│       └── js/
+│           ├── app.js              ← Client-side router + API fetch layer
+│           ├── calendar.js         ← Calendar views (day/week/month/agenda)
+│           ├── emr.js              ← Dynamic EMR editor drawer
+│           ├── jalali.js           ← Gregorian↔Jalali conversion (display only)
+│           └── patients.js         ← Patient list + detail timeline
+│
 ├── app/
-│   ├── Core/Controller.php  # Base controller (shared response envelope)
-│   └── Controllers/DashboardController.php  # /api/v1/dashboard/overview aggregation
-└── config/routes.dashboard.php  # Route registrations appended to the shared router
+│   ├── Core/
+│   │   ├── Controller.php          ← Base: success(), error(), validationError()
+│   │   ├── Database.php            ← PDO singleton (reads config/database.php)
+│   │   ├── Model.php               ← Base: find(), create(), update(), softDelete()
+│   │   ├── Request.php             ← Immutable HTTP value object (fromGlobals())
+│   │   └── Router.php              ← Route registration + dispatch + middleware chain
+│   │
+│   ├── Controllers/
+│   │   ├── AppointmentController.php
+│   │   ├── DashboardController.php
+│   │   ├── EmrController.php
+│   │   ├── IntakeController.php    ← POST /api/v1/intakes (public form → DB + Sheets)
+│   │   ├── OtpController.php       ← POST /api/v1/auth/otp/send|verify
+│   │   ├── PatientController.php   ← Staff patient CRUD
+│   │   └── PatientPortalController.php  ← 7 patient-facing endpoints (auth required)
+│   │
+│   ├── Middleware/
+│   │   ├── AuthMiddleware.php      ← Bearer token validation; populates $req->user
+│   │   └── RbacMiddleware.php      ← Permission check against roles/permissions tables
+│   │
+│   ├── Models/
+│   │   ├── Appointment.php
+│   │   ├── EmrRecord.php
+│   │   ├── IntakeModel.php
+│   │   └── Patient.php
+│   │
+│   └── Services/
+│       ├── AiRouterService.php     ← OpenRouter stub (review-required, never auto-saves)
+│       ├── AppointmentService.php
+│       ├── GoogleSheetsService.php ← Sheets API v4 JWT dual-write; returns 'ok'|'failed'|'skipped'
+│       ├── OtpService.php          ← isRateLimited(), send(), verify(), issueToken()
+│       ├── PatientService.php
+│       ├── SmsProviderChain.php    ← Chain: Kavenegar→Ghasedak→FarazSMS→TSMS→LogSms
+│       ├── SmsService.php          ← Single-provider legacy stub (kept for OtpService compatibility)
+│       └── ValidatorService.php    ← normalizeMobile(), isValidNationalId() mod-11, isValidJalaliDate()
+│
+├── config/
+│   ├── database.php                ← DB connection params from ENV (required by Database.php)
+│   ├── routes.appointments.php
+│   ├── routes.auth.php
+│   ├── routes.dashboard.php
+│   ├── routes.emr.php
+│   ├── routes.intake.php
+│   └── routes.patients.php
+│
+├── database/
+│   └── migrations/                 ← Run these in order on first deploy
+│       ├── 001_create_intakes_table.sql
+│       ├── 002_create_otp_codes_table.sql
+│       ├── 003_create_auth_tokens_table.sql
+│       ├── 004_add_email_visit_reason_to_intakes.sql
+│       ├── 005_add_password_hash_to_patients.sql
+│       ├── 006_add_sheets_sync_status_to_intakes.sql
+│       └── 007_add_birth_date_jalali_to_intakes.sql
+│
+└── docs/
+    └── API_CONTRACT.md             ← Single source of truth for every HTTP endpoint
 ```
 
-## Design system
-Brand tokens (Evergreen `#2F7D32`, Graphite `#25272C`, Porcelain `#F7F8F6`, Soft Sage `#E4F0E4`,
-Brass `#B6905E`) are locked in `public/assets/css/theme.css` per `Medical CRM.md` §2. RTL, Vazirmatn
-font, 44×44px touch targets, WCAG 2.2 AA contrast, and skeleton loading states are baked in.
+---
 
-## Why this is more capable than WordPress, while staying simpler to use
-- One login, one sidebar, every module (patients, calendar, EMR, billing, tasks, analytics,
-  RBAC, AI copilot) in a single consistent UI — no plugin sprawl, no per-plugin settings pages.
-- Native PWA + installable APK/iOS shell (same codebase, no separate WordPress mobile plugin).
-- Real relational schema (MySQL) with foreign keys across patients/appointments/billing/tasks,
-  instead of WordPress custom-post-type workarounds.
-- RBAC is enforced server-side per route (`RbacMiddleware`), not via a third-party plugin.
-- AI Copilot panel is a first-class module wired directly into EMR notes — not bolted on.
+## 3. Request lifecycle
 
-## Backend contract
-`GET /api/v1/dashboard/overview` (auth required, permission `dashboard.view`) returns:
-```json
-{
-  "ok": true,
-  "data": {
-    "metrics": [{ "label": "...", "value": "...", "href": "#calendar" }],
-    "attention": [{ "patient": "...", "item": "...", "badge": "warning", "status": "..." }],
-    "today": [{ "patient": "...", "time": "09:30", "reason": "...", "status": "confirmed", "badge": "success" }]
-  }
+```
+Browser / app.drbastaninejad.com
+        │
+        ▼
+public/.htaccess  →  rewrites to index.php
+        │
+        ▼
+public/index.php
+  ├── loads .env
+  ├── registers PSR-4 autoloader (App\ → app/)
+  ├── sets UTC timezone, CORS headers
+  ├── handles OPTIONS pre-flight
+  ├── builds App\Core\Router
+  ├── requires all config/routes.*.php
+  ├── calls Router::dispatch(Request::fromGlobals())
+  │       │
+  │       ├── regex-matches path + verb
+  │       ├── runs middleware chain (AuthMiddleware → RbacMiddleware)
+  │       └── calls Controller::method(Request)
+  │                 └── returns array{ok, status, data, errors, meta}
+  └── json_encode() + http_response_code()
+```
+
+---
+
+## 4. Response envelope (never change this shape)
+
+Every controller method returns a plain PHP array — `index.php` serialises it.
+
+```php
+// Success
+return $this->success($data);
+// → {"ok":true,"status":200,"data":{...},"errors":null,"meta":null}
+
+// Error
+return $this->error(422, 'INVALID_MOBILE', 'شماره موبایل معتبر نیست');
+// → {"ok":false,"status":422,"data":null,"errors":[{"field":"mobile","message":"...","code":"..."}],"meta":null}
+
+// Validation (multiple fields)
+return $this->validationError($errors);
+// → {"ok":false,"status":422,...}
+```
+
+---
+
+## 5. Adding a new module — exact steps
+
+1. **Migration** (if new columns/tables needed): add `NNN_description.sql` to `database/migrations/`. Use `ADD COLUMN IF NOT EXISTS` for idempotency.
+2. **Model** in `app/Models/YourModel.php` — extend `App\Core\Model` or write raw PDO via `App\Core\Database::conn()`.
+3. **Controller** in `app/Controllers/YourController.php` — extend `App\Core\Controller`. Every public method signature: `public function methodName(Request $req): array`.
+4. **Route file** in `config/routes.your_feature.php`:
+   ```php
+   <?php
+   // $router is injected by index.php via require
+   use App\Controllers\YourController;
+   use App\Middleware\AuthMiddleware;
+   use App\Middleware\RbacMiddleware;
+
+   $router->get('/api/v1/your-resource', [YourController::class, 'index'],
+       [AuthMiddleware::class, new RbacMiddleware('your.permission')]);
+   ```
+5. **Register** the route file in `public/index.php` by adding `'routes.your_feature'` to the foreach array.
+6. **Document** the new endpoint in `docs/API_CONTRACT.md` before writing any frontend code.
+
+---
+
+## 6. Authentication model
+
+| Concern | Implementation |
+|---|---|
+| Patient auth | OTP → SMS → bcrypt-hashed OTP stored in `otp_codes` table |
+| Staff auth | Password hash (`bcrypt`) in `users.password_hash` — login endpoint pending |
+| Token | SHA-256 hash of raw token stored in `auth_tokens`; raw token returned once |
+| Token storage (client) | `localStorage` key `mz_auth_token` |
+| Expiry | `auth_tokens.expires_at` checked in `AuthMiddleware` |
+| Revocation | `auth_tokens.revoked_at` checked in `AuthMiddleware` |
+| `$req->user` shape | `{ id, uuid, clinic_id, role, user_type: 'patient'|'staff' }` |
+
+---
+
+## 7. Database rules
+
+- **All PHP code targets the migration files** (`001–007_*.sql`), not `docs/SCHEMA.md`.
+  `docs/SCHEMA.md` is the future normalised target — do not write code against it.
+- `clinic_id` is on every clinical table. Always scope queries to `clinic_id`.
+- Soft delete (`deleted_at`) on all clinical tables. Never hard-delete patient rows.
+- `submission_uuid` on `intakes` has a `UNIQUE` constraint — idempotency at DB level.
+- All timestamps UTC. Jalali conversion is always at the presentation layer only.
+
+---
+
+## 8. Google Sheets dual-write
+
+- `GoogleSheetsService::appendIntake()` returns `'ok' | 'failed' | 'skipped'` — never throws.
+- The DB transaction commits **before** the Sheets call. Sheets failure never rolls back the DB.
+- `intakes.sheets_sync_status` tracks outcome. The idempotent `GET /intakes` re-submit path retries Sheets if status is not `'ok'` or `'skipped'`.
+- Sheet columns A–K are frozen (match the legacy Google Sheet). Columns L–M are `email` and `visit_reason` (added by migration 004).
+
+---
+
+## 9. SMS provider chain
+
+`SmsProviderChain` implements chain-of-responsibility. Order is configurable via `SMS_PROVIDERS` env var (comma-separated). Default: `kavenegar,ghasedak,farazsms,tsms,log`.
+
+Each provider implements `SmsProvider` interface:
+```php
+interface SmsProvider {
+    public function sendOtp(string $mobile, string $otp): void;
+    public function sendReminder(string $mobile, string $message): void;
 }
 ```
-The frontend (`app.js`) fails soft to skeleton/empty states if this endpoint is unreachable,
-so the shell is always renderable during backend rollout.
 
-## Next modules to scaffold (same pattern: theme.css + app.js view + Controller + route)
-Patients index/detail, Calendar (day/week/month/agenda), EMR dynamic editor, Media viewer,
-Billing/invoices, Task board, Analytics, Staff/RBAC, Settings/template builder — all specified
-in `Medical CRM.md` §4–5 and ready to implement against this same shell and brand tokens.
+`LogSmsProvider` is always last — writes OTP to `error_log` in non-production; never throws.
 
+> **TODO for next agent:** Wire `OtpService::send()` to use `SmsProviderChain` instead of the legacy `SmsService` stub.
 
-## Patients module (implemented)
+---
 
-Files added:
-- `app/Models/Patient.php` — search (paginated, clinic-scoped) + `timeline()` (UNION across
-  intakes, appointments, EMR notes, invoices — ordered newest-first per design brief §5.4).
-- `app/Core/Model.php`, `app/Core/Database.php` — base PDO model/singleton shared by all modules.
-- `app/Controllers/PatientController.php` — `index`, `show`, `store`, `update`, all clinic-scoped
-  and RBAC-gated (`patients.view` / `patients.manage`).
-- `app/Services/PatientService.php` — staff-initiated patient creation (dedupes by mobile),
-  distinct from the public intake auto-account flow.
-- `config/routes.patients.php` — route registrations for `/api/v1/patients[/:id]`.
-- `public/assets/js/patients.js` — list view (search debounce, pagination, clickable rows) +
-  detail view (sticky header, timeline with type badges: پذیرش/نوبت/یادداشت بالینی/فاکتور).
-- `public/index.html` — added `#view-patients` and `#view-patient-detail` sections.
-- `public/assets/js/app.js` — `showSection()` now toggles between Overview/Patients views.
+## 10. Environment variables required
 
-### API contract
-```
-GET  /api/v1/patients?q=&page=&per_page=   -> { rows: [...], total, page, per_page }
-GET  /api/v1/patients/{id}                 -> { patient: {...}, timeline: [...] }
-POST /api/v1/patients                      -> { id }   (validates mobile + Code Meli)
-PUT  /api/v1/patients/{id}                 -> { id }
-```
+Create a `.env` file in the project root (one level above `public/`). chmod 600.
 
-Timeline entry types: `intake`, `appointment`, `emr_note`, `invoice` — each mapped client-side
-to a Persian label and status badge colour, matching the brand token system.
+```env
+APP_ENV=production          # or: development
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=maz_crm
+DB_USER=db_user
+DB_PASS=db_password
+DEFAULT_CLINIC_ID=1
 
+# Google Sheets
+SHEETS_SPREADSHEET_ID=
+SHEETS_SERVICE_ACCOUNT_EMAIL=
+SHEETS_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\n..."
+SHEETS_TAB_NAME=Intakes
 
-## Calendar / Scheduling module (implemented)
-
-Files added:
-- `app/Models/Appointment.php` — `inRange()` (clinic + optional provider filter, joined with
-  patient name for display) and `hasConflict()` (interval-overlap check using duration_minutes,
-  excludes cancelled appointments) — implements conflict detection from Medical CRM.md §5.6.
-- `app/Controllers/AppointmentController.php` — `index` (range query for calendar rendering),
-  `store` (quick-create with server-side conflict check, HTTP 409 on overlap), `reschedule`
-  (drag-and-drop target, re-checks conflict excluding itself), `updateStatus` (scheduled →
-  confirmed/cancelled/completed).
-- `app/Services/AppointmentService.php` — creation wrapper; deliberately does NOT trigger
-  reminder emails/SMS yet (reminder timing is still an open question per ROADMAP.md §11).
-- `config/routes.appointments.php` — `/api/v1/appointments`, `/api/v1/appointments/{id}/reschedule`,
-  `/api/v1/appointments/{id}/status`, all RBAC-gated (`appointments.view` / `appointments.manage`).
-- `public/assets/js/calendar.js` — Day / Week / Month / Agenda views, previous/next/today
-  navigation, native HTML5 drag-and-drop reschedule (day/week grid), colour-coded status badges,
-  working-hours grid (08:00–20:00). Month view shows up to 3 events per cell with a "+N more"
-  overflow indicator.
-- `public/index.html` — added `#view-calendar` section with view-switch buttons.
-
-### API contract
-```
-GET   /api/v1/appointments?from=&to=&provider_id=        -> { events: [...] }
-POST  /api/v1/appointments                                -> { id }  (409 on time conflict)
-PATCH /api/v1/appointments/{id}/reschedule                -> { id }  (409 on time conflict)
-PATCH /api/v1/appointments/{id}/status                    -> { id, status }
+# SMS providers (set whichever you use)
+SMS_PROVIDERS=kavenegar,log
+KAVENEGAR_API_KEY=
+GHASEDAK_API_KEY=
+FARAZSMS_USERNAME=
+FARAZSMS_PASSWORD=
+TSMS_USERNAME=
+TSMS_PASSWORD=
+TSMS_FROM=
 ```
 
-### Notes for the next agent
-- Jalali (Shamsi) date display is NOT yet wired into calendar.js — it currently renders Gregorian
-  with Persian weekday/month names only. Swap in `JalaliService`-equivalent client-side formatting
-  before shipping to production, per the non-negotiable Iranian market constraint in Medical CRM.md §3.
-- Self-booking (patient-initiated slot picking) is explicitly deferred per ROADMAP.md — this
-  module is staff-only quick-create/drag-reschedule, matching that decision.
-- Reminder-sent indicator on each appointment card is not yet rendered — `reminder_sent_at`
-  column exists in the schema and should be surfaced once the SMS/email reminder timing decision
-  (ROADMAP.md open question #1) is confirmed.
+---
 
+## 11. cPanel / LiteSpeed deployment checklist
 
-## Dynamic EMR Editor (implemented) — connects Patients + Calendar
+1. Set the document root for `dashboard.drbastaninejad.com` to `public/`.
+2. Place the entire project root **outside** `public_html` (e.g. in `~/apps/maz-crm/`).
+3. Create `.env` in the project root. `chmod 600 .env`.
+4. Enable `mod_rewrite` / LiteSpeed rewrite (already configured in `public/.htaccess`).
+5. Run migrations 001–007 in order against the MariaDB instance.
+6. Confirm PHP 8.1+ with `APCu` extension enabled (used by `GoogleSheetsService` token cache).
 
-Files added:
-- `app/Models/EmrRecord.php` — `forPatient()` (timeline-ready, joined with author name),
-  `templatesForSpecialty()` (schema-driven form templates per Medical CRM.md §5.7).
-- `app/Controllers/EmrController.php` — `index` (patient's notes), `templates`, `store`
-  (fixed fields: chief_complaint/diagnosis/plan + specialty_fields JSON blob), `draftNote`
-  (AI Copilot — returns text only, `requires_review: true` always set, never auto-saved).
-- `app/Services/AiRouterService.php` — placeholder wrapper for the OpenRouter integration
-  (see OpenRouter Router Service Spec doc); returns a clearly-labelled placeholder string
-  so the "AI draft — review required" UI card is never mistaken for real clinical content.
-- `config/routes.emr.php` — `/api/v1/patients/{id}/emr`, `/api/v1/emr/templates`,
-  `/api/v1/ai/emr-draft`, all RBAC-gated (`emr.view` / `emr.edit`).
-- `public/assets/js/emr.js` — slide-in drawer with chief complaint / diagnosis / plan fields,
-  an AI Copilot card with explicit Accept/Discard actions (never auto-saves), launched from:
-  - Patient detail header ("+ یادداشت بالینی" button)
-  - Calendar event (double-click an appointment to open a note pre-linked to that appointment)
+---
 
-This is the module tying Patients and Calendar together, per your request to finish the
-connected module before moving to other work.
+## 12. API endpoints (summary)
 
-## Jalali (Shamsi) calendar fix (implemented)
+Full contract with request/response shapes is in `docs/API_CONTRACT.md`.
 
-- `public/assets/js/jalali.js` — dependency-free Gregorian↔Jalali conversion (public-domain
-  algorithm), Persian digit conversion, and formatting helpers (`formatFull`, `formatShort`,
-  `formatNumeric`). Backend continues to store all timestamps as UTC/Gregorian — Jalali is a
-  display-only layer, per the non-negotiable Iranian market constraint in Medical CRM.md §3/§6.7.
-- `public/assets/js/calendar.js` — updated to use Jalali for: range label (day/week/month/agenda
-  headers), week-view day numbers, month-view day-of-month cells, agenda date headers, and
-  event time display (now in Persian digits).
-- **Still open**: Patients module (`patients.js`) still renders `last_visit` and timeline
-  timestamps in Gregorian via `toLocaleDateString('fa-IR')` — this needs the same `Jalali.*`
-  helpers applied next (tracked in `PROJECT_CHECKLIST.md` §2).
+| Method | Path | Auth | Permission |
+|---|---|---|---|
+| POST | `/api/v1/auth/otp/send` | Public | — |
+| POST | `/api/v1/auth/otp/verify` | Public | — |
+| POST | `/api/v1/intakes` | Public | — |
+| GET | `/api/v1/intakes` | Bearer | `intakes.view` |
+| GET | `/api/v1/patients` | Bearer | `patients.view` |
+| GET | `/api/v1/patients/{id}` | Bearer | `patients.view` |
+| POST | `/api/v1/patients` | Bearer | `patients.manage` |
+| PUT | `/api/v1/patients/{id}` | Bearer | `patients.manage` |
+| GET | `/api/v1/patient/overview` | Bearer (patient) | `patient.self` |
+| GET | `/api/v1/patient/profile` | Bearer (patient) | `patient.self` |
+| PATCH | `/api/v1/patient/profile` | Bearer (patient) | `patient.self` |
+| GET | `/api/v1/patient/appointments` | Bearer (patient) | `patient.self` |
+| GET | `/api/v1/patient/documents` | Bearer (patient) | `patient.self` |
+| GET | `/api/v1/patient/notification-preferences` | Bearer (patient) | `patient.self` |
+| PATCH | `/api/v1/patient/notification-preferences` | Bearer (patient) | `patient.self` |
+| GET | `/api/v1/appointments` | Bearer | `appointments.view` |
+| POST | `/api/v1/appointments` | Bearer | `appointments.manage` |
+| PATCH | `/api/v1/appointments/{id}/reschedule` | Bearer | `appointments.manage` |
+| PATCH | `/api/v1/appointments/{id}/status` | Bearer | `appointments.manage` |
+| GET | `/api/v1/dashboard/overview` | Bearer | `dashboard.view` |
+| GET | `/api/v1/patients/{id}/emr` | Bearer | `emr.view` |
+| POST | `/api/v1/patients/{id}/emr` | Bearer | `emr.edit` |
+| GET | `/api/v1/emr/templates` | Bearer | `emr.view` |
+| POST | `/api/v1/ai/emr-draft` | Bearer | `emr.edit` |
 
-See `PROJECT_CHECKLIST.md` at the repo root for the full remaining roadmap and action items
-split between AI-buildable work and decisions that require your input.
+---
+
+## 13. What Blackbox should build next
+
+These items are specified and ready for implementation — no design decisions needed:
+
+1. **Staff password login** — `POST /api/v1/auth/password` → verify `users.password_hash` (bcrypt), issue bearer token same as OTP flow. Route file `config/routes.auth.php` already bootstrapped.
+2. **Wire `OtpService` → `SmsProviderChain`** — replace `new SmsService()` in `OtpService::send()` with `(new SmsProviderChain())->sendOtp(...)`.
+3. **Billing module** — `invoices` table (see `docs/SCHEMA.md` §8 for target shape), `BillingController`, `routes.billing.php`. Zarinpal / IDPay payment gateway callbacks.
+4. **Tasks / Kanban** — `tasks` table, `TaskController`, `routes.tasks.php`. Statuses: `todo`, `in_progress`, `done`. Priority: `low`, `medium`, `high`, `urgent`.
+5. **Analytics** — `AnalyticsController::referralConversion()` (date-range, group by `intakes.referral_code`), `AnalyticsController::appointmentStats()`.
+6. **Settings** — clinic working hours, user management (RBAC), EMR template builder (stores JSON template definitions).
+7. **Jalali fix in `patients.js`** — replace `toLocaleDateString('fa-IR')` with `Jalali.formatFull()` from `jalali.js`.
+
+---
+
+## 14. What must NOT be changed
+
+- The response envelope shape (`ok / status / data / errors / meta`).
+- The `App\` PSR-4 namespace root.
+- The DB column conventions (`created_at`, `updated_at`, `deleted_at`, `clinic_id`).
+- `docs/API_CONTRACT.md` as the single source of truth for endpoints.
+- Google Sheet columns A–K.
+- Brand tokens in `public/assets/css/theme.css`.

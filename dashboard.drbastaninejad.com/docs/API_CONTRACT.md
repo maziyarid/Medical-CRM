@@ -1,17 +1,17 @@
 <!-- MAZ//ID · © 2026 Maziyar / Dr. Shahin Bastaninejad -->
 
-# API Contract — Phase A & B
+# API Contract — MΛZ Medical CRM
 
-**Version:** 1.0 · **Author:** MAZ//ID · **Date:** 27 July 2026  
+**Version:** 1.2 · **Author:** MAZ//ID · **Date:** 27 July 2026  
 **Base URL:** `https://dashboard.drbastaninejad.com/api/v1`
 
 All responses use the standard envelope:
 ```json
-{ "data": ..., "meta": { "page": 1, "per_page": 20, "total": 0 }, "errors": null }
+{ "ok": true, "data": ..., "meta": { "page": 1, "per_page": 20, "total": 0 }, "errors": null }
 ```
 Error shape:
 ```json
-{ "data": null, "errors": [{ "field": "mobile", "message": "شماره نامعتبر" }] }
+{ "ok": false, "data": null, "errors": [{ "field": "mobile", "message": "شماره نامعتبر" }] }
 ```
 
 ---
@@ -28,27 +28,34 @@ Error shape:
 | Field | Type | Required | Notes |
 |---|---|---|---|
 | `submission_uuid` | string (≤64) | ✅ | Client-generated UUID v4; enables idempotent retries |
-| `first_name` | string | ✅ | |
-| `last_name` | string | ✅ | |
+| `firstName` | string | ✅ | camelCase from intake.html; normalised server-side (§6.1 UNIFIED_MASTER_PLAN) |
+| `lastName` | string | ✅ | camelCase from intake.html |
 | `mobile` | string | ✅ | Persian digits accepted; normalised to `09XXXXXXXXX` |
-| `national_id` | string | ✅ | 10 digits, Persian digits accepted; mod-11 validated |
-| `birth_date_jalali` | string | ✅ | Format `YYYY/MM/DD` or `YYYY-MM-DD`; Persian digits OK |
-| `chief_complaint` | string | ✅ | Free text |
-| `gender` | string | — | `male` \| `female` |
-| `service_type` | string | — | e.g. `rhinoplasty` |
-| `preferred_date` | string | — | Jalali or Gregorian date |
-| `insurance_type` | string | — | |
-| `home_address` | string | — | |
+| `nationalId` | string | ✅ | 10 digits, Persian digits accepted; mod-11 validated |
+| `birthDate` | string | ✅ | Format `YYYY/MM/DD`; Persian digits OK; Jalali — converted to Gregorian server-side |
+| `description` | string | ✅ | Free text — mapped to `chief_complaint` server-side |
+| `visitReason` | string | ✅ | Mapped to `visit_reason` column |
+| `email` | string | — | Optional email address |
+| `fatherName` | string | — | camelCase; mapped to `father_name` |
+| `homeTel` | string | — | Home telephone; stored in `raw_payload` only |
+| `homeAd` | string | — | camelCase; mapped to `home_address` |
+| `isTransfer` | int | — | Default `0` |
+
+> **Note:** Both camelCase (from `intake.html`) and snake_case keys are accepted.  
+> The server normalises camelCase to snake_case in `IntakeController::normalisePayload()`.  
+> The frontend payload contract is never changed (§6.1 UNIFIED_MASTER_PLAN.md).
 
 #### Responses
 
 **201 Created** — new submission accepted:
 ```json
 {
+  "ok": true,
   "data": {
     "intake_id": 42,
     "patient_uuid": "a1b2c3d4e5f6...",
     "status": "pending",
+    "sheets_sync_status": "ok",
     "idempotent": false
   },
   "meta": null,
@@ -56,13 +63,21 @@ Error shape:
 }
 ```
 
+> `sheets_sync_status` values:  
+> `"ok"` — row appended to Google Sheet  
+> `"failed"` — Sheets write failed (row is safe in MySQL; will retry on next duplicate request)  
+> `"skipped"` — Google Sheets not configured (expected in dev/staging)  
+> `"pending"` — only persists if the process was killed between DB commit and Sheets write
+
 **200 OK** — duplicate `submission_uuid` (safe retry):
 ```json
 {
+  "ok": true,
   "data": {
     "intake_id": 42,
     "patient_uuid": "a1b2c3d4e5f6...",
     "status": "pending",
+    "sheets_sync_status": "ok",
     "idempotent": true
   },
   "meta": null,
@@ -70,9 +85,13 @@ Error shape:
 }
 ```
 
+> On idempotent 200 path: if `sheets_sync_status` was `"failed"` or `"pending"`, the server
+> automatically retries the Sheets write before responding.
+
 **422 Unprocessable Entity** — validation failure:
 ```json
 {
+  "ok": false,
   "data": null,
   "errors": [
     { "field": "national_id", "message": "کد ملی معتبر نیست" },
@@ -81,7 +100,7 @@ Error shape:
 }
 ```
 
-**500 Internal Server Error** — transaction failed (retry safe if you have a fresh `submission_uuid`).
+**500 Internal Server Error** — transaction failed (retry safe — use the same `submission_uuid`).
 
 ---
 
@@ -139,7 +158,7 @@ Error shape:
 
 **200 OK:**
 ```json
-{ "data": { "message": "کد تایید ارسال شد", "expires_in": 300 }, "errors": null }
+{ "ok": true, "data": { "message": "کد تایید ارسال شد", "expires_in": 300 }, "errors": null }
 ```
 
 **422** — invalid mobile format  
@@ -165,6 +184,7 @@ Error shape:
 **200 OK:**
 ```json
 {
+  "ok": true,
   "data": {
     "token": "<64-char hex>",
     "expires_at": "2026-08-26 11:00:00",
@@ -186,15 +206,106 @@ Error shape:
 
 ---
 
+## Phase C — Patient Portal (authenticated patient endpoints)
+
+All endpoints below require a valid patient-scoped Bearer token obtained from `/auth/otp/verify`.
+
+### `GET /api/v1/patient/overview`
+
+**Auth:** Bearer token (patient)  
+**Purpose:** Summary for the patient portal home screen
+
+```json
+{
+  "ok": true,
+  "data": {
+    "next_appointment": {
+      "uuid": "...",
+      "starts_at": "2026-08-15 10:30:00",
+      "ends_at": "2026-08-15 11:00:00",
+      "status": "confirmed",
+      "reason": "ویزیت پیگیری"
+    },
+    "last_intake": {
+      "uuid": "...",
+      "service_type": "rhinoplasty",
+      "chief_complaint": "اصلاح فرم بینی",
+      "status": "pending",
+      "submitted_at": "2026-07-27 09:00:00"
+    }
+  }
+}
+```
+
+`next_appointment` and `last_intake` are `null` if none exist.
+
+---
+
+### `GET /api/v1/patient/profile`
+
+**Auth:** Bearer token (patient)  
+**Purpose:** Read the patient's own profile fields
+
+**Response `data`:** `uuid`, `first_name`, `last_name`, `father_name`, `mobile`, `email`, `national_id`, `birth_date`, `birth_date_jalali`, `gender`, `insurance_number`, `insurance_status`, `home_address`
+
+---
+
+### `PATCH /api/v1/patient/profile`
+
+**Auth:** Bearer token (patient)  
+**Purpose:** Update patient-editable fields
+
+**Allowed fields:** `first_name`, `last_name`, `father_name`, `home_address`, `email`  
+(Medical and RBAC fields are not writable by the patient.)
+
+**Response:** `{ "ok": true, "data": { "updated": true } }`
+
+---
+
+### `GET /api/v1/patient/appointments`
+
+**Auth:** Bearer token (patient)  
+**Query:** `page` (default 1), `per_page` (default 20, max 50)  
+**Response `data`:** array of `{ uuid, starts_at, ends_at, status, reason, reminder_sent_at }`
+
+---
+
+### `GET /api/v1/patient/documents`
+
+**Auth:** Bearer token (patient)  
+**Purpose:** List patient's uploaded media files  
+**Response `data`:** array of `{ uuid, type, tag, mime_type, size_bytes, created_at, download_endpoint }`
+
+> `download_endpoint` is `/api/v1/media/{uuid}/url` (signed URL generation — Phase 6, not yet live).
+
+---
+
+### `GET /api/v1/patient/notification-preferences`
+
+**Auth:** Bearer token (patient)  
+**Response:** `{ "ok": true, "data": { "marketing_email_optin": false } }`
+
+---
+
+### `PATCH /api/v1/patient/notification-preferences`
+
+**Auth:** Bearer token (patient)  
+**Body:** `{ "marketing_email_optin": true }`  
+**Response:** `{ "ok": true, "data": { "marketing_email_optin": true } }`
+
+---
+
 ## Idempotency & Dual-Write Notes
 
 1. The `submission_uuid` **UNIQUE** constraint is enforced at the DB level in `intakes.submission_uuid`, not only in PHP. A duplicate INSERT will throw a PDO exception, which the controller converts to a 200 idempotent response.
 
-2. Google Sheets dual-write happens **after** the DB transaction commits. A Sheets API failure never rolls back the DB write. Failures are logged to `error_log` and visible in cPanel error logs.
+2. Google Sheets dual-write happens **after** the DB transaction commits. A Sheets API failure never rolls back the DB write. The outcome is recorded in `intakes.sheets_sync_status` (`ok` | `failed` | `skipped` | `pending`).
 
-3. OTP codes are stored as **bcrypt hashes** — raw codes are never persisted. In `APP_ENV != production`, the raw OTP is also logged to `error_log` for development convenience.
+3. **outcome_unknown / reconciliation:** if `sheets_sync_status` is not `ok` on the idempotent 200 path, the server automatically retries the Sheets write. This handles the process-kill-after-DB-commit scenario without any external reconciliation job.
 
-4. The bearer token is stored as **SHA-256 hash** in `auth_tokens.token_hash`. The raw token is only returned once in the `/verify` response and never stored in plain text.
+4. OTP codes are stored as **bcrypt hashes** — raw codes are never persisted. In `APP_ENV != production`, the raw OTP is also logged to `error_log` for development convenience.
+
+5. The bearer token is stored as **SHA-256 hash** in `auth_tokens.token_hash`. The raw token is only returned once in the `/verify` response and never stored in plain text.
 
 ---
 
@@ -212,9 +323,19 @@ DB_PASS=your_password
 DEFAULT_CLINIC_ID=1
 APP_ENV=production   # set to "development" to log OTPs
 
-# SMS (Kavenegar)
+# SMS (primary + fallback chain — see SmsProviderChain.php)
+SMS_PROVIDERS=kavenegar,ghasedak,farazsms,tsms
 KAVENEGAR_API_KEY=
 KAVENEGAR_SENDER=
+GHASEDAK_API_KEY=
+GHASEDAK_TEMPLATE=verify
+GHASEDAK_LINE=
+FARAZSMS_USERNAME=
+FARAZSMS_PASSWORD=
+FARAZSMS_FROM=
+TSMS_USERNAME=
+TSMS_PASSWORD=
+TSMS_FROM=
 
 # Google Sheets dual-write
 GOOGLE_SHEET_ID=
