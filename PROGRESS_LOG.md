@@ -148,3 +148,50 @@ Next:
 Merge safety:
   - Task-001, Task-002, Task-003, Task-004: merge-ready (no dependencies)
   - All other tasks: needs-review or blocked
+
+
+## [2026-07-29 13:00 UTC]  Track: Verification  Agent: Vibe Code
+Phase: 0 (Repository and environment reconciliation) - Verification-only pass
+Completed:
+  1. Verified existing triage deliverables (docs/pages.md, TASK_PRIORITY_LIST.md, TRIAGE_SUMMARY.md) remain consistent with current sprint state
+  2. Confirmed docs/pages.md remains the canonical page inventory (no duplicates found)
+  3. Identified backend contract gaps in dashboard.drbastaninejad.com/docs/API_CONTRACT.md:
+     - Missing patient portal endpoints: GET /api/v1/patient/overview, GET /api/v1/patient/documents, GET/PATCH /api/v1/patient/notification-preferences, GET /api/v1/media/{uuid}/url
+     - These gaps block Task-008 through Task-014 (patient portal wiring)
+  4. Confirmed DEPLOYMENT_GATE.md has unchecked items that block production deployment:
+     - Server verification incomplete
+     - Source and dependency review incomplete
+     - Secrets and data safety checks incomplete
+  5. Reclassified tasks per current state:
+
+### Merge-Ready (no dependencies, no conflicts):
+  - Task-001: Create API Adapter for Frontend (Bob AI)
+  - Task-002: Create Cross-Cutting State Primitives (Bob AI)
+  - Task-004: Copy Jalali Utility from Backend (Bob AI)
+
+### Needs-Review (dependencies exist but not blocking):
+  - Task-003: Create Session Management Layer (Bob AI) - depends on Task-001
+  - Task-005: Wire Authentication Pages (Bob AI) - depends on Task-001, Task-003, backend OTP
+  - Task-007: Wire Public Intake Page (Bob AI) - depends on Task-001, Task-003, backend intake
+  - Task-015: Implement OTP Authentication Endpoints (Blackbox AI)
+  - Task-016: Implement Intake Submission Endpoint (Blackbox AI)
+
+### Blocked (backend contract gaps or deployment gate holds):
+  - Task-008 through Task-014: Patient portal wiring - BLOCKED by missing API contract endpoints
+  - Task-017 through Task-027: Staff CRM and AI endpoints - BLOCKED by backend implementation
+  - Task-028: Fix CTA links - BLOCKED by PR #5 coordination
+  - Task-029 through Task-041: Marketing and infrastructure - BLOCKED by various decisions
+  - All deployment tasks - BLOCKED by DEPLOYMENT_GATE.md unchecked items
+
+Files touched:
+- None (verification-only pass)
+
+Blocked / open:
+  - Backend contract gaps: Patient portal endpoints missing from API_CONTRACT.md
+  - Deployment gate: Multiple unchecked items in DEPLOYMENT_GATE.md
+  - PR #5: CTA link verification still needed before merge
+
+Next:
+  - Blackbox AI: Add missing patient portal endpoints to API_CONTRACT.md (unblocks Task-008-014)
+  - Bob AI: Proceed with merge-ready tasks (Task-001, Task-002, Task-004)
+  - Product owner: Review DEPLOYMENT_GATE.md and check items as ready
