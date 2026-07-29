@@ -57,6 +57,34 @@ Agents must not introduce:
 An agent that believes an exception is necessary must write an amendment proposal and stop.
 No code implementing the exception may be written before product-owner approval.
 
+## Persistent Role Ownership
+
+### Bob AI — Frontend / Product UI
+Owns:
+- Public website redesign
+- Dashboard UI
+- Patient portal UI
+- RTL layouts
+- Design tokens and component styling
+- Mobile UI adaptation
+- PWA presentation layer
+- APK/iOS UI wrapper behavior
+
+### Blackbox AI — Backend / Database / Platform
+Owns:
+- PHP MVC backend
+- Database schema and migrations
+- Authentication, RBAC, sessions
+- Intake idempotency and validation
+- Scheduling, EMR, billing, analytics services
+- API contracts and backend tests
+- Deployment and environment documentation
+
+### Shared rules
+- Frontend never invents backend table or route names.
+- Backend never changes design tokens or screen structure.
+- Any cross-boundary naming change must be written into `UNIFIED_MASTER_PLAN.md` first.
+
 ---
 
 ## 4. Mandatory Start-of-Session Procedure
