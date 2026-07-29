@@ -55,4 +55,40 @@ Because both tracks now touch the intake submission path from different angles (
 
 ---
 
-*Add this file to the repository root. Both accounts/chats should be pointed to it explicitly at the start of every new session.*
+## Deployment Gate — Mandatory Before Any VPS/cPanel Installation
+
+No agent may instruct the product owner to deploy application code, create a production
+database, run migrations, configure a domain, or enable a public endpoint until every
+item below is explicitly confirmed by the product owner.
+
+### Infrastructure
+- [ ] Server operating system, Nginx/Apache/PHP-FPM topology, PHP version, and MariaDB/MySQL version verified by read-only commands.
+- [ ] Production hostname and document root verified for each subdomain.
+- [ ] TLS certificate active for each public hostname.
+- [ ] Firewall permits only required public ports; SSH access is restricted.
+- [ ] A tested server backup/snapshot exists before deployment.
+
+### Source control and secrets
+- [ ] No patient signatures, national IDs, OTPs, logs, `.env` files, API keys, webhook URLs, or credentials are committed to git.
+- [ ] Production secrets are created only at deployment time and stored outside the repository.
+- [ ] `.env.example` contains placeholders only.
+- [ ] Apps Script endpoint/credential is rotated or newly generated immediately before production use.
+- [ ] Git history and repository visibility have been reviewed for sensitive files before real patient data is collected.
+
+### Database
+- [ ] One approved schema/migration set exists; no parallel schema or database is introduced.
+- [ ] Database name, least-privilege application user, strong password, and backup policy are approved.
+- [ ] Migration was executed successfully in a non-production environment first.
+- [ ] Restore procedure has been tested from a backup.
+- [ ] UTC storage and Persian/Jalali presentation rules are confirmed.
+
+### Application safety
+- [ ] OTP, national-ID validation, CSRF protection, rate limits, authorization, and audit logging are implemented and tested.
+- [ ] File/signature storage is outside the public web root and excluded from git.
+- [ ] Intake idempotency test proves one OTP/token cannot create duplicate submissions.
+- [ ] Error logs redact secrets and personal data.
+- [ ] A designated human has completed a final security and data-handling review.
+
+### Release decision
+- [ ] Product owner explicitly approves deployment after reviewing the above evidence.
+- [ ] Deployment log records date, commit SHA, deployer, affected subdomains, migration status, and rollback location.
