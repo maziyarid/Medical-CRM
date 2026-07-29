@@ -1,0 +1,49 @@
+<!-- MAZ//ID · drbastaninejad.com — Shared Navigation Component -->
+<!-- Include via <div data-include="components/nav.html"></div> or copy inline.  -->
+<!-- Active class is set by main.js based on window.location.pathname.           -->
+<nav class="site-nav" role="navigation" aria-label="ناوبری اصلی">
+  <div class="nav-inner">
+
+    <!-- Brand -->
+    <a href="index.html" class="nav-brand" aria-label="صفحه اصلی — دکتر شاهین باستانی‌نژاد">
+      <div class="mark" aria-hidden="true">MΛZ</div>
+      <div class="brand-text">
+        دکتر شاهین باستانی‌نژاد
+        <small>جراح تخصصی</small>
+      </div>
+    </a>
+
+    <!-- Desktop links -->
+    <ul class="nav-links" role="list">
+      <li><a href="index.html">خانه</a></li>
+      <li><a href="about.html">درباره دکتر</a></li>
+      <li><a href="services.html">خدمات</a></li>
+      <li><a href="gallery.html">نمونه کارها</a></li>
+      <li><a href="contact.html">تماس</a></li>
+    </ul>
+
+    <!-- Desktop CTA + tel -->
+    <div class="nav-cta">
+      <a href="tel:[CONTENT: phone]" class="tel-link" aria-label="تماس تلفنی">[CONTENT: phone]</a>
+      <a href="booking.html" class="btn btn-primary btn-sm">نوبت‌گیری</a>
+    </div>
+
+    <!-- Hamburger -->
+    <button class="nav-toggle" id="nav-toggle"
+            aria-controls="nav-mobile" aria-expanded="false"
+            aria-label="باز کردن منو">
+      <span></span><span></span><span></span>
+    </button>
+
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="nav-mobile" class="nav-mobile" role="menu">
+    <a href="index.html" role="menuitem">خانه</a>
+    <a href="about.html" role="menuitem">درباره دکتر</a>
+    <a href="services.html" role="menuitem">خدمات</a>
+    <a href="gallery.html" role="menuitem">نمونه کارها</a>
+    <a href="contact.html" role="menuitem">تماس</a>
+    <a href="booking.html" class="btn btn-primary" role="menuitem" style="margin-top:.5rem;text-align:center">نوبت‌گیری آنلاین</a>
+  </div>
+</nav>
