@@ -1,10 +1,13 @@
-# Medical CRM - UX, Mobile Apps, WordPress Redesign & Sync Strategy
+# Medical CRM - UX, Mobile Apps, Website Redesign & Sync Strategy
 
 **Version:** 1.0 · **Author:** MAZ//ID · **Date:** 26 July 2026
 
 > **Executive Summary**
-> This document outlines a **comprehensive plan** to improve the **UX of the Medical CRM**, develop **mobile apps (APK & iOS)**, **redesign the WordPress website**, and ensure **database synchronization** across all platforms. The goal is to create a **unified, mobile-friendly, and high-performance** ecosystem for Dr. Shahin Bastaninejad’s clinic.
-
+> This document outlines a comprehensive plan to improve the UX of the Medical CRM, develop mobile apps (APK & iOS), redesign the public website, and ensure database synchronization across all platforms. The goal is to create a unified, mobile-friendly, high-performance ecosystem for Dr. Shahin Bastaninejad’s clinic.
+>
+> The public website redesign is part of the backend/product roadmap and does not mean the system must remain on WordPress as the final architecture. The final production backend remains the approved PHP 8.x MVC platform with a single relational database, while any current WordPress content or pages may be migrated, replaced, or integrated as needed during implementation.
+>
+> Agents should deliver finished files and implementation notes for download. The product owner will handle local rotation, file-manager upload, and testing on the local Windows environment when each package is complete.
 ---
 
 ## 🎯 Track 1: UX Improvements for Medical CRM
