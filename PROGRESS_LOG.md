@@ -339,3 +339,63 @@ Deployment: No production or cPanel/VPS change is authorized by this task.
 - Blackbox AI: write PHPUnit tests for OtpService (send/verify/rate-limit), IntakeModel (idempotency), and ValidatorService (Code Meli, mobile, Jalali) as Phase 0 completion prerequisite.
 - Product owner: verify VPS for `app_private/src/OtpService.php` and `app_private/src/SheetClient.php`; if found, compare against canonical versions in this commit.
 
+
+---
+
+## [2026-07-29 20:30 UTC] — Frontend — Bob AI — Phase 2
+
+Scope: Phase 2, frontend.
+Package: Wire intake/intake.html to OTP + intake API endpoints with full UX states.
+Files: app.drbastaninejad.com/Frontend/pages/intake/intake.html, app.drbastaninejad.com/Frontend/assets/js/app.js, app.drbastaninejad.com/Frontend/shared/api.js
+Overlap check: No active PROGRESS_LOG.md entry claimed this package.
+Deployment: No production or cPanel/VPS change is authorized by this task.
+
+### Done
+
+#### intake.html — full Phase 2 wiring (step 3 HOLD removed)
+- **HOLD removed:** the `MAZCRM.api.submitIntake(mock)` call on step 3 submit has been replaced with `Intake.submit(payload)` from `shared/api.js`. The HOLD was waiting on `IntakeController::normalisePayload()` being confirmed live — confirmed in Blackbox AI PROGRESS_LOG entry 2026-07-29 19:30 UTC.
+- Payload now uses snake_case field names (`first_name`, `last_name`, `national_id`, `birth_date`, `visit_reason`, `home_address`, `medical_history`, `current_drugs`, `is_transfer`) matching `docs/API_CONTRACT.md §POST /intakes`. `submission_uuid` attached by `Intake.submit()` from `sessionStorage`.
+- Import extended: `Intake`, `normalizePersianDigits` added to the module import block.
+- Idempotency UUID primed at `DOMContentLoaded` (not only after OTP verify) so a hard-refresh mid-form does not generate a new UUID and risk a duplicate.
+
+#### Step 1 — OTP send UX
+- On 429 `OTP_RATE_LIMITED`: full 10-minute countdown banner (`rate-limit-banner`) with live Persian digits; send button stays disabled; banner self-removes when timer reaches zero.
+- On success: full `expires_in` countdown (300 s = 5 min) from API response — no longer capped at 60 s.
+- `normalizePersianDigits()` applied to raw mobile input before `MAZCRM.isValidMobile()` check.
+
+#### Step 1 — OTP verify UX
+- On `OTP_EXPIRED`: specific message + re-enables send button + stops the countdown so user can immediately request a fresh code.
+- On `OTP_INVALID`: standard inline error.
+
+#### Step 2 — Personal info validation hardened
+- `national_id` is now a **hard required field** (was soft — only validated if non-empty). Matches API contract.
+- `birth_date` added as **hard required field** with lightweight regex format check (`YYYY/MM/DD`); backend does authoritative Jalali validation.
+- `normalizePersianDigits` applied to `nationalId` and `birthDate` inputs before validation.
+
+#### Step 3 — Submit states
+- `attempting` state: `form-busy` CSS class on the form dims and blocks pointer events; submit button shows "لطفاً صبر کنید…"
+- `submitted` (terminal success): shows the success screen, sets track-id to `INT-{intake_id}` with Persian digits.
+- 422 `VALIDATION_FAILED` + `error.fields`: maps backend field errors to inline `form-error` elements by id; auto-scrolls to first visible error; navigates back to the step containing the failed field.
+- `outcome_unknown` (network error, HTTP 0, 500): `outcome-banner` (amber) with explicit "your unique code means no duplicate will be created" reassurance; submit button re-enabled so user can retry safely.
+- OTP-not-verified paranoia guard: redirects back to step 1 if `state.otpVerified` is false.
+
+#### app.js — mock `submitIntake` retired
+- Mock `sendOtp`, `verifyOtp`, and `submitIntake` replaced with clean stubs (list-only mocks for staff dashboard pages preserved). `submitIntake` now throws on any call so accidental legacy invocations surface immediately.
+
+#### shared/api.js — `Auth.verifyOtp` token extraction bug fixed
+- Line 191: `result.token` → `result.data.token` (token is nested under `data` per `docs/API_CONTRACT.md` envelope).
+
+### Files touched
+- `app.drbastaninejad.com/Frontend/pages/intake/intake.html` — step 3 wired, UX states added, HOLD removed
+- `app.drbastaninejad.com/Frontend/assets/js/app.js` — mock retired, comment added
+- `app.drbastaninejad.com/Frontend/shared/api.js` — `verifyOtp` token path bug fixed
+
+### Blocked / open
+- **Unproven:** backend deployment gate not yet signed — full end-to-end test with real SMS/DB is not possible until `docs/DEPLOYMENT_GATE.md` is satisfied. The frontend wiring is complete and correct per the contract; the integration test is a human action.
+- `pages/errors/` (403, 404, offline, session-expired) — not yet created (Package B from Section 7). These are a P1 blocker for the rest of the portal.
+- Patient portal pages (overview, profile, appointments, documents, notifications) — wiring blocked until Blackbox AI confirms endpoints are live in `docs/API_CONTRACT.md` for `app.drbastaninejad.com`.
+- `birth_date` field in step 2 has no dedicated `<div class="form-error">` element for backend 422 `INVALID_JALALI_DATE` feedback. If Blackbox returns this field error, the 422 handler falls back to a toast. A dedicated error element should be added in a future polish pass.
+
+### Next
+- Bob AI: create `pages/errors/403.html`, `404.html`, `offline.html`, `session-expired.html` (Package B) — no backend dependency.
+

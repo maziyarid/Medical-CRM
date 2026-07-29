@@ -89,9 +89,14 @@
     setTimeout(function () { el.remove(); }, 3800);
   }
 
-  /* ---------- Mock API (MVP demo) ----------
-   * These simulate the PHP backend documented in BACKEND_PLAN.md.
-   * Replace with fetch() calls to /api/v1/... in production.
+  /* ---------- Mock API (staff dashboard demo — intake wired to real API) ------
+   *
+   * NOTE (2026-07-29): Intake / OTP calls are now wired to the real PHP backend
+   * via shared/api.js (ES module). The mock api.submitIntake below is intentionally
+   * retired and must not be called from intake.html. It is kept here only so that
+   * existing staff dashboard demo pages (patients list, appointments, KPIs) that
+   * still use MAZCRM.api.* continue to render mock data until those pages are
+   * wired in Phase 4. No mock data is ever sent to the real backend.
    */
   var mockDb = {
     patients: [
@@ -111,19 +116,14 @@
   };
 
   var api = {
-    listPatients: function () { return Promise.resolve(mockDb.patients); },
-    listAppointments: function () { return Promise.resolve(mockDb.appointments); },
-    getDashboardKpis: function () { return Promise.resolve(mockDb.kpis); },
-    sendOtp: function (mobile) {
-      if (!isValidMobile(mobile)) return Promise.reject(new Error('شماره موبایل نامعتبر است'));
-      return new Promise(function (r) { setTimeout(function () { r({ ok: true, demo_code: '12345' }); }, 600); });
-    },
-    verifyOtp: function (mobile, code) {
-      var ok = String(code).replace(/\D/g,'') === '12345';
-      return new Promise(function (res, rej) { setTimeout(function () { ok ? res({ ok: true, token: 'demo.jwt.token' }) : rej(new Error('کد وارد شده نادرست است')); }, 500); });
-    },
-    submitIntake: function (payload) {
-      return new Promise(function (r) { setTimeout(function () { r({ ok: true, intake_id: Math.floor(Math.random()*10000) }); }, 800); });
+    listPatients:      function () { return Promise.resolve(mockDb.patients); },
+    listAppointments:  function () { return Promise.resolve(mockDb.appointments); },
+    getDashboardKpis:  function () { return Promise.resolve(mockDb.kpis); },
+    /* submitIntake — RETIRED. intake.html now calls Intake.submit() from
+       shared/api.js directly. This stub throws so any accidental legacy call
+       surfaces immediately in dev rather than silently sending mock data. */
+    submitIntake: function () {
+      throw new Error('[MAZCRM] app.js mock submitIntake is retired. Use Intake.submit() from shared/api.js.');
     }
   };
 

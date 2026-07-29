@@ -188,7 +188,9 @@ export const Auth = {
     const normalisedOtp = normalizePersianDigits(String(otp)).trim();
     if (!normalised) throw { code: 'INVALID_MOBILE', message: getPersianError('INVALID_MOBILE') };
     const result = await request('POST', '/auth/otp/verify', { mobile: normalised, otp: normalisedOtp });
-    if (result.success && result.token) setToken(result.token);
+    // API_CONTRACT.md: token is in result.data.token (not result.token)
+    const token = result && result.data && result.data.token;
+    if (token) setToken(token);
     return result;
   },
 
