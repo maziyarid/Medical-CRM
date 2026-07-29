@@ -76,11 +76,12 @@ export function ServicesGrid({ limit }: { limit?: number }) {
           </div>
           <span>{service.eyebrow}</span>
           <h3>{service.title}</h3>
-          <p>{service.description}</p>
-          <Link href="/appointment" className="service-link">
+          <p>{service.description}</
+p>
+          <a href="https://app.drbastaninejad.com/intake" className="service-link" target="_blank" rel="noopener noreferrer">
             رزرو مشاوره
             <Icon name="arrow" size={16} />
-          </Link>
+          </a>
         </article>
       ))}
     </div>
@@ -103,10 +104,10 @@ export function CallToAction({
         <h2>{title}</h2>
         <p>{text}</p>
         <div className="cta-actions">
-          <Link href="/appointment" className="button button-primary button-large">
+          <a href="https://app.drbastaninejad.com/intake" className="button button-primary button-large" target="_blank" rel="noopener noreferrer">
             رزرو نوبت
             <Icon name="calendar" size={19} />
-          </Link>
+          </a>
           <Link href="/contact" className="button button-ghost-light button-large">
             راه‌های ارتباطی
           </Link>
