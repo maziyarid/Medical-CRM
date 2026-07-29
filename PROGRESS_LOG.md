@@ -162,3 +162,22 @@ Next up (this agent's next session):
   - Wire patient portal pages (overview, appointments, documents, profile) with
     skeleton → pending-backend → error → populated states using shared api.js
   - Add toast.css and skeleton.css utilities to assets/css/ (or extend base.css)
+
+
+## [2026-07-29] — Track: Frontend — Agent/Chat: Grok (xAI)
+Phase: 3 (Patient Portal Auth / public intake OTP) per UNIFIED_MASTER_PLAN.md
+Completed:
+  - Wired `pages/intake/intake.html` step-1 OTP to real `Auth.sendOtp` / `Auth.verifyOtp` from `shared/api.js` (POST /api/v1/auth/otp/send + /verify).
+  - Removed demo OTP 12345 UI and MAZCRM.api mock for send/verify on this page.
+  - Loading + inline error states; resend countdown (max 60s); Persian error map via getPersianError.
+  - After successful OTP verify, primes `getOrCreateIntakeUUID()` (sessionStorage `mz_intake_uuid`) only — no second JS double-submit guard (protocol §6).
+  - **Held** full `Intake.submit()` payload switch: form still builds camelCase keys (firstName, nationalId, visitReason, …); API_CONTRACT / IntakeController expect snake_case (first_name, national_id, visit_reason, …). Bob AI audit + product instruction: wait for backend field-normalisation map before switching submit off the mock.
+Files touched:
+  - app.drbastaninejad.com/Frontend/pages/intake/intake.html (UPDATED)
+  - PROGRESS_LOG.md (UPDATED — this entry)
+Schema/API changes: none (frontend track — no naming authority)
+Blocking / coordination:
+  - Backend track: land IntakeController request-key normalisation (or document a single canonical request shape in API_CONTRACT.md). Frontend will then map form fields → contract keys and call Intake.submit() with the already-primed submission_uuid.
+  - No invented table/column/route names in this session.
+Next recommended:
+  - After backend normalisation commit: switch step-3 submit to Intake.submit() with snake_case payload per API_CONTRACT.md; surface duplicate vs created + Sheets-sync status on success UI.

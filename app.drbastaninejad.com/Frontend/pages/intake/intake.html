@@ -3,6 +3,8 @@
   MΛZ Medical CRM — Public Intake Wizard (3 steps + OTP + signature)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
   Purpose: Public-facing patient onboarding — writes to `intakes` + `patients`.
+  Note: OTP is live (shared/api.js Auth). Full POST /intakes payload switch is
+  held until backend field-normalisation (camelCase ↔ snake_case) lands.
 -->
 <html dir="rtl" lang="fa">
 <head>
@@ -34,13 +36,14 @@
     .sig-clear { position:absolute; top:.5rem; inset-inline-end:.5rem; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:.3rem .7rem; font-size:.75rem; cursor:pointer; }
     .step-actions { display:flex;justify-content:space-between;gap:.75rem;margin-top:2rem; }
     .step-actions .btn { flex:1; }
-    .demo-hint { background:var(--info-soft); color:var(--info); padding:.7rem 1rem; border-radius:var(--radius-md); font-size:.78rem; margin:1rem 0; }
+    .otp-meta { font-size:.78rem; color:var(--muted); margin-top:.5rem; }
     .checkbox-list { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.5rem; }
     .cb-pill { display:flex;align-items:center;gap:.5rem;padding:.65rem .8rem;border:1px solid var(--border);border-radius:var(--radius-md);cursor:pointer;font-size:.85rem; }
     .cb-pill input { accent-color:var(--evergreen); }
     .cb-pill:has(input:checked) { background:var(--evergreen-soft);border-color:var(--evergreen);color:var(--evergreen-dark);font-weight:600; }
     .success-screen { text-align:center;padding:2.5rem 1rem; }
     .success-screen .check { width:80px;height:80px;margin:0 auto 1.25rem;border-radius:50%;background:var(--success);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2.5rem; }
+    .btn[disabled] { opacity:.65; cursor:not-allowed; }
   </style>
 </head>
 <body>
@@ -55,28 +58,28 @@
       <div class="progress"><div class="step active" id="p1"></div><div class="step" id="p2"></div><div class="step" id="p3"></div></div>
       <div class="progress-labels"><span class="active" id="l1">هویت</span><span id="l2">اطلاعات فردی</span><span id="l3">سلامت و امضا</span></div>
 
-      <!-- STEP 1 — identity + OTP -->
+      <!-- STEP 1 — identity + OTP (live Auth API) -->
       <form class="step-form active" id="form-1" novalidate>
         <h2 style="margin-top:1.5rem">تأیید هویت</h2>
         <p class="small" style="margin-bottom:1.25rem">برای شروع، شماره همراه خود را وارد کنید تا کد تأیید ارسال شود.</p>
 
         <div class="input-group">
           <label class="form-label required" for="mobile">شماره همراه</label>
-          <input class="form-input" id="mobile" type="tel" inputmode="numeric" placeholder="09121234567" autocomplete="tel-national" required/>
-          <div class="form-error" id="err-mobile" hidden></div>
+          <input class="form-input" id="mobile" type="tel" inputmode="numeric" placeholder="09121234567" autocomplete="tel-national" required aria-describedby="err-mobile"/>
+          <div class="form-error" id="err-mobile" hidden role="alert"></div>
         </div>
 
         <div class="input-group" id="otp-block" hidden>
-          <div class="demo-hint">دموی MVP: کد تأیید همیشه <strong>12345</strong> است.</div>
           <label class="form-label required" for="otp">کد تأیید ۵ رقمی</label>
-          <input class="form-input" id="otp" type="text" inputmode="numeric" maxlength="5" placeholder="_____" autocomplete="one-time-code" style="letter-spacing:12px;text-align:center;font-size:1.2rem;font-weight:700"/>
-          <div class="form-error" id="err-otp" hidden></div>
+          <input class="form-input" id="otp" type="text" inputmode="numeric" maxlength="5" placeholder="_____" autocomplete="one-time-code" style="letter-spacing:12px;text-align:center;font-size:1.2rem;font-weight:700" aria-describedby="err-otp otp-meta"/>
+          <div class="form-error" id="err-otp" hidden role="alert"></div>
+          <p class="otp-meta" id="otp-meta" aria-live="polite"></p>
         </div>
 
         <div class="step-actions">
           <a href="../../index.html" class="btn btn-secondary" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;">انصراف</a>
           <button class="btn btn-primary" type="submit" id="btn-send-otp">ارسال کد تأیید</button>
-          <button class="btn btn-primary" type="button" id="btn-verify-otp" hidden onclick="verifyStep1()">تأیید و ادامه</button>
+          <button class="btn btn-primary" type="button" id="btn-verify-otp" hidden>تأیید و ادامه</button>
         </div>
       </form>
 
@@ -107,7 +110,7 @@
         </div>
 
         <div class="step-actions">
-          <button class="btn btn-secondary" type="button" onclick="goStep(1)">← بازگشت</button>
+          <button class="btn btn-secondary" type="button" id="btn-back-2">← بازگشت</button>
           <button class="btn btn-primary" type="submit">ادامه</button>
         </div>
       </form>
@@ -155,9 +158,9 @@
         <label class="form-label" style="margin-top:1rem">امضای دیجیتال (رضایت‌نامه)</label>
         <div class="sig-pad-wrap">
           <canvas id="sigPad"></canvas>
-          <button type="button" class="sig-clear" onclick="clearSig()">پاک کردن</button>
+          <button type="button" class="sig-clear" id="btn-clear-sig">پاک کردن</button>
         </div>
-        <div class="form-error" id="err-sig" hidden style="margin-top:.5rem">لطفاً امضای خود را وارد کنید.</div>
+        <div class="form-error" id="err-sig" hidden style="margin-top:.5rem" role="alert">لطفاً امضای خود را وارد کنید.</div>
 
         <label style="display:flex;gap:.5rem;align-items:start;margin-top:1rem;font-size:.85rem;line-height:1.7">
           <input type="checkbox" id="consent" style="margin-top:.3rem;accent-color:var(--evergreen)"/>
@@ -165,7 +168,7 @@
         </label>
 
         <div class="step-actions">
-          <button class="btn btn-secondary" type="button" onclick="goStep(2)">← بازگشت</button>
+          <button class="btn btn-secondary" type="button" id="btn-back-3">← بازگشت</button>
           <button class="btn btn-primary" type="submit" id="submit-btn">ثبت پرونده</button>
         </div>
       </form>
@@ -188,66 +191,193 @@
 
   <div class="toast-container"></div>
   <script src="../../assets/js/app.js"></script>
-  <script>
+  <script type="module">
+    import {
+      Auth,
+      getOrCreateIntakeUUID,
+      getPersianError
+    } from '../../shared/api.js';
+
     var sig = null;
-    var state = { mobile: '', otpVerified: false, step: 1 };
+    var state = { mobile: '', otpVerified: false, step: 1, resendTimer: null };
+
+    function goStep(n) {
+      state.step = n;
+      ['1', '2', '3'].forEach(function (i) {
+        document.getElementById('form-' + i).classList.toggle('active', +i === n);
+        document.getElementById('p' + i).classList.toggle('done', +i < n);
+        document.getElementById('p' + i).classList.toggle('active', +i === n);
+        document.getElementById('l' + i).classList.toggle('active', +i === n);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setBusy(btn, busy, labelIdle) {
+      if (!btn) return;
+      btn.disabled = !!busy;
+      if (busy) {
+        btn.dataset.labelIdle = btn.dataset.labelIdle || btn.textContent;
+        btn.textContent = 'لطفاً صبر کنید…';
+      } else {
+        btn.textContent = labelIdle || btn.dataset.labelIdle || btn.textContent;
+      }
+    }
+
+    function startResendCountdown(seconds) {
+      var meta = document.getElementById('otp-meta');
+      var left = seconds || 60;
+      if (state.resendTimer) clearInterval(state.resendTimer);
+      var sendBtn = document.getElementById('btn-send-otp');
+      sendBtn.hidden = false;
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'ارسال مجدد (' + left + ')';
+      meta.textContent = 'کد تا ' + left + ' ثانیه دیگر معتبر است. در صورت عدم دریافت می‌توانید مجدداً درخواست کنید.';
+      state.resendTimer = setInterval(function () {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(state.resendTimer);
+          state.resendTimer = null;
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'ارسال مجدد کد';
+          meta.textContent = 'می‌توانید کد جدید درخواست کنید.';
+          return;
+        }
+        sendBtn.textContent = 'ارسال مجدد (' + left + ')';
+      }, 1000);
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
       sig = MAZCRM.initSignaturePad(document.getElementById('sigPad'));
-    });
-    function clearSig() { if (sig) sig.clear(); }
 
-    // Step 1 handlers
+      document.getElementById('btn-clear-sig').addEventListener('click', function () {
+        if (sig) sig.clear();
+      });
+      document.getElementById('btn-back-2').addEventListener('click', function () { goStep(1); });
+      document.getElementById('btn-back-3').addEventListener('click', function () { goStep(2); });
+      document.getElementById('btn-verify-otp').addEventListener('click', verifyStep1);
+    });
+
+    // Step 1 — real OTP send
     document.getElementById('form-1').addEventListener('submit', function (e) {
       e.preventDefault();
-      var mobile = MAZCRM.toEnDigits(document.getElementById('mobile').value.trim());
-      var err = document.getElementById('err-mobile'); err.hidden = true;
-      if (!MAZCRM.isValidMobile(mobile)) { err.textContent = 'شماره همراه نامعتبر است.'; err.hidden = false; return; }
-      MAZCRM.api.sendOtp(mobile).then(function () {
-        state.mobile = mobile;
-        document.getElementById('otp-block').hidden = false;
-        document.getElementById('btn-send-otp').hidden = true;
-        document.getElementById('btn-verify-otp').hidden = false;
-        document.getElementById('otp').focus();
-      });
+      var err = document.getElementById('err-mobile');
+      err.hidden = true;
+      err.textContent = '';
+      var raw = document.getElementById('mobile').value.trim();
+      var mobile = MAZCRM.toEnDigits(raw);
+      if (!MAZCRM.isValidMobile(mobile)) {
+        err.textContent = 'شماره همراه نامعتبر است.';
+        err.hidden = false;
+        return;
+      }
+
+      var btn = document.getElementById('btn-send-otp');
+      setBusy(btn, true);
+      Auth.sendOtp(mobile)
+        .then(function (res) {
+          state.mobile = mobile;
+          document.getElementById('otp-block').hidden = false;
+          document.getElementById('btn-verify-otp').hidden = false;
+          document.getElementById('otp').focus();
+          var expires = (res && res.data && res.data.expires_in) || (res && res.expires_in) || 300;
+          startResendCountdown(Math.min(60, expires));
+          MAZCRM.toast('کد تأیید ارسال شد', 'success');
+        })
+        .catch(function (e) {
+          err.textContent = (e && e.message) || getPersianError(e && e.code);
+          err.hidden = false;
+        })
+        .finally(function () {
+          if (!document.getElementById('btn-send-otp').disabled) {
+            setBusy(btn, false, 'ارسال کد تأیید');
+          } else {
+            btn.dataset.labelIdle = 'ارسال مجدد کد';
+          }
+        });
     });
+
     function verifyStep1() {
       var code = MAZCRM.toEnDigits(document.getElementById('otp').value.trim());
-      var err = document.getElementById('err-otp'); err.hidden = true;
-      if (code.length !== 5) { err.textContent = 'کد را کامل وارد کنید.'; err.hidden = false; return; }
-      MAZCRM.api.verifyOtp(state.mobile, code).then(function () {
-        state.otpVerified = true;
-        MAZCRM.toast('شماره شما تأیید شد', 'success');
-        goStep(2);
-      }).catch(function (e) { err.textContent = e.message; err.hidden = false; });
+      var err = document.getElementById('err-otp');
+      err.hidden = true;
+      err.textContent = '';
+      if (code.length !== 5) {
+        err.textContent = 'کد را کامل وارد کنید.';
+        err.hidden = false;
+        return;
+      }
+      if (!state.mobile) {
+        err.textContent = 'ابتدا شماره همراه را تأیید کنید.';
+        err.hidden = false;
+        return;
+      }
+
+      var btn = document.getElementById('btn-verify-otp');
+      setBusy(btn, true);
+      Auth.verifyOtp(state.mobile, code)
+        .then(function () {
+          state.otpVerified = true;
+          // Prime idempotency UUID only — full Intake.submit held until backend
+          // field-normalisation lands (frontend form still camelCase keys).
+          getOrCreateIntakeUUID();
+          if (state.resendTimer) {
+            clearInterval(state.resendTimer);
+            state.resendTimer = null;
+          }
+          MAZCRM.toast('شماره شما تأیید شد', 'success');
+          goStep(2);
+        })
+        .catch(function (e) {
+          err.textContent = (e && e.message) || getPersianError(e && e.code);
+          err.hidden = false;
+        })
+        .finally(function () {
+          setBusy(btn, false, 'تأیید و ادامه');
+        });
     }
 
-    // Step 2 handler
+    // Step 2 — client validation only
     document.getElementById('form-2').addEventListener('submit', function (e) {
       e.preventDefault();
       var fn = document.getElementById('firstName').value.trim();
       var ln = document.getElementById('lastName').value.trim();
       var nid = MAZCRM.toEnDigits(document.getElementById('nationalId').value.trim());
       var reason = document.getElementById('visitReason').value;
-      var errN = document.getElementById('err-national'); errN.hidden = true;
+      var errN = document.getElementById('err-national');
+      errN.hidden = true;
 
       if (!fn || fn.length < 2) return MAZCRM.toast('نام را کامل وارد کنید', 'error');
       if (!ln || ln.length < 2) return MAZCRM.toast('نام خانوادگی را کامل وارد کنید', 'error');
-      if (nid && !MAZCRM.isValidNationalId(nid)) { errN.textContent = 'کد ملی نامعتبر است.'; errN.hidden = false; return; }
+      if (nid && !MAZCRM.isValidNationalId(nid)) {
+        errN.textContent = 'کد ملی نامعتبر است.';
+        errN.hidden = false;
+        return;
+      }
       if (!reason) return MAZCRM.toast('علت مراجعه را انتخاب کنید', 'error');
       goStep(3);
     });
 
-    // Step 3 handler
+    // Step 3 — submit still mock until backend normalisation + coordinated payload map
     document.getElementById('form-3').addEventListener('submit', function (e) {
       e.preventDefault();
-      var errSig = document.getElementById('err-sig'); errSig.hidden = true;
-      if (sig && sig.isEmpty()) { errSig.hidden = false; window.scrollTo({top: document.getElementById('err-sig').offsetTop-200, behavior:'smooth'}); return; }
-      if (!document.getElementById('consent').checked) return MAZCRM.toast('تأیید نهایی الزامی است', 'error');
+      var errSig = document.getElementById('err-sig');
+      errSig.hidden = true;
+      if (sig && sig.isEmpty()) {
+        errSig.hidden = false;
+        window.scrollTo({ top: document.getElementById('err-sig').offsetTop - 200, behavior: 'smooth' });
+        return;
+      }
+      if (!document.getElementById('consent').checked) {
+        return MAZCRM.toast('تأیید نهایی الزامی است', 'error');
+      }
 
       var btn = document.getElementById('submit-btn');
-      btn.disabled = true; btn.textContent = 'در حال ارسال...';
+      btn.disabled = true;
+      btn.textContent = 'در حال ارسال...';
 
+      // HOLD: do not call Intake.submit() yet — payload keys are camelCase here;
+      // API_CONTRACT / IntakeController expect snake_case. Backend is adding a
+      // normalisation map; switch when that lands. UUID already primed in sessionStorage.
       var payload = {
         mobile: state.mobile,
         firstName: document.getElementById('firstName').value.trim(),
@@ -260,30 +390,25 @@
         email: document.getElementById('email').value.trim(),
         visitReason: document.getElementById('visitReason').value,
         description: document.getElementById('description').value.trim(),
-        history: Array.from(document.querySelectorAll('input[name=hist]:checked')).map(function(i){return i.value;}),
-        drugs: Array.from(document.querySelectorAll('input[name=drug]:checked')).map(function(i){return i.value;}),
+        history: Array.from(document.querySelectorAll('input[name=hist]:checked')).map(function (i) { return i.value; }),
+        drugs: Array.from(document.querySelectorAll('input[name=drug]:checked')).map(function (i) { return i.value; }),
         signature: sig ? sig.toDataURL() : null,
         submittedAt: new Date().toISOString(),
         isTransfer: 0
       };
 
       MAZCRM.api.submitIntake(payload).then(function (res) {
-        document.getElementById('wizard').querySelectorAll('.step-form, .progress, .progress-labels').forEach(function (el) { el.style.display = 'none'; });
+        document.getElementById('wizard').querySelectorAll('.step-form, .progress, .progress-labels').forEach(function (el) {
+          el.style.display = 'none';
+        });
         document.getElementById('success').style.display = 'block';
         document.getElementById('track-id').textContent = MAZCRM.toFaDigits('INT-' + res.intake_id);
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = 'ثبت پرونده';
+        MAZCRM.toast('ارسال موقتاً ممکن نیست. دوباره تلاش کنید.', 'error');
       });
     });
-
-    function goStep(n) {
-      state.step = n;
-      ['1','2','3'].forEach(function (i) {
-        document.getElementById('form-'+i).classList.toggle('active', +i === n);
-        document.getElementById('p'+i).classList.toggle('done', +i < n);
-        document.getElementById('p'+i).classList.toggle('active', +i === n);
-        document.getElementById('l'+i).classList.toggle('active', +i === n);
-      });
-      window.scrollTo({top:0, behavior:'smooth'});
-    }
   </script>
 </body>
 </html>
