@@ -266,3 +266,76 @@ Phase: CONFLICT remediation — Option B surgical removal — COMPLETE
 ### Next
 - Blackbox AI: proceed with STEP 5 backend tasks — read planning docs, reconcile OtpService and SheetClient duplicates, scaffold main-website backend.
 
+
+---
+
+## [2026-07-29 19:30 UTC] — Track: Backend/Database/Platform — Agent: Blackbox AI
+
+Phase: 0 — Repository reconciliation + main-website backend scaffold — COMPLETE
+
+Scope: Phase 0, Backend.
+Package: Scaffold app.drbastaninejad.com PHP MVC backend (non-deployment-gated files only).
+Files: see list below.
+Overlap check: No active PROGRESS_LOG.md entry claims this package.
+Deployment: No production or cPanel/VPS change is authorized by this task.
+
+### Done
+
+#### API Contract version mismatch — flagged and documented
+- Confirmed two separate API contracts for two separate subdomains:
+  - `docs/API_CONTRACT.md` → `app.drbastaninejad.com`, envelope: `"success": true/false` — v1.0 → bumped to v1.1
+  - `dashboard.drbastaninejad.com/docs/API_CONTRACT.md` → `dashboard.drbastaninejad.com`, envelope: `"ok": true/false` — v1.2
+- These are intentionally different contracts, not a conflict. Added ⚠️ envelope mismatch note to `docs/API_CONTRACT.md` (v1.1).
+
+#### OtpService reconciliation
+- `app_private/src/OtpService.php` (referenced in brief) — NOT found in git repository or local working tree. File is either gitignored/uncommitted on VPS or was never created.
+- Decision: `dashboard.drbastaninejad.com/app/Services/OtpService.php` is the ONE canonical OtpService.
+- Copied to `app.drbastaninejad.com/Backend/app/Services/OtpService.php` with identical logic and decision comment. If `app_private/src/OtpService.php` surfaces on VPS, compare against this canonical version and retire the one with less capability (no rate-limit hardening, no SmsProviderChain, no bcrypt OTP storage).
+
+#### GoogleSheetsService / SheetClient reconciliation
+- `app_private/src/SheetClient.php` (referenced in brief) — NOT found in git repository or local working tree.
+- Decision: `dashboard.drbastaninejad.com/app/Services/GoogleSheetsService.php` is the ONE canonical Sheets client.
+- Extended version written to `app.drbastaninejad.com/Backend/app/Services/GoogleSheetsService.php` — adds: full 23-column SmartFormat frozen column mapping (UNIFIED_MASTER_PLAN.md §4), `birth_date_jalali` split into D/E/F, Email/VisitReason columns T/U, `submission_uuid` column V, `intake_db_id` column W. Returns string 'ok'|'skipped'|'failed' (never throws). Separate APCu cache key (`gsheets_token_app`) to avoid collision with dashboard token.
+
+#### app.drbastaninejad.com Backend scaffold (non-gated files)
+- `app/Core/Database.php` — PDO singleton, utf8mb4, UTC, `reset()` for tests
+- `app/Core/Controller.php` — base controller with `json()`/`error()`/`validationError()` using `"success"` envelope
+- `app/Core/Model.php` — thin base with `db()` accessor
+- `app/Controllers/OtpController.php` — `send()` + `verify()` wired to OtpService and ValidatorService
+- `app/Controllers/IntakeController.php` — `store()` (idempotency, dual-write, 201/200) + `index()` (paginated staff queue)
+- `app/Middleware/AuthMiddleware.php` — SHA-256 bearer token validation against `auth_tokens` table
+- `app/Models/IntakeModel.php` — `insert()`, `findByUuid()`, `updateSyncStatus()`
+- `app/Services/OtpService.php` — canonical (see above)
+- `app/Services/GoogleSheetsService.php` — canonical extended (see above)
+- `app/Services/SmsProviderChain.php` — Kavenegar→Ghasedak→FarazSMS→TSMS→LogSmsProvider (inline provider classes)
+- `app/Services/ValidatorService.php` — Code Meli mod-11, mobile normalisation, Jalali date validation, Persian digit normalisation
+- `config/routes.php` — Phase A+B routes matching `docs/API_CONTRACT.md`
+- `database/migrations/001_create_intakes_table.sql` — intakes with submission_uuid UNIQUE, sheets_sync_status, birth_date_jalali
+- `database/migrations/002_create_otp_codes_table.sql` — otp_codes with bcrypt code column
+- `database/migrations/003_create_patients_table.sql` — ONE patients table (no parallel portal table per protocol)
+- `database/migrations/004_create_auth_tokens_table.sql` — auth_tokens with token_hash SHA-256
+- `.env.example` — all required ENV vars, no values
+- `storage/{app,logs,private}/.gitkeep` — runtime dirs, content gitignored
+
+#### Deployment-gated files written locally only (NOT staged to main)
+- `app.drbastaninejad.com/Backend/public/index.php` — front controller (local working tree only)
+- `app.drbastaninejad.com/Backend/public/.htaccess` — Apache rewrite rules (local working tree only)
+- `app.drbastaninejad.com/Backend/app/Core/Router.php` — HTTP router (local working tree only)
+- These carry DEPLOYMENT GATE header comments. They must not be added to main until `docs/DEPLOYMENT_GATE.md` is fully satisfied and product owner grants explicit approval.
+
+### Files touched (committed to main)
+- `app.drbastaninejad.com/Backend/` — 21 new files (see above)
+- `docs/API_CONTRACT.md` — v1.0 → v1.1, envelope mismatch note added
+
+### Blocked / open
+- `app_private/src/OtpService.php` and `app_private/src/SheetClient.php` — unproven (not found in git). If they surface on VPS, compare and retire the lesser implementation. Product owner must decide on VPS-side retirement.
+- `public/index.php`, `public/.htaccess`, `app/Core/Router.php` for `app.drbastaninejad.com` — local only, pending deployment gate sign-off.
+- PHPUnit unit and integration tests — not yet written (required before deployment gate is satisfied).
+- PatientPortalController for `app.drbastaninejad.com` — Phase C, not yet scaffolded.
+- Jalali-to-Gregorian date conversion — `IntakeController::normalisePayload()` stores Jalali in `birth_date_jalali` and leaves `birth_date` NULL until a conversion utility is wired in.
+- Deployment gate (`docs/DEPLOYMENT_GATE.md`) — all checklists incomplete. No production deployment authorized.
+
+### Next
+- Blackbox AI: write PHPUnit tests for OtpService (send/verify/rate-limit), IntakeModel (idempotency), and ValidatorService (Code Meli, mobile, Jalali) as Phase 0 completion prerequisite.
+- Product owner: verify VPS for `app_private/src/OtpService.php` and `app_private/src/SheetClient.php`; if found, compare against canonical versions in this commit.
+

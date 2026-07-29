@@ -7,11 +7,21 @@
 > Frontend agents read this. Backend agents write to it (append new sections when adding routes).
 > Never invent an endpoint that is not documented here.
 
-**Base URL:** `https://app.drbastaninejad.com/api/v1`  
-**Content-Type:** `application/json` (all requests and responses)  
-**Charset:** UTF-8  
-**Version:** 1.0 — Phase A+B live | Phase C pending  
-**Last updated:** 2026-07-27
+**Base URL:** `https://app.drbastaninejad.com/api/v1`
+**Content-Type:** `application/json` (all requests and responses)
+**Charset:** UTF-8
+**Version:** 1.1 — Phase A+B live | Phase C pending
+**Last updated:** 2026-07-29
+
+> ⚠️ **ENVELOPE MISMATCH NOTE (2026-07-29, Blackbox AI):**
+> This contract (`docs/API_CONTRACT.md`) governs **`app.drbastaninejad.com`** and uses
+> `"success": true/false` as the response discriminator.
+> The dashboard contract (`dashboard.drbastaninejad.com/docs/API_CONTRACT.md`) governs
+> **`dashboard.drbastaninejad.com`** and uses `"ok": true/false`.
+> These are intentionally different contracts for different subdomains served by separate
+> backends. **Frontend code for `app.*` must use `response.success`, not `response.ok`.**
+> Backend code for `app.*` must never adopt the `"ok"` envelope without a written
+> amendment to UNIFIED_MASTER_PLAN.md approved by the product owner.
 
 ---
 
