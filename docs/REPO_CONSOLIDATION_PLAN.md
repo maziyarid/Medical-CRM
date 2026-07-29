@@ -8,6 +8,34 @@
 **Authority:** `UNIFIED_MASTER_PLAN.md` (architecture) · `SPACE_COORDINATION_PROTOCOL.md` (track boundaries)  
 **Repos:** This file may be updated; it does **not** grant permission to delete production or legacy paths without explicit sign-off.
 
+## Persistent Role Ownership
+
+### Bob AI — Frontend / Product UI
+Owns:
+- Public website redesign
+- Dashboard UI
+- Patient portal UI
+- RTL layouts
+- Design tokens and component styling
+- Mobile UI adaptation
+- PWA presentation layer
+- APK/iOS UI wrapper behavior
+
+### Blackbox AI — Backend / Database / Platform
+Owns:
+- PHP MVC backend
+- Database schema and migrations
+- Authentication, RBAC, sessions
+- Intake idempotency and validation
+- Scheduling, EMR, billing, analytics services
+- API contracts and backend tests
+- Deployment and environment documentation
+
+### Shared rules
+- Frontend never invents backend table or route names.
+- Backend never changes design tokens or screen structure.
+- Any cross-boundary naming change must be written into `UNIFIED_MASTER_PLAN.md` first.
+
 ---
 
 ## 0. Architecture lock (do not re-litigate)
