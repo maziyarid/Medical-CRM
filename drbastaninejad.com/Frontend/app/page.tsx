@@ -42,10 +42,10 @@ function Hero() {
             جدی می‌گیرد.
           </p>
           <div className="hero-actions">
-            <Link href="/appointment" className="button button-primary button-large">
+            <a href="https://app.drbastaninejad.com/intake" className="button button-primary button-large" target="_blank" rel="noopener noreferrer">
               رزرو نوبت مشاوره
               <Icon name="arrow" size={18} />
-            </Link>
+            </a>
             <Link href="/services" className="button button-outline button-large">
               مشاهده خدمات
             </Link>
@@ -62,7 +62,8 @@ function Hero() {
             <span>
               <Icon name="check" size={16} />
               پیگیری پس از درمان
-            </span>
+           
+ </span>
           </div>
         </div>
 
@@ -138,7 +139,8 @@ export default function Home() {
           />
           <Link href="/services" className="text-link section-link">
             همه خدمات
-            <Icon name="arrow" size={17} />
+        
+    <Icon name="arrow" size={17} />
           </Link>
         </div>
         <ServicesGrid />
@@ -198,7 +200,8 @@ export default function Home() {
             title="نتیجه باید با خودِ چهره گفت‌وگو کند."
             text="در جلسه مشاوره می‌توانید نمونه‌های واقعی و مرتبط با ساختار بینی خود را با توضیح کامل پزشک بررسی کنید."
           />
-          <ul className="check-list">
+          <ul className="
+check-list">
             <li>
               <Icon name="check" size={18} />
               بررسی نتیجه در چند زاویه
@@ -255,7 +258,8 @@ export default function Home() {
             </Link>
           </div>
         </div>
-      </section>
+      </se
+ction>
 
       <section className="section container journey-section">
         <SectionHeading
@@ -284,10 +288,10 @@ export default function Home() {
               پاسخ‌ها عمومی‌اند و جایگزین ارزیابی تخصصی نیستند. برای بررسی شرایط
               شخصی خود، نوبت مشاوره رزرو کنید.
             </p>
-            <Link href="/appointment" className="text-link">
+            <a href="https://app.drbastaninejad.com/intake" className="text-link" target="_blank" rel="noopener noreferrer">
               رزرو جلسه مشاوره
               <Icon name="arrow" size={17} />
-            </Link>
+            </a>
           </div>
           <div className="accordion">
             {faqs.map((faq, index) => (
@@ -315,7 +319,8 @@ export default function Home() {
           </Link>
         </div>
         <div className="post-grid">
-          {posts.slice(0, 3).map((post) => (
+     
+     {posts.slice(0, 3).map((post) => (
             <article className="post-card" key={post.slug}>
               <Link href="/blog" className="post-image">
                 <img src={post.image} alt="" />
