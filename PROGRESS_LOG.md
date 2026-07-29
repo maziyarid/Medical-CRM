@@ -1,12 +1,12 @@
-<!-- MAZ//ID · © 2026 Maziyar / Dr. Shahin Bastaninejad -->
+<!-- MAZ//ID  	 2026 Maziyar / Dr. Shahin Bastaninejad -->
 
-# PROGRESS_LOG — MΛZ Medical CRM
+# PROGRESS_LOG  MZ Medical CRM
 
 This file is append-only. Every agent appends completed tasks below with date, scope, and affected files.
 
 ---
 
-## 2026-07-27 — Phase A + Phase B (Intake Write Path & OTP Auth)
+## 2026-07-27  Phase A + Phase B (Intake Write Path & OTP Auth)
 
 **Agent:** Perplexity Space Agent  
 **Instruction source:** User prompt 2026-07-27 / Space instructions (UNIFIED_MASTER_PLAN + SPACE_COORDINATION_PROTOCOL)  
@@ -22,7 +22,7 @@ This file is append-only. Every agent appends completed tasks below with date, s
 _Append new entries below this line._
 
 
-## [2026-07-27 11:38] — Track: Frontend — Agent/Chat: Perplexity (Frontend/Dashboard coordination chat)
+## [2026-07-27 11:38]  Track: Frontend  Agent/Chat: Perplexity (Frontend/Dashboard coordination chat)
 Phase: 0 (Reconciliation) prep for Phase 4/Frontend audit
 Completed: Verified public read access to drbst, Medical-CRM, M-Z repos via GitHub API
 Files touched:
@@ -31,7 +31,7 @@ Files touched:
 - drbst/Frontend/FRONTEND_DESIGNER_AGENT_PROMPT.md (new)
 
 
-## [2026-07-27 13:10] — Track: Frontend — Agent/Chat: MAZ//ID Frontend Implementation Agent
+## [2026-07-27 13:10]  Track: Frontend  Agent/Chat: MAZ//ID Frontend Implementation Agent
 Phase: 4 (Dashboard UI) audit before wiring
 Completed: Repository audit for both frontends
 Files touched:
@@ -40,7 +40,7 @@ Files touched:
 - drbst/Front-end Design/README.LEGACY.md (new)
 
 
-## [2026-07-27 03:51 UTC] — Track: Frontend — Agent/Chat: Perplexity Space (Coordination)
+## [2026-07-27 03:51 UTC]  Track: Frontend  Agent/Chat: Perplexity Space (Coordination)
 Phase: 3 (Patient Portal Auth) + Phase 4 (Dashboard UI patient-facing)
 Completed:
   1. Built shared/api.js
@@ -50,7 +50,7 @@ Files touched:
   - app.drbastaninejad.com/Frontend/pages/auth/patient-login.html (UPDATED)
 
 
-## [2026-07-29] — Track: Frontend — Agent/Chat: Grok (xAI)
+## [2026-07-29]  Track: Frontend  Agent/Chat: Grok (xAI)
 Phase: 3 (Patient Portal Auth / public intake OTP) per UNIFIED_MASTER_PLAN.md
 Completed:
   - Wired pages/intake/intake.html step-1 OTP
@@ -58,7 +58,7 @@ Files touched:
   - app.drbastaninejad.com/Frontend/pages/intake/intake.html (UPDATED)
 
 
-## [2026-07-29 06:51 UTC] — Track: Architecture/Backend — Agent/Chat: Maziyar ID
+## [2026-07-29 06:51 UTC]  Track: Architecture/Backend  Agent/Chat: Maziyar ID
 Phase: Repository Consolidation (TASK 1, 2, 3)
 Completed:
   1. TASK 1 - Archive server.py: Archived Python/FastAPI + MongoDB backend to _archive/server.py with dated note.
@@ -111,3 +111,40 @@ Next recommended:
   - Complete TASK 2: Verify and fix all CTA links to https://app.drbastaninejad.com/
   - Flag CONFLICT if any live code references server.py routes
   - Only then proceed with PR merges
+
+
+## [2026-07-29 12:00 UTC]  Track: Triage/Coordination  Agent: Vibe Code
+Phase: 0 (Repository and environment reconciliation) - Triage and Task Management
+Completed:
+  1. Scanned all repositories for open PRs, pending files, TODO comments, and missing UI pages
+  2. Produced prioritized task list with 42 tasks across P0-P3 priorities
+  3. Created canonical pages.md checklist with all 31 pages to design and implement
+  4. Identified ownership boundaries per SPACE_COORDINATION_PROTOCOL.md
+  5. Mapped dependencies between frontend and backend tasks
+  6. Assessed merge safety for each task
+
+Files touched:
+- Medical-CRM/docs/pages.md (NEW) - Canonical list of all pages by audience and module
+- Medical-CRM/TASK_PRIORITY_LIST.md (NEW) - Prioritized backlog with 42 tasks, ownership, estimates, acceptance criteria
+
+Deliverables:
+- docs/pages.md: Definitive list of 31 pages (2 public, 6 auth, 6 patient portal, 9 staff CRM, 7 marketing, 1 dashboard shell)
+- TASK_PRIORITY_LIST.md: 42 tasks (P0: 4, P1: 14, P2: 14, P3: 10) with Bob AI: 23, Blackbox AI: 19
+
+Blocked / open:
+  - Task-005 (Wire Authentication Pages): Blocked by Task-001, Task-003, and backend OTP endpoints
+  - Task-007 (Wire Public Intake): Blocked by Task-001, Task-003, and backend intake endpoint
+  - Task-008 through Task-014: Blocked by API contract updates and backend implementation
+  - Task-019 through Task-023: Blocked by backend endpoints
+  - Task-028 (Fix CTA links): Ready but coordinate with PR #5 merge
+  - Task-030 (Blog content source): Blocked by product owner decision
+  - Task-031, Task-032 (Billing): Blocked by product owner decision on payment gateway
+
+Next:
+  - Bob AI: Create PRs for Task-001 (API adapter), Task-002 (state primitives), Task-003 (session layer), Task-004 (Jalali utility)
+  - Blackbox AI: Create PRs for Task-015 (OTP endpoints), Task-016 (intake endpoint)
+  - Coordinate PR #5 merge with Task-028 (CTA link verification)
+
+Merge safety:
+  - Task-001, Task-002, Task-003, Task-004: merge-ready (no dependencies)
+  - All other tasks: needs-review or blocked
