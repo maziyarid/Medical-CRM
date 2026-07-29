@@ -111,3 +111,23 @@ Next recommended:
   - Complete TASK 2: Verify and fix all CTA links to https://app.drbastaninejad.com/
   - Flag CONFLICT if any live code references server.py routes
   - Only then proceed with PR merges
+
+## [2026-07-29 11:35 UTC] — Track: Documentation / Frontend Design — Agent: Grok (xAI)
+Phase: 0/4 prep — Canonical page inventory + P0 wireframe package start
+
+### Done
+- Confirmed docs/pages.md did not exist; created canonical page list exactly as coordinated (Public website, Intake flow, Auth, Staff dashboard, Patient portal, Admin API docs, Misc shared components).
+- Read UNIFIED_MASTER_PLAN.md, SPACE_COORDINATION_PROTOCOL.md, brand tokens from docs/WEBSITE_REDESIGN.md (evergreen #2F7D32, graphite, porcelain, Vazirmatn, full RTL, Jalali).
+- Declared P0 priority set for wireframes: Intake 1-2-3, Login/OTP, Patient Overview, Staff Global Dashboard + Inbox, Public Home.
+
+### Files touched
+- docs/pages.md (NEW)
+- PROGRESS_LOG.md (this entry)
+
+### Blocked / open
+- Full low-fi PNG export set requires design tooling hand-off to Bob AI for Figma/high-fidelity; this agent can produce textual + generated representative wireframes only.
+- PR merge recommendations remain: migrations/seeds (Blackbox), IntakeController.store (after tests), component tokens if present, docs/pages.md (now ready).
+
+### Next
+- Grok: Produce P0 low-fidelity wireframe descriptions + representative images; hand top-priority to Bob AI for responsive prototypes.
+- Bob AI: Convert P0 wireframes to responsive HTML/CSS prototypes using tokens.css + RTL.
