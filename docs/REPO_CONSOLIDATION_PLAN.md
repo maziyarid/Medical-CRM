@@ -1,156 +1,146 @@
-# Repository Consolidation Plan
+<!-- MAZ//ID · © 2026 Maziyar / Dr. Shahin Bastaninejad -->
 
-**Document Version**: 1.0  
-**Created**: 2026-07-29  
-**Author**: Maziyar ID (Agent)  
-**Status**: DRAFT - Awaiting Review
+# REPO CONSOLIDATION PLAN
 
----
-
-## Executive Summary
-
-This document outlines the consolidation plan for the MΛZ Medical CRM repository, resolving architectural conflicts and ensuring alignment with the locked architecture decision in UNIFIED_MASTER_PLAN.md Section 1.
-
-**Core Principle**: The backend architecture is LOCKED to Custom PHP 8.x MVC with a SINGLE MySQL 8.x database (utf8mb4/InnoDB). No second live DB, no MongoDB, no Python/FastAPI, no Laravel/Symfony.
+**Status:** PENDING PRODUCT-OWNER SIGN-OFF — do not archive or delete trees until this document is reviewed and approved.  
+**Prepared:** 2026-07-29  
+**Repos:** Grok (xAI) reconciliation pass + Task 1–3 execution  
+**Authority:** `UNIFIED_MASTER_PLAN.md` (architecture) · `SPACE_COORDINATION_PROTOCOL.md` (track boundaries)  
+**Repos:** This file may be updated; it does **not** grant permission to delete production or legacy paths without explicit sign-off.
 
 ---
 
-## Critical Findings
+## 0. Architecture lock (do not re-litigate)
 
-### P1 - Architecture Violation (RESOLVED by Archival)
-- File: drbastaninejad.com/Front-end Design/src/backend/server.py
-- Issue: Python/FastAPI + MongoDB backend directly violates UNIFIED_MASTER_PLAN.md Section 1
-- Resolution: Archived to _archive/server.py on 2026-07-29
-- Security Issues Resolved by Archival:
-  - Unauthenticated PII exposure in GET /api/appointments
-  - Unauthenticated PII exposure in GET /api/contact
-  - CORS wildcard (allow_origins=*)
-  - MongoDB dependency conflict
-
-### P1 - DO NOT MERGE PR #5 Until Resolved
-- PR #5 contains the archived server.py and must NOT be merged until:
-  1. All references to server.py routes are removed or redirected
-  2. All CTA links are verified to point to https://app.drbastaninejad.com/
-  3. No MongoDB dependencies remain
+| Layer | Canonical choice | Forbidden |
+|---|---|---|
+| Backend | Custom **PHP 8.x MVC** (`Medical-CRM` / `app.drbastaninejad.com` + `dashboard.drbastaninejad.com/app`) | Python FastAPI as production API |
+| Database | **Single MySQL 8.x** utf8mb4/InnoDB | MongoDB as live store; second parallel clinical DB |
+| Public intake | **https://app.drbastaninejad.com/** | Duplicate OTP / national-ID / signature on marketing site |
+| Marketing frontend | **`maziyarid/drbst` → `Frontend/` (Next.js)** | Treating `Front-end Design/` (Vite prototype) as production |
+| Schema / route names | Backend track only | Frontend inventing table/column/route names |
 
 ---
 
-## Current Repository Structure
+## 1. Repository map
 
-### Production (DO NOT TOUCH)
-| Directory | Purpose | Status |
-|-----------|---------|--------|
-| intake-app/public/ | Live intake form (v15) | FROZEN |
-| app_private/src/ | Backend services | READ ONLY |
-| app.drbastaninejad.com/ | Live intake app | PRODUCTION |
-| dashboard.drbastaninejad.com/ | Admin dashboard | PRODUCTION |
-
-### Development Branches
-| Branch | Purpose | Status |
-|--------|---------|--------|
-| tehpars-patch-1 (PR #5) | Frontend design + server.py | NEEDS REVIEW |
-| Addendum (PR #4) | Backend intake app | PENDING REVIEW |
-
-### Frontend Implementations
-| Directory | Stack | Status | CTA Target |
-|-----------|-------|--------|------------|
-| drbastaninejad.com/Front-end Design/ | React 18 + Vite | LEGACY (Archived 2026-07-27) | Needs verification |
-| drbastaninejad.com/Frontend/ | Next.js 16 + React 19 + TS | CURRENT | Needs verification |
+| Repo | Role |
+|---|---|
+| `maziyarid/Medical-CRM` | PHP MVC, intake + staff SPA trees, schema docs, API contract |
+| `maziyarid/drbst` | Marketing site: canonical Next.js (`Frontend/`) + LEGACY Vite (`Front-end Design/`) |
+| `maziyarid/M-Z` | Brand identity reference only — not medical product UI |
 
 ---
 
-## Locked Architecture (Non-Negotiable)
+## 2. Dashboard status — reconciliation vs UNIFIED_MASTER_PLAN §2
 
-Per UNIFIED_MASTER_PLAN.md Section 1:
+**UNIFIED_MASTER_PLAN.md §2 (2026-07-26) stated:**
 
-### Backend
-- Framework: Custom lightweight PHP 8.x MVC only
-- Pattern: HP MVC Project Skeleton.md
-- Prohibited: Laravel, Symfony, Python/FastAPI, Node.js, or any other framework
+> `dashboard.drbastaninejad.com` has **no DNS, no code, no deployment**.
 
-### Database
-- Single: MySQL 8.x (utf8mb4/InnoDB)
-- Prohibited: MongoDB, SQLite, PostgreSQL, or any second live database
-- Connection: Single connection, no parallel persistence outside ADDENDUM_V15_PARALLEL_PERSISTENCE.md
+**Repo evidence as of 2026-07-29 (`Medical-CRM` main):**
 
-### Deployment
-- Environment: cPanel/LiteSpeed native-PHP
-- Domain: app.drbastaninejad.com (intake), dashboard.drbastaninejad.com (admin)
+| Claim | Evidence |
+|---|---|
+| “no code” | **FALSE in-repo.** Tree `dashboard.drbastaninejad.com/` exists with `app/Controllers/*`, `app/Models/*`, `app/Services/*`, `config/routes.*.php`, `public/index.html`, PWA stubs. |
+| “no DNS / no deployment” | **Not proven from git alone.** No deploy config in-repo proves live DNS for `dashboard.drbastaninejad.com`. Treat production dashboard as **not confirmed live** until DNS/hosting is verified outside git. |
+| Plan document | **Stale on “no code”.** §2 should be amended after sign-off to: *code scaffold present in Medical-CRM; production DNS/deployment unconfirmed.* |
+
+**Implication:** Agents must not assume a blank dashboard subdomain. They also must not assume public production without operational verification.
 
 ---
 
-## Consolidation Actions
+## 3. Task 1 outcome — `server.py` (drbst)
 
-### Phase 1: Cleanup (COMPLETE)
-- [x] Archive server.py to _archive/ with dated note
-- [x] Delete server.py from original location
-- [x] Document security issues as resolved by archival
+**Path:** `drbst/Front-end Design/src/backend/server.py`  
+**Commit:** `73445c5` on `drbst` main (2026-07-29)
 
-### Phase 2: CTA Link Standardization (IN PROGRESS)
-**Requirement**: All booking, appointment, and contact CTAs must point to https://app.drbastaninejad.com/
+| Change | Detail |
+|---|---|
+| GET `/api/appointments` | **Removed** (unauthenticated PII list) |
+| GET `/api/contact` | **Removed** (unauthenticated PII list) |
+| POST `/api/appointments` | **Removed** — no live caller in Next.js `Frontend/` (see §4) |
+| POST `/api/contact` | **Removed** — no live caller in Next.js `Frontend/` |
+| Mongo / Motor client | **Removed** from active process path |
+| CORS | Wildcard `*` replaced with explicit allowlist: `drbastaninejad.com`, `www.drbastaninejad.com`, `app.drbastaninejad.com` |
+| Token compare | N/A — file had no bearer/token comparison |
+| Archive/delete | **Not done** — file retained in-tree until this plan is signed off |
 
-#### Files to Audit and Fix
-1. drbastaninejad.com/Front-end Design/ (Legacy React)
-   - [ ] App.js - Internal routes only (OK)
-   - [ ] pages/Appointment.jsx - Verify external links
-   - [ ] pages/Contact.jsx - Verify external links
-   - [ ] pages/Home.jsx - Verify external links
-   - [ ] components/Navbar.jsx - Verify external links
-   - [ ] components/Footer.jsx - Verify external links
-   - [ ] lib/content.js - Verify all URLs
+**Consequence:** The marketing site has **no working contact/appointment submission path through `server.py`**. Live clinical intake is only via **https://app.drbastaninejad.com/**.
 
-2. drbastaninejad.com/Frontend/ (Next.js)
-   - [ ] app/page.tsx - Verify external links
-   - [ ] app/appointment/ - Verify external links
-   - [ ] app/contact/ - Verify external links
-   - [ ] app/site-data.ts - Verify all URLs
-   - [ ] components/ - Verify all CTA buttons/links
+### Mongo data (mandatory before any future archive/delete)
 
-### Phase 3: Documentation (PENDING)
-- [ ] This document (REPO_CONSOLIDATION_PLAN.md)
-- [ ] Update PROGRESS_LOG.md
-- [ ] Flag CONFLICT entry if server.py routes are called live
+If any MongoDB instance was ever pointed at this prototype:
+
+1. Export `appointments` and `contacts` collections (or confirm empty).
+2. Store export offline under clinic data-governance policy (not in public git).
+3. Only then consider deleting the legacy FastAPI file after sign-off.
 
 ---
 
-## Verification Checklist
+## 4. Q1 evidence — Next.js callers of `/api/appointments` or `/api/contact`
 
-### Before Merging PR #5
-- [ ] No Python/FastAPI code in production paths
-- [ ] No MongoDB dependencies
-- [ ] All CTA links point to https://app.drbastaninejad.com/
-- [ ] No GET /api/appointments or GET /api/contact endpoints
-- [ ] CORS origins restricted (not wildcard)
+**Scope searched:** entire `maziyarid/drbst` → `Frontend/` (Next.js) tree: `app/**`, `components/**`, `worker/**`, `scripts/**`, tests.
 
-### Before Merging PR #4
-- [ ] Greptile review complete
-- [ ] Coderabbit review complete
-- [ ] No conflicts with UNIFIED_MASTER_PLAN.md
+**Search targets:** `fetch(`, `axios`, `ky`, `useSWR`, path strings `/api/appointments`, `/api/contact`, any env-built API base calling those routes.
 
----
+| Result | Detail |
+|---|---|
+| **Matches** | **None.** GitHub code search returned 0 hits for those patterns under `path:Frontend`. |
+| `Frontend/app/components/appointment-form.tsx` | Client-only; `setComplete(true)` on submit; explicit “نمایشی” notice; **no HTTP**. |
+| `Frontend/app/components/contact-form.tsx` | Client-only; `setSent(true)` on submit; explicit non-connected copy; **no HTTP**. |
 
-## Decision Matrix
-
-| Scenario | Action |
-|----------|--------|
-| Python/FastAPI code found | Archive to _archive/, do NOT merge |
-| MongoDB dependencies found | Remove or archive, do NOT merge |
-| CTA links to wrong target | Fix to point to https://app.drbastaninejad.com/ |
-| Architecture questions | Refer to UNIFIED_MASTER_PLAN.md Section 1 |
+Therefore POST endpoints on `server.py` had **no live frontend consumer** in the canonical Next.js tree.
 
 ---
 
-## References
+## 5. Task 2 outcome — CTAs (drbst `Frontend/` only)
 
-1. UNIFIED_MASTER_PLAN.md - Ultimate architecture authority
-2. ADDENDUM_V15_PARALLEL_PERSISTENCE.md - Parallel persistence rules
-3. FRONTEND_DESIGN_SYSTEM.md - Frontend standards
-4. SPACE_COORDINATION_PROTOCOL.md - Coordination rules
+**Commit:** `d08c40e` on `drbst` main (2026-07-29)
+
+| File | Change |
+|---|---|
+| `Frontend/app/page.tsx` | Booking CTAs → `https://app.drbastaninejad.com/` (labels unchanged) |
+| `Frontend/app/components/site-chrome.tsx` | Header / mobile / footer / dock booking CTAs → live intake |
+| `Frontend/app/components/ui.tsx` | Service “رزرو مشاوره” + CallToAction buttons → live intake |
+| `Frontend/app/appointment/page.tsx` | Replaced demo form page with `redirect("https://app.drbastaninejad.com/")` |
+| `Frontend/app/contact/page.tsx` | Replaced demo form page with same redirect |
+
+**Not done:** merge of Medical-CRM PR #5; deletion of `Front-end Design/`.
 
 ---
 
-Approval Required: This plan requires explicit sign-off from product owner before execution of Phase 2 and Phase 3 actions.
+## 6. Canonical frontend choice
+
+| Tree | Verdict |
+|---|---|
+| `drbst/Frontend/` (Next.js) | **Canonical marketing site** — sole surface for SEO public pages going forward |
+| `drbst/Front-end Design/` (Vite) | **LEGACY prototype** — keep until sign-off; do not extend; do not delete yet |
+| `Medical-CRM/app.drbastaninejad.com/Frontend/` | **Canonical product UI** (intake, patient portal, staff CRM HTML) |
+| `Medical-CRM/dashboard.drbastaninejad.com/public/` | Backend/dev SPA shell — same API contracts; not the marketing site |
 
 ---
 
-Generated by Maziyar ID Agent on 2026-07-29
+## 7. Pending sign-off checklist (product owner)
+
+- [ ] Approve this consolidation plan
+- [ ] Confirm Mongo export completed or N/A (never deployed)
+- [ ] Approve eventual archive/delete of `Front-end Design/src/backend/server.py`
+- [ ] Approve eventual archive/delete of entire `Front-end Design/` after content parity check vs `Frontend/`
+- [ ] Amend `UNIFIED_MASTER_PLAN.md` §2 dashboard row (code scaffold exists; production DNS unconfirmed)
+- [ ] Confirm DNS/TLS for `dashboard.drbastaninejad.com` if/when staff CRM goes public
+- [ ] Do **not** merge Medical-CRM PR #5 until Greptile/security items and CTA policy are satisfied on that branch independently
+
+---
+
+## 8. Agent rules during consolidation
+
+1. No schema/route/table naming from Frontend track.
+2. No second patients/appointments tables.
+3. No reintroduction of Mongo or FastAPI as production.
+4. All real intake/OTP flows go through PHP + documented `docs/API_CONTRACT.md`.
+5. Append `PROGRESS_LOG.md`; never rewrite history entries.
+
+---
+
+*M•Z — MAZ//ID · https://maziyarid.com · © 2026 Maziyar / Dr. Shahin Bastaninejad*
