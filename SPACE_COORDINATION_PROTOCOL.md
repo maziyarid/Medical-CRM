@@ -1,94 +1,255 @@
-# Space Coordination Instructions — Multi-Agent, Multi-Chat Protocol
+<!-- MAZ//ID · © 2026 Maziyar / Dr. Shahin Bastaninejad -->
 
-**Purpose:** Prevent conflicting work when multiple chats/accounts operate in the same Space on this project.
-**Applies to:** This chat (Frontend/Dashboard track) + the parallel "Medical-CRM" chat (Backend track), potentially running under a different account.
+# SPACE COORDINATION PROTOCOL
+## Multi-Agent, Multi-Track Development Rules
+
+**Status:** Mandatory  
+**Version:** 2.0  
+**Date:** 2026-07-29
 
 ---
 
-## 1. Why this exists
+## 1. Purpose
 
-You are now running two active development tracks simultaneously, in the same Space, sometimes from different accounts, specifically to spread usage load. Without a shared checkpoint protocol, both tracks can silently duplicate or contradict each other's schema, naming, or file decisions — as already happened once with the `patients` table (see `UNIFIED_MASTER_PLAN.md` §1).
+This protocol prevents duplicate development, conflicting schema decisions, accidental
+deployment, and unsupported architecture changes across all agents, chats, repositories,
+and branches working on the Dr. Shahin Bastaninejad medical platform.
 
-## 2. The single rule
+This protocol applies to frontend, backend, infrastructure, documentation, testing, and
+security work.
 
-**`UNIFIED_MASTER_PLAN.md` is the only authoritative architecture document.** Any chat, in any account, must treat it as read-only ground truth for schema, naming, and phase sequencing. If a chat needs to deviate from it, that chat must first output a proposed amendment to `UNIFIED_MASTER_PLAN.md` — never silently create a parallel table, endpoint, or naming convention.
+---
 
-## 3. Before starting ANY work session, each agent must:
+## 2. Authority Order
 
-1. Re-read `UNIFIED_MASTER_PLAN.md` in full (not summarized) — treat it as the current state of truth, not memory from a prior turn.
-2. Re-read `PROGRESS_LOG.md` (new file, see §4) to see what the *other* track has completed since this agent's last session.
-3. State explicitly, at the start of its response, which Phase (per `UNIFIED_MASTER_PLAN.md` §3) it is working on and confirm no other open task in `PROGRESS_LOG.md` overlaps with it.
+When documents conflict, use this order:
 
-## 4. New file: `PROGRESS_LOG.md` (shared append-only ledger)
+1. Explicit current product-owner instruction
+2. `UNIFIED_MASTER_PLAN.md`
+3. `docs/DEPLOYMENT_GATE.md`
+4. Latest factual entry in `PROGRESS_LOG.md`
+5. This protocol
+6. Historical documents, PR descriptions, agent comments, and earlier plans
 
-Every agent, after completing meaningful work, must append an entry in this format:
+Historical documents are reference material only. They do not override the master plan.
 
+---
+
+## 3. Architecture Boundary
+
+The production application architecture is:
+
+```text
+Custom PHP 8.x MVC
+MariaDB 10.11+ primary relational database
+Nginx + Apache/PHP-FPM on AlmaLinux VPS
 ```
-## [YYYY-MM-DD HH:MM] — [Track: Frontend|Backend] — [Agent/Chat identifier]
-Phase: <phase number from UNIFIED_MASTER_PLAN.md>
-Completed: <one-line summary>
-Files touched: <list>
-Schema/API changes: <none | describe exactly>
-Blocking questions raised: <none | list>
+
+Agents must not introduce:
+
+- Laravel or Symfony as the production backend framework
+- Python, FastAPI, Node.js, or a separate production API
+- MongoDB as a clinical/CRM source of truth
+- A second active clinical database
+- A separate patient table for the dashboard/portal
+- A duplicate public intake/OTP/signature path
+
+An agent that believes an exception is necessary must write an amendment proposal and stop.
+No code implementing the exception may be written before product-owner approval.
+
+---
+
+## 4. Mandatory Start-of-Session Procedure
+
+Before writing code, each agent must:
+
+1. Read `UNIFIED_MASTER_PLAN.md` in full.
+2. Read `SPACE_COORDINATION_PROTOCOL.md` in full.
+3. Read the newest entries in `PROGRESS_LOG.md`.
+4. Search for an active task overlapping the intended work.
+5. Declare exactly one bounded package:
+   - Phase
+   - Track: frontend, backend, infrastructure, QA, documentation, or security
+   - Files expected to change
+   - Explicit statement that no active logged task overlaps
+
+### Required opening format
+
+```md
+Scope: Phase [number], [track].
+Package: [one exact deliverable].
+Files: [exact paths or "documentation only"].
+Overlap check: No active PROGRESS_LOG.md entry claims this package.
+Deployment: No production or cPanel/VPS change is authorized by this task.
 ```
 
-Never delete or rewrite prior entries — this is append-only, like a commit log. If a conflict is discovered (e.g., two tracks touched the same table), the discovering agent must add a `## CONFLICT FLAGGED` entry immediately and pause that specific piece of work until the user resolves it.
+If a package is already claimed, choose another package. Do not create a competing
+implementation without product-owner direction.
 
-## 5. Division of responsibility (current split)
+---
 
-| Track | Scope | Must NOT touch |
+## 5. Ownership Boundaries
+
+| Track | Owns | Must not change without coordination |
 |---|---|---|
-| **This chat (Frontend/Dashboard)** | Dashboard UI completion, patient portal pages, static site/landing pages, admin UI screens, email templates (visual), PWA/APK wrapper concerns | Database schema, PHP backend logic, API endpoint contracts |
-| **Other chat (Backend)** | MySQL schema deployment, PHP MVC backend, API endpoints, migration jobs, AI Copilot/OpenRouter service, SMS/OTP server logic | Visual design, CSS/brand tokens, page copy, UI component structure |
+| Backend | PHP MVC, models, controllers, services, routes, migrations, validators, API contracts, OTP, DB state | Design tokens, frontend component structure, marketing copy |
+| Frontend | UI components, CSS, RTL layout, design tokens, accessibility, static page structure | Table names, columns, API routes, backend business logic |
+| Infrastructure | Nginx/Apache/PHP-FPM configuration, VPS checks, deployment docs, backups, TLS | Application feature logic, schema design |
+| QA | Test plans, PHPUnit tests, build verification, acceptance evidence | Production secrets, deployment without owner approval |
+| Documentation | Master-plan amendments, protocol, deployment gate, factual logs | Technical behavior not evidenced in code or owner confirmation |
+| Security | Secret scanning, safe remediation plans, permission review, incident documentation | Secret rotation, force pushes, public visibility changes, production destructive actions |
 
-Both tracks share: `Medical CRM.md` (design system tokens — frontend reads it, backend must not alter it), `UNIFIED_MASTER_PLAN.md` (both read, neither edits without explicit user instruction), `PROGRESS_LOG.md` (both write, append-only).
+### Cross-track rule
 
-## 6. Naming conflict prevention
-
-- Table names, column names, and API route names are **backend track's exclusive naming authority** — frontend must request an endpoint/field by describing the need, not by inventing a name and hoping backend matches it.
-- Component names, CSS class conventions, and brand token names are **frontend track's exclusive naming authority**.
-- Any cross-track naming decision (e.g., what a JSON payload field is literally called) must be written into `UNIFIED_MASTER_PLAN.md` as an amendment before either side codes against it.
-
-## 7. Realtime sync note (per user's urgency: SQL submission, no double-submissions)
-
-Because both tracks now touch the intake submission path from different angles (frontend: form UX; backend: DB write), the double-submission prevention must be implemented **once, in the backend**, using a single idempotency mechanism (e.g., a client-generated UUID sent with the form, checked against a unique DB constraint before insert — see `UNIFIED_MASTER_PLAN.md` Phase 1/2). The frontend track must not attempt to prevent double-submission independently (e.g., via JS-only disable-on-click) as the sole safeguard — that is a UX nicety, not the actual safety mechanism, and must not be confused as sufficient.
+If frontend needs a backend field or endpoint, it describes the requirement. The backend
+owner defines the literal table/column/route name. The name becomes authoritative only when
+recorded in the master plan or backend contract.
 
 ---
 
-## Deployment Gate — Mandatory Before Any VPS/cPanel Installation
+## 6. Work Package Rules
 
-No agent may instruct the product owner to deploy application code, create a production
-database, run migrations, configure a domain, or enable a public endpoint until every
-item below is explicitly confirmed by the product owner.
+A valid package must have one deliverable:
 
-### Infrastructure
-- [ ] Server operating system, Nginx/Apache/PHP-FPM topology, PHP version, and MariaDB/MySQL version verified by read-only commands.
-- [ ] Production hostname and document root verified for each subdomain.
-- [ ] TLS certificate active for each public hostname.
-- [ ] Firewall permits only required public ports; SSH access is restricted.
-- [ ] A tested server backup/snapshot exists before deployment.
+- Exact code diff plus tests
+- Exact documentation replacement text
+- Exact test report
+- Exact non-destructive server inspection commands
+- Exact deployment runbook for a human
 
-### Source control and secrets
-- [ ] No patient signatures, national IDs, OTPs, logs, `.env` files, API keys, webhook URLs, or credentials are committed to git.
-- [ ] Production secrets are created only at deployment time and stored outside the repository.
-- [ ] `.env.example` contains placeholders only.
-- [ ] Apps Script endpoint/credential is rotated or newly generated immediately before production use.
-- [ ] Git history and repository visibility have been reviewed for sensitive files before real patient data is collected.
+Invalid package examples:
 
-### Database
-- [ ] One approved schema/migration set exists; no parallel schema or database is introduced.
-- [ ] Database name, least-privilege application user, strong password, and backup policy are approved.
-- [ ] Migration was executed successfully in a non-production environment first.
-- [ ] Restore procedure has been tested from a backup.
-- [ ] UTC storage and Persian/Jalali presentation rules are confirmed.
+- “Fix all backend problems”
+- “Finish dashboard”
+- “Review everything”
+- “Handle security”
+- “Make it production-ready”
 
-### Application safety
-- [ ] OTP, national-ID validation, CSRF protection, rate limits, authorization, and audit logging are implemented and tested.
-- [ ] File/signature storage is outside the public web root and excluded from git.
-- [ ] Intake idempotency test proves one OTP/token cannot create duplicate submissions.
-- [ ] Error logs redact secrets and personal data.
-- [ ] A designated human has completed a final security and data-handling review.
+Agents may not mark a package complete if they only identified work, wrote a plan, or left
+placeholders for a later agent.
 
-### Release decision
-- [ ] Product owner explicitly approves deployment after reviewing the above evidence.
-- [ ] Deployment log records date, commit SHA, deployer, affected subdomains, migration status, and rollback location.
+---
+
+## 7. `PROGRESS_LOG.md` Rules
+
+`PROGRESS_LOG.md` is append-only. Never rewrite or delete prior entries.
+
+After meaningful work, append:
+
+```md
+## [YYYY-MM-DD HH:MM UTC] — [Track] — [Agent name] — Phase [N]
+### Done
+- [Only actions actually completed and verified]
+
+### Files touched
+- [Exact paths]
+
+### Blocked / open
+- [Unproven facts, owner decisions, or human-only actions]
+
+### Next
+- [One action and its assigned owner]
+```
+
+Use these words precisely:
+
+- **Confirmed:** supported by direct code, command output, or product-owner statement
+- **Unproven:** not checked or no direct evidence
+- **Blocked:** cannot proceed without a defined decision/action
+- **Complete:** code/document/test evidence is delivered, not merely proposed
+
+---
+
+## 8. Intake and Data Integrity Rule
+
+Only the backend may implement submission idempotency.
+
+The canonical lifecycle is:
+
+```text
+pending → attempting → submitted
+                     → failed_confirmed
+                     → outcome_unknown
+```
+
+Requirements:
+
+- A stable idempotency identity exists before an external write.
+- The same OTP/token must map to the same submission identity.
+- Concurrent requests must not cause duplicate Google Sheet or database writes.
+- `submitted` is the only terminal-success state name.
+- The solution must include runnable PHPUnit tests for:
+  - successful submission
+  - same-token double submission
+  - confirmed no-write failure
+  - ambiguous mid-flight failure
+
+Frontend click-disable behavior is optional UX. It is never accepted as the sole protection.
+
+---
+
+## 9. Secrets and Private Data Rule
+
+Never commit, paste into a PR, or include in agent prompts:
+
+- API keys, passwords, PATs, SSH keys, webhook URLs, or database credentials
+- `.env` files
+- OTP values
+- patient signatures
+- patient identifying data
+- logs containing request headers, URLs, credentials, or personal data
+- database exports
+- uploaded patient media
+
+Runtime folders must be ignored by git. Agents may produce remediation instructions, but
+only the product owner or a designated human may rotate credentials, rewrite git history,
+force-push, change repository visibility, or run destructive production commands.
+
+---
+
+## 10. Deployment Rule
+
+No agent may instruct the product owner to deploy code to cPanel/VPS, create a production
+database, run production migrations, create a public DNS route, or enable real patient
+traffic until `docs/DEPLOYMENT_GATE.md` is completed and product-owner approval is recorded.
+
+Development order is:
+
+```text
+Local development
+→ Local tests
+→ Private staging
+→ Staging tests + backup/restore test
+→ Product-owner approval
+→ Production deployment
+→ Production smoke test
+```
+
+Production credentials are created or rotated immediately before production activation.
+Temporary local credentials are permitted only when private, uncommitted, and unused for
+real patient traffic.
+
+---
+
+## 11. Conflict Procedure
+
+If an agent finds conflicting code, competing architecture, unclear ownership, or an
+inconsistent log claim:
+
+1. Stop the affected task.
+2. Do not overwrite another implementation.
+3. Append a `CONFLICT` entry to `PROGRESS_LOG.md`.
+4. State the exact files and conflict.
+5. Offer one bounded resolution option.
+6. Wait for the product owner or designated lead to assign a single owner.
+
+---
+
+## 12. Final Agent Instruction
+
+Every implementation request must include:
+
+> Read `UNIFIED_MASTER_PLAN.md`, `SPACE_COORDINATION_PROTOCOL.md`, and the latest
+> `PROGRESS_LOG.md`. Declare one package. Do not change locked architecture, secrets,
+> deployment configuration, database schema, or another agent’s claimed work. Do not
+> propose production deployment until the Deployment Gate is complete.
