@@ -1,3 +1,29 @@
+"""
+ARCHIVED - DO NOT USE
+
+This Python/FastAPI + MongoDB backend DIRECTLY VIOLATES the locked architecture 
+decision in UNIFIED_MASTER_PLAN.md Section 1.
+
+Locked Architecture:
+- Backend: Custom PHP 8.x MVC only
+- Database: Single MySQL 8.x only (utf8mb4/InnoDB)
+- No second live DB, no MongoDB, no Python/FastAPI
+
+Original Location: drbastaninejad.com/Front-end Design/src/backend/server.py
+
+Security Issues (DO NOT DEPLOY):
+- P1: Unauthenticated PII exposure in GET /api/appointments
+- P1: Unauthenticated PII exposure in GET /api/contact
+- P1: CORS wildcard (allow_origins='*')
+- P1: MongoDB dependency conflict
+
+Action: DO NOT MERGE, DO NOT DEPLOY, DO NOT EXTEND
+
+MongoDB Data: If any MongoDB instance was ever pointed at this prototype:
+1. Export 'appointments' and 'contacts' collections (or confirm empty)
+2. Store export offline under clinic data-governance policy (not in public git)
+3. Only then consider archive/delete after explicit sign-off
+"""
 from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -113,7 +139,7 @@ async def create_contact(payload: ContactCreate):
 
 @api_router.get("/contact", response_model=List[ContactMessage])
 async def list_contacts():
-    docs = await db.contacts.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    docs = await db.contact.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
     return docs
 
 
