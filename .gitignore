@@ -1,41 +1,62 @@
-# MΛZ Medical CRM — MAZ//ID
+# Dependencies
+/vendor/
+/node_modules/
 
-# ---------- Secrets & env ----------
+# Environment and credentials
 .env
 .env.*
 !.env.example
 *.pem
 *.key
+*.p12
+*.pfx
 *.crt
-credentials.json
-secrets/
+*.cer
 
-# ---------- PHP / Laravel (for the future backend) ----------
-/vendor/
-/node_modules/
-composer.phar
-composer.lock
-/storage/logs/*
-!/storage/logs/.gitkeep
-/storage/framework/cache/*
-/storage/framework/sessions/*
-/storage/framework/views/*
-/bootstrap/cache/*
+# PHP tooling
+/.phpunit.cache/
+/coverage/
+/build/
+/dist/
 
-# ---------- OS / editor ----------
-.DS_Store
-Thumbs.db
-._*
+# IDE and operating-system files
 .idea/
 .vscode/
-*.swp
-*.swo
+.DS_Store
+Thumbs.db
 
-# ---------- Local dev artefacts ----------
-dist/
-build/
-tmp/
-*.log
+# Runtime storage: never commit patient data, signatures, logs, uploads, or locks
+/storage/app/*
+!/storage/app/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/private/*
+!/storage/private/.gitkeep
 
-# ---------- Frontend ----------
-# We deliberately vendor no node_modules — pure static HTML/CSS/JS
+# Legacy/private intake runtime paths, if retained during migration
+/app_private/storage/signatures/
+/app_private/storage/uploads/
+/app_private/storage/logs/
+/app_private/storage/idempotency/
+/app_private/storage/*.log
+/app_private/storage/*.json
+/app_private/.env
+
+# Database exports and backups
+*.sql
+*.sql.gz
+*.dump
+*.bak
+*.sqlite
+*.sqlite3
+/database/exports/
+/backups/
+
+# Frontend build artifacts
+/.next/
+/out/
+/vite.config.*.timestamp-*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
