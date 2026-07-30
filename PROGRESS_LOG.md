@@ -620,3 +620,98 @@ Deployment: No production or cPanel/VPS change is authorized by this task.
 - **Product owner:** run `composer install`, then `phpunit --filter JalaliConverter` (no DB needed).
 - **Blackbox AI (next session):** Integration tests for IntakeController (happy path + 422 + idempotency).
 
+
+---
+
+## [2026-07-30 — Session 4] — Track: Frontend/Product UI — Agent: Bob AI
+
+### Declaration
+Scope: Phase 2, Frontend.
+Package: Wire `drbastaninejad.com/contact.html` to `POST /api/v1/inquiries` with full UX states.
+Files: `drbastaninejad.com/contact.html`, `drbastaninejad.com/assets/js/main.js`, `drbastaninejad.com/assets/css/main.css`.
+Overlap check: No active PROGRESS_LOG.md entry claimed this package.
+Deployment: No production or cPanel/VPS change is authorized by this task.
+
+### Pre-session conformance pass — error pages (disclosed backend-track exception)
+
+All four `pages/errors/` pages audited against Bob AI token/RTL conventions:
+- `dir="rtl"` + `lang="fa"` on `<html>` ✅ all 4 pages
+- Zero physical CSS properties (`margin-left/right`, `padding-left/right`, `text-align:left/right`, `float`, `border-left/right`) ✅ all 4 pages
+- All inline `:root` tokens match `assets/css/tokens.css` names ✅ 24 token declarations across 4 pages
+- Zero `console.*` calls in inline scripts ✅
+- All scripts clear stale tokens without logging their values ✅
+- Conformance verdict: **PASS** — no corrective edits required.
+
+### Done
+
+#### P0 — contact.html wired to POST /api/v1/inquiries
+
+**API contract (all Confirmed from `docs/API_CONTRACT.md` §Section 4B):**
+- Endpoint: `POST /api/v1/inquiries` (public, no auth)
+- Request keys: `name`, `phone`, `message`
+- Success: HTTP 201 `{"success":true,"data":{"inquiry_id":N}}`
+- 422: `{"success":false,"error":{"code":"VALIDATION_FAILED","fields":{name?,phone?,message?}}}`
+- 429: `{"success":false,"error":{"code":"INQUIRY_RATE_LIMITED",...}}` — Retry-After shape **NOT documented** → generic message used, Backend requirements note written (see below)
+
+**`drbastaninejad.com/contact.html` changes:**
+- Removed disabled fieldset and `form-disabled-notice` warning banner
+- Added live `<form id="inquiry-form">` with three named inputs (`name`, `phone`, `message`)
+- Each field has `aria-required="true"`, `aria-describedby="err-{field}"`, associated `<span class="form-error" role="alert">`
+- Three outcome banners (hidden via CSS `display:none` until `data-visible` attr set): `inquiry-success` (success/201), `inquiry-rate-limit` (429), `inquiry-error` (500/network)
+- Submit button has `.btn-submit` class with separate text/loading `<span>` children
+- Backend requirements note for 429 Retry-After shape embedded as HTML comment
+
+**`drbastaninejad.com/assets/js/main.js` additions (IIFE, no external deps):**
+- Guard: `if (!form) return` — safe on all other pages that load `main.js`
+- `normPersianDigits()` converts ۰–۹ and ٠–٩ to ASCII before sending `phone`
+- Client-side guard validates presence + `message.length >= 10`; focuses first error field
+- `setBusy(true/false)` toggles `.inquiry-form--busy` class + `submitBtn.disabled`
+- XHR `POST` with `Content-Type: application/json`; 15 s timeout
+- 201 path: `form.reset()`, clear errors, show success banner, smooth scroll
+- 422 path: maps `resp.error.fields` keys to field error elements; focuses first
+- 429 path: shows rate-limit banner (generic — Retry-After unconfirmed)
+- `onerror`/`ontimeout`/other: shows generic error banner — zero server detail exposed
+- Input events clear field errors live as user types
+- **No dependency on `api.js`, `sessionStorage`, CRM tokens, or any CRM global**
+
+**`drbastaninejad.com/assets/css/main.css` additions (after existing form rules):**
+- `.form-error` — inline error text, hidden by default
+- `.form-group.has-error .form-input/textarea` — red border + soft shadow
+- `.form-group.has-error .form-error` — `display:block`
+- `.inquiry-form--busy .btn-submit` — opacity 0.7, pointer-events none
+- `.btn-submit-loading` / `.btn-submit-text` busy-state visibility toggles
+- `.form-banner` / `--success` / `--error` / `--rate-limit` — outcome banner variants
+
+### API/design notes
+
+| Item | Status |
+|---|---|
+| Request keys `name`, `phone`, `message` | **Confirmed** — `docs/API_CONTRACT.md §POST /api/v1/inquiries` |
+| 201 success shape | **Confirmed** |
+| 422 `error.fields` map | **Confirmed** |
+| 429 `INQUIRY_RATE_LIMITED` error code | **Confirmed** |
+| 429 `Retry-After` header or `retry_after_seconds` field | **Assumed — needs backend confirmation** |
+| CSRF token requirement for public endpoint | **Unproven** — no contract exists; not added |
+
+### Backend requirements for Blackbox AI
+
+1. **429 Retry-After shape** — `POST /api/v1/inquiries` returns 429 on rate limit. The frontend currently shows a generic "try again in a few minutes" message. To show a live countdown, please add to `docs/API_CONTRACT.md §POST /api/v1/inquiries`:
+   - Does the response include a `Retry-After` HTTP header? If so, what is the unit (seconds)?
+   - Or is there a `retry_after_seconds` (or similar) field in the JSON body?
+
+2. **CSRF** — If the backend adds CSRF protection to this public endpoint in a future phase, please document the token delivery mechanism (e.g. cookie name, header name) in `docs/API_CONTRACT.md` so the frontend can add it.
+
+### Files touched
+- `drbastaninejad.com/contact.html` — UPDATED (live form replacing disabled shell)
+- `drbastaninejad.com/assets/js/main.js` — UPDATED (inquiry submit IIFE added)
+- `drbastaninejad.com/assets/css/main.css` — UPDATED (form-error, form-banner, busy-state rules)
+
+### Blocked / open
+- 429 countdown — waiting on Retry-After shape confirmation from Blackbox AI.
+- Contact page `[CONTENT: …]` placeholders (address, phone, email, hours, map embed) — product owner to supply.
+- All deployment-gated files remain `??` untracked — not staged.
+
+### Next
+- **Bob AI:** P1-A — wire `pages/patient/overview.html` → `GET /api/v1/patient/overview`
+- **Blackbox AI:** document 429 Retry-After shape in `docs/API_CONTRACT.md`
+

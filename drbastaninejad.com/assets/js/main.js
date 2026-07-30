@@ -150,4 +150,207 @@
   images.forEach(function (img) { obs.observe(img); });
 }());
 
+/* ── Contact / inquiry form ──────────────────────────────────────────────── */
+/*
+ * Wires drbastaninejad.com/contact.html → POST /api/v1/inquiries
+ *
+ * Confirmed from docs/API_CONTRACT.md (2026-07-30):
+ *   Request body keys : name, phone, message
+ *   Success           : HTTP 201, {"success":true,"data":{"inquiry_id":N}}
+ *   Validation error  : HTTP 422, {"success":false,"error":{"code":"VALIDATION_FAILED","fields":{...}}}
+ *   Rate limited      : HTTP 429, {"success":false,"error":{"code":"INQUIRY_RATE_LIMITED",...}}
+ *                       ⚠ Retry-After shape unconfirmed — showing generic message (see HTML comment)
+ *   Server/network err: any other status or network failure → generic banner
+ *
+ * This module has NO dependency on api.js, sessionStorage tokens, or CRM state.
+ * It is used only on the public marketing site.
+ *
+ * Persian digit normalisation: converts ۰–۹ / ٠–٩ → 0–9 before sending.
+ */
+(function () {
+  'use strict';
+
+  var form       = document.getElementById('inquiry-form');
+  if (!form) return;   /* not on contact.html — bail silently */
+
+  var fldName    = document.getElementById('contact-name');
+  var fldPhone   = document.getElementById('contact-phone');
+  var fldMessage = document.getElementById('contact-message');
+
+  var grpName    = document.getElementById('grp-name');
+  var grpPhone   = document.getElementById('grp-phone');
+  var grpMessage = document.getElementById('grp-message');
+
+  var errName    = document.getElementById('err-name');
+  var errPhone   = document.getElementById('err-phone');
+  var errMessage = document.getElementById('err-message');
+
+  var banSuccess   = document.getElementById('inquiry-success');
+  var banRateLimit = document.getElementById('inquiry-rate-limit');
+  var banError     = document.getElementById('inquiry-error');
+  var submitBtn    = document.getElementById('inquiry-submit');
+
+  /* API base — same origin as app subdomain (no CRM session involved) */
+  var API_BASE = 'https://app.drbastaninejad.com/api/v1';
+
+  /* ── Helpers ── */
+
+  function normPersianDigits(s) {
+    return String(s).replace(/[۰-۹]/g, function (d) {
+      return String(d.charCodeAt(0) - 0x06F0);
+    }).replace(/[٠-٩]/g, function (d) {
+      return String(d.charCodeAt(0) - 0x0660);
+    });
+  }
+
+  function hideBanners() {
+    [banSuccess, banRateLimit, banError].forEach(function (b) {
+      if (b) b.removeAttribute('data-visible');
+    });
+  }
+
+  function showBanner(el) {
+    hideBanners();
+    if (el) el.setAttribute('data-visible', '');
+  }
+
+  function clearFieldError(grp, err) {
+    if (grp) grp.classList.remove('has-error');
+    if (err) err.textContent = '';
+  }
+
+  function setFieldError(grp, err, msg) {
+    if (grp) grp.classList.add('has-error');
+    if (err) err.textContent = msg;
+  }
+
+  function clearAllErrors() {
+    clearFieldError(grpName,    errName);
+    clearFieldError(grpPhone,   errPhone);
+    clearFieldError(grpMessage, errMessage);
+  }
+
+  function setBusy(busy) {
+    form.classList.toggle('inquiry-form--busy', busy);
+    if (submitBtn) submitBtn.disabled = busy;
+  }
+
+  /* Persian field-name → error element map for 422 response */
+  var fieldMap = {
+    name:    { grp: grpName,    err: errName,    label: 'نام' },
+    phone:   { grp: grpPhone,   err: errPhone,   label: 'شماره موبایل' },
+    message: { grp: grpMessage, err: errMessage, label: 'پیام' }
+  };
+
+  /* ── Submit handler ── */
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    clearAllErrors();
+    hideBanners();
+
+    var name    = (fldName    ? fldName.value.trim()    : '');
+    var phone   = normPersianDigits(fldPhone   ? fldPhone.value.trim()   : '');
+    var message = (fldMessage ? fldMessage.value.trim() : '');
+
+    /* Client-side guard (server always re-validates) */
+    var hasClientError = false;
+    if (!name) {
+      setFieldError(grpName, errName, 'نام الزامی است.');
+      hasClientError = true;
+    }
+    if (!phone) {
+      setFieldError(grpPhone, errPhone, 'شماره موبایل الزامی است.');
+      hasClientError = true;
+    }
+    if (!message || message.length < 10) {
+      setFieldError(grpMessage, errMessage, 'پیام باید حداقل ۱۰ کاراکتر داشته باشد.');
+      hasClientError = true;
+    }
+    if (hasClientError) {
+      /* Focus first error field */
+      var firstErr = form.querySelector('.form-group.has-error input, .form-group.has-error textarea');
+      if (firstErr) firstErr.focus();
+      return;
+    }
+
+    setBusy(true);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', API_BASE + '/inquiries', true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+    xhr.timeout = 15000;
+
+    xhr.onload = function () {
+      setBusy(false);
+
+      var resp;
+      try { resp = JSON.parse(xhr.responseText); } catch (_) { resp = null; }
+
+      if (xhr.status === 201 && resp && resp.success) {
+        /* Terminal success — show banner, reset form, scroll banner into view */
+        form.reset();
+        clearAllErrors();
+        showBanner(banSuccess);
+        if (banSuccess) banSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
+
+      if (xhr.status === 422 && resp && resp.error && resp.error.fields) {
+        /* Field-level validation errors from server */
+        var fields = resp.error.fields;
+        Object.keys(fields).forEach(function (key) {
+          var entry = fieldMap[key];
+          if (entry) {
+            setFieldError(entry.grp, entry.err, fields[key]);
+          }
+        });
+        /* Focus first field with an error */
+        var firstErr = form.querySelector('.form-group.has-error input, .form-group.has-error textarea');
+        if (firstErr) firstErr.focus();
+        return;
+      }
+
+      if (xhr.status === 429) {
+        /*
+         * Assumed: 429 body has {"success":false,"error":{"code":"INQUIRY_RATE_LIMITED",...}}
+         * Retry-After header / retry_after_seconds field NOT yet documented in
+         * docs/API_CONTRACT.md — showing generic message without countdown.
+         * Backend requirements: see HTML comment in contact.html and PROGRESS_LOG.md.
+         */
+        showBanner(banRateLimit);
+        if (banRateLimit) banRateLimit.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
+
+      /* 500 / unexpected status — generic error, no server detail */
+      showBanner(banError);
+      if (banError) banError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+
+    xhr.onerror = xhr.ontimeout = function () {
+      setBusy(false);
+      showBanner(banError);
+      if (banError) banError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+
+    xhr.send(JSON.stringify({ name: name, phone: phone, message: message }));
+  });
+
+  /* Clear field errors on input so red border disappears as user types */
+  [
+    { fld: fldName,    grp: grpName,    err: errName    },
+    { fld: fldPhone,   grp: grpPhone,   err: errPhone   },
+    { fld: fldMessage, grp: grpMessage, err: errMessage }
+  ].forEach(function (pair) {
+    if (pair.fld) {
+      pair.fld.addEventListener('input', function () {
+        clearFieldError(pair.grp, pair.err);
+        hideBanners();
+      });
+    }
+  });
+
+}());
+
 /* End of file — MAZ//ID · © 2026 Dr. Shahin Bastaninejad */

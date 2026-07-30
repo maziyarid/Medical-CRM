@@ -398,6 +398,44 @@ p  { font-size: 1rem; line-height: 1.75; }
   box-shadow: 0 0 0 3px rgba(47,125,50,0.12);
 }
 .form-textarea { resize: vertical; min-height: 120px; }
+
+/* Inline field error */
+.form-error {
+  font-size: 0.8rem; color: var(--error);
+  margin-block-start: calc(var(--space-1) * -1);
+  display: none;
+}
+.form-group.has-error .form-input,
+.form-group.has-error .form-textarea {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px rgba(220,38,38,0.10);
+}
+.form-group.has-error .form-error { display: block; }
+
+/* Submit busy state */
+.inquiry-form--busy .btn-submit { opacity: 0.7; cursor: not-allowed; pointer-events: none; }
+.inquiry-form--busy .btn-submit-text { display: none; }
+.inquiry-form--busy .btn-submit-loading { display: inline; }
+.btn-submit-loading { display: none; }
+
+/* Outcome banners */
+.form-banner {
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  font-size: 0.9rem; line-height: 1.65;
+  display: none;
+}
+.form-banner[data-visible] { display: block; }
+.form-banner--success {
+  background: var(--success-soft); border: 1px solid #86efac; color: #14532d;
+}
+.form-banner--error {
+  background: var(--error-soft); border: 1px solid #fca5a5; color: #7f1d1d;
+}
+.form-banner--rate-limit {
+  background: var(--warning-soft); border: 1px solid #fde68a; color: #78350f;
+}
+
 .form-disabled-notice {
   background: var(--warning-soft); border: 1px solid var(--warning);
   color: #92400e; border-radius: var(--radius-md);
