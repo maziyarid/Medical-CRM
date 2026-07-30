@@ -313,13 +313,35 @@
 
       if (xhr.status === 429) {
         /*
-         * Assumed: 429 body has {"success":false,"error":{"code":"INQUIRY_RATE_LIMITED",...}}
-         * Retry-After header / retry_after_seconds field NOT yet documented in
-         * docs/API_CONTRACT.md — showing generic message without countdown.
-         * Backend requirements: see HTML comment in contact.html and PROGRESS_LOG.md.
+         * docs/API_CONTRACT.md v1.2 (2026-07-31, Blackbox AI) confirmed:
+         *   HTTP header:  Retry-After: <seconds>
+         *   Body:         {"success":false,"error":{"code":"INQUIRY_RATE_LIMITED",
+         *                   "retry_after": <seconds>}}
+         * Show generic banner + countdown from error.retry_after.
          */
+        var retryAfterSec = (resp && resp.error && resp.error.retry_after)
+          ? parseInt(resp.error.retry_after, 10)
+          : 1800; /* default 30 min if body unreadable */
+
         showBanner(banRateLimit);
-        if (banRateLimit) banRateLimit.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (banRateLimit) {
+          /* start countdown if a <span id="rate-limit-countdown"> exists in HTML */
+          var countdownEl = document.getElementById('rate-limit-countdown');
+          if (countdownEl && retryAfterSec > 0) {
+            var remaining = retryAfterSec;
+            countdownEl.textContent = Math.ceil(remaining / 60) + ' دقیقه';
+            var tick = setInterval(function () {
+              remaining -= 30;
+              if (remaining <= 0) {
+                clearInterval(tick);
+                countdownEl.textContent = 'اکنون می‌توانید دوباره ارسال کنید.';
+              } else {
+                countdownEl.textContent = Math.ceil(remaining / 60) + ' دقیقه';
+              }
+            }, 30000);
+          }
+          banRateLimit.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
         return;
       }
 

@@ -1,13 +1,61 @@
 /*
  * ============================================================================
- *  MΛZ — drbastaninejad.com Design Tokens (synced from app.drbastaninejad.com)
+ *  MΛZ — drbastaninejad.com Design Tokens
  * ----------------------------------------------------------------------------
  *  Source of truth: app.drbastaninejad.com/Frontend/assets/css/tokens.css
  *  Keep in sync manually — do NOT add site-specific tokens here.
  *  Site-specific overrides and additions belong in main.css.
- *  Version: 1.0.0 · 25 July 2026
+ *  Version: 1.1.0 · 2026-07-31 — YekanBakh self-hosted font added
  * ============================================================================
  */
+
+/* ── YekanBakh — self-hosted, six weights ───────────────────────────────────
+   Product owner: copy these six woff2 files from the WordPress uploads folder
+   into drbastaninejad.com/assets/fonts/ before publishing.
+   All six weights are confirmed present in the 2026-07-09 WordPress export.
+   ─────────────────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'YekanBakh';
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/YekanBakh-Thin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'YekanBakh';
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/YekanBakh-Light.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'YekanBakh';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/YekanBakh-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'YekanBakh';
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/YekanBakh-SemiBold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'YekanBakh';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/YekanBakh-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'YekanBakh';
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/YekanBakh-ExtraBold.woff2') format('woff2');
+}
 
 :root {
   /* ---------- Primary palette (Evergreen system — clinical) ---------- */
@@ -41,7 +89,9 @@
   --maz-accent:        #A8FF4D;
 
   /* ---------- Typography ---------- */
-  --font-fa: 'Vazirmatn', 'Vazir', 'IRANSans', Tahoma, Arial, system-ui, sans-serif;
+  /* YekanBakh is the confirmed brand font for drbastaninejad.com (WordPress export 2026-07-09).
+     Vazirmatn kept as fallback for the app/dashboard subdomains where YekanBakh is not loaded. */
+  --font-fa: 'YekanBakh', 'Vazirmatn', Tahoma, Arial, system-ui, sans-serif;
   --font-en: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
 

@@ -980,3 +980,171 @@ Phase: C continuation — PATCH /patient/profile, 429 Retry-After, appointments 
 - **Blackbox AI:** Add `PATCH /patient/profile` to `PatientPortalController` PHPUnit test stubs.
 - **Product owner:** Confirm pill CSS class name convention (pill--evergreen vs pill-evergreen vs evergreen) so appointments.html uses the correct classes.
 - **Product owner:** Sign off on dashboard duplicate-backend question to unblock P3 staff wiring.
+
+## [2026-07-31] — Track: Frontend/Product UI — Agent: Bob AI
+Phase: 2 — drbastaninejad.com marketing site — Package 1 (Shared infrastructure + SEO layer)
+
+**Scope:** Phase 2, frontend — drbastaninejad.com marketing site.
+**Package:** Package 1 — YekanBakh font migration + CSS additions + SEO data layer + 429 countdown + index.html full rewrite with confirmed images + all pages updated to lang="fa-IR" + JSON-LD schemas + hreflang + updated nav/footer components.
+**Files:** See table below.
+**Overlap check:** No prior PROGRESS_LOG.md entry claimed any of these packages.
+**Deployment:** No production or cPanel/VPS change authorized.
+
+### Pre-session governance audit
+
+| Check | Outcome |
+|---|---|
+| `HEAD` == `origin/main` | ✅ `8e2a0ce` — Blackbox AI's PATCH /patient/profile commit — confirmed |
+| Gated files staged | **ZERO** — 6 gated files remain `??` untracked throughout session |
+| PII paths staged | **ZERO** |
+| Previous packages re-declared? | NO — contacted.html form was already wired (Session 3); not rebuilt |
+
+### Done
+
+#### `drbastaninejad.com/assets/css/tokens.css` — YekanBakh font migration
+- Added 6 `@font-face` rules for YekanBakh (Thin/Light/Regular/SemiBold/Bold/ExtraBold), all `font-display:swap`
+- Paths: `../fonts/YekanBakh-{weight}.woff2` (relative to CSS; product owner must copy 6 `.woff2` files from WordPress uploads into `assets/fonts/`)
+- `--font-fa` updated: `'YekanBakh', 'Vazirmatn', Tahoma, Arial, system-ui, sans-serif`
+- Removed CDN `<link>` for Vazirmatn from all 7 HTML pages (font now self-hosted via tokens.css)
+- Version bumped 1.0.0 → 1.1.0
+
+#### `drbastaninejad.com/assets/css/main.css` — New CSS sections appended
+- Blog index: `.blog-hero`, `.blog-grid`, `.blog-card`, `.blog-card-img`, `.blog-card-body`, `.blog-card-link`
+- Article single page: `.article-hero`, `.article-meta`, `.article-layout`, `.article-body`, `.article-sidebar`, `.sidebar-card`, `.breadcrumb`
+- Instagram grid: `.instagram-section`, `.instagram-header`, `.instagram-grid`, `.instagram-item`, `.instagram-item-overlay`
+- Trust badge: `.namad-wrap`
+- About credentials: `.credentials-grid`, `.credential-card`
+- Service detail: `.service-detail-hero`, `.service-detail-layout`, `.service-faq`, `.faq-item`, `.faq-question`, `.faq-answer`
+- Print styles: nav/footer/cta-banner hidden, body 12pt
+
+#### `drbastaninejad.com/assets/js/main.js` — 429 countdown unblocked
+- 429 handler now reads `resp.error.retry_after` (confirmed in docs/API_CONTRACT.md v1.2 by Blackbox AI this session)
+- Countdown ticks every 30s in `<span id="rate-limit-countdown">`
+- Falls back to 1800s (30 min) if body unreadable
+
+#### `drbastaninejad.com/data/seo.json` — NEW
+- Per-page SEO data for all 10 pages: `/`, `/about`, `/services`, 4 service detail pages, `/gallery`, `/contact`, `/booking`, `/blog`
+- Fields: `title`, `description`, `og_image`, `canonical`, `schema_type`, `keywords`
+- Path A interim implementation — product owner edits this file to update meta without touching HTML
+- Described in `docs/seo-guide.md`
+
+#### `docs/seo-guide.md` — NEW
+- How to edit page meta, add a blog post, schema types table, hreflang, favicon instructions, Persian URL slug infrastructure note, Path B (DB-backed) gated behind product-owner approval
+
+#### `docs/redirect-map.md` — NEW
+- Domain-level: `drbastaninejad.ir` → `drbastaninejad.com` (301)
+- www → non-www (301)
+- 9 confirmed WordPress date-based blog post slugs → new flat `/blog/` slugs
+- WordPress static page slugs → clean paths
+- WordPress admin/feed/xmlrpc blocking rules
+- Open items list for product owner (WP permalink format, wp-content/uploads migration, GSC validation)
+
+#### `drbastaninejad.com/index.html` — Full rewrite
+Status: **Complete** (supersedes placeholder-only prior version)
+- `lang="fa-IR"` (was `lang="fa"`)
+- `<title>`: confirmed — `دکتر شاهین باستانی نژاد | جراح و متخصص بینی در تهران`
+- `<meta description>`: confirmed Persian text
+- `<meta keywords>`: confirmed from WordPress export alt/excerpt text
+- Canonical, hreflang fa-IR, OG type/url/title/description/image/locale, Twitter card
+- JSON-LD MedicalBusiness: name/url/logo/image/description/telephone/address/openingHours/medicalSpecialty/sameAs — `[CONTENT:]` where product owner input required
+- Favicon placeholder retained; HTML comment shows exact replacement code for 3 real favicon sizes
+- YekanBakh Bold preload + hero image preload (`دکتر-شاهین-باستانی--scaled.jpg`)
+- Removed CDN Vazirmatn link
+- Skip link added
+- Nav: tagline updated `جراح تخصصی` → `جراح و متخصص گوش، گلو و بینی`; blog link added
+- Hero: `<img>` with confirmed image `دکتر-شاهین-باستانی--scaled.jpg` + graceful onerror placeholder; `loading="eager"`
+- Services teaser: 3 confirmed service slugs + confirmed thumbnail images (`راینوپلاستی-اولیه-min.jpg`, `عمل-جراحی-زیبایی-min.jpg`, `رفع-قوزبینی-min.jpg`)
+- About teaser: `drinsuit-min.jpg` (alt: "دکتر شاهین باستانی نژاد", confirmed)
+- BA showcase: 3 real image pairs from confirmed inventory (before-sur/after-sur, before-p1/after-p1, before-p2/after-p2)
+- Blog teasers: 3 confirmed articles with real images and real alt text
+- Instagram grid: 6 real images (`insta1–6-min.webp`) with confirmed alt text (`عمل ترمیمی بینی`, `عمل جراحی بینی`)
+- CTA banner + Namad trust badge (`namad-logo-n1.png`, confirmed)
+- Footer: confirmed service slugs, tagline, blog link
+
+#### All existing pages — `lang`, JSON-LD, hreflang, font migration
+| File | Changes |
+|---|---|
+| `about.html` | `lang="fa"` → `lang="fa-IR"`, OG tags, Person schema updated (alternateName, image, jobTitle, description), `[CONTENT]` labelled for product owner, CDN Vazirmatn removed, brand tagline updated |
+| `services.html` | `lang="fa"` → `lang="fa-IR"`, MedicalClinic JSON-LD, OG tags, CDN Vazirmatn removed |
+| `gallery.html` | `lang="fa"` → `lang="fa-IR"`, ImageGallery JSON-LD, OG tags, confirmed meta description and keywords, CDN Vazirmatn removed |
+| `booking.html` | `lang="fa"` → `lang="fa-IR"`, MedicalBusiness JSON-LD, OG tags, CDN Vazirmatn removed |
+| `contact.html` | `lang="fa"` → `lang="fa-IR"`, MedicalClinic JSON-LD, OG tags, confirmed meta, CDN Vazirmatn removed; 429 countdown span `<span id="rate-limit-countdown">` added; Backend requirements note updated to "Confirmed" |
+| `components/nav.html` | tagline updated, blog link added |
+| `components/footer.html` | tagline added, service slugs confirmed, blog link added, copyright name corrected |
+
+### Image inventory — product owner copy checklist
+
+The following images are now referenced in HTML. Product owner copies from WordPress uploads to `drbastaninejad.com/assets/images/`:
+
+| File | Used in |
+|---|---|
+| `دکتر-شاهین-باستانی--scaled.jpg` | index.html hero |
+| `drinsuit-min.jpg` | index.html about teaser |
+| `dr-shahin-bastaninejad-h-min.png` | about.html og:image, JSON-LD |
+| `before-sur-min.jpg` / `after-sur-min.jpg` | index.html + gallery.html BA pair 1 |
+| `before-p1-min.jpg` / `after-p1-min.jpg` | index.html BA pair 2 |
+| `before-p2-min.jpg` / `after-p2-min.jpg` | index.html BA pair 3 |
+| `راینوپلاستی-اولیه-min.jpg` | services teaser card |
+| `عمل-جراحی-زیبایی-min.jpg` | services og:image |
+| `رفع-قوزبینی-min.jpg` | services teaser card |
+| `مقاله-جراحی-ترمیمی-بینیی-چیست-min.jpg` | blog teaser (revision article) |
+| `جراحی-بینی-گوشتی-مقاله-min.jpg` | blog teaser (fleshy article) |
+| `اقدامات-قبل-جراحی-بینی-min.jpg` | blog teaser (pre-op article) |
+| `insta1..6-min.webp` | Instagram grid (6 files) |
+| `namad-logo-n1.png` | Namad trust badge |
+| `cropped-logo-t-min.webp` | JSON-LD logo field |
+| `YekanBakh-{Thin,Light,Regular,SemiBold,Bold,ExtraBold}.woff2` | `assets/fonts/` (6 font files) |
+
+### Files touched
+
+| File | Status |
+|---|---|
+| `drbastaninejad.com/assets/css/tokens.css` | UPDATED — YekanBakh @font-face, --font-fa |
+| `drbastaninejad.com/assets/css/main.css` | UPDATED — blog, article, Instagram, credentials, service-detail, print styles |
+| `drbastaninejad.com/assets/js/main.js` | UPDATED — 429 countdown via error.retry_after |
+| `drbastaninejad.com/data/seo.json` | NEW |
+| `docs/seo-guide.md` | NEW |
+| `docs/redirect-map.md` | NEW |
+| `drbastaninejad.com/index.html` | REWRITTEN — confirmed content, images, JSON-LD, hreflang, YekanBakh |
+| `drbastaninejad.com/about.html` | UPDATED — lang, JSON-LD Person, OG, font |
+| `drbastaninejad.com/services.html` | UPDATED — lang, JSON-LD MedicalClinic, OG, font |
+| `drbastaninejad.com/gallery.html` | UPDATED — lang, JSON-LD ImageGallery, OG, font |
+| `drbastaninejad.com/booking.html` | UPDATED — lang, JSON-LD MedicalBusiness, OG, font |
+| `drbastaninejad.com/contact.html` | UPDATED — lang, JSON-LD MedicalClinic, OG, countdown span |
+| `drbastaninejad.com/components/nav.html` | UPDATED — tagline, blog link |
+| `drbastaninejad.com/components/footer.html` | UPDATED — confirmed service slugs, blog link, copyright name |
+
+### API/design notes
+
+| Item | Status |
+|---|---|
+| YekanBakh @font-face | **Confirmed** — 6 weights from 2026-07-09 WordPress export |
+| Confirmed image inventory | **Used** — all src/alt values match Section 4 of prompt |
+| JSON-LD schema types | **Confirmed** per prompt Section 6 |
+| 429 Retry-After countdown | **Complete** — `error.retry_after` confirmed by Blackbox AI (API_CONTRACT.md v1.2) |
+| CDN Vazirmatn removed | **Complete** — all 7 pages now load font via tokens.css self-hosted stack |
+| `[CONTENT:]` placeholders | **Retained** — telephone, address, hours, biography, trust badge numbers, CTA copy await product owner |
+| `[REVIEWED: product owner confirms medical accuracy]` | Applied to all clinical claim placeholders per Section 6 |
+| `[LEGAL: legal review recommended before publishing real patient images]` | Present on gallery pages |
+| `data/seo.json` | **Path A confirmed** — product owner may update meta without touching HTML; Path B (DB endpoint) requires written amendment |
+
+### Blocked / open for product owner
+
+1. Copy 6 YekanBakh `.woff2` files → `drbastaninejad.com/assets/fonts/`
+2. Copy all images from image inventory table → `drbastaninejad.com/assets/images/`
+3. Supply: phone, address, hours, biography, trust numbers, Instagram handle/URL, Aparat URL, Namad link, CTA copy
+4. Supply full article bodies for 9 blog posts (working titles confirmed by image filenames; body text requires product owner)
+5. Confirm Nginx UTF-8 URL handling before relying on any Persian-script redirect rules in redirect-map.md
+6. Replace SVG favicon placeholder with real `.png` favicon set (sizes per seo-guide.md §5)
+7. Legal review of patient before/after images before publishing
+
+### Next (in order per Section 9 of prompt)
+
+- **Bob AI Package 2:** `drbastaninejad.com/index.html` section content — currently complete with confirmed images + structure; all `[CONTENT:]` placeholders await product owner supply. Index.html is structurally complete.
+- **Bob AI Package 3:** `about.html` body content — needs biography + credentials from product owner
+- **Bob AI Package 4:** Services landing + 4 service detail stub pages (`services/rhinoplasty-primary.html`, `rhinoplasty-revision.html`, `rhinoplasty-fleshy.html`, `hump-removal.html`)
+- **Bob AI Package 5:** `gallery.html` — full confirmed before/after image pairs + consent disclaimer (structure already exists; needs confirmed image pair set wired in)
+- **Bob AI Package 6:** `blog.html` index + 9 article stubs
+- **Bob AI Package 7:** `contact.html` — structure complete, verified; no rebuild needed
+- **Bob AI Package 8:** `booking.html` — structure complete, verified; no rebuild needed
+- **Infrastructure:** Implement Nginx redirect rules from `docs/redirect-map.md` after UTF-8 URL handling confirmed

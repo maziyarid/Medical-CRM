@@ -1,15 +1,37 @@
 <!doctype html>
 <!-- MAZ//ID · © 2026 Maziyar / Dr. Shahin Bastaninejad -->
-<html dir="rtl" lang="fa">
+<html dir="rtl" lang="fa-IR">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>تماس با ما — دکتر شاهین باستانی‌نژاد</title>
-  <meta name="description" content="[CONTENT: توضیحات SEO صفحه تماس — محصول به اطلاع‌رسانی نیاز دارد]"/>
+  <title>تماس با دکتر شاهین باستانی نژاد | کلینیک جراحی بینی تهران</title>
+  <meta name="description" content="تماس با کلینیک دکتر شاهین باستانی نژاد — جراح و متخصص گوش، گلو و بینی در تهران. آدرس، تلفن، ساعات کار و فرم پیام."/>
+  <meta name="keywords" content="کلینیک دکتر شاهین باستانی نژاد، تماس، آدرس، هزینه عمل بینی تهران"/>
   <link rel="canonical" href="https://drbastaninejad.com/contact.html"/>
+  <link rel="alternate" hreflang="fa-IR" href="https://drbastaninejad.com/contact.html"/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://drbastaninejad.com/contact.html"/>
+  <meta property="og:title" content="تماس با دکتر شاهین باستانی نژاد | کلینیک جراحی بینی تهران"/>
+  <meta property="og:description" content="تماس با کلینیک دکتر شاهین باستانی نژاد — جراح و متخصص گوش، گلو و بینی در تهران."/>
+  <meta property="og:image" content="https://drbastaninejad.com/assets/images/drinsuit-min.jpg"/>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MedicalClinic",
+    "name": "کلینیک دکتر شاهین باستانی نژاد",
+    "url": "https://drbastaninejad.com",
+    "telephone": "[CONTENT: product owner to supply]",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "[CONTENT: product owner to supply]",
+      "addressLocality": "تهران",
+      "addressCountry": "IR"
+    },
+    "openingHoursSpecification": "[CONTENT: product owner to supply]",
+    "medicalSpecialty": "جراحی بینی، گوش، گلو و بینی"
+  }
+  </script>
   <link rel="icon" type="image/svg+xml" href="assets/images/placeholders/favicon.svg"/>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="assets/css/tokens.css"/>
   <link rel="stylesheet" href="assets/css/main.css"/>
 </head>
@@ -107,20 +129,15 @@
             ✓ پیام شما با موفقیت ارسال شد. به زودی با شما تماس می‌گیریم.
           </div>
 
-          <!-- Rate-limit banner (hidden until 429) -->
-          <!--
-            Backend requirements note for Blackbox AI:
-            The 429 INQUIRY_RATE_LIMITED response shape is not yet documented in
-            docs/API_CONTRACT.md. Specifically: is a Retry-After header or a
-            retry_after_seconds field included in the JSON body? Until confirmed,
-            a generic Persian message is shown with no countdown. Please add the
-            exact 429 response shape (header name, body field, unit) to
-            docs/API_CONTRACT.md §POST /api/v1/inquiries.
-          -->
+          <!-- Rate-limit banner (hidden until 429)
+               docs/API_CONTRACT.md v1.2 (2026-07-31): Retry-After shape confirmed.
+               Countdown wired in main.js via error.retry_after from body. -->
           <div class="form-banner form-banner--rate-limit"
                id="inquiry-rate-limit"
                role="alert">
-            تعداد درخواست‌های شما از حد مجاز گذشته است. لطفاً چند دقیقه دیگر دوباره تلاش کنید.
+            تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً
+            <span id="rate-limit-countdown">۳۰ دقیقه</span>
+            صبر کنید.
           </div>
 
           <!-- Generic error banner (hidden until 500 / network failure) -->

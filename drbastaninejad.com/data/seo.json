@@ -1,0 +1,104 @@
+{
+  "_comment": "SEO meta for drbastaninejad.com — edit this file to update page titles, descriptions, OG images, and schemas without touching HTML. See docs/seo-guide.md for full instructions.",
+  "_version": "1.0.0",
+  "_updated": "2026-07-31",
+
+  "/": {
+    "title": "دکتر شاهین باستانی نژاد | جراح و متخصص بینی در تهران",
+    "description": "دکتر شاهین باستانی نژاد، جراح و متخصص گوش، گلو و بینی و جراح پلاستیک بینی در تهران. نوبت‌گیری آنلاین، مشاوره رایگان.",
+    "og_image": "/assets/images/دکتر-شاهین-باستانی--scaled.jpg",
+    "canonical": "https://drbastaninejad.com/",
+    "schema_type": "MedicalBusiness",
+    "keywords": "جراح بینی، جراح زیبایی، جراح و متخصص گوش، جراح و متخصص بینی، جراح و متخصص گلو، جراح پلاستیک بینی"
+  },
+
+  "/about": {
+    "title": "درباره دکتر شاهین باستانی نژاد | جراح و متخصص گوش، گلو و بینی",
+    "description": "آشنایی با دکتر شاهین باستانی نژاد — جراح و متخصص گوش، گلو و بینی و جراح پلاستیک بینی در تهران. سوابق تحصیلی، تخصصی و حرفه‌ای.",
+    "og_image": "/assets/images/dr-shahin-bastaninejad-h-min.png",
+    "canonical": "https://drbastaninejad.com/about.html",
+    "schema_type": "Person",
+    "keywords": "دکتر شاهین باستانی نژاد، جراح بینی، جراح زیبایی، متخصص گوش گلو بینی"
+  },
+
+  "/services": {
+    "title": "خدمات جراحی بینی | کلینیک دکتر شاهین باستانی نژاد",
+    "description": "خدمات تخصصی جراحی بینی شامل راینوپلاستی اولیه، جراحی بینی ترمیمی، جراحی بینی گوشتی و رفع قوز بینی توسط دکتر شاهین باستانی نژاد.",
+    "og_image": "/assets/images/عمل-جراحی-زیبایی-min.jpg",
+    "canonical": "https://drbastaninejad.com/services.html",
+    "schema_type": "MedicalClinic",
+    "keywords": "جراحی بینی، راینوپلاستی، جراحی بینی گوشتی، رفع قوز بینی، جراحی بینی ترمیمی"
+  },
+
+  "/services/rhinoplasty-primary": {
+    "title": "جراحی بینی اولیه (راینوپلاستی) | دکتر شاهین باستانی نژاد",
+    "description": "جراحی بینی اولیه یا راینوپلاستی توسط دکتر شاهین باستانی نژاد — جراح متخصص بینی در تهران. مشاوره و نوبت‌گیری آنلاین.",
+    "og_image": "/assets/images/راینوپلاستی-اولیه-min.jpg",
+    "canonical": "https://drbastaninejad.com/services/rhinoplasty-primary.html",
+    "schema_type": "MedicalProcedure",
+    "keywords": "جراحی بینی اولیه، راینوپلاستی، جراح بینی تهران"
+  },
+
+  "/services/rhinoplasty-revision": {
+    "title": "جراحی بینی ترمیمی | دکتر شاهین باستانی نژاد",
+    "description": "جراحی بینی ترمیمی (Revision Rhinoplasty) توسط دکتر شاهین باستانی نژاد — تصحیح نتایج عمل بینی قبلی با دقت و تخصص بالا.",
+    "og_image": "/assets/images/مقاله-جراحی-ترمیمی-بینیی-چیست-min.jpg",
+    "canonical": "https://drbastaninejad.com/services/rhinoplasty-revision.html",
+    "schema_type": "MedicalProcedure",
+    "keywords": "جراحی بینی ترمیمی، عمل بینی ترمیمی، تصحیح جراحی بینی"
+  },
+
+  "/services/rhinoplasty-fleshy": {
+    "title": "جراحی بینی گوشتی | دکتر شاهین باستانی نژاد",
+    "description": "جراحی بینی گوشتی با نتایج طبیعی و ماندگار توسط دکتر شاهین باستانی نژاد، جراح متخصص بینی در تهران.",
+    "og_image": "/assets/images/جراحی-بینی-گوشتی-مقاله-min.jpg",
+    "canonical": "https://drbastaninejad.com/services/rhinoplasty-fleshy.html",
+    "schema_type": "MedicalProcedure",
+    "keywords": "جراحی بینی گوشتی، بینی گوشتی، عمل بینی گوشتی"
+  },
+
+  "/services/hump-removal": {
+    "title": "رفع قوز بینی | دکتر شاهین باستانی نژاد",
+    "description": "رفع قوز بینی با جراحی تخصصی توسط دکتر شاهین باستانی نژاد — بهترین جراح بینی در تهران.",
+    "og_image": "/assets/images/رفع-قوزبینی-min.jpg",
+    "canonical": "https://drbastaninejad.com/services/hump-removal.html",
+    "schema_type": "MedicalProcedure",
+    "keywords": "رفع قوز بینی، قوز بینی، بهترین جراح بینی تهران"
+  },
+
+  "/gallery": {
+    "title": "نمونه کارهای جراحی بینی — قبل و بعد | دکتر شاهین باستانی نژاد",
+    "description": "تصاویر قبل و بعد از جراحی بینی توسط دکتر شاهین باستانی نژاد. تمامی تصاویر با رضایت کامل بیماران منتشر شده است.",
+    "og_image": "/assets/images/after-sur-min.jpg",
+    "canonical": "https://drbastaninejad.com/gallery.html",
+    "schema_type": "ImageGallery",
+    "keywords": "نمونه کار جراحی بینی، قبل و بعد بینی، جراحی بینی ترمیمی"
+  },
+
+  "/contact": {
+    "title": "تماس با دکتر شاهین باستانی نژاد | کلینیک جراحی بینی تهران",
+    "description": "تماس با کلینیک دکتر شاهین باستانی نژاد — جراح و متخصص گوش، گلو و بینی در تهران. آدرس، تلفن، ساعات کار و فرم پیام.",
+    "og_image": "/assets/images/drinsuit-min.jpg",
+    "canonical": "https://drbastaninejad.com/contact.html",
+    "schema_type": "MedicalClinic",
+    "keywords": "کلینیک دکتر شاهین باستانی نژاد، تماس، آدرس، هزینه عمل بینی تهران"
+  },
+
+  "/booking": {
+    "title": "نوبت‌گیری آنلاین | کلینیک دکتر شاهین باستانی نژاد",
+    "description": "نوبت‌گیری آنلاین و تشکیل پرونده دیجیتال در کلینیک دکتر شاهین باستانی نژاد — فرایند ساده و کاملاً امن.",
+    "og_image": "/assets/images/drinsuit-min.jpg",
+    "canonical": "https://drbastaninejad.com/booking.html",
+    "schema_type": "MedicalBusiness",
+    "keywords": "نوبت‌گیری آنلاین جراحی بینی، پذیرش دیجیتال"
+  },
+
+  "/blog": {
+    "title": "مقالات آموزشی جراحی بینی | دکتر شاهین باستانی نژاد",
+    "description": "مقالات تخصصی در مورد جراحی بینی، مراقبت‌های قبل و بعد از عمل، انواع روش‌های جراحی بینی و پاسخ به سوالات رایج بیماران.",
+    "og_image": "/assets/images/dr-shahin-bastaninejad-min.webp",
+    "canonical": "https://drbastaninejad.com/blog.html",
+    "schema_type": "Blog",
+    "keywords": "مقاله جراحی بینی، آموزش جراحی بینی، راهنمای جراحی بینی"
+  }
+}
