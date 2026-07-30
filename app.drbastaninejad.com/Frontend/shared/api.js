@@ -236,9 +236,10 @@ export const Intake = {
 // ---------------------------------------------------------------------------
 export const Patient = {
   /**
-   * GET /api/v1/patient/overview
-   * Returns upcoming appointment count + last intake summary.
-   * BLOCKING QUESTION: endpoint not yet in API_CONTRACT.md — renders placeholder.
+   * GET /api/v1/patient/overview  ✅ LIVE (Phase C, 2026-07-30)
+   * Confirmed response fields from docs/API_CONTRACT.md:
+   *   patient_name, next_appointment{date_jalali,time,reason,status},
+   *   total_intakes, total_documents, last_intake_date
    */
   async getOverview() {
     return request('GET', '/patient/overview');

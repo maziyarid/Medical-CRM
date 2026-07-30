@@ -715,3 +715,70 @@ All four `pages/errors/` pages audited against Bob AI token/RTL conventions:
 - **Bob AI:** P1-A — wire `pages/patient/overview.html` → `GET /api/v1/patient/overview`
 - **Blackbox AI:** document 429 Retry-After shape in `docs/API_CONTRACT.md`
 
+
+---
+
+## [2026-07-30 — Session 4 cont.] — Track: Frontend/Product UI — Agent: Bob AI
+
+### Declaration
+Scope: Phase 3, Frontend.
+Package: P1-A — Wire `pages/patient/overview.html` to `GET /api/v1/patient/overview`.
+Files: `app.drbastaninejad.com/Frontend/pages/patient/overview.html`, `app.drbastaninejad.com/Frontend/shared/api.js`.
+Overlap check: No active PROGRESS_LOG.md entry claimed this package.
+Deployment: No production or cPanel/VPS change is authorized by this task.
+
+### Done
+
+#### P1-A — overview.html wired to confirmed API contract
+
+**API contract (Confirmed from `docs/API_CONTRACT.md` §GET /patient/overview):**
+- `patient_name` — greeting and avatar initials
+- `next_appointment.{date_jalali, time, reason, status}` — next upcoming appointment object or null
+- `total_intakes` — integer
+- `total_documents` — integer
+- `last_intake_date` — Jalali string or null
+- **NOT in contract**: `reminders`, `upcoming_appointments` (list), `full_name`, `emr_count`, `docs_count` — previous script invented these; all removed
+
+**overview.html changes:**
+- Comment updated: `⚠️ PENDING → ✅ LIVE` with confirmed field list
+- `loadOverview()` rewritten against confirmed field names only:
+  - `fillAvatar()` called with `d.patient_name` (was `d.full_name || d.name`)
+  - Next appointment KPI renders `appt.date_jalali` and `appt.time` exactly as returned — no re-conversion through `jalali.js`
+  - `total_intakes` → `ov-records` (was `emr_count`); `last_intake_date` → sub-label (was `last_emr_jalali`)
+  - `total_documents` → `ov-docs` (was `docs_count`)
+  - Upcoming list: overview returns single `next_appointment`, not a list — renders correctly
+  - Appointment status pill: **raw value only, no hardcoded Persian label** — status vocabulary unconfirmed per governance
+  - Reminders panel: static placeholder (overview contract returns no reminders field)
+  - `404/501` pending-backend catch removed — endpoint is live; all non-401 errors go to error state
+  - `escHtml()` helper added — all user-data rendered via `innerHTML` is escaped
+- No `pending` state path remains (the endpoint is live; `slot-pending` HTML preserved in case it's needed for other pages but will never be set by this script)
+
+**shared/api.js changes:**
+- `Patient.getOverview()` comment updated: "BLOCKING QUESTION" removed, confirmed field list added
+
+### API/design notes
+
+| Item | Status |
+|---|---|
+| `patient_name`, `total_intakes`, `total_documents`, `last_intake_date` | **Confirmed** |
+| `next_appointment.date_jalali`, `.time`, `.reason` | **Confirmed** |
+| `next_appointment.status` (raw value rendered) | **Confirmed code exists; vocabulary/labels** → Assumed, needs confirmation |
+| `reminders` list | Not in contract — static placeholder shown |
+| Persian display labels for appointment status | **Unconfirmed** — Backend requirements note written |
+
+### Backend requirements for Blackbox AI
+
+**Appointment status enum labels** — `next_appointment.status` and `GET /patient/appointments` items return a status string. The frontend renders it as-is (raw value). To render Persian-friendly labels (e.g. "تأیید شده", "در انتظار"), please add the full status enum with Persian display values to `docs/API_CONTRACT.md §GET /patient/overview` and `§GET /patient/appointments`.
+
+### Files touched
+- `app.drbastaninejad.com/Frontend/pages/patient/overview.html` — UPDATED (field names corrected, escHtml added, pending-state catch removed)
+- `app.drbastaninejad.com/Frontend/shared/api.js` — UPDATED (Patient.getOverview() comment corrected)
+
+### Blocked / open
+- Appointment status enum labels — pending Blackbox AI documentation
+- All deployment-gated files remain `??` untracked
+
+### Next
+- **Bob AI:** P1-B — wire `pages/patient/profile.html` → `GET /api/v1/patient/profile`
+- **Blackbox AI:** add appointment status enum to `docs/API_CONTRACT.md`
+

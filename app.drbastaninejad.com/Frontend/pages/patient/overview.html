@@ -1,10 +1,12 @@
 <!doctype html>
 <!--
-  MΛZ Medical CRM — Patient Overview (Production-wired)
+  MΛZ Medical CRM — Patient Overview
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  API:  GET /patient/overview  ⚠️ PENDING — renders pending-backend state until live
+  API:  GET /api/v1/patient/overview  ✅ LIVE (2026-07-30, Blackbox AI Phase C)
+  Response shape confirmed in docs/API_CONTRACT.md §GET /patient/overview:
+    patient_name, next_appointment{date_jalali,time,reason,status},
+    total_intakes, total_documents, last_intake_date
   Note: requireAuth() guard redirects to patient-login if no token.
-        Once the endpoint is live, data-state will flip from pending → ready automatically.
 -->
 <html dir="rtl" lang="fa">
 <head>
@@ -165,66 +167,75 @@
       MAZCRM.states.set(host, 'loading');
       try {
         const res = await Patient.getOverview();
-        const d   = res.data || {};
+        // Confirmed field names from docs/API_CONTRACT.md §GET /patient/overview
+        const d = res.data || {};
 
-        // Avatar / greeting
-        fillAvatar(d.full_name || d.name || '');
+        // Avatar / greeting — field: patient_name (confirmed)
+        fillAvatar(d.patient_name || '');
 
-        // KPI values
-        document.getElementById('ov-next-appt').textContent =
-          d.next_appointment_jalali || d.next_appointment || '—';
-        document.getElementById('ov-next-reason').textContent =
-          d.next_appointment_reason || '—';
+        // KPI: next appointment — field: next_appointment{date_jalali,time,reason,status}
+        const appt = d.next_appointment;
+        if (appt) {
+          // date_jalali and time returned as display strings — render exactly as received
+          const apptDisplay = [appt.date_jalali, appt.time ? ('ساعت ' + appt.time) : null]
+            .filter(Boolean).join(' — ');
+          document.getElementById('ov-next-appt').textContent = apptDisplay || '—';
+          document.getElementById('ov-next-reason').textContent = appt.reason || '—';
+          /*
+           * appointment status label:
+           * Assumed: status vocabulary unconfirmed in governance docs — rendered
+           * as raw API value only; no hardcoded Persian translation.
+           * Backend requirements note: please document the full status enum
+           * (values + Persian display labels) in docs/API_CONTRACT.md.
+           */
+        } else {
+          document.getElementById('ov-next-appt').textContent = 'نوبتی ثبت نشده';
+          document.getElementById('ov-next-reason').textContent = '';
+        }
+
+        // KPI: total intakes — field: total_intakes (confirmed)
         document.getElementById('ov-records').textContent =
-          toFa(d.emr_count ?? d.records_count ?? '—');
+          d.total_intakes != null ? toFa(d.total_intakes) : '—';
         document.getElementById('ov-records-sub').textContent =
-          d.last_emr_jalali ? ('آخرین: ' + d.last_emr_jalali) : '—';
-        document.getElementById('ov-docs').textContent =
-          toFa(d.documents_count ?? d.docs_count ?? '—');
+          d.last_intake_date ? ('آخرین: ' + d.last_intake_date) : '—';
 
-        // Upcoming appointments list
-        const upcoming = d.upcoming_appointments || [];
-        const pillMap  = {
-          confirmed: ['evergreen', 'تأیید شده'],
-          scheduled: ['info',      'در انتظار تأیید'],
-          pending:   ['warning',   'در انتظار'],
-        };
+        // KPI: total documents — field: total_documents (confirmed)
+        document.getElementById('ov-docs').textContent =
+          d.total_documents != null ? toFa(d.total_documents) : '—';
+
+        // Overview returns a single next_appointment only (not a list).
+        // Display it in the upcoming list if present.
         const list = document.getElementById('ov-upcoming-list');
-        list.innerHTML = upcoming.length
-          ? upcoming.slice(0, 3).map(a => {
-              const st = pillMap[a.status] || ['muted', a.status || '—'];
-              return '<div role="listitem" style="display:flex;align-items:center;gap:1rem;' +
-                'padding:.9rem 0;border-bottom:1px solid var(--border);">' +
-                '<div style="min-width:0;flex:1">' +
-                  '<strong style="display:block;font-size:.9rem">' + (a.reason || a.title || '—') + '</strong>' +
-                  '<span style="font-size:.78rem;color:var(--muted)">' +
-                    (a.date_jalali || a.date || '') +
-                    (a.time ? ' — ساعت ' + a.time : '') +
-                  '</span>' +
-                '</div>' +
-                '<span class="pill ' + st[0] + '">' + st[1] + '</span>' +
-              '</div>';
-            }).join('')
-          : '<div class="state-panel state-empty" role="status" style="padding:1rem 0">' +
+        if (appt) {
+          const apptDisplay = [appt.date_jalali, appt.time ? ('ساعت ' + appt.time) : null]
+            .filter(Boolean).join(' — ');
+          list.innerHTML =
+            '<div role="listitem" style="display:flex;align-items:center;gap:1rem;' +
+            'padding:.9rem 0;border-bottom:1px solid var(--border);">' +
+            '<div style="min-width:0;flex:1">' +
+              '<strong style="display:block;font-size:.9rem">' + escHtml(appt.reason || '—') + '</strong>' +
+              '<span style="font-size:.78rem;color:var(--muted)">' + escHtml(apptDisplay) + '</span>' +
+            '</div>' +
+            /* status: render raw value — vocabulary not confirmed, no hardcoded labels */
+            (appt.status
+              ? '<span class="pill muted" style="font-size:.72rem">' + escHtml(appt.status) + '</span>'
+              : '') +
+            '</div>';
+        } else {
+          list.innerHTML =
+            '<div class="state-panel state-empty" role="status" style="padding:1rem 0">' +
               '<h3 style="font-size:.9rem">نوبت آینده‌ای ثبت نشده است</h3>' +
             '</div>';
+        }
 
-        // Reminders list
-        const reminders = d.reminders || [];
-        const remEl = document.getElementById('ov-reminders');
-        remEl.innerHTML = reminders.map(r =>
-          '<li style="padding:.75rem;background:var(--info-soft);' +
-          'border-radius:var(--radius-md);font-size:.85rem">' +
-          (r.icon ? r.icon + ' ' : '') + r.text +
-          '</li>'
-        ).join('') || '<li style="color:var(--muted);font-size:.85rem">یادآوری فعالی وجود ندارد.</li>';
+        // Reminders panel: overview endpoint does not return reminders —
+        // show a static placeholder.
+        document.getElementById('ov-reminders').innerHTML =
+          '<li style="color:var(--muted);font-size:.85rem">یادآوری فعالی وجود ندارد.</li>';
 
         MAZCRM.states.set(host, 'ready');
       } catch (err) {
-        // 404 / 501 = endpoint not yet deployed
-        if (err.httpStatus === 404 || err.httpStatus === 501 || err.httpStatus === 501) {
-          MAZCRM.states.set(host, 'pending');
-        } else if (err.httpStatus === 401) {
+        if (err.httpStatus === 401) {
           window.location.replace('../auth/patient-login.html');
         } else {
           document.getElementById('ov-error-msg').textContent =
@@ -233,6 +244,13 @@
         }
       }
     };
+
+    // Minimal HTML escape for user-supplied strings rendered via innerHTML
+    function escHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
 
     loadOverview();
   </script>
