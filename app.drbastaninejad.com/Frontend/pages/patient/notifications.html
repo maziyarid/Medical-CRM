@@ -201,7 +201,7 @@
             <p id="notif-error-msg">لطفاً دوباره تلاش کنید.</p>
             <div class="state-actions">
               <button type="button" class="btn btn-secondary btn-sm"
-                      onclick="loadNotifs()">تلاش مجدد</button>
+                      id="notif-retry-btn">تلاش مجدد</button>
             </div>
           </div>
         </div>
@@ -237,7 +237,10 @@
       };
     }
 
-    window.loadNotifs = async function () {
+    document.getElementById('notif-retry-btn')
+      .addEventListener('click', () => loadNotifs());
+
+    async function loadNotifs() {
       const host = document.getElementById('notif-host');
       MAZCRM.states.set(host, 'loading');
 
@@ -268,7 +271,7 @@
 
       // Always show the form (PATCH is live)
       MAZCRM.states.set(host, 'ready');
-    };
+    }
 
     // ── PATCH /patient/notification-preferences ✅ LIVE ─────────────────────
     document.getElementById('notif-form').addEventListener('submit', async function (e) {

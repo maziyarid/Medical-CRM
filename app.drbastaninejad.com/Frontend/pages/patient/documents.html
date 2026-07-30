@@ -120,7 +120,7 @@
             <p id="docs-error-msg">لطفاً دوباره تلاش کنید.</p>
             <div class="state-actions">
               <button type="button" class="btn btn-secondary btn-sm"
-                      onclick="loadDocuments()">تلاش مجدد</button>
+                      id="docs-retry-btn">تلاش مجدد</button>
             </div>
           </div>
         </div>
@@ -165,7 +165,10 @@
       return new Date(doc.url_expires_at) < new Date();
     }
 
-    window.loadDocuments = async function () {
+    document.getElementById('docs-retry-btn')
+      .addEventListener('click', () => loadDocuments());
+
+    async function loadDocuments() {
       const host = document.getElementById('docs-host');
       MAZCRM.states.set(host, 'loading');
       try {
@@ -223,7 +226,7 @@
           MAZCRM.states.set(host, 'error');
         }
       }
-    };
+    }
 
     loadDocuments();
   </script>

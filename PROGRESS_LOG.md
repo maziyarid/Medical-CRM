@@ -1148,3 +1148,178 @@ The following images are now referenced in HTML. Product owner copies from WordP
 - **Bob AI Package 7:** `contact.html` — structure complete, verified; no rebuild needed
 - **Bob AI Package 8:** `booking.html` — structure complete, verified; no rebuild needed
 - **Infrastructure:** Implement Nginx redirect rules from `docs/redirect-map.md` after UTF-8 URL handling confirmed
+
+---
+
+## [2026-07-31] — Track: Backend/Database/Platform — Agent: Blackbox AI
+Phase: Governance audit + duplicate-service reconciliation + test coverage
+
+**Scope:** Git integrity audit (Steps 1–4 of governance prompt), service reconciliation, PHPUnit stubs, onclick removal.
+**Deployment gate:** NOT satisfied — no production/cPanel/VPS action authorized.
+**Gated files:** All 6 remain `??` untracked throughout — correct.
+
+---
+
+### Pre-session governance audit (Steps 1–4)
+
+**Commands run:**
+
+```
+git log origin/main -3 --stat
+git show HEAD:app.drbastaninejad.com/Frontend/pages/intake/intake.html | wc -l
+git diff origin/main~1 origin/main -- app.drbastaninejad.com/Frontend/pages/intake/intake.html
+git show --stat HEAD | grep -iE "signatures|\.png|app_private|Backup|\.bak|app\.log"
+git show --stat HEAD | grep -iE "Router\.php|Request\.php|public/index\.php|\.htaccess|migrations/007"
+```
+
+**Findings:**
+
+| Question | Answer |
+|---|---|
+| `origin/main` HEAD | `8017254` — Bob AI Package 1 (marketing site) |
+| `intake.html` line count at HEAD | **603 lines** — unchanged from commit `418c374` |
+| `git diff origin/main~1 origin/main -- intake.html` | **Zero output** — intake.html was NOT modified in last 2 commits |
+| (a) Was intake.html regressed? | **NO.** 603 lines, untouched by commits `8e2a0ce` or `8017254`. Last touched: `418c374` (correct canonical). No regression. |
+| (b) Gated files on main? | **NO.** `--name-only` grep: zero matches. All 6 gated files `??` untracked. |
+| (c) PII paths on main? | **NO.** Only `.png` hit was in commit *message* body text (`namad-logo-n1.png`), not a committed file path. |
+| (d) Pushed to origin/main? | **YES** — but since (a)(b)(c) are clean, no remediation required. |
+
+**Conclusion: main is clean. The scenario described in the prompt did not occur.**
+No CONFLICT entry created. No force-push or revert required. No product-owner escalation needed.
+
+---
+
+### Work completed this session
+
+#### 1. Duplicate OtpService reconciliation
+
+**Decision:** `app.drbastaninejad.com/Backend/app/Services/OtpService.php` is the ONE canonical OtpService.
+
+**Rationale:**
+- Both files had identical SQL, bcrypt storage, and token issuance logic.
+- The canonical (`app.*`) adds dev-mode OTP logging (`if APP_ENV !== production`) — a deployment-gate requirement benefit absent from the dashboard copy.
+- The `app_private/src/OtpService.php` mentioned in UNIFIED_MASTER_PLAN.md is not present in the git repository (excluded by `.gitignore` or never committed).
+
+**Action:** `dashboard.drbastaninejad.com/app/Services/OtpService.php` replaced with a tombstone that `require_once`s the canonical via `APP_ROOT` constant. The class remains available under `App\Services\OtpService` for any existing dashboard imports. File will be deleted entirely when Phase D merges the two backends.
+
+**Files touched:**
+- `dashboard.drbastaninejad.com/app/Services/OtpService.php` — RETIRED (tombstone)
+- `app.drbastaninejad.com/Backend/app/Services/OtpService.php` — CANONICAL (unchanged)
+
+---
+
+#### 2. Duplicate GoogleSheetsService reconciliation
+
+**Decision:** `app.drbastaninejad.com/Backend/app/Services/GoogleSheetsService.php` is the ONE canonical GoogleSheetsService.
+
+**Rationale:** The dashboard copy was strictly inferior:
+- Used a narrow 11-column schema (A–K) vs. the canonical 23-column SmartFormat schema (A–W) required by UNIFIED_MASTER_PLAN.md §4.
+- Threw `RuntimeException` on failure — violating the never-throws contract (`appendIntake` must return `'ok'|'skipped'|'failed'`).
+- No APCu token-cache namespace safety (used key `gsheets_token` vs. `gsheets_token_app` in canonical — would collide if both backends ever ran on the same server).
+
+**Action:** `dashboard.drbastaninejad.com/app/Services/GoogleSheetsService.php` replaced with a tombstone. File will be deleted entirely when Phase D merges the two backends.
+
+**Files touched:**
+- `dashboard.drbastaninejad.com/app/Services/GoogleSheetsService.php` — RETIRED (tombstone)
+- `app.drbastaninejad.com/Backend/app/Services/GoogleSheetsService.php` — CANONICAL (unchanged)
+
+---
+
+#### 3. PHPUnit test stubs — `PATCH /patient/profile` validation
+
+**File:** `app.drbastaninejad.com/Backend/tests/Unit/PatientPortalControllerTest.php` (NEW)
+
+**Approach:** `PatientPortalController` is `final` and calls `exit` in `json()`/`error()` — cannot be subclassed for unit tests without a refactor. Instead, the validation logic (the foreach loop over `['email', 'home_tel', 'home_address']`) is mirrored in a private `runValidation()` helper in the test class, kept in sync with the controller. This pattern is documented in the test file's docblock.
+
+**Tests (13 cases):**
+
+| Test | What is verified |
+|---|---|
+| `testEmptyBodyProducesEmptyPatch` | Empty body → EMPTY_PATCH |
+| `testIdentityOnlyBodyProducesEmptyPatch` | national_id/mobile/first_name silently ignored → EMPTY_PATCH |
+| `testUnknownFieldsOnlyProducesEmptyPatch` | Invented fields silently ignored → EMPTY_PATCH |
+| `testMalformedEmailProducesValidationError` | `not-an-email` → error.fields.email |
+| `testEmailTooLongProducesValidationError` | email > 120 chars → error.fields.email |
+| `testHomeTelWithDashProducesValidationError` | `021-12345678` → error.fields.home_tel |
+| `testHomeTelWithSpaceProducesValidationError` | `021 12345678` → error.fields.home_tel |
+| `testHomeTelSixteenDigitsProducesValidationError` | 16-digit tel → error.fields.home_tel |
+| `testHomeAddressTooLongProducesValidationError` | 256 × `آ` → error.fields.home_address |
+| `testNullValuesAreClearedAndPatchedCorrectly` | null for all 3 fields → no error, patch contains null |
+| `testEmptyStringClearsField` | `""` treated as null / clear |
+| `testValidEmailAndTelPassValidation` | `patient@example.com` + 11-digit tel → pass |
+| `testHomeAddressExactly255CharsIsAccepted` | 255-char boundary → pass |
+| `testHomeTelExactly15DigitsIsAccepted` | 15-digit boundary → pass |
+| `testMixedBodyIgnoresIdentityFields` | Valid email + identity fields → only email in patch |
+
+---
+
+#### 4. `documents.html` — `onclick` attribute removed
+
+**File:** `app.drbastaninejad.com/Frontend/pages/patient/documents.html`
+
+- Retry button: `onclick="loadDocuments()"` removed; `id="docs-retry-btn"` added.
+- `addEventListener('click', ...)` added in script block.
+- `window.loadDocuments = async function` → `async function loadDocuments` (scoped declaration).
+- Trailing `};` on function expression replaced with `}` on declaration.
+
+**Reason:** Inline `onclick` attribute violates the project's no-inline-handler rule (SPACE_COORDINATION_PROTOCOL.md) and mirrors the pattern already applied to `appointments.html`.
+
+---
+
+#### 5. `notifications.html` — `onclick` attribute removed
+
+**File:** `app.drbastaninejad.com/Frontend/pages/patient/notifications.html`
+
+- Same pattern as documents.html above.
+- Retry button: `onclick="loadNotifs()"` → `id="notif-retry-btn"` + `addEventListener`.
+- `window.loadNotifs = async function` → `async function loadNotifs` (scoped declaration).
+- Trailing `};` corrected to `}`.
+
+---
+
+### API contract / version status
+
+| Contract | Version | Status |
+|---|---|---|
+| `docs/API_CONTRACT.md` (app.*) | v1.2 | Current — PATCH /patient/profile added last session |
+| `dashboard.drbastaninejad.com/docs/API_CONTRACT.md` | v1.2 | Current — different envelope (`ok` vs `success`) — intentional, not a conflict |
+
+No version mismatch detected. The two contracts are for different subdomains and intentionally different envelopes.
+
+---
+
+### Files touched this session
+
+| File | Action |
+|---|---|
+| `dashboard.drbastaninejad.com/app/Services/OtpService.php` | RETIRED → tombstone (forwards to canonical) |
+| `dashboard.drbastaninejad.com/app/Services/GoogleSheetsService.php` | RETIRED → tombstone (forwards to canonical) |
+| `app.drbastaninejad.com/Backend/tests/Unit/PatientPortalControllerTest.php` | NEW — 13 validation tests for PATCH /patient/profile |
+| `app.drbastaninejad.com/Frontend/pages/patient/documents.html` | UPDATED — onclick removed → addEventListener; function scoped |
+| `app.drbastaninejad.com/Frontend/pages/patient/notifications.html` | UPDATED — onclick removed → addEventListener; function scoped |
+
+**Not touched:** Any gated file, any PII file, any frontend design token, any HTML/CSS layout, any route name, any `.env`.
+
+---
+
+### Deployment gate status
+
+`docs/DEPLOYMENT_GATE.md` — **NOT signed off.** All checklist items remain incomplete.
+No production action authorized. No cPanel/VPS action taken.
+
+---
+
+### Blocked / open
+
+1. **Product owner:** Sign off on dashboard duplicate-backend question to unblock P3 staff wiring.
+2. **Bob AI:** Confirm pill CSS class names for `appointments.html` (BEM convention — `pill--evergreen` vs `pill-evergreen`).
+3. **Bob AI:** Uncomment PATCH block in `profile.html` (contract confirmed, endpoint live).
+4. **Bob AI:** Wire `documents.html` — endpoint IS live (`GET /patient/documents`); frontend `slot-pending` should now switch to `slot-ready` on success. The `loadDocuments()` function is fully wired — only the `window.` scope issue has been fixed.
+5. **Bob AI:** Wire `notifications.html` — both `GET` and `PATCH` notification-preferences are live.
+6. **Infrastructure:** `CDN_BASE_URL` not set in `.env.example` — `PatientMediaModel` will return `null` for `signed_url` until set.
+
+### Next (Blackbox AI)
+
+1. Write Integration test: `POST /api/v1/intakes` happy path (requires `.env.testing` with test DB).
+2. Write `IntakeModelTest` coverage for `failed_confirmed` and `outcome_unknown` states (DEPLOYMENT_GATE §3).
+3. Update `docs/DEPLOYMENT_GATE.md` checklist items §3 as unit tests are completed.
