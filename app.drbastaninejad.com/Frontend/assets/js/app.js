@@ -167,6 +167,22 @@
     };
   }
 
+  /* ---------- HTML escape (shared by all patient-portal pages from P1-B onward) --
+   *
+   * Rule (SPACE_COORDINATION_PROTOCOL §6): Every server-returned string written
+   * into the DOM via .innerHTML or a template literal must pass through escHtml().
+   * Define once here; reference as MAZCRM.escHtml(str) on every page.
+   * Do NOT redefine per-page.
+   */
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   /* ---------- Export ---------- */
   global.MAZCRM = {
     toEnDigits: toEnDigits,
@@ -178,6 +194,7 @@
     toast: toast,
     api: api,
     initSignaturePad: initSignaturePad,
+    escHtml: escHtml,
     version: '1.0.0-mvp',
     author: 'MAZ//ID'
   };

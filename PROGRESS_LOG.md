@@ -782,3 +782,94 @@ Deployment: No production or cPanel/VPS change is authorized by this task.
 - **Bob AI:** P1-B — wire `pages/patient/profile.html` → `GET /api/v1/patient/profile`
 - **Blackbox AI:** add appointment status enum to `docs/API_CONTRACT.md`
 
+
+---
+
+## [2026-07-30 — Session 5] — Track: Frontend/Product UI — Agent: Bob AI
+
+### Declaration
+Scope: Phase 3, Frontend.
+Package: P1-B — Wire `patient/profile.html` to `GET /api/v1/patient/profile`; api.js 401/403/422/500 audit; add `escHtml()` to `app.js`; correct invented field refs; dirty-state detection; 403 navigation.
+Files: `app.drbastaninejad.com/Frontend/pages/patient/profile.html`, `app.drbastaninejad.com/Frontend/assets/js/app.js`.
+Overlap check: No active PROGRESS_LOG.md entry claimed this package.
+Deployment: No production or cPanel/VPS change is authorized by this task.
+
+### api.js / shared/api.js 401/403/422/500 audit (mandatory pre-condition)
+
+| Condition | `assets/js/api.js` (staff, XHR-based) | `shared/api.js` (patient portal, ES module) | Gap? |
+|---|---|---|---|
+| **401** | `session.expire(scope)` → `mazcrm:session-expired` event → sticky banner + redirect link | throws `{httpStatus:401}` → page catch → `window.location.replace(login)` | ✅ Both handled |
+| **403** | `fromError(403)` → `'forbidden'` state in states.js; **no redirect to 403.html** | throws `{httpStatus:403}` → **was not caught separately by profile.html** — page fell through to generic error state | ⚠️ **Gap fixed this session** — profile.html and overview.html now redirect to `../errors/403.html` on 403 |
+| **422** | `ApiError.errors = envelope.errors` (array `[{field,message}]`) — dashboard envelope | throws `{httpStatus:422, raw:{success:false,error:{code,fields:{}}}}` — app envelope | No mismatch for patient portal path (uses `shared/api.js`). Dashboard track uses `assets/js/api.js` — held until duplicate-controller resolved |
+| **500/network** | `onerror` → `ApiError(0, isOffline:true)`; timeout → `ApiError(0)`; non-2xx → `ApiError(status)` | `err.message` shown (no server detail) | ✅ Both handled |
+
+### Done
+
+#### app.js — `escHtml()` added (shared utility, P1-B onward)
+- `MAZCRM.escHtml(s)` escapes `&`, `<`, `>`, `"`, `'`
+- Exported to `global.MAZCRM.escHtml` — referenced as `const esc = MAZCRM.escHtml` on every portal page
+- **Do NOT redefine per page** — use this single instance
+
+#### profile.html — fully corrected
+
+**Confirmed fields (docs/API_CONTRACT.md §GET /patient/profile):**
+`first_name`, `last_name`, `father_name`, `national_id`, `birth_date`, `mobile`, `email`, `home_tel` (**confirmed** — migration 008 and API contract both include it), `home_address`
+
+**Removed invented fields (not in contract):** `city`, `appointments_count`, `emr_count`, `medical_history[]`, `medications[]`
+
+**Never rendered:** `password_hash`, `staff_notes`, `storage_path`
+
+**PII handling:** `national_id` displayed masked (`XXX***X`) — full value never in DOM
+
+**Editable fields:** `email`, `home_tel`, `home_address` — all start `disabled`; enabled only when user clicks "ویرایش"
+
+**Read-only identity fields:** `first_name`, `last_name`, `mobile`, `birth_date`, `father_name`, `national_id`
+
+**Dirty-state detection:**
+- `_snapshot` stores last server-loaded or last-saved values of the three editable fields
+- `isDirty()` compares live inputs against `_snapshot`
+- `updateSnapshot()` called after successful load (and will be called after successful save once PATCH is documented)
+- `cancelEdit()` restores inputs to `_snapshot` values
+
+**403 navigation:** `loadProfile()` catch now explicitly redirects to `../errors/403.html` — not just the generic error state
+
+**PATCH /api/v1/patient/profile:**
+- **NOT in docs/API_CONTRACT.md** — no request is sent
+- Submit handler shows `patch-pending-note` + Backend requirements notice
+- Full wired implementation provided as commented block, ready to uncomment once Blackbox AI documents the route
+
+**`onclick` attributes removed:** Edit toggle uses `data-editing="0/1"` + `addEventListener`; cancel uses `addEventListener`
+
+**`escHtml` applied:** `err.message` in error display; field values via `.value` (safe); no `innerHTML` with server strings on this page
+
+### API/design notes
+
+| Item | Status |
+|---|---|
+| `first_name`, `last_name`, `father_name`, `national_id`, `birth_date`, `mobile` | **Confirmed** — read-only |
+| `email`, `home_tel`, `home_address` | **Confirmed** — `home_tel` confirmed via docs/API_CONTRACT.md + migration 008 |
+| `birth_date` rendered as Jalali string exactly as returned | **Confirmed** — per contract |
+| PATCH /api/v1/patient/profile — method, allowed fields, 422 shape | **Not in contract** — Backend requirements note below |
+| `appointments_count`, `emr_count`, `medical_history`, `medications` | **Not in contract** — removed |
+
+### Backend requirements for Blackbox AI
+
+**`PATCH /api/v1/patient/profile`** — The patient profile page has a save button and dirty-state detection ready. To wire it, please add to `docs/API_CONTRACT.md`:
+1. Method: `PUT` vs `PATCH` (partial update preferred)
+2. Route: `/api/v1/patient/profile`
+3. Allowed fields: confirm which of `email`, `home_tel`, `home_address` are writable; confirm `national_id` and `mobile` are NOT writable by the patient
+4. 422 field-level error shape: `{"success":false,"error":{"code":"VALIDATION_FAILED","fields":{"email":"...","home_tel":"..."}}}`
+5. Success response: `200` with the updated profile data (or just `{"success":true}`)
+
+### Files touched
+- `app.drbastaninejad.com/Frontend/assets/js/app.js` — UPDATED (`escHtml()` added, exported as `MAZCRM.escHtml`)
+- `app.drbastaninejad.com/Frontend/pages/patient/profile.html` — UPDATED (confirmed fields, dirty detection, 403 nav, escHtml, no invented fields, PATCH pending note)
+
+### Blocked / open
+- `PATCH /api/v1/patient/profile` — save action intentionally disabled; wired block in comments awaiting Blackbox AI contract
+- All deployment-gated files remain `??` untracked
+
+### Next
+- **Bob AI:** P1-C — wire `patient/appointments.html` → `GET /api/v1/patient/appointments`
+- **Blackbox AI:** document `PATCH /api/v1/patient/profile` in `docs/API_CONTRACT.md`
+

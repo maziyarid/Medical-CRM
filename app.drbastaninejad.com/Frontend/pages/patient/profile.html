@@ -1,11 +1,14 @@
 <!doctype html>
 <!--
-  MΛZ Medical CRM — Patient Profile (Production-wired)
+  MΛZ Medical CRM — Patient Profile
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  API:  GET  /patient/profile   ⚠️ PENDING — renders pending-backend state until live
-        PATCH /patient/profile  ⚠️ PENDING — save button renders pending-backend state
-  Note: requireAuth() guard; pending states rendered per-section, not whole-page,
-        so the page structure remains navigable even when the API is not yet live.
+  API:  GET /api/v1/patient/profile  ✅ LIVE (2026-07-30, Blackbox AI Phase C)
+  Confirmed response fields (docs/API_CONTRACT.md §GET /patient/profile):
+    first_name, last_name, father_name, national_id, birth_date,
+    mobile, email, home_tel, home_address
+  PUT/PATCH /api/v1/patient/profile: NOT in docs/API_CONTRACT.md — save button
+    shows Backend requirements note; no request is sent until endpoint is documented.
+  Note: requireAuth() guard; 403 navigates to pages/errors/403.html.
 -->
 <html dir="rtl" lang="fa">
 <head>
@@ -105,7 +108,7 @@
             <div class="state-icon" aria-hidden="true">⏳</div>
             <h3>در انتظار پیاده‌سازی بک‌اند</h3>
             <p>
-              پروفایل به <code>GET /patient/profile</code> متکی است که هنوز پیاده‌سازی نشده.
+              پروفایل به <code>GET /api/v1/patient/profile</code> متکی است که هنوز پیاده‌سازی نشده.
               پس از استقرار اندپوینت، اطلاعات شما اینجا نمایش داده می‌شود.
             </p>
             <div class="state-actions">
@@ -150,70 +153,133 @@
                     <p>این اطلاعات از فرم تشکیل پرونده اولیه شما دریافت شده است.</p>
                   </div>
                   <button class="btn btn-ghost btn-sm" id="btn-edit-toggle"
-                          onclick="toggleEdit()">ویرایش</button>
+                          data-editing="0">ویرایش</button>
                 </div>
+                <!--
+                  Editable fields per docs/API_CONTRACT.md §GET /patient/profile:
+                    email, home_tel, home_address — user can edit these
+                  Read-only (identity) fields per contract:
+                    first_name, last_name, father_name, national_id, birth_date, mobile
+                  NOT in contract (do not render): city, appointments_count, emr_count,
+                    medical_history[], medications[], password_hash, staff_notes, storage_path
+                -->
                 <form id="profile-form" novalidate>
                   <div class="grid-2">
+                    <!-- Read-only identity fields -->
                     <div class="input-group">
                       <label class="form-label" for="pf-first">نام</label>
-                      <input class="form-input" id="pf-first" name="first_name" disabled/>
+                      <input class="form-input" id="pf-first" name="first_name"
+                             disabled aria-readonly="true"/>
                     </div>
                     <div class="input-group">
                       <label class="form-label" for="pf-last">نام خانوادگی</label>
-                      <input class="form-input" id="pf-last" name="last_name" disabled/>
+                      <input class="form-input" id="pf-last" name="last_name"
+                             disabled aria-readonly="true"/>
                     </div>
                     <div class="input-group">
-                      <label class="form-label">شماره همراه (تأییدشده)</label>
-                      <input class="form-input" id="pf-mobile" disabled
-                             style="direction:ltr;text-align:right"/>
+                      <label class="form-label" for="pf-mobile">شماره همراه (تأییدشده)</label>
+                      <input class="form-input" id="pf-mobile"
+                             disabled aria-readonly="true"
+                             style="direction:ltr;text-align:end"/>
                     </div>
                     <div class="input-group">
+                      <label class="form-label" for="pf-dob">تاریخ تولد</label>
+                      <input class="form-input" id="pf-dob"
+                             disabled aria-readonly="true"/>
+                    </div>
+                    <!-- Editable fields -->
+                    <div class="input-group" id="grp-email">
                       <label class="form-label" for="pf-email">ایمیل</label>
-                      <input class="form-input" id="pf-email" name="email" type="email"
-                             style="direction:ltr;text-align:right"/>
+                      <input class="form-input" id="pf-email" name="email"
+                             type="email" autocomplete="email"
+                             disabled
+                             style="direction:ltr;text-align:end"
+                             aria-describedby="err-email"/>
+                      <span class="form-error" id="err-email" role="alert"></span>
                     </div>
-                    <div class="input-group">
-                      <label class="form-label">تاریخ تولد</label>
-                      <input class="form-input" id="pf-dob" disabled/>
-                    </div>
-                    <div class="input-group">
-                      <label class="form-label">شهر</label>
-                      <input class="form-input" id="pf-city" disabled/>
+                    <div class="input-group" id="grp-home-tel">
+                      <label class="form-label" for="pf-home-tel">تلفن منزل</label>
+                      <input class="form-input" id="pf-home-tel" name="home_tel"
+                             type="tel" inputmode="numeric"
+                             disabled
+                             style="direction:ltr;text-align:end"
+                             aria-describedby="err-home-tel"/>
+                      <span class="form-error" id="err-home-tel" role="alert"></span>
                     </div>
                   </div>
-                  <div id="form-actions" style="display:none;justify-content:flex-end;gap:.5rem;margin-top:.5rem">
+                  <!-- home_address — full width -->
+                  <div class="input-group" id="grp-home-address" style="margin-block-start:.5rem">
+                    <label class="form-label" for="pf-home-address">آدرس</label>
+                    <input class="form-input" id="pf-home-address" name="home_address"
+                           disabled
+                           aria-describedby="err-home-address"/>
+                    <span class="form-error" id="err-home-address" role="alert"></span>
+                  </div>
+
+                  <div id="form-actions"
+                       style="display:none;justify-content:flex-end;gap:.5rem;margin-block-start:.5rem">
                     <button type="button" class="btn btn-secondary btn-sm"
-                            onclick="cancelEdit()">انصراف</button>
+                            id="btn-cancel-edit">انصراف</button>
                     <button type="submit" class="btn btn-primary btn-sm"
                             id="btn-save-profile">ذخیره تغییرات</button>
                   </div>
-                  <!-- PATCH /patient/profile is PENDING — shown after user clicks save -->
+
+                  <!--
+                    Backend requirements note (Bob AI → Blackbox AI):
+                    PUT or PATCH /api/v1/patient/profile is NOT documented in
+                    docs/API_CONTRACT.md. The save button currently shows this
+                    notice instead of sending a request.
+                    Please add to docs/API_CONTRACT.md:
+                      - Method (PUT vs PATCH), route, and allowed fields
+                      - 422 field-level error shape for: email, home_tel, home_address
+                      - Whether national_id/mobile are updatable (assumed: no)
+                    Until documented, the save action is intentionally disabled.
+                  -->
                   <div id="patch-pending-note" class="patch-pending" hidden>
-                    ⏳ ذخیره‌سازی به <code>PATCH /patient/profile</code> متکی است که هنوز
-                    پیاده‌سازی نشده. تغییرات شما پس از استقرار بک‌اند ذخیره خواهد شد.
+                    ⏳ ذخیره‌سازی به <code>PATCH /api/v1/patient/profile</code> متکی است که
+                    هنوز در قرارداد API مستند نشده. پس از تأیید توسط تیم فنی، فعال می‌شود.
                   </div>
-                  <div class="form-error" id="patch-error" role="alert" hidden></div>
+                  <div id="patch-save-note"
+                       style="display:none;background:var(--success-soft);border:1px solid #86efac;
+                              color:#14532d;border-radius:var(--radius-md);
+                              padding:var(--space-3) var(--space-4);font-size:.85rem;margin-block-start:.5rem"
+                       role="status" aria-live="polite"></div>
+                  <div id="patch-error" class="form-error" role="alert" style="display:none"></div>
                 </form>
               </section>
 
-              <!-- Medical summary — read-only -->
-              <section class="panel">
+              <!-- Identity fields — read-only display (father_name, national_id) -->
+              <!--
+                medical_history[], medications[], city, appointments_count, emr_count
+                are NOT in docs/API_CONTRACT.md §GET /patient/profile.
+                This section is removed. A Backend requirements note is recorded in
+                PROGRESS_LOG.md if these fields are needed in a future phase.
+              -->
+              <section class="panel" aria-labelledby="identity-heading">
                 <div class="panel-header">
                   <div>
-                    <h3>خلاصه پرونده پزشکی</h3>
-                    <p>برای اصلاح با مرکز تماس بگیرید.</p>
+                    <h3 id="identity-heading">اطلاعات هویتی</h3>
+                    <p>این اطلاعات از فرم تشکیل پرونده اولیه شما دریافت شده و قابل ویرایش نیست.</p>
                   </div>
                 </div>
-                <p class="form-label">تاریخچه پزشکی</p>
-                <div class="med-tag-list" id="med-history-tags">
-                  <span style="color:var(--muted);font-size:.82rem">بارگذاری…</span>
+                <div class="grid-2">
+                  <div class="input-group">
+                    <label class="form-label" for="pf-father">نام پدر</label>
+                    <input class="form-input" id="pf-father" disabled aria-readonly="true"/>
+                  </div>
+                  <div class="input-group">
+                    <label class="form-label" for="pf-national-id">کد ملی</label>
+                    <!--
+                      national_id is displayed masked (first 3 + last 1 digits visible)
+                      to avoid exposing the full number in the DOM.
+                      NEVER render the full unmasked national_id; it is PII.
+                    -->
+                    <input class="form-input" id="pf-national-id"
+                           disabled aria-readonly="true"/>
+                  </div>
                 </div>
-                <p class="form-label" style="margin-top:1.25rem">داروهای مصرفی</p>
-                <div class="med-tag-list" id="med-drugs-tags">
-                  <span style="color:var(--muted);font-size:.82rem">بارگذاری…</span>
-                </div>
-                <div class="readonly-note">
-                  ⚠ این اطلاعات در زمان تشکیل پرونده اولیه ثبت شده و برای اصلاح باید با پذیرش مرکز تماس بگیرید.
+                <div class="readonly-note" style="margin-block-start:1rem">
+                  ⚠ برای اصلاح اطلاعات هویتی باید با پذیرش مرکز تماس بگیرید.
                 </div>
               </section>
 
@@ -243,83 +309,206 @@
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
-    import { requireAuth, Patient, showToast } from '../../shared/api.js';
+    import { requireAuth, Patient } from '../../shared/api.js';
 
+    // ── Auth guard ────────────────────────────────────────────────────────────
     if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
 
-    let _isEditing = false;
+    const esc = MAZCRM.escHtml;  // shared utility from app.js
+    const toFa = n => String(n == null ? '—' : n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
 
+    // ── Server snapshot for dirty detection ───────────────────────────────────
+    // Stores the last successfully loaded/saved state of the three editable fields.
+    // After a successful save, this snapshot is updated so dirty detection resets.
+    let _snapshot = { email: '', home_tel: '', home_address: '' };
+
+    function isDirty() {
+      return document.getElementById('pf-email').value.trim()        !== _snapshot.email
+          || document.getElementById('pf-home-tel').value.trim()     !== _snapshot.home_tel
+          || document.getElementById('pf-home-address').value.trim() !== _snapshot.home_address;
+    }
+
+    function updateSnapshot() {
+      _snapshot = {
+        email:        document.getElementById('pf-email').value.trim(),
+        home_tel:     document.getElementById('pf-home-tel').value.trim(),
+        home_address: document.getElementById('pf-home-address').value.trim(),
+      };
+    }
+
+    // ── Populate form from confirmed API contract fields ───────────────────────
+    // Confirmed fields (docs/API_CONTRACT.md §GET /patient/profile):
+    //   first_name, last_name, father_name, national_id, birth_date,
+    //   mobile, email, home_tel, home_address
+    // NOT in contract — not rendered: city, appointments_count, emr_count,
+    //   medical_history, medications, password_hash, staff_notes, storage_path
     function populateForm(d) {
-      // Sidebar
-      const full = ((d.first_name || '') + ' ' + (d.last_name || '')).trim();
+      const first = d.first_name || '';
+      const last  = d.last_name  || '';
+      const full  = (first + ' ' + last).trim();
       const initials = full.split(' ').map(w => w[0] || '').slice(0, 2).join('');
-      document.getElementById('prof-avatar').textContent   = initials || '؟';
-      document.getElementById('prof-fullname').textContent = full || '—';
-      document.getElementById('prof-mobile').textContent   = d.mobile || '—';
-      document.getElementById('prof-stat-appts').textContent =
-        String(d.appointments_count ?? '—').replace(/\d/g, c => '۰۱۲۳۴۵۶۷۸۹'[c]);
-      document.getElementById('prof-stat-emr').textContent =
-        String(d.emr_count ?? '—').replace(/\d/g, c => '۰۱۲۳۴۵۶۷۸۹'[c]);
+
+      // Sidebar card — use .textContent (no HTML, no escaping needed)
+      document.getElementById('prof-avatar').textContent    = initials || '؟';
+      document.getElementById('prof-fullname').textContent  = full || '—';
+      document.getElementById('prof-mobile').textContent    = d.mobile || '—';
+      // Stats removed — appointments_count / emr_count are not in the profile contract.
+      // Keeping the elements hidden is better than inventing field names.
+      document.getElementById('prof-stat-appts').textContent = '—';
+      document.getElementById('prof-stat-emr').textContent   = '—';
+
       // Header chip
       document.getElementById('hdr-avatar-initials').textContent = initials || '؟';
       document.getElementById('hdr-avatar-name').textContent     = full || '—';
       document.getElementById('hdr-avatar-chip').hidden = false;
-      // Form fields
-      document.getElementById('pf-first').value  = d.first_name  || '';
-      document.getElementById('pf-last').value   = d.last_name   || '';
-      document.getElementById('pf-mobile').value = d.mobile      || '';
-      document.getElementById('pf-email').value  = d.email       || '';
-      document.getElementById('pf-dob').value    = d.birth_date_jalali || d.birth_date || '';
-      document.getElementById('pf-city').value   = d.city        || '';
-      // Medical summary tags
-      const histTags = (d.medical_history || []).map(t =>
-        '<span class="med-tag">' + t + '</span>').join('');
-      document.getElementById('med-history-tags').innerHTML =
-        histTags || '<span style="color:var(--muted);font-size:.82rem">اطلاعاتی ثبت نشده</span>';
-      const drugTags = (d.medications || []).map(t =>
-        '<span class="med-tag">' + t + '</span>').join('');
-      document.getElementById('med-drugs-tags').innerHTML =
-        drugTags || '<span style="color:var(--muted);font-size:.82rem">اطلاعاتی ثبت نشده</span>';
+
+      // Read-only identity inputs — .value is safe, no innerHTML
+      document.getElementById('pf-first').value  = esc(first);
+      document.getElementById('pf-last').value   = esc(last);
+      document.getElementById('pf-mobile').value = d.mobile || '';
+
+      // birth_date returned as Jalali string per contract — render exactly as received
+      document.getElementById('pf-dob').value = d.birth_date || '';
+
+      // father_name — read-only identity panel
+      document.getElementById('pf-father').value = d.father_name || '';
+
+      // national_id — PII: display masked (first 3 + *** + last digit)
+      // NEVER render unmasked national_id into the DOM.
+      const nid = d.national_id || '';
+      document.getElementById('pf-national-id').value = nid.length === 10
+        ? nid.slice(0, 3) + '***' + nid.slice(9)
+        : nid ? '***' : '';
+
+      // Editable fields
+      document.getElementById('pf-email').value        = d.email        || '';
+      document.getElementById('pf-home-tel').value     = d.home_tel     || '';
+      document.getElementById('pf-home-address').value = d.home_address || '';
+
+      // Update dirty-detection snapshot to match the freshly loaded server state
+      updateSnapshot();
     }
 
-    window.toggleEdit = function () {
-      _isEditing = !_isEditing;
-      document.getElementById('pf-email').disabled   = !_isEditing;
-      document.getElementById('form-actions').style.display = _isEditing ? 'flex' : 'none';
-      document.getElementById('btn-edit-toggle').textContent = _isEditing ? 'لغو' : 'ویرایش';
-      document.getElementById('patch-pending-note').hidden = true;
-      document.getElementById('patch-error').hidden = true;
-    };
+    // ── Clear inline 422 field errors ─────────────────────────────────────────
+    function clearFieldErrors() {
+      ['grp-email','grp-home-tel','grp-home-address'].forEach(function (id) {
+        const grp = document.getElementById(id);
+        if (grp) grp.classList.remove('has-error');
+      });
+      ['err-email','err-home-tel','err-home-address'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '';
+      });
+    }
 
-    window.cancelEdit = function () {
-      _isEditing = false;
-      document.getElementById('pf-email').disabled = true;
-      document.getElementById('form-actions').style.display = 'none';
-      document.getElementById('btn-edit-toggle').textContent = 'ویرایش';
-      document.getElementById('patch-pending-note').hidden = true;
-      document.getElementById('patch-error').hidden = true;
-    };
-
-    // Profile form submit → PATCH /patient/profile (PENDING)
-    document.getElementById('profile-form').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      document.getElementById('patch-pending-note').hidden = false;
-      // PATCH endpoint is PENDING — show the note and do not throw.
-      // Once backend adds PATCH /patient/profile, uncomment:
-      /*
-      const btn = document.getElementById('btn-save-profile');
-      btn.disabled = true;
-      try {
-        await Patient.updateProfile({ email: document.getElementById('pf-email').value });
-        showToast('تغییرات ذخیره شد.', 'success');
+    // ── Edit mode toggle ───────────────────────────────────────────────────────
+    document.getElementById('btn-edit-toggle').addEventListener('click', function () {
+      const editing = this.getAttribute('data-editing') === '1';
+      if (!editing) {
+        // Enter edit mode
+        this.setAttribute('data-editing', '1');
+        this.textContent = 'لغو';
+        document.getElementById('pf-email').disabled        = false;
+        document.getElementById('pf-home-tel').disabled     = false;
+        document.getElementById('pf-home-address').disabled = false;
+        document.getElementById('form-actions').style.display = 'flex';
+        clearFieldErrors();
+        document.getElementById('patch-pending-note').hidden = true;
+        document.getElementById('patch-save-note').style.display = 'none';
+        document.getElementById('patch-error').style.display = 'none';
+      } else {
         cancelEdit();
-      } catch (err) {
-        document.getElementById('patch-error').textContent = err.message;
-        document.getElementById('patch-error').hidden = false;
-      } finally { btn.disabled = false; }
-      */
+      }
     });
 
+    function cancelEdit() {
+      const btn = document.getElementById('btn-edit-toggle');
+      btn.setAttribute('data-editing', '0');
+      btn.textContent = 'ویرایش';
+      document.getElementById('pf-email').disabled        = true;
+      document.getElementById('pf-home-tel').disabled     = true;
+      document.getElementById('pf-home-address').disabled = true;
+      document.getElementById('form-actions').style.display = 'none';
+      clearFieldErrors();
+      document.getElementById('patch-pending-note').hidden = true;
+      document.getElementById('patch-save-note').style.display = 'none';
+      document.getElementById('patch-error').style.display = 'none';
+      // Restore fields to last server snapshot
+      document.getElementById('pf-email').value        = _snapshot.email;
+      document.getElementById('pf-home-tel').value     = _snapshot.home_tel;
+      document.getElementById('pf-home-address').value = _snapshot.home_address;
+    }
+
+    // ── Profile form submit ────────────────────────────────────────────────────
+    // PATCH /api/v1/patient/profile is NOT documented in docs/API_CONTRACT.md.
+    // Until Blackbox AI adds the route, the save button shows a Backend requirements
+    // notice and does NOT send any request.
+    // When the endpoint is documented, replace the body of this handler with the
+    // wired implementation (see Backend requirements note in PROGRESS_LOG.md).
+    document.getElementById('profile-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      clearFieldErrors();
+
+      // Dirty check — no network call if nothing changed
+      if (!isDirty()) {
+        cancelEdit();
+        MAZCRM.toast('تغییری وجود ندارد.', 'info');
+        return;
+      }
+
+      // PATCH route not yet in API_CONTRACT.md — show backend requirements notice
+      document.getElementById('patch-pending-note').hidden = false;
+
+      /*
+       * ── TO BE WIRED when Blackbox AI documents PATCH /api/v1/patient/profile ──
+       *
+       * const btn = document.getElementById('btn-save-profile');
+       * btn.disabled = true;
+       * btn.textContent = 'در حال ذخیره…';
+       * try {
+       *   await Patient.updateProfile({
+       *     email:        document.getElementById('pf-email').value.trim(),
+       *     home_tel:     document.getElementById('pf-home-tel').value.trim(),
+       *     home_address: document.getElementById('pf-home-address').value.trim(),
+       *   });
+       *   updateSnapshot();   // <-- reset dirty detection to new saved state
+       *   cancelEdit();
+       *   const note = document.getElementById('patch-save-note');
+       *   note.textContent = 'تغییرات با موفقیت ذخیره شد.';
+       *   note.style.display = 'block';
+       *   setTimeout(() => { note.style.display = 'none'; }, 4000);
+       * } catch (err) {
+       *   if (err.httpStatus === 403) {
+       *     window.location.replace('../errors/403.html');
+       *     return;
+       *   }
+       *   if (err.httpStatus === 422 && err.raw && err.raw.error && err.raw.error.fields) {
+       *     const fields = err.raw.error.fields;
+       *     const fieldMap = {
+       *       email:        ['grp-email',        'err-email'],
+       *       home_tel:     ['grp-home-tel',     'err-home-tel'],
+       *       home_address: ['grp-home-address', 'err-home-address'],
+       *     };
+       *     Object.keys(fields).forEach(key => {
+       *       const [grpId, errId] = fieldMap[key] || [];
+       *       if (grpId) document.getElementById(grpId).classList.add('has-error');
+       *       if (errId) document.getElementById(errId).textContent = esc(fields[key]);
+       *     });
+       *     const first = document.querySelector('.input-group.has-error input');
+       *     if (first) first.focus();
+       *   } else {
+       *     const errEl = document.getElementById('patch-error');
+       *     errEl.textContent = esc(err.message || 'خطای سرور. دوباره تلاش کنید.');
+       *     errEl.style.display = 'block';
+       *   }
+       * } finally {
+       *   btn.disabled = false;
+       *   btn.textContent = 'ذخیره تغییرات';
+       * }
+       */
+    });
+
+    // ── Load profile ──────────────────────────────────────────────────────────
     window.loadProfile = async function () {
       const host = document.getElementById('profile-host');
       MAZCRM.states.set(host, 'loading');
@@ -328,17 +517,23 @@
         populateForm(res.data || {});
         MAZCRM.states.set(host, 'ready');
       } catch (err) {
-        if (err.httpStatus === 404 || err.httpStatus === 501) {
-          MAZCRM.states.set(host, 'pending');
-        } else if (err.httpStatus === 401) {
-          window.location.replace('../auth/patient-login.html');
-        } else {
-          document.getElementById('profile-error-msg').textContent =
-            err.message || 'خطای سرور.';
-          MAZCRM.states.set(host, 'error');
+        // 403 → navigate to the dedicated forbidden page
+        if (err.httpStatus === 403) {
+          window.location.replace('../errors/403.html');
+          return;
         }
+        if (err.httpStatus === 401) {
+          window.location.replace('../auth/patient-login.html');
+          return;
+        }
+        document.getElementById('profile-error-msg').textContent =
+          esc(err.message || 'خطای سرور. لطفاً دوباره تلاش کنید.');
+        MAZCRM.states.set(host, 'error');
       }
     };
+
+    // ── Cancel button wired without onclick attribute ─────────────────────────
+    document.getElementById('btn-cancel-edit').addEventListener('click', cancelEdit);
 
     loadProfile();
   </script>
