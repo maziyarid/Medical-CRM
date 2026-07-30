@@ -41,6 +41,10 @@ $router->get('/api/v1/patient/profile', [PatientPortalController::class, 'profil
     AuthMiddleware::class,
 ]);
 
+$router->patch('/api/v1/patient/profile', [PatientPortalController::class, 'updateProfile'], [
+    AuthMiddleware::class,
+]);
+
 $router->get('/api/v1/patient/appointments', [PatientPortalController::class, 'appointments'], [
     AuthMiddleware::class,
 ]);

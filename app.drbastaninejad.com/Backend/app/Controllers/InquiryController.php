@@ -56,9 +56,13 @@ final class InquiryController extends Controller
 
         // Rate-limit check: per normalised phone number
         if ($this->model->countRecentByPhone($phone, self::RATE_WINDOW_MIN) >= self::RATE_LIMIT) {
-            $this->error(
+            // Emit Retry-After header + retry_after in body per docs/API_CONTRACT.md §429
+            $retryAfterSec = self::RATE_WINDOW_MIN * 60;
+            header('Retry-After: ' . $retryAfterSec);
+            $this->errorWithData(
                 'INQUIRY_RATE_LIMITED',
-                'تعداد درخواست‌های شما از حد مجاز گذشته است. لطفاً بعداً دوباره امتحان کنید.',
+                'تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً ۳۰ دقیقه صبر کنید.',
+                ['retry_after' => $retryAfterSec],
                 429
             );
         }

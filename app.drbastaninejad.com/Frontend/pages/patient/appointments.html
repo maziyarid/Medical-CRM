@@ -2,8 +2,13 @@
 <!--
   MΛZ Medical CRM — Patient Appointments (Production-wired)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  API:  GET /patient/appointments  ⚠️ PENDING — renders pending-backend state until live
-  Note: requireAuth() guard; Jalali dates displayed via Intl API.
+  API:  GET /patient/appointments  ✅ LIVE (Phase C, 2026-07-31)
+  Contract fields (items[]): appointment_id, date_jalali, time, reason,
+                              status, provider_name
+  Status enum: confirmed | scheduled | cancelled | completed
+  Note: requireAuth() guard; date_jalali rendered exactly as returned.
+        escHtml applied to all server strings written via innerHTML.
+        onclick removed — addEventListener used throughout.
 -->
 <html dir="rtl" lang="fa">
 <head>
@@ -111,7 +116,7 @@
             <p id="appts-error-msg">لطفاً دوباره تلاش کنید.</p>
             <div class="state-actions">
               <button type="button" class="btn btn-secondary btn-sm"
-                      onclick="loadAppointments()">تلاش مجدد</button>
+                      id="appts-retry-btn">تلاش مجدد</button>
             </div>
           </div>
         </div>
@@ -129,43 +134,45 @@
 
     if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
 
-    // Status → [pill class, Persian label]
+    // ── Status vocab (confirmed contract fields per docs/API_CONTRACT.md §GET /patient/appointments)
+    // Enum: confirmed | scheduled | cancelled | completed
+    // Persian display labels — per product-owner requirement to avoid raw values in UI
     const STATUS_MAP = {
-      confirmed:  ['evergreen', 'تأیید شده'],
-      scheduled:  ['info',      'در انتظار تأیید'],
-      pending:    ['warning',   'در انتظار'],
-      done:       ['success',   'انجام شد'],
-      completed:  ['success',   'انجام شد'],
-      cancelled:  ['muted',     'لغو شده'],
+      confirmed:  ['pill--evergreen', 'تأیید شده'],
+      scheduled:  ['pill--info',      'در انتظار تأیید'],
+      cancelled:  ['pill--muted',     'لغو شده'],
+      completed:  ['pill--success',   'انجام شد'],
     };
 
+    const COLOR_MAP = {
+      confirmed: { bg: 'var(--evergreen, #2d8a4e)', color: '#fff' },
+      scheduled: { bg: 'var(--info,      #2563eb)', color: '#fff' },
+      cancelled: { bg: 'var(--muted,     #6b7280)', color: '#fff' },
+      completed: { bg: 'var(--success,   #16a34a)', color: '#fff' },
+    };
+
+    // Escape helper — mirrors MAZCRM.escHtml from app.js (available here via MAZCRM global)
+    function esc(s) { return MAZCRM.escHtml(String(s ?? '')); }
+
     function pillFor(s) {
-      const m = STATUS_MAP[s] || ['muted', s || '—'];
+      const m = STATUS_MAP[s] || ['pill--muted', esc(s) || '—'];
+      // m[1] is a hardcoded Persian string — safe; no escaping needed here
       return '<span class="pill ' + m[0] + '">' + m[1] + '</span>';
     }
 
-    // Convert ISO date string to Jalali display if no jalali field provided
-    function jalaliFromIso(iso) {
-      if (!iso) return '—';
-      try {
-        return new Intl.DateTimeFormat('fa-IR', {
-          year: 'numeric', month: 'long', day: 'numeric'
-        }).format(new Date(iso));
-      } catch { return iso; }
-    }
-
-    window.loadAppointments = async function () {
+    async function loadAppointments() {
       const host = document.getElementById('appts-host');
       MAZCRM.states.set(host, 'loading');
       try {
-        const res  = await Patient.getAppointments();
-        const data = res.data || {};
-        const upcoming = data.upcoming || data.appointments?.filter(a =>
-          ['confirmed','scheduled','pending'].includes(a.status)) || [];
-        const history  = data.history  || data.appointments?.filter(a =>
-          ['done','completed','cancelled'].includes(a.status)) || [];
+        const res   = await Patient.getAppointments();
+        // Contract shape: res.data.items[], res.data.pagination{}
+        const items = (res.data && res.data.items) ? res.data.items : [];
 
-        // ── Upcoming cards ────────────────────────────────────────────────
+        // Split into upcoming (confirmed/scheduled) and history (cancelled/completed)
+        const upcoming = items.filter(a => a.status === 'confirmed' || a.status === 'scheduled');
+        const history  = items.filter(a => a.status === 'cancelled' || a.status === 'completed');
+
+        // ── Upcoming cards ─────────────────────────────────────────────────
         const upEl = document.getElementById('upcoming-list');
         if (!upcoming.length) {
           upEl.innerHTML =
@@ -173,26 +180,21 @@
               '<h3 style="font-size:.9rem">نوبت آینده‌ای ثبت نشده است</h3>' +
             '</div>';
         } else {
-          const colorMap = {
-            confirmed: { bg: 'var(--evergreen)', color: '#fff' },
-            scheduled: { bg: 'var(--info)',      color: '#fff' },
-            pending:   { bg: 'var(--warning)',   color: '#fff' },
-          };
           upEl.innerHTML = upcoming.map(a => {
-            const jalali = a.date_jalali || jalaliFromIso(a.date);
-            const dayStr = a.day_jalali || '';
-            const monthStr = a.month_jalali || '';
-            const c = colorMap[a.status] || { bg: 'var(--porcelain)', color: 'var(--graphite)' };
+            // date_jalali returned exactly as-is from server (per contract)
+            const jalali  = esc(a.date_jalali || '—');
+            const time    = a.time ? ' · ساعت ' + esc(a.time) : '';
+            const reason  = esc(a.reason  || '—');
+            const prov    = a.provider_name ? ' · ' + esc(a.provider_name) : '';
+            const c = COLOR_MAP[a.status] || { bg: 'var(--porcelain)', color: 'var(--graphite)' };
             return '<div role="listitem" class="appt-card">' +
               '<div class="appt-date-block" style="background:' + c.bg + ';color:' + c.color + '">' +
-                '<strong>' + (dayStr || jalali.split(' ')[1] || jalali) + '</strong>' +
-                '<span>' + (monthStr || '') + '</span>' +
+                '<strong>' + jalali + '</strong>' +
               '</div>' +
               '<div style="flex:1;min-width:0">' +
-                '<strong style="font-size:.95rem;display:block">' + (a.reason || a.title || '—') + '</strong>' +
+                '<strong style="font-size:.95rem;display:block">' + reason + '</strong>' +
                 '<div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">' +
-                  jalali + (a.time ? ' · ساعت ' + a.time : '') +
-                  (a.doctor ? ' · دکتر ' + a.doctor : '') +
+                  jalali + time + prov +
                 '</div>' +
               '</div>' +
               pillFor(a.status) +
@@ -200,7 +202,7 @@
           }).join('');
         }
 
-        // ── History table ─────────────────────────────────────────────────
+        // ── History table ──────────────────────────────────────────────────
         const tbody = document.getElementById('history-tbody');
         if (!history.length) {
           tbody.innerHTML =
@@ -209,10 +211,11 @@
             '</td></tr>';
         } else {
           tbody.innerHTML = history.map(a => {
-            const jalali = a.date_jalali || jalaliFromIso(a.date);
+            const jalali = esc(a.date_jalali || '—');
+            const reason = esc(a.reason || '—');
             return '<tr>' +
               '<td>' + jalali + '</td>' +
-              '<td>' + (a.reason || a.title || '—') + '</td>' +
+              '<td>' + reason + '</td>' +
               '<td>' + pillFor(a.status) + '</td>' +
             '</tr>';
           }).join('');
@@ -220,17 +223,19 @@
 
         MAZCRM.states.set(host, 'ready');
       } catch (err) {
-        if (err.httpStatus === 404 || err.httpStatus === 501) {
-          MAZCRM.states.set(host, 'pending');
-        } else if (err.httpStatus === 401) {
+        if (err.httpStatus === 401) {
           window.location.replace('../auth/patient-login.html');
         } else {
           document.getElementById('appts-error-msg').textContent =
-            err.message || 'خطای سرور. لطفاً دوباره تلاش کنید.';
+            MAZCRM.escHtml(err.message || 'خطای سرور. لطفاً دوباره تلاش کنید.');
           MAZCRM.states.set(host, 'error');
         }
       }
-    };
+    }
+
+    // Wire retry button — no onclick attribute; addEventListener only
+    document.getElementById('appts-retry-btn')
+      .addEventListener('click', loadAppointments);
 
     loadAppointments();
   </script>

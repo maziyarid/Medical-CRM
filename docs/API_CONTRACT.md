@@ -10,8 +10,8 @@
 **Base URL:** `https://app.drbastaninejad.com/api/v1`
 **Content-Type:** `application/json` (all requests and responses)
 **Charset:** UTF-8
-**Version:** 1.1 — Phase A+B live | Phase C pending
-**Last updated:** 2026-07-29
+**Version:** 1.2 — Phase A+B+C live | PATCH /patient/profile added
+**Last updated:** 2026-07-31
 
 > ⚠️ **ENVELOPE MISMATCH NOTE (2026-07-29, Blackbox AI):**
 > This contract (`docs/API_CONTRACT.md`) governs **`app.drbastaninejad.com`** and uses
@@ -389,6 +389,60 @@ Patient's own editable profile fields.
 
 ---
 
+### `PATCH /patient/profile` ✅ LIVE 🔒 AUTH REQUIRED
+
+Partial update of the patient's own editable contact fields.
+Only the three fields below are writable by the patient; identity fields
+(`national_id`, `mobile`, `first_name`, `last_name`, `birth_date`) are NOT writable.
+
+**Request body** (any non-empty subset)
+```json
+{
+  "email":        "new@example.com",
+  "home_tel":     "02112345678",
+  "home_address": "تهران، ..."
+}
+```
+
+| Field | Type | Required | Rules |
+|---|---|---|---|
+| `email` | string | ✘ | valid email, max 120 chars, or empty string to clear |
+| `home_tel` | string | ✘ | digits only, max 15 chars, or empty string to clear |
+| `home_address` | string | ✘ | max 255 chars, or empty string to clear |
+
+> At least one field must be present — an empty body returns `400 EMPTY_PATCH`.
+
+**Success response** `200` — returns the full updated profile (same shape as `GET /patient/profile`)
+```json
+{
+  "success": true,
+  "data": {
+    "first_name":   "مریم",
+    "last_name":    "احمدی",
+    "father_name":  "علی",
+    "national_id":  "0079643178",
+    "birth_date":   "1370/05/12",
+    "mobile":       "09121234567",
+    "email":        "new@example.com",
+    "home_tel":     "02112345678",
+    "home_address": "تهران، ..."
+  }
+}
+```
+
+**Error codes**
+
+| Code | HTTP | Meaning |
+|---|---|---|
+| `VALIDATION_FAILED` | 422 | Invalid field value — `error.fields` map present |
+| `EMPTY_PATCH` | 400 | No writable field supplied |
+| `UNAUTHORIZED` | 401 | No or invalid token |
+
+> Backend: `PatientPortalController::updateProfile()` → `PatientModel::updateProfile()`
+> Route: registered in `config/routes.php`
+
+---
+
 ### `GET /patient/appointments` ✅ LIVE 🔒 AUTH REQUIRED
 
 List of patient's own appointments (read-only).
@@ -633,7 +687,27 @@ No OTP, no national-ID, no medical data.
 | Code | HTTP | Meaning |
 |---|---|---|
 | `VALIDATION_FAILED` | 422 | Missing/invalid field — `error.fields` map |
-| `INQUIRY_RATE_LIMITED` | 429 | Too many submissions from this phone |
+| `INQUIRY_RATE_LIMITED` | 429 | Too many submissions from this phone — see Retry-After below |
+
+**429 Retry-After shape**
+
+HTTP header: `Retry-After: <seconds>` (integer, seconds until rate-limit window resets — max 1800).
+
+Response body:
+```json
+{
+  "success": false,
+  "error": {
+    "code":       "INQUIRY_RATE_LIMITED",
+    "message":    "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً ۳۰ دقیقه صبر کنید.",
+    "retry_after": 1800
+  }
+}
+```
+
+- `error.retry_after` mirrors the `Retry-After` header value (seconds as integer).
+- Client should read `error.retry_after` (body) or the `Retry-After` header to display a countdown.
+- If the client cannot read the header (CORS), fall back to `error.retry_after` from the body.
 
 > Backend: `InquiryController::store()` → `InquiryModel` → `inquiries` table (migration 009)
 

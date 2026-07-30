@@ -39,6 +39,21 @@ abstract class Controller
         exit;
     }
 
+    /**
+     * Like error() but merges $extra key-value pairs into the error object.
+     * Used for machine-readable metadata (e.g. retry_after for rate-limit responses).
+     *
+     * @param array<string,mixed> $extra  Additional keys merged into the "error" object.
+     */
+    protected function errorWithData(string $code, string $message, array $extra, int $status = 400): void
+    {
+        http_response_code($status);
+        header('Content-Type: application/json; charset=utf-8');
+        $error = array_merge(['code' => $code, 'message' => $message], $extra);
+        echo json_encode(['success' => false, 'error' => $error], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     protected function validationError(array $fields): void
     {
         $this->error('VALIDATION_FAILED', 'اطلاعات ورودی نامعتبر است', 422, $fields);

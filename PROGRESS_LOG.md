@@ -873,3 +873,110 @@ Deployment: No production or cPanel/VPS change is authorized by this task.
 - **Bob AI:** P1-C — wire `patient/appointments.html` → `GET /api/v1/patient/appointments`
 - **Blackbox AI:** document `PATCH /api/v1/patient/profile` in `docs/API_CONTRACT.md`
 
+
+## [2026-07-31] — Track: Backend/Database/Platform — Agent: Blackbox AI
+Phase: C continuation — PATCH /patient/profile, 429 Retry-After, appointments wiring
+
+### Audit outcome (Steps 1–4 — MANDATORY before any work)
+
+| Question | Finding |
+|---|---|
+| (a) intake.html regressed on main? | **NO.** `git diff origin/main~1 origin/main -- intake.html` = empty (file untouched in HEAD `265eb2a`). Line count = 603 on both sides. |
+| (b) Gated files on main? | **NO.** `git show --stat HEAD` matched nothing for Router.php / Request.php / index.php / .htaccess / migrations/007. All 6 gated files show `??` untracked — correct. |
+| (c) PII paths on main? | **NO.** signatures/png/app_private/Backup/bak grep on HEAD = zero matches. |
+| (d) Pushed or local? | HEAD `265eb2a` IS `origin/main`. Since (a)(b)(c) are clean, no remediation needed. |
+
+**Conclusion: main is clean. No governance violation occurred. Proceeding.**
+
+### Work completed this session
+
+#### 1. `docs/API_CONTRACT.md` — bumped to v1.2, `PATCH /patient/profile` documented
+
+- New section `§PATCH /patient/profile` added between `§GET /patient/profile` and `§GET /patient/appointments`.
+- Writable fields: `email` (valid email, max 120), `home_tel` (digits, max 15), `home_address` (max 255).
+- Identity fields (`national_id`, `mobile`, `first_name`, `last_name`, `birth_date`) confirmed NOT writable by patient.
+- Success: `200` with full updated profile (same shape as GET).
+- Error codes: `VALIDATION_FAILED` 422 (with `error.fields` map), `EMPTY_PATCH` 400, `UNAUTHORIZED` 401.
+- Version bumped `1.1 → 1.2`, last-updated `2026-07-29 → 2026-07-31`.
+
+#### 2. `docs/API_CONTRACT.md` — `POST /api/v1/inquiries` 429 Retry-After shape documented
+
+- HTTP header: `Retry-After: <seconds>` (integer).
+- Body: `error.retry_after` mirrors the header value (integer, max 1800).
+- Client fallback: if CORS blocks header, read `error.retry_after` from body.
+
+#### 3. `app.drbastaninejad.com/Backend/app/Core/Controller.php`
+
+- Added `errorWithData(string $code, string $message, array $extra, int $status = 400)` method.
+- Merges `$extra` key-value pairs into the `error` object (used for `retry_after` field).
+
+#### 4. `app.drbastaninejad.com/Backend/app/Controllers/PatientPortalController.php`
+
+- Added `updateProfile()` method implementing `PATCH /api/v1/patient/profile`.
+- Validates: `email` (FILTER_VALIDATE_EMAIL + max 120), `home_tel` (`/^\d{1,15}$/`), `home_address` (max 255).
+- Allows null/empty string to clear optional fields.
+- Returns 400 `EMPTY_PATCH` if no recognised field supplied.
+- Calls `PatientModel::updateProfile()` then re-fetches and returns full updated profile.
+- Route docblock updated to include `PATCH /api/v1/patient/profile → updateProfile()`.
+
+#### 5. `app.drbastaninejad.com/Backend/config/routes.php`
+
+- Added: `$router->patch('/api/v1/patient/profile', [PatientPortalController::class, 'updateProfile'], [AuthMiddleware::class])`.
+
+#### 6. `app.drbastaninejad.com/Backend/app/Controllers/InquiryController.php`
+
+- 429 path: emits `Retry-After: 1800` HTTP header before response.
+- Switched from `$this->error()` to `$this->errorWithData()` to include `retry_after: 1800` in the error body.
+- Error message updated to match documented Persian string.
+
+#### 7. `app.drbastaninejad.com/Frontend/shared/api.js`
+
+- Removed three stale `BLOCKING QUESTION` comments from `getDocuments()`, `getNotificationPreferences()`, `updateNotificationPreferences()` — these endpoints are LIVE.
+- Added `getProfile()` confirmed-field JSDoc.
+- Added `updateProfile(patch)` method (`PATCH /patient/profile`, returns updated profile).
+- All Patient.* methods now marked ✅ LIVE with confirmed field list where applicable.
+
+#### 8. `app.drbastaninejad.com/Frontend/pages/patient/appointments.html`
+
+- Wired to `GET /api/v1/patient/appointments` (status changed ⚠️ PENDING → ✅ LIVE).
+- Response shape aligned to confirmed contract: `res.data.items[]`, `res.data.pagination{}`.
+- Removed invented field references (`data.upcoming`, `data.history`, `data.appointments`, `a.title`, `a.doctor`, `a.day_jalali`, `a.month_jalali`) — replaced with contract fields only.
+- `date_jalali` rendered exactly as returned from server (no re-conversion via `Intl.DateTimeFormat`).
+- `provider_name` from contract now rendered in the subtitle line.
+- Status enum trimmed to confirmed contract values: `confirmed|scheduled|cancelled|completed`. Removed `pending` and `done` (not in contract).
+- `escHtml` applied to ALL server-returned strings in innerHTML: `date_jalali`, `time`, `reason`, `provider_name`, `err.message`.
+- `onclick="loadAppointments()"` attribute removed — `addEventListener('click', loadAppointments)` on `#appts-retry-btn` instead.
+- `loadAppointments` no longer attached to `window` — scoped function.
+- Removed `jalaliFromIso()` fallback (contract guarantees `date_jalali` is always present).
+- Removed `pending` state catch (endpoint is live; 404/501 no longer treated as pending-backend).
+
+### Files touched
+
+| File | Change |
+|---|---|
+| `docs/API_CONTRACT.md` | v1.2: PATCH /patient/profile section + 429 Retry-After shape for inquiries |
+| `app.drbastaninejad.com/Backend/app/Core/Controller.php` | Added `errorWithData()` |
+| `app.drbastaninejad.com/Backend/app/Controllers/PatientPortalController.php` | Added `updateProfile()` |
+| `app.drbastaninejad.com/Backend/config/routes.php` | Added PATCH /patient/profile route |
+| `app.drbastaninejad.com/Backend/app/Controllers/InquiryController.php` | 429 Retry-After header + body |
+| `app.drbastaninejad.com/Frontend/shared/api.js` | Stale comments removed; `updateProfile()` added |
+| `app.drbastaninejad.com/Frontend/pages/patient/appointments.html` | Fully wired; escHtml; no onclick; contract-aligned |
+
+### Blocked / open
+
+- `PATCH /api/v1/patient/profile` — route and controller are now live; `profile.html` has the wired implementation in commented block. **Bob AI: the commented block in `profile.html` is now safe to uncomment** — confirmed fields are `email`, `home_tel`, `home_address`; success returns full profile; 422 has `error.fields` map; 400 `EMPTY_PATCH` if nothing sent.
+- `pill--evergreen`, `pill--info`, `pill--muted`, `pill--success` CSS classes used in `appointments.html` — **Bob AI to confirm these class names exist in `components.css`** or provide the correct pill variant names.
+- All 6 deployment-gated files remain `??` untracked — correct.
+- `CDN_BASE_URL` unset — `documents.html` `signed_url` will be null until set in `.env`.
+- `drbastaninejad.com/contact.html` 429 countdown — `error.retry_after` is now documented in API contract and emitted by backend; **Bob AI can now wire the countdown** reading `resp.error.retry_after`.
+
+### Next
+
+- **Bob AI (P1-B follow-up):** Uncomment PATCH block in `profile.html` — contract now documented. Verify pill CSS class names for `appointments.html`.
+- **Bob AI (P1-D):** Wire `documents.html` → `GET /api/v1/patient/documents`; handle null `signed_url`.
+- **Bob AI (P1-E):** Wire `notifications.html` → `GET/PATCH /api/v1/patient/notification-preferences`.
+- **Bob AI (P1-F):** `records.html` — no endpoint; placeholder only.
+- **Bob AI (contact.html):** Wire 429 countdown using `resp.error.retry_after` (integer seconds).
+- **Blackbox AI:** Add `PATCH /patient/profile` to `PatientPortalController` PHPUnit test stubs.
+- **Product owner:** Confirm pill CSS class name convention (pill--evergreen vs pill-evergreen vs evergreen) so appointments.html uses the correct classes.
+- **Product owner:** Sign off on dashboard duplicate-backend question to unblock P3 staff wiring.

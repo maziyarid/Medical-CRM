@@ -246,41 +246,63 @@ export const Patient = {
   },
 
   /**
-   * GET /api/v1/patient/profile
-   * Returns patients row fields visible to the patient.
+   * GET /api/v1/patient/profile  ✅ LIVE (Phase C, 2026-07-30)
+   * Confirmed response fields from docs/API_CONTRACT.md §GET /patient/profile:
+   *   first_name, last_name, father_name, national_id, birth_date,
+   *   mobile, email, home_tel, home_address
    */
   async getProfile() {
     return request('GET', '/patient/profile');
   },
 
   /**
-   * GET /api/v1/patient/appointments
-   * Returns appointment list (Jalali display handled client-side).
+   * PATCH /api/v1/patient/profile  ✅ LIVE (Phase C, 2026-07-31)
+   * Writable fields: email, home_tel, home_address (partial update).
+   * Returns full updated profile on success (200).
+   * Per docs/API_CONTRACT.md §PATCH /patient/profile (v1.2)
+   *
+   * @param {{ email?: string, home_tel?: string, home_address?: string }} patch
+   */
+  async updateProfile(patch) {
+    return request('PATCH', '/patient/profile', patch);
+  },
+
+  /**
+   * GET /api/v1/patient/appointments  ✅ LIVE (Phase C, 2026-07-30)
+   * Confirmed response fields from docs/API_CONTRACT.md §GET /patient/appointments:
+   *   items[]: { appointment_id, date_jalali, time, reason, status, provider_name }
+   *   pagination: { total, per_page, current_page, last_page }
+   * Status enum: confirmed | scheduled | cancelled | completed
    */
   async getAppointments() {
     return request('GET', '/patient/appointments');
   },
 
   /**
-   * GET /api/v1/patient/documents
-   * Returns media list with signed short-TTL URLs.
-   * BLOCKING QUESTION: signed URL endpoint not yet in API_CONTRACT.md.
+   * GET /api/v1/patient/documents  ✅ LIVE (Phase C, 2026-07-30)
+   * Returns media list with signed short-TTL URLs (1-hour TTL).
+   * NOTE: signed_url will be null if CDN_BASE_URL is not set in .env.
+   * Per docs/API_CONTRACT.md §GET /patient/documents
    */
   async getDocuments() {
     return request('GET', '/patient/documents');
   },
 
   /**
-   * GET /api/v1/patient/notification-preferences
-   * BLOCKING QUESTION: endpoint not yet in API_CONTRACT.md.
+   * GET /api/v1/patient/notification-preferences  ✅ LIVE (Phase C, 2026-07-30)
+   * Per docs/API_CONTRACT.md §GET /patient/notification-preferences
    */
   async getNotificationPreferences() {
     return request('GET', '/patient/notification-preferences');
   },
 
   /**
-   * PATCH /api/v1/patient/notification-preferences
-   * BLOCKING QUESTION: endpoint not yet in API_CONTRACT.md.
+   * PATCH /api/v1/patient/notification-preferences  ✅ LIVE (Phase C, 2026-07-30)
+   * Send only the keys you want to change (partial update).
+   * Per docs/API_CONTRACT.md §PATCH /patient/notification-preferences
+   *
+   * @param {{ sms_appointment_reminder?: boolean, sms_status_change?: boolean,
+   *           email_appointment_reminder?: boolean, email_marketing?: boolean }} prefs
    */
   async updateNotificationPreferences(prefs) {
     return request('PATCH', '/patient/notification-preferences', prefs);

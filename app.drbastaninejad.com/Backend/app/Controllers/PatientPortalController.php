@@ -20,12 +20,13 @@ use App\Services\ValidatorService;
  * Response envelope: docs/API_CONTRACT.md ("success"/"data"/"error")
  *
  * Routes (registered in config/routes.php):
- *   GET  /api/v1/patient/overview                  → overview()
- *   GET  /api/v1/patient/profile                   → profile()
- *   GET  /api/v1/patient/appointments              → appointments()
- *   GET  /api/v1/patient/documents                 → documents()
- *   GET  /api/v1/patient/notification-preferences  → getNotificationPrefs()
- *   PATCH /api/v1/patient/notification-preferences → patchNotificationPrefs()
+ *   GET   /api/v1/patient/overview                  → overview()
+ *   GET   /api/v1/patient/profile                   → profile()
+ *   PATCH /api/v1/patient/profile                   → updateProfile()
+ *   GET   /api/v1/patient/appointments              → appointments()
+ *   GET   /api/v1/patient/documents                 → documents()
+ *   GET   /api/v1/patient/notification-preferences  → getNotificationPrefs()
+ *   PATCH /api/v1/patient/notification-preferences  → patchNotificationPrefs()
  */
 final class PatientPortalController extends Controller
 {
@@ -95,6 +96,84 @@ final class PatientPortalController extends Controller
         $patientId = (int)$this->authUser()['user_id'];
         $patient   = $this->patientModel->findById($patientId);
 
+        if ($patient === null) {
+            $this->error('PATIENT_NOT_FOUND', 'بیمار یافت نشد.', 404);
+        }
+
+        $this->json([
+            'first_name'   => $patient['first_name'],
+            'last_name'    => $patient['last_name'],
+            'father_name'  => $patient['father_name'],
+            'national_id'  => $patient['national_id'],
+            'birth_date'   => $patient['birth_date_jalali'] ?? $patient['birth_date'],
+            'mobile'       => $patient['mobile'],
+            'email'        => $patient['email'],
+            'home_tel'     => $patient['home_tel'] ?? null,
+            'home_address' => $patient['home_address'],
+        ]);
+    }
+
+    // -------------------------------------------------------------------------
+    // PATCH /api/v1/patient/profile
+    // -------------------------------------------------------------------------
+
+    /**
+     * Partial update of the patient's own editable contact fields.
+     * Allowed: email, home_tel, home_address.
+     * Identity fields (national_id, mobile, first/last name) are NOT writable.
+     * Per docs/API_CONTRACT.md §PATCH /patient/profile (v1.2)
+     */
+    public function updateProfile(): void
+    {
+        $patientId = (int)$this->authUser()['user_id'];
+        $body      = $this->jsonBody();
+
+        $allowed = ['email', 'home_tel', 'home_address'];
+        $patch   = [];
+        $errors  = [];
+
+        foreach ($allowed as $col) {
+            if (!array_key_exists($col, $body)) {
+                continue;
+            }
+            $val = $body[$col];
+            if ($val === null || $val === '') {
+                // Allow clearing optional fields
+                $patch[$col] = null;
+                continue;
+            }
+            $val = (string)$val;
+            if ($col === 'email' && !filter_var($val, FILTER_VALIDATE_EMAIL)) {
+                $errors[$col] = 'آدرس ایمیل معتبر نیست.';
+                continue;
+            }
+            if ($col === 'email' && mb_strlen($val) > 120) {
+                $errors[$col] = 'ایمیل نباید بیشتر از ۱۲۰ کاراکتر باشد.';
+                continue;
+            }
+            if ($col === 'home_tel' && !preg_match('/^\d{1,15}$/', $val)) {
+                $errors[$col] = 'تلفن منزل باید عددی و حداکثر ۱۵ رقم باشد.';
+                continue;
+            }
+            if ($col === 'home_address' && mb_strlen($val) > 255) {
+                $errors[$col] = 'آدرس نباید بیشتر از ۲۵۵ کاراکتر باشد.';
+                continue;
+            }
+            $patch[$col] = $val;
+        }
+
+        if ($errors !== []) {
+            $this->validationError($errors);
+        }
+
+        if ($patch === []) {
+            $this->error('EMPTY_PATCH', 'هیچ فیلد قابل‌ویرایشی ارسال نشد.', 400);
+        }
+
+        $this->patientModel->updateProfile($patientId, $patch);
+
+        // Return the full updated profile (same shape as GET /patient/profile)
+        $patient = $this->patientModel->findById($patientId);
         if ($patient === null) {
             $this->error('PATIENT_NOT_FOUND', 'بیمار یافت نشد.', 404);
         }
