@@ -9,6 +9,28 @@
 
 ---
 
+## 0. Canonical frontend decision (2026-07-31 — product owner instruction)
+
+**There are two dashboard frontend shells in this repository. The canonical one is:**
+
+> **`app.drbastaninejad.com/Frontend/`** — per-page HTML (15+ pages, full state management, escHtml, WCAG 2.1 AA, proper error/empty/loading states, staff CRM + patient portal)
+
+The SPA shell at `dashboard.drbastaninejad.com/public/index.html` (single-page, JS-module-based) is the **Backend track's live-testing and development shell only**. It is NOT the customer-facing UI. Do not extend it for new features; do not point users to it.
+
+| Shell | Location | Role |
+|---|---|---|
+| **Canonical (use this)** | `app.drbastaninejad.com/Frontend/pages/staff/` | 9 staff pages — customer-facing CRM UI |
+| Canonical (use this) | `app.drbastaninejad.com/Frontend/pages/patient/` | 6 patient portal pages |
+| Development/testing shell only | `dashboard.drbastaninejad.com/public/index.html` | Backend track API smoke-test; do not extend |
+
+**Rules:**
+- All new backend endpoints are documented in `docs/API_CONTRACT.md` (this directory) before either frontend consumes them.
+- The per-page `app.drbastaninejad.com/Frontend/` pages consume the `docs/API_CONTRACT.md` contracts verbatim.
+- The SPA shell at `public/index.html` may also consume these contracts for smoke-testing — it does NOT define them.
+- Frontend track owns `app.drbastaninejad.com/Frontend/` — do not modify HTML, CSS, or JS in that tree from the Backend track.
+
+---
+
 ## 1. Architecture overview
 
 | Layer | Technology | Notes |
@@ -229,25 +251,26 @@ interface SmsProvider {
 
 ## 10. Environment variables required
 
-Create a `.env` file in the project root (one level above `public/`). chmod 600.
+Create `.env` from `.env.example` (now in this directory). `chmod 600 .env`. Never commit `.env`.
+
+Sample/placeholder values (replace before deploying — see `docs/DEPLOYMENT_GATE.md §4`):
 
 ```env
-APP_ENV=production          # or: development
-DB_HOST=localhost
+APP_ENV=production
+DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_NAME=maz_crm
-DB_USER=db_user
-DB_PASS=db_password
+DB_NAME=mazcrm_db
+DB_USER=mazcrm_user
+DB_PASS=REPLACE_WITH_STRONG_PASSWORD
 DEFAULT_CLINIC_ID=1
 
-# Google Sheets
-SHEETS_SPREADSHEET_ID=
-SHEETS_SERVICE_ACCOUNT_EMAIL=
-SHEETS_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\n..."
-SHEETS_TAB_NAME=Intakes
+# Google Sheets dual-write (leave empty to skip)
+GOOGLE_SHEET_ID=
+GOOGLE_SHEET_TAB=Intakes
+GOOGLE_SA_KEY_PATH=/home/USER/sa-key.json
 
-# SMS providers (set whichever you use)
-SMS_PROVIDERS=kavenegar,log
+# SMS providers (comma-separated, tried in order)
+SMS_PROVIDERS=kavenegar,ghasedak,farazsms,tsms,log
 KAVENEGAR_API_KEY=
 GHASEDAK_API_KEY=
 FARAZSMS_USERNAME=

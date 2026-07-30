@@ -1430,3 +1430,101 @@ Gate is still NOT signed off — annotations are progress records only. Product 
 1. Consider refactoring `Controller::jsonBody()` to accept an optional `$input` parameter (DI-friendly) to enable true unit testing without Reflection tricks.
 2. Add `@group db` skip logic for when `.env.testing` is absent (use `markTestSkipped()`).
 3. P3 staff dashboard wiring — blocked on product owner sign-off on dashboard duplicate-backend question.
+
+---
+
+## [2026-07-31] — Track: Backend/Database/Platform — Agent: Blackbox AI
+Phase: Canonical frontend decision + sample DB credentials + .env.example files
+
+**Scope:** Document canonical dashboard frontend decision; create `.env.example` files with sample credentials; update `.env.testing.example`; annotate `README.md`.
+**Deployment gate:** NOT satisfied — no production/cPanel/VPS action authorized.
+**Gated files:** All 6 remain `??` untracked throughout — correct.
+
+---
+
+### Canonical frontend decision (product owner instruction 2026-07-31)
+
+**Question resolved:** Which of the two dashboard frontend shells is the canonical one?
+
+**Answer:** `app.drbastaninejad.com/Frontend/` — the per-page HTML shell with 15+ pages.
+
+| Shell | Location | Verdict |
+|---|---|---|
+| **CANONICAL** | `app.drbastaninejad.com/Frontend/pages/staff/` (9 pages) + `pages/patient/` (6 pages) | More pages, more features, full state management, escHtml, WCAG 2.1 AA, error/empty/loading states |
+| Testing shell only | `dashboard.drbastaninejad.com/public/index.html` (SPA, 1 HTML file, JS modules) | Backend track API smoke-test and development shell only — do NOT extend for new features |
+
+Rationale from `REPOSITORY_AUDIT.md` (2026-07-27, product owner confirmed):
+> "Do not archive either shell. The SPA's API contracts at `dashboard.drbastaninejad.com/docs/API_CONTRACT.md` are the shared wiring layer — `app.drbastaninejad.com/Frontend/` pages must use those same endpoint contracts, not invent new ones."
+
+The SPA shell is retained as a backend smoke-test surface. It is explicitly not the customer-facing UI.
+
+---
+
+### Work completed this session
+
+#### 1. Sample database name and credentials — established
+
+**Sample production DB:**
+- Database name: `mazcrm_db`
+- User: `mazcrm_user`
+- Password: `REPLACE_WITH_STRONG_PASSWORD` (product owner generates before deploy)
+
+**Sample test DB:**
+- Database name: `mazcrm_test`
+- User: `mazcrm_test_user`
+- Password: `REPLACE_WITH_TEST_PASSWORD` (product owner generates for local use)
+
+These are placeholder values only. Per `docs/DEPLOYMENT_GATE.md §4`: production credentials must be newly generated and stored in a password manager — never reuse dev/test passwords.
+
+---
+
+#### 2. `.env.example` files created / updated
+
+| File | Action |
+|---|---|
+| `dashboard.drbastaninejad.com/.env.example` | **NEW** — sample credentials, all env keys for dashboard backend |
+| `dashboard.drbastaninejad.com/.env.testing.example` | **NEW** — test DB credentials, run-test instructions |
+| `app.drbastaninejad.com/Backend/.env.example` | **UPDATED** — DB name standardised to `mazcrm_db`/`mazcrm_user` (was `medical_crm`/`crm_user`) |
+| `app.drbastaninejad.com/Backend/.env.testing.example` | **UPDATED** — DB name standardised to `mazcrm_test`/`mazcrm_test_user`; run-test instructions added; both legacy and canonical env key names documented |
+
+All `.env.*` files (non-example) are `.gitignore`-protected. `.env.example` is whitelisted.
+
+---
+
+#### 3. `dashboard.drbastaninejad.com/README.md` — §0 added
+
+New §0 "Canonical frontend decision" added at top of README:
+- Documents the two-shell situation clearly
+- Names `app.drbastaninejad.com/Frontend/` as canonical (product owner instruction)
+- Names `dashboard.drbastaninejad.com/public/index.html` as backend testing shell only
+- States rules: Backend track does not modify `Frontend/`; Frontend track does not define API contracts
+- §10 environment variables updated: old placeholder names (`maz_crm`, `db_user`) replaced with sample names (`mazcrm_db`, `mazcrm_user`); references `.env.example`
+
+---
+
+### Files touched this session
+
+| File | Action |
+|---|---|
+| `dashboard.drbastaninejad.com/.env.example` | NEW |
+| `dashboard.drbastaninejad.com/.env.testing.example` | NEW |
+| `dashboard.drbastaninejad.com/README.md` | UPDATED — §0 canonical decision + §10 credentials |
+| `app.drbastaninejad.com/Backend/.env.example` | UPDATED — DB name standardised |
+| `app.drbastaninejad.com/Backend/.env.testing.example` | UPDATED — DB name standardised + run instructions |
+
+**Not touched:** Any gated file, any PII file, any PHP backend logic, any HTML/CSS/JS frontend file, any migration, any route.
+
+---
+
+### Deployment gate status
+
+`docs/DEPLOYMENT_GATE.md` — **NOT signed off.**
+§4 (Secrets and Data Safety) notes: `.env.example` files with placeholder credentials are now committed. Product owner must create real `.env` files locally with generated credentials — never commit them.
+
+---
+
+### Next (Blackbox AI)
+
+1. Begin wiring the staff CRM pages (`app.drbastaninejad.com/Frontend/pages/staff/`) to the backend API — starting with `dashboard.html` (GET /api/v1/dashboard/overview) and `patients.html` (GET /api/v1/patients).
+2. Verify `dashboard.drbastaninejad.com/app/Controllers/DashboardController.php` has the `GET /dashboard/overview` endpoint matching the dashboard API contract.
+3. Document any missing staff endpoints in `docs/API_CONTRACT.md` before wiring frontend.
