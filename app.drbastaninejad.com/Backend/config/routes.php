@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 use App\Controllers\IntakeController;
 use App\Controllers\OtpController;
+use App\Controllers\InquiryController;
 use App\Controllers\PatientPortalController;
 use App\Middleware\AuthMiddleware;
 
@@ -23,6 +24,9 @@ $router->post('/api/v1/intakes', [IntakeController::class, 'store']);
 $router->get('/api/v1/intakes', [IntakeController::class, 'index'], [
     AuthMiddleware::class,
 ]);
+
+// ── Inquiries (contact form — public, no auth) ────────────────────────────────
+$router->post('/api/v1/inquiries', [InquiryController::class, 'store']);
 
 // ── Patient Portal (Phase C) — all require Bearer auth ───────────────────────
 $router->get('/api/v1/patient/overview', [PatientPortalController::class, 'overview'], [

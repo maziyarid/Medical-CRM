@@ -598,6 +598,48 @@ Create a new EMR entry (consultation note, post-op note, etc.).
 ---
 
 ## ───────────────────────────────────────────
+## SECTION 4B — Public Utility Endpoints
+## ✅ LIVE
+## ───────────────────────────────────────────
+
+### `POST /api/v1/inquiries` ✅ LIVE — public, no auth required
+
+Contact form submission from `drbastaninejad.com/contact.html`.
+No OTP, no national-ID, no medical data.
+
+**Request body**
+```json
+{
+  "name":    "علی رضایی",
+  "phone":   "09121234567",
+  "message": "لطفاً در مورد جراحی بینی راهنمایی بفرمایید"
+}
+```
+
+- `phone` — Iranian mobile; normalised server-side (accepts `09xx`, `+989xx`, Persian digits)
+- `message` — 10–2000 characters
+- Rate limit: max 3 submissions per phone per 30 minutes → `429 INQUIRY_RATE_LIMITED`
+
+**Success response** `201`
+```json
+{
+  "success": true,
+  "data": { "inquiry_id": 7 }
+}
+```
+
+**Error codes**
+
+| Code | HTTP | Meaning |
+|---|---|---|
+| `VALIDATION_FAILED` | 422 | Missing/invalid field — `error.fields` map |
+| `INQUIRY_RATE_LIMITED` | 429 | Too many submissions from this phone |
+
+> Backend: `InquiryController::store()` → `InquiryModel` → `inquiries` table (migration 009)
+
+---
+
+## ───────────────────────────────────────────
 ## SECTION 5 — Future Endpoints (Phase 6–8)
 ## ⚠️ PENDING — not yet designed in detail
 ## ───────────────────────────────────────────
@@ -626,7 +668,7 @@ Create a new EMR entry (consultation note, post-op note, etc.).
 All dates in **request bodies** must be Jalali (Shamsi) format: `YYYY/MM/DD` (e.g. `1370/05/12`).  
 All dates in **response bodies** are returned as ISO 8601 UTC (e.g. `2026-07-27T10:00:00Z`) unless the field is named `*_jalali` in which case it is the formatted Jalali string for display.
 
-Conversion is handled server-side by `ValidatorService::jalaliToGregorian()`. The client must never convert dates independently — always send Jalali, always store Gregorian.
+Conversion is handled server-side by `JalaliConverter::jalaliStringToGregorian()` (pure PHP, no external deps). The client must never convert dates independently — always send Jalali, always store Gregorian. `birth_date` in the `intakes` table is now populated from the Jalali input.
 
 ---
 

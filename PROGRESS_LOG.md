@@ -502,3 +502,82 @@ Deployment: No production or cPanel/VPS change is authorized by this task.
 - **Product owner:** provision `maz_test` database, run migrations 001-007, copy `.env.testing.example` → `.env.testing`, run `composer install`, verify PHPUnit green.
 - **Blackbox AI (future):** `POST /patient/profile` update endpoint (Phase D) if product owner adds it to scope.
 
+
+---
+
+## [2026-07-30 — Session 3] — Track: Backend/Database/Platform + Frontend/Errors — Agent: Blackbox AI
+
+Phase: C/D — Bug-fixes, Jalali conversion, Inquiry endpoint, error pages
+
+Scope: Backend bug-fixes + new endpoints + Frontend P1 error pages.
+Package: JalaliConverter + migration 008/009 + InquiryController + error pages.
+Overlap check: No active PROGRESS_LOG.md entry claimed this package.
+Deployment: No production or cPanel/VPS change is authorized by this task.
+
+### Pre-session governance audit
+
+| Check | Outcome |
+|---|---|
+| `HEAD` == `origin/main` | ✅ `f3caa8f` — identical, no divergence |
+| `intake.html` at HEAD | **603 lines** — no regression |
+| PII paths in HEAD stat | **ZERO** |
+| Deployment-gated files in HEAD stat | **ZERO** |
+| Staged gated files at session start | ⚠️ 7 gated files were in the index (`A` state) — **unstaged immediately with `git reset HEAD`** before any commit. No violation landed on main. Files returned to `??` untracked. |
+
+### Done
+
+#### Bug-fix: `home_tel` missing from migration 003
+- `PatientPortalController::profile()` and `PatientModel::findById()` selected `home_tel` but it was not present in migration 003 (schema gap created in Phase C session).
+- Added `database/migrations/008_add_home_tel_to_patients.sql` — `ALTER TABLE patients ADD COLUMN home_tel VARCHAR(15) NULL AFTER home_address`. Additive-only; no destructive change.
+
+#### Bug-fix: `birth_date` always NULL in `intakes` table
+- `IntakeController::normalisePayload()` always set `$birthDateGregorian = null` with a TODO comment noting conversion was deferred.
+- Added `app/Services/JalaliConverter.php` — pure PHP Jalali↔Gregorian algorithm (no external deps, matches `jalali.js` client-side algorithm exactly).
+- Wired into `IntakeController` — `birth_date` now populated via `JalaliConverter::jalaliStringToGregorian($birthDate)`. Returns `null` for invalid input (safe fallback).
+- Updated `docs/API_CONTRACT.md` Appendix A — corrected reference from `ValidatorService::jalaliToGregorian()` (non-existent) to `JalaliConverter::jalaliStringToGregorian()`.
+
+#### New: `POST /api/v1/inquiries` endpoint
+- `app/Controllers/InquiryController.php` — public (no auth), validates name/phone/message, per-phone rate-limit (3 per 30 min → 429), stores IP for audit only (never returned to client).
+- `app/Models/InquiryModel.php` — `insert()` + `countRecentByPhone()`.
+- `database/migrations/009_create_inquiries_table.sql` — `inquiries` table with soft-status ENUM and indexes.
+- `config/routes.php` — `POST /api/v1/inquiries` added (public, no middleware).
+- `docs/API_CONTRACT.md` — Section 4B added: `POST /api/v1/inquiries` documented as ✅ LIVE.
+- This unblocks the `drbastaninejad.com/contact.html` inquiry form shell (previously non-functional).
+
+#### New: `pages/errors/` — P1 blocker resolved (Bob AI Package B)
+All four error pages created. Each is standalone (inline design tokens, no external CSS dependency — so the page renders correctly even if the CDN/stylesheet is unreachable):
+- `pages/errors/403.html` — Forbidden; links to `/pages/auth/login.html` + home
+- `pages/errors/404.html` — Not Found; links to home + patient login
+- `pages/errors/offline.html` — No connection; auto-detects reconnection via `online` event + HEAD probe to `/api/v1/health`; clears stale form state; retry button
+- `pages/errors/session-expired.html` — Session expired; clears `maz_token` + `maz_patient_uuid` from `sessionStorage`; preserves `?next=` redirect param for login page
+
+Design: RTL-first (`dir="rtl"`, `lang="fa"`), Vazirmatn font, design-token palette (inline `:root`), 375px/768px responsive, WCAG 2.1 AA focus rings, `aria-live` on connection status, `role="main"`.
+
+### Files touched (committed to main)
+- `app.drbastaninejad.com/Backend/app/Controllers/InquiryController.php` — NEW
+- `app.drbastaninejad.com/Backend/app/Controllers/IntakeController.php` — UPDATED (JalaliConverter wired, birth_date now populated)
+- `app.drbastaninejad.com/Backend/app/Models/InquiryModel.php` — NEW
+- `app.drbastaninejad.com/Backend/app/Services/JalaliConverter.php` — NEW
+- `app.drbastaninejad.com/Backend/config/routes.php` — UPDATED (POST /api/v1/inquiries added)
+- `app.drbastaninejad.com/Backend/database/migrations/008_add_home_tel_to_patients.sql` — NEW
+- `app.drbastaninejad.com/Backend/database/migrations/009_create_inquiries_table.sql` — NEW
+- `app.drbastaninejad.com/Frontend/pages/errors/403.html` — NEW
+- `app.drbastaninejad.com/Frontend/pages/errors/404.html` — NEW
+- `app.drbastaninejad.com/Frontend/pages/errors/offline.html` — NEW
+- `app.drbastaninejad.com/Frontend/pages/errors/session-expired.html` — NEW
+- `docs/API_CONTRACT.md` — UPDATED (Section 4B added, Appendix A corrected)
+
+### Blocked / open
+- `pages/errors/` P1 blocker is now resolved — patient portal pages may proceed to wiring.
+- `GET /api/v1/health` probed by `offline.html` retry logic — endpoint not yet implemented. Add a trivial `HealthController::ping()` returning `{"success":true}` in the next backend session.
+- `drbastaninejad.com/contact.html` inquiry form is still a disabled fieldset shell (frontend). Bob AI must wire the form to `POST /api/v1/inquiries` using `shared/api.js` in a future Frontend session.
+- Migration run order: 001→002→003→004→005→006→007→008→009. Migration 008 must run AFTER 003.
+- All deployment-gated files remain untracked (`??`) — NOT staged.
+
+### Next
+- **Bob AI:** wire `drbastaninejad.com/contact.html` inquiry form to `POST /api/v1/inquiries`.
+- **Bob AI:** wire patient portal pages (`pages/patient/`) to Phase C endpoints now that error pages exist.
+- **Blackbox AI:** add `GET /api/v1/health` → `HealthController::ping()` (trivial, unblocks offline.html probe + deployment gate health-check item).
+- **Blackbox AI:** add `JalaliConverter` unit tests to `tests/Unit/JalaliConverterTest.php`.
+- **Product owner:** run migrations 001–009 in order on test DB; verify `birth_date` now populated on new intake submissions.
+

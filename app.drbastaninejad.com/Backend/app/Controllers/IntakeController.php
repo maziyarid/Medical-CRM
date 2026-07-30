@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Models\IntakeModel;
 use App\Services\GoogleSheetsService;
+use App\Services\JalaliConverter;
 use App\Services\ValidatorService;
 
 /**
@@ -172,9 +173,8 @@ final class IntakeController extends Controller
         $uuid       = trim((string)($body['submission_uuid'] ?? ''));
 
         // Convert Jalali YYYY/MM/DD to Gregorian for birth_date column.
-        // If conversion library is unavailable, store Jalali in birth_date_jalali
-        // and leave birth_date null until a conversion job runs.
-        $birthDateGregorian = null;
+        // JalaliConverter::jalaliStringToGregorian() returns null for invalid input.
+        $birthDateGregorian = $birthDate !== '' ? JalaliConverter::jalaliStringToGregorian($birthDate) : null;
         $birthDateJalali    = $birthDate ?: null;
 
         return [
