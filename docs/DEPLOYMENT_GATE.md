@@ -72,10 +72,26 @@ appears, record the service/process/port and obtain a reviewed remediation instr
 - [ ] Exact deployment commit SHA is recorded
 - [ ] PHP syntax checks pass
 - [ ] PHPUnit unit tests pass
+  <!-- Unit tests authored (2026-07-31):
+       tests/Unit/ValidatorServiceTest.php       — mobile, national ID, Jalali, validateIntake()
+       tests/Unit/JalaliConverterTest.php        — Jalali↔Gregorian conversion
+       tests/Unit/OtpServiceTest.php             — send, verify, rate-limit, replay prevention
+       tests/Unit/IntakeModelTest.php            — insert, findByUuid, updateSyncStatus,
+                                                   idempotency, failed_confirmed, outcome_unknown
+       tests/Unit/PatientPortalControllerTest.php — PATCH /patient/profile validation (15 cases)
+       ⚠ Tests require .env.testing + test DB (migration 001 applied). Run: ./vendor/bin/phpunit ⟫⟫ needs sign-off once DB is provisioned. -->
 - [ ] PHP integration tests pass
+  <!-- Integration test authored (2026-07-31):
+       tests/Integration/IntakeControllerIntegrationTest.php — POST /intakes happy path,
+         idempotent retry, outcome_unknown reconciliation, failed_confirmed,
+         double-submit race condition (7 test cases, @group intake_integration)
+       ⚠ Requires .env.testing with DB_DATABASE=maz_test and migration 001. -->
 - [ ] Frontend build/development validation passes where applicable
 - [ ] Code review completed for authentication, intake, storage, and database changes
 - [ ] No unreviewed or abandoned alternate backend is reachable
+  <!-- dashboard.drbastaninejad.com/app/Services/OtpService.php — RETIRED (tombstone, 2026-07-31)
+       dashboard.drbastaninejad.com/app/Services/GoogleSheetsService.php — RETIRED (tombstone, 2026-07-31)
+       Canonical services: app.drbastaninejad.com/Backend/app/Services/ -->
 - [ ] No Laravel/Python/MongoDB production component has been introduced without a signed amendment
 - [ ] Rollback commit/release procedure is documented
 

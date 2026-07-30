@@ -1323,3 +1323,110 @@ No production action authorized. No cPanel/VPS action taken.
 1. Write Integration test: `POST /api/v1/intakes` happy path (requires `.env.testing` with test DB).
 2. Write `IntakeModelTest` coverage for `failed_confirmed` and `outcome_unknown` states (DEPLOYMENT_GATE §3).
 3. Update `docs/DEPLOYMENT_GATE.md` checklist items §3 as unit tests are completed.
+
+---
+
+## [2026-07-31] — Track: Backend/Database/Platform — Agent: Blackbox AI
+Phase: Test coverage — intake lifecycle states + integration test framework
+
+**Scope:** Extend IntakeModelTest with `failed_confirmed`/`outcome_unknown` coverage; write IntakeControllerIntegrationTest; annotate DEPLOYMENT_GATE §3.
+**Deployment gate:** NOT satisfied — no production/cPanel/VPS action authorized.
+**Gated files:** All 6 remain `??` untracked throughout — correct.
+
+---
+
+### Work completed this session
+
+#### 1. `IntakeModelTest` extended — `failed_confirmed` and `outcome_unknown` states
+
+**File:** `app.drbastaninejad.com/Backend/tests/Unit/IntakeModelTest.php` (UPDATED)
+
+Per `UNIFIED_MASTER_PLAN.md §6` and `SPACE_COORDINATION_PROTOCOL.md §8`, the canonical
+intake lifecycle is: `pending → attempting → submitted | failed_confirmed | outcome_unknown`.
+
+The DEPLOYMENT_GATE §3 required runnable tests for all four branches:
+- successful submission ✅ (was already covered: `testInsertReturnsPositiveId`, `testInsertedRowIsRetrievableByUuid`)
+- same-token double submission ✅ (was already covered: `testDuplicateSubmissionUuidThrowsPdoException`)
+- confirmed no-write failure (`failed_confirmed`) — **newly added** (3 tests)
+- ambiguous mid-flight failure (`outcome_unknown`) — **newly added** (3 tests)
+
+**New tests added (`@group outcome_states`):**
+
+| Test | What it verifies |
+|---|---|
+| `testFailedConfirmed_NoRowExistsWhenNoInsertOccurred` | If 422 returned before insert() → UUID not in DB; safe to reuse |
+| `testFailedConfirmed_SheetsSyncStatusTransitionsFromFailedToOk` | `sheets_sync_status` 'failed' → 'ok' after updateSyncStatus() retry |
+| `testFailedConfirmed_ExistingRowWithFailedSyncIsFoundByUuid` | Row with `sheets_sync_status='failed'` still found by UUID (no phantom) |
+| `testOutcomeUnknown_RowExistsWithPendingSyncStatus` | insert() defaults to `sheets_sync_status='pending'` — the outcome_unknown state |
+| `testOutcomeUnknown_ReconciliationResolvesToOk` | 'pending' → 'ok' after idempotent retry + updateSyncStatus() |
+| `testOutcomeUnknown_SecondInsertWithSameUuidThrows` | DB UNIQUE constraint blocks race-condition duplicate even if controller check was bypassed |
+
+---
+
+#### 2. `IntakeControllerIntegrationTest` — NEW (Integration testsuite)
+
+**File:** `app.drbastaninejad.com/Backend/tests/Integration/IntakeControllerIntegrationTest.php` (NEW)
+
+**Approach:**
+- `IntakeController` is `final`, so anonymous subclass extends it to override `json()`, `error()`, `validationError()`, and `jsonBody()` — all `protected`, none `final`, all overridable.
+- `GoogleSheetsService.$sheets` (private) is swapped to a null stub via `ReflectionProperty::setAccessible(true)` + `setValue()` — avoids any network call.
+- `jsonBody()` is overridden to read from `$_REQUEST['_test_json_body']` instead of `php://input` — avoids stream wrapper complexity.
+- All responses captured via `$GLOBALS['_test_captured_status'/'_test_captured_json']`; `exit` replaced by throwing a sentinel `RuntimeException`.
+
+**7 test cases (`@group intake_integration`):**
+
+| Test | Lifecycle state covered |
+|---|---|
+| `testHappyPath_ValidSubmissionReturns201` | `submitted` — 201, intake_id > 0, one DB row |
+| `testIdempotentRetry_SameUuidReturns200` | idempotent 200, no duplicate row |
+| `testOutcomeUnknown_PendingRowRetryReturns200Idempotent` | `outcome_unknown` — pending row → idempotent 200 |
+| `testOutcomeUnknown_FailedSyncRetryReturns200` | `outcome_unknown` — failed sync → idempotent 200 |
+| `testFailedConfirmed_InvalidNationalIdReturns422NoDatabaseWrite` | `failed_confirmed` — 422, no row, UUID safe |
+| `testFailedConfirmed_MissingMobileReturns422NoDatabaseWrite` | `failed_confirmed` — missing required field, no row |
+| `testDoubleSubmit_SameUuidProducesExactlyOneRow` | race-condition double-submit → exactly one row |
+
+**To run:** `./vendor/bin/phpunit --testsuite Integration` — requires `.env.testing` with `DB_DATABASE=maz_test` and migration 001 applied.
+
+---
+
+#### 3. `docs/DEPLOYMENT_GATE.md` §3 — annotated with test inventory
+
+Added HTML comment blocks under:
+- `PHPUnit unit tests pass` — lists all 5 unit test files and their coverage scope
+- `PHP integration tests pass` — lists IntakeControllerIntegrationTest and its 7 cases
+- `No unreviewed or abandoned alternate backend is reachable` — notes the two service tombstones created last session
+
+Gate is still NOT signed off — annotations are progress records only. Product owner must confirm test results once `.env.testing` and test DB are provisioned.
+
+---
+
+### Files touched this session
+
+| File | Action |
+|---|---|
+| `app.drbastaninejad.com/Backend/tests/Unit/IntakeModelTest.php` | UPDATED — added 6 outcome_state tests |
+| `app.drbastaninejad.com/Backend/tests/Integration/IntakeControllerIntegrationTest.php` | NEW — 7 integration tests |
+| `docs/DEPLOYMENT_GATE.md` | UPDATED — §3 annotated with test inventory |
+
+**Not touched:** Any gated file, any PII file, any frontend design token, any HTML/CSS layout, any route name, any `.env`.
+
+---
+
+### Deployment gate status
+
+`docs/DEPLOYMENT_GATE.md` — **NOT signed off.** §3 now annotated with test inventory; no checklist boxes ticked (product owner must run tests and confirm pass).
+
+**To satisfy §3 "PHPUnit unit tests pass":**
+1. Create `.env.testing` from `.env.testing.example`
+2. Set `DB_DATABASE=maz_test` (separate from production/dev)
+3. Apply migration 001 to `maz_test`
+4. Run: `cd app.drbastaninejad.com/Backend && ./vendor/bin/phpunit`
+5. All unit tests should pass offline; DB-marked tests require the test DB.
+
+---
+
+### Next (Blackbox AI)
+
+1. Consider refactoring `Controller::jsonBody()` to accept an optional `$input` parameter (DI-friendly) to enable true unit testing without Reflection tricks.
+2. Add `@group db` skip logic for when `.env.testing` is absent (use `markTestSkipped()`).
+3. P3 staff dashboard wiring — blocked on product owner sign-off on dashboard duplicate-backend question.
