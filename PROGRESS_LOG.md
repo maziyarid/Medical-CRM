@@ -581,3 +581,42 @@ Design: RTL-first (`dir="rtl"`, `lang="fa"`), Vazirmatn font, design-token palet
 - **Blackbox AI:** add `JalaliConverter` unit tests to `tests/Unit/JalaliConverterTest.php`.
 - **Product owner:** run migrations 001–009 in order on test DB; verify `birth_date` now populated on new intake submissions.
 
+
+---
+
+## [2026-07-30 — Session 3 cont.] — Track: Backend/Database/Platform — Agent: Blackbox AI
+
+Phase: D — Health endpoint + JalaliConverter tests
+
+Scope: HealthController, GET /api/v1/health, JalaliConverterTest.
+Package: Trivial additions completing session 3 items.
+Overlap check: No active PROGRESS_LOG.md entry claimed this package.
+Deployment: No production or cPanel/VPS change is authorized by this task.
+
+### Done
+
+#### New: GET /api/v1/health
+- `app/Controllers/HealthController.php` — `ping()` tries `SELECT 1` on DB; returns `200 {"success":true,"data":{"status":"ok"}}` or `503 DB_UNAVAILABLE`. No auth, no patient data exposed.
+- `config/routes.php` — `GET /api/v1/health` registered (public, first route, no middleware).
+- Unblocks: `offline.html` retry HEAD probe, deployment gate §8 "Public health check passes".
+
+#### New: JalaliConverterTest
+- `tests/Unit/JalaliConverterTest.php` — 16 test cases across `toGregorian()`, `toJalali()`, round-trip, and `jalaliStringToGregorian()` including null/invalid-format guards.
+- Pure algorithmic — no DB required (`@group db` tag NOT present).
+
+### Files touched
+- `app.drbastaninejad.com/Backend/app/Controllers/HealthController.php` — NEW
+- `app.drbastaninejad.com/Backend/config/routes.php` — UPDATED (health route prepended)
+- `app.drbastaninejad.com/Backend/tests/Unit/JalaliConverterTest.php` — NEW
+
+### Blocked / open
+- All deployment-gated files remain `??` untracked.
+- PHPUnit `JalaliConverterTest` can run without a DB — product owner can execute `./vendor/bin/phpunit --testsuite Unit --filter JalaliConverter` immediately after `composer install`.
+- Contact form wiring (`drbastaninejad.com/contact.html`) — Bob AI Frontend track.
+- Patient portal page wiring (`pages/patient/`) — Bob AI Frontend track; errors P1 blocker now resolved.
+
+### Next
+- **Bob AI:** wire contact form + patient portal pages.
+- **Product owner:** run `composer install`, then `phpunit --filter JalaliConverter` (no DB needed).
+- **Blackbox AI (next session):** Integration tests for IntakeController (happy path + 422 + idempotency).
+

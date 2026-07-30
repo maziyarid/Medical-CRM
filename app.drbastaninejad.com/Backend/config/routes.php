@@ -6,11 +6,15 @@ declare(strict_types=1);
 
 use App\Controllers\IntakeController;
 use App\Controllers\OtpController;
+use App\Controllers\HealthController;
 use App\Controllers\InquiryController;
 use App\Controllers\PatientPortalController;
 use App\Middleware\AuthMiddleware;
 
 /** @var App\Core\Router $router */
+
+// ── Health probe (public — no auth) ───────────────────────────────────────────
+$router->get('/api/v1/health', [HealthController::class, 'ping']);
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 $router->post('/api/v1/auth/otp/send',   [OtpController::class, 'send']);
