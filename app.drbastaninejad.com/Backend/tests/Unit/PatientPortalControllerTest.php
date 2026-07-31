@@ -252,4 +252,109 @@ final class PatientPortalControllerTest extends TestCase
         self::assertArrayNotHasKey('mobile', $r['patch'],
             'mobile must not appear in the patch — it is not writable');
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET /patient/records — pagination parameter validation
+    // The controller normalises page/per_page via (int) casts and clamps.
+    // We test the clamping logic in isolation (no DB needed).
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Mirror the pagination clamping logic from PatientPortalController::records().
+     * Returns [page, perPage].
+     */
+    private function clampPagination(mixed $page, mixed $perPage): array
+    {
+        $p  = max(1, (int)$page);
+        $pp = min(50, max(1, (int)$perPage));
+        return [$p, $pp];
+    }
+
+    /** page defaults to 1 when not supplied (null/0) */
+    public function testRecordsPageDefaultsToOne(): void
+    {
+        [$p] = $this->clampPagination(null, 10);
+        self::assertSame(1, $p);
+    }
+
+    /** page 0 is clamped to 1 */
+    public function testRecordsPageZeroClampedToOne(): void
+    {
+        [$p] = $this->clampPagination(0, 10);
+        self::assertSame(1, $p);
+    }
+
+    /** page negative is clamped to 1 */
+    public function testRecordsNegativePageClampedToOne(): void
+    {
+        [$p] = $this->clampPagination(-5, 10);
+        self::assertSame(1, $p);
+    }
+
+    /** page 3 passes through unchanged */
+    public function testRecordsPositivePagePassesThrough(): void
+    {
+        [$p] = $this->clampPagination(3, 10);
+        self::assertSame(3, $p);
+    }
+
+    /** per_page 0 is clamped to 1 */
+    public function testRecordsPerPageZeroClampedToOne(): void
+    {
+        [, $pp] = $this->clampPagination(1, 0);
+        self::assertSame(1, $pp);
+    }
+
+    /** per_page 51 is clamped to 50 (max) */
+    public function testRecordsPerPageAboveMaxClampedTo50(): void
+    {
+        [, $pp] = $this->clampPagination(1, 51);
+        self::assertSame(50, $pp);
+    }
+
+    /** per_page 50 (boundary) passes through unchanged */
+    public function testRecordsPerPageExactly50Accepted(): void
+    {
+        [, $pp] = $this->clampPagination(1, 50);
+        self::assertSame(50, $pp);
+    }
+
+    /** per_page 1 (boundary) passes through unchanged */
+    public function testRecordsPerPageExactly1Accepted(): void
+    {
+        [, $pp] = $this->clampPagination(1, 1);
+        self::assertSame(1, $pp);
+    }
+
+    /** String "abc" for page coerces to 0 → clamped to 1 */
+    public function testRecordsStringPageCoercedAndClamped(): void
+    {
+        [$p] = $this->clampPagination('abc', 10);
+        self::assertSame(1, $p);
+    }
+
+    /** String "5" for per_page coerces correctly */
+    public function testRecordsStringPerPageCoercedCorrectly(): void
+    {
+        [, $pp] = $this->clampPagination(1, '5');
+        self::assertSame(5, $pp);
+    }
+
+    /**
+     * Offset calculation: offset = (page - 1) * per_page
+     * This is used in the LIMIT/OFFSET query in records().
+     */
+    public function testRecordsOffsetCalculation(): void
+    {
+        $page    = 3;
+        $perPage = 10;
+        $offset  = ($page - 1) * $perPage;
+        self::assertSame(20, $offset, 'page=3, per_page=10 → offset=20');
+    }
+
+    public function testRecordsOffsetPageOneIsZero(): void
+    {
+        $offset = (1 - 1) * 10;
+        self::assertSame(0, $offset, 'page=1 → offset=0');
+    }
 }

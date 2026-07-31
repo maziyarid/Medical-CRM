@@ -185,9 +185,34 @@
       try {
         const res = await Staff.getAnalytics({ range });
         const d = res.data || res;
-        renderKpis(d.kpis || d);
-        renderChart(d.weekly_chart || d.chart || []);
-        renderReferrals(d.referral_sources || d.referrals || []);
+
+        // Normalize kpis: backend returns array [{key,value,delta_pct,delta_dir}]
+        // renderKpis() expects an object keyed by metric name
+        let kpisObj = d.kpis;
+        if (Array.isArray(d.kpis)) {
+          kpisObj = {};
+          d.kpis.forEach(k => {
+            if (k.key === 'new_patients')    { kpisObj.new_patients = k.value; kpisObj.new_patients_delta = k.delta_pct ? toPersianNum(k.delta_pct) + '٪' : null; kpisObj.new_patients_delta_dir = k.delta_dir; }
+            if (k.key === 'conversion_rate') { kpisObj.conversion_rate = k.value; kpisObj.conversion_rate_delta = k.delta_pct ? toPersianNum(k.delta_pct) + '٪' : null; kpisObj.conversion_rate_delta_dir = k.delta_dir; }
+            if (k.key === 'revenue')         { kpisObj.revenue_label = k.value > 0 ? toPersianNum(Math.round(k.value / 10_000_000)) + 'م' : '—'; kpisObj.revenue_delta = k.delta_pct ? toPersianNum(k.delta_pct) + '٪' : null; kpisObj.revenue_delta_dir = k.delta_dir; }
+            if (k.key === 'return_rate')     { kpisObj.return_rate = k.value; kpisObj.return_rate_label = ''; }
+          });
+        }
+
+        // Normalize chart: backend returns {week, count}; renderChart expects {label, count}
+        const rawChart = d.chart_new_patients || d.weekly_chart || d.chart || [];
+        const chart = rawChart.map((w, i) => ({
+          label: w.label || ('هـ' + toPersianNum(i + 1)),
+          count: w.count ?? w.cnt ?? 0,
+        }));
+
+        // Normalize referrals: backend returns {source, count, pct}; renderReferrals expects {source, percent}
+        const rawRef = d.referral_sources || d.referrals || [];
+        const referrals = rawRef.map(r => ({ source: r.source, percent: r.pct ?? r.percent ?? 0 }));
+
+        renderKpis(kpisObj);
+        renderChart(chart);
+        renderReferrals(referrals);
         document.getElementById('analytics-subtitle').textContent = RANGE_LABELS[range] || '';
       } catch (err) {
         document.getElementById('analytics-subtitle').textContent = 'خطا در بارگذاری';

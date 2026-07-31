@@ -221,10 +221,19 @@
     async function loadTasks() {
       try {
         const res = await Staff.listTasks();
-        const tasks = res.data?.rows || res.data?.items || res.data || [];
-        renderColumn(tasks.filter(t => t.status === 'todo'),        'todo');
-        renderColumn(tasks.filter(t => t.status === 'in_progress'), 'in_progress');
-        renderColumn(tasks.filter(t => t.status === 'done'),        'done');
+        const d = res.data || res;
+        // Backend returns { columns: { todo:[], in_progress:[], done:[] }, total }
+        // or a flat array — handle both shapes
+        if (d && d.columns) {
+          renderColumn(d.columns.todo        || [], 'todo');
+          renderColumn(d.columns.in_progress || [], 'in_progress');
+          renderColumn(d.columns.done        || [], 'done');
+        } else {
+          const tasks = d.rows || d.items || (Array.isArray(d) ? d : []);
+          renderColumn(tasks.filter(t => t.status === 'todo'),        'todo');
+          renderColumn(tasks.filter(t => t.status === 'in_progress'), 'in_progress');
+          renderColumn(tasks.filter(t => t.status === 'done'),        'done');
+        }
       } catch (err) {
         renderError(document.getElementById('kanban-board'), err);
         showToast(err.message || 'خطا در بارگذاری وظایف', 'error');

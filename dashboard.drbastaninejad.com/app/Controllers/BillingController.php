@@ -80,11 +80,34 @@ final class BillingController extends Controller
             ];
         }, $rowsStmt->fetchAll());
 
+        // Summary KPIs for billing page header cards
+        $summaryStmt = $db->prepare(
+            "SELECT
+               COUNT(*) AS total_all,
+               SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+               SUM(CASE WHEN status = 'pending' THEN amount_rials ELSE 0 END) AS pending_amount,
+               SUM(CASE WHEN status = 'failed'  THEN 1 ELSE 0 END) AS failed_count,
+               AVG(CASE WHEN status = 'paid'    THEN amount_rials END) AS avg_paid
+             FROM invoices WHERE clinic_id = ?"
+        );
+        $summaryStmt->execute([$clinicId]);
+        $s = $summaryStmt->fetch();
+
+        $pendingAmt  = (float)($s['pending_amount'] ?? 0);
+        $avgPaid     = (float)($s['avg_paid'] ?? 0);
+
         return $this->success([
             'rows'     => $rows,
             'total'    => $total,
             'page'     => $page,
             'per_page' => $perPage,
+            'summary'  => [
+                'total'               => (int)($s['total_all']   ?? $total),
+                'pending_count'       => (int)($s['pending_count'] ?? 0),
+                'pending_amount_label' => $pendingAmt > 0 ? round($pendingAmt / 10_000_000, 0) . 'م' : '—',
+                'failed_count'        => (int)($s['failed_count'] ?? 0),
+                'avg_label'           => $avgPaid > 0 ? round($avgPaid / 10_000_000, 0) . 'م' : '—',
+            ],
         ]);
     }
 

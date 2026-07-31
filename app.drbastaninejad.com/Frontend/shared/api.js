@@ -608,6 +608,21 @@ export const PatientExtended = {
 };
 
 // ---------------------------------------------------------------------------
+// HTML escape helper — exported so ES module pages can import it directly.
+// Rule (SPACE_COORDINATION_PROTOCOL §6): every server-returned string written
+// via innerHTML or template literals must pass through escHtml().
+// Note: window.MAZCRM.escHtml is the same function exposed for non-module pages.
+// ---------------------------------------------------------------------------
+export function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ---------------------------------------------------------------------------
 // UI helpers — skeleton / placeholder / error banner
 // ---------------------------------------------------------------------------
 

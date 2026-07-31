@@ -62,7 +62,7 @@ final class AnalyticsController extends Controller
 
         $apptStmt = $db->prepare(
             "SELECT COUNT(DISTINCT patient_id) FROM appointments
-             WHERE clinic_id = ? AND scheduled_at BETWEEN ? AND ? AND status != 'cancelled'"
+             WHERE clinic_id = ? AND starts_at BETWEEN ? AND ? AND status != 'cancelled'"
         );
         $apptStmt->execute([$clinicId, $dateFrom, $dateTo]);
         $bookedPatients = (int)$apptStmt->fetchColumn();
@@ -88,7 +88,7 @@ final class AnalyticsController extends Controller
         // ── KPI 4: return rate (patients with 2+ visits in period) ──
         $returnStmt = $db->prepare(
             "SELECT COUNT(DISTINCT patient_id) FROM appointments
-             WHERE clinic_id = ? AND scheduled_at BETWEEN ? AND ? AND status = 'completed'
+             WHERE clinic_id = ? AND starts_at BETWEEN ? AND ? AND status = 'completed'
              GROUP BY patient_id HAVING COUNT(*) >= 2"
         );
         $returnStmt->execute([$clinicId, $dateFrom, $dateTo]);
