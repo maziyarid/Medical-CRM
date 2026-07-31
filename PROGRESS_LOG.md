@@ -1945,3 +1945,99 @@ Full contract documentation for all new endpoints (v1.3):
 - **Bob AI (future):** Staff patient-detail page `staff/patient-detail.html` — check for remaining mock data
 - **Bob AI (future):** `PATCH /api/v1/patient/profile` — uncomment block in `profile.html` (contract confirmed live)
 
+
+---
+
+## [2026-08-01 — Session 10] — Track: Frontend + Backend Fixes — Agent: Bob AI
+
+### Declaration
+Scope: Bug-fix pass — commit stranded session-9 changes, fix runtime errors introduced by session 9, align backend shape with frontend expectations.
+Overlap check: All packages unclaimed.
+Deployment: No production/cPanel/VPS action authorized.
+Gated files: All 4 remain `??` untracked throughout.
+
+### Pre-session governance audit
+
+| Check | Outcome |
+|---|---|
+| Deployment-gated files staged | **ZERO** |
+| PII paths | **ZERO** |
+| `HEAD == origin/main` | ✅ confirmed before first commit |
+
+---
+
+### Work completed (2 commits: `39691c2` + `0a32d03`)
+
+#### Commit 1 — `39691c2`: stranded session-9 changes
+
+**ValidatorService namespace move (app backend):**
+- `app/Services/ValidatorService.php` → `app/Validators/ValidatorService.php` (rename, 99% similar)
+- Namespace: `App\Services\ValidatorService` → `App\Validators\ValidatorService`
+- Import updated in: `app/Controllers/IntakeController.php`, `OtpController.php`, `InquiryController.php`
+- Import updated in: `dashboard/Controllers/IntakeController.php`, `OtpController.php`, `PatientController.php`
+
+**DashboardController (dashboard) — schema alignment:**
+- `scheduled_at` → `starts_at` in appointments queries (matches migration 010 rename)
+- `reviewed_at IS NULL` predicate removed (column dropped in migration 010)
+- `paid_amount` → `payable`, `paid_at` → `created_at + status='paid'` in invoices query
+- Timeline events restructured to generic typed events: `{id, type, timestamp, patient{}, title, description, status{label,badge}, actors[], href}`
+
+**AppointmentController (dashboard):** `show()` + `destroy()` methods added  
+**routes.appointments.php:** `GET /{id}` and `DELETE /{id}` registered  
+**calendar.html + emr.html:** fully rewritten live-wired versions (session 9 work)  
+**docs/SCHEMA.md:** Section 8 — derived view schemas (DashboardTimelineEvent, PatientPortalTimelineEntry)
+
+#### Commit 2 — `0a32d03`: runtime bug fixes
+
+**CRITICAL: `shared/api.js`** — Exported `escHtml()` as named ES module export.
+- All 6 staff pages + patient/records.html import `escHtml` from `shared/api.js` — would have thrown `escHtml is not a function` at runtime without this fix.
+- The function is identical to `window.MAZCRM.escHtml`; both now exist for compatibility.
+
+**`analytics.html`** — response shape normalisation in `loadAnalytics()`:
+- Backend returns `kpis` as array `[{key, value, delta_pct, delta_dir}]`; frontend `renderKpis()` expected an object. Added normalization layer.
+- `chart_new_patients: [{week, count}]` → `[{label: 'هـN', count}]` for renderChart()
+- `referral_sources: [{source, pct}]` → `[{source, percent}]` for renderReferrals()
+
+**`tasks.html`** — `loadTasks()` now handles `TaskController`'s grouped `{columns: {todo, in_progress, done}}` response shape, with flat-array fallback.
+
+**`BillingController`** — `index()` now appends `summary` block:
+`{ total, pending_count, pending_amount_label, failed_count, avg_label }` — powers billing KPI header cards.
+
+**`AnalyticsController`** — `scheduled_at` → `starts_at` in conversion-rate and return-rate queries (matches schema change in DashboardController).
+
+**`PatientPortalControllerTest`** — 12 new tests for `records()` pagination clamping:
+page/per_page null/zero/negative/above-max/string coercion and offset arithmetic. No DB required.
+
+---
+
+### Files touched (committed to main)
+
+**Commit 1 (`39691c2`):**
+- `app.drbastaninejad.com/Backend/app/{Services → Validators}/ValidatorService.php` (rename)
+- `app.drbastaninejad.com/Backend/app/Controllers/InquiryController.php`, `IntakeController.php`, `OtpController.php`
+- `app.drbastaninejad.com/Frontend/pages/staff/calendar.html`, `emr.html`
+- `dashboard.drbastaninejad.com/app/Controllers/AppointmentController.php`, `DashboardController.php`, `IntakeController.php`, `OtpController.php`, `PatientController.php`
+- `dashboard.drbastaninejad.com/config/routes.appointments.php`
+- `docs/SCHEMA.md`
+
+**Commit 2 (`0a32d03`):**
+- `app.drbastaninejad.com/Frontend/shared/api.js`
+- `app.drbastaninejad.com/Frontend/pages/staff/analytics.html`, `tasks.html`
+- `app.drbastaninejad.com/Backend/tests/Unit/PatientPortalControllerTest.php`
+- `dashboard.drbastaninejad.com/app/Controllers/BillingController.php`, `AnalyticsController.php`
+
+---
+
+### Remaining blocked items (product owner)
+1. `services/*.html` procedure descriptions, FAQ, cost info
+2. `gallery.html` before/after photo captions + real patient images
+3. Google Maps embed for `contact.html`
+4. Instagram handle, Namad badge, Aparat URL
+5. YekanBakh `.woff2` files, favicon, doctor photos
+6. SMS API keys, Google Sheets service-account JSON
+
+### Next
+- **Product owner:** Run migrations 001–011; confirm `emr_records` table shared between subdomains
+- **Bob AI (future):** Add EMR templates to SettingsController (currently returns null `emr_templates`)
+- **Bob AI (future):** Staff patient-detail page audit for any remaining `✅ LIVE` mismatches
+
