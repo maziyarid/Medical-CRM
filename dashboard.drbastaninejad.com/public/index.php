@@ -147,11 +147,15 @@ try {
     // Route files use $router as a local variable injected by this require
     foreach ([
         'routes.auth',
+        'routes.dashboard',
         'routes.intake',
         'routes.patients',
         'routes.appointments',
-        'routes.dashboard',
         'routes.emr',
+        'routes.billing',
+        'routes.tasks',
+        'routes.analytics',
+        'routes.settings',
     ] as $routeFile) {
         $path = BASE_PATH . '/config/' . $routeFile . '.php';
         if (is_file($path)) {
