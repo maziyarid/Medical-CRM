@@ -72,10 +72,10 @@ final class PatientPortalController extends Controller
         $this->json([
             'patient_name'      => trim($patient['first_name'] . ' ' . $patient['last_name']),
             'next_appointment'  => $next ? [
-                'date_jalali' => $next['date_jalali'] ?? null,
-                'time'        => $next['time'] ?? null,
-                'reason'      => $next['reason'] ?? null,
-                'status'      => $next['status'] ?? null,
+                'scheduled_at'     => $next['scheduled_at'] ?? null,
+                'duration_minutes' => isset($next['duration_minutes']) ? (int)$next['duration_minutes'] : null,
+                'reason'           => $next['reason'] ?? null,
+                'status'           => $next['status'] ?? null,
             ] : null,
             'total_intakes'     => $totalIntakes,
             'total_documents'   => $totalDocs,

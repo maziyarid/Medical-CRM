@@ -322,7 +322,9 @@
         return;
       }
       tl.innerHTML = items.map(item => {
-        const date    = esc(item.date_jalali || item.date || '');
+        // Timeline items may be intakes (created_at) or appointments (scheduled_at/timestamp)
+        const rawDate = item.scheduled_at || item.timestamp || item.date_jalali || item.date || '';
+        const date    = esc(rawDate ? String(rawDate).substring(0, 10) : '');
         const type    = esc(item.type || '');
         const title   = esc(item.title || '');
         const body    = esc(item.body || item.description || '');

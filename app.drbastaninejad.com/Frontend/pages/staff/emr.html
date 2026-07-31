@@ -217,15 +217,17 @@
       const emptyEl = document.getElementById('past-notes-empty');
       try {
         const res = await Staff.getEmr(pid);
-        const notes = res.data?.notes ?? [];
+        // EmrController returns { records: [...] }
+        const notes = res.data?.records ?? res.data?.notes ?? [];
         loadEl.hidden = true;
         if (notes.length === 0) { emptyEl.hidden = false; return; }
         listEl.hidden = false;
+        // API returns: { records: [{id,chief_complaint,diagnosis,plan,ai_accepted,created_at}] }
         listEl.innerHTML = notes.map(n =>
           `<div class="note-entry">
-            <div class="note-meta">${escHtml(n.created_at ?? '')} · ${escHtml(n.provider_name ?? 'پزشک')}</div>
-            <strong>${escHtml(n.visit_type ?? 'یادداشت')}</strong>
-            <p style="margin-top:.25rem;color:var(--muted)">${escHtml(n.assessment ?? '')}</p>
+            <div class="note-meta">${escHtml(String(n.created_at ?? '').substring(0,10))} · دکتر باستانی‌نژاد</div>
+            <strong>${escHtml(n.chief_complaint ?? 'یادداشت پزشکی')}</strong>
+            <p style="margin-top:.25rem;color:var(--muted)">${escHtml(n.diagnosis ?? '')}</p>
           </div>`
         ).join('');
       } catch (_) {
@@ -241,13 +243,17 @@
       const saveText = btn.querySelector('.btn-submit-text');
       const saveLoading = btn.querySelector('.btn-submit-loading');
 
+      // API contract: POST /patients/{id}/emr expects {chief_complaint, diagnosis, plan, appointment_id?}
+      // SOAP fields (subjective/objective/assessment) are not in the emr_records schema.
+      // Map: subjective → chief_complaint, assessment → diagnosis, plan stays plan.
+      const subjective  = document.getElementById('soap-s').value.trim();
+      const assessment  = document.getElementById('soap-a').value.trim();
+      const objective   = document.getElementById('soap-o').value.trim();
+      const plan        = document.getElementById('soap-p').value.trim();
       const body = {
-        visit_type: 'visit',
-        is_draft: isDraft,
-        subjective: document.getElementById('soap-s').value.trim(),
-        objective:  document.getElementById('soap-o').value.trim(),
-        assessment: document.getElementById('soap-a').value.trim(),
-        plan:       document.getElementById('soap-p').value.trim(),
+        chief_complaint: subjective || objective || 'یادداشت پزشکی',
+        diagnosis:       assessment || null,
+        plan:            plan || null,
       };
 
       btn.disabled = true;

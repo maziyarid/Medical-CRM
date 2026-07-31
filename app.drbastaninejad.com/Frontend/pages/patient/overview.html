@@ -173,11 +173,13 @@
         // Avatar / greeting — field: patient_name (confirmed)
         fillAvatar(d.patient_name || '');
 
-        // KPI: next appointment — field: next_appointment{date_jalali,time,reason,status}
+        // KPI: next appointment — field: next_appointment{scheduled_at,duration_minutes,reason,status}
         const appt = d.next_appointment;
         if (appt) {
-          // date_jalali and time returned as display strings — render exactly as received
-          const apptDisplay = [appt.date_jalali, appt.time ? ('ساعت ' + appt.time) : null]
+          // scheduled_at is a MySQL DATETIME UTC string e.g. "2026-08-15 14:30:00"
+          const dateStr  = appt.scheduled_at ? String(appt.scheduled_at).substring(0, 10) : '';
+          const timeStr  = appt.scheduled_at ? String(appt.scheduled_at).substring(11, 16) : '';
+          const apptDisplay = [dateStr, timeStr ? ('ساعت ' + timeStr) : null]
             .filter(Boolean).join(' — ');
           document.getElementById('ov-next-appt').textContent = apptDisplay || '—';
           document.getElementById('ov-next-reason').textContent = appt.reason || '—';
@@ -207,7 +209,9 @@
         // Display it in the upcoming list if present.
         const list = document.getElementById('ov-upcoming-list');
         if (appt) {
-          const apptDisplay = [appt.date_jalali, appt.time ? ('ساعت ' + appt.time) : null]
+          const dateStr2 = appt.scheduled_at ? String(appt.scheduled_at).substring(0, 10) : '';
+          const timeStr2 = appt.scheduled_at ? String(appt.scheduled_at).substring(11, 16) : '';
+          const apptDisplay = [dateStr2, timeStr2 ? ('ساعت ' + timeStr2) : null]
             .filter(Boolean).join(' — ');
           list.innerHTML =
             '<div role="listitem" style="display:flex;align-items:center;gap:1rem;' +

@@ -87,20 +87,11 @@
 
     if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
 
-    const VISIT_LABELS = {
-      consultation: 'مشاوره اولیه',
-      pre_op:       'قبل از عمل',
-      post_op:      'بعد از عمل',
-      follow_up:    'ویزیت پیگیری',
-      surgery:      'عمل جراحی',
-    };
-
     let currentPage = 1;
 
     function formatDate(dateStr) {
       if (!dateStr) return '';
-      // Just display as-is; server returns created_at in MySQL DATETIME format
-      return dateStr.replace('T', ' ').substring(0, 10);
+      return String(dateStr).replace('T', ' ').substring(0, 10);
     }
 
     function renderEntries(items) {
@@ -111,19 +102,19 @@
         </div>`;
         return;
       }
+      // API returns: { id, chief_complaint, diagnosis, plan, ai_accepted, created_at }
       timeline.innerHTML = items.map(r => {
-        const visitLabel = VISIT_LABELS[r.visit_type] || escHtml(r.visit_type || 'ویزیت');
-        const pill = r.is_signed
-          ? '<span class="pill evergreen">امضا شده</span>'
+        const pill = r.ai_accepted
+          ? '<span class="pill evergreen">تایید شده</span>'
           : '<span class="pill info">ثبت شده</span>';
-        const summary = r.assessment
-          ? `<p>${escHtml(r.assessment)}</p>`
-          : (r.subjective ? `<p>${escHtml(r.subjective)}</p>` : '');
+        const summary = r.diagnosis
+          ? `<p>${escHtml(r.diagnosis)}</p>`
+          : (r.chief_complaint ? `<p>${escHtml(r.chief_complaint)}</p>` : '');
         return `<div class="tl-entry" role="listitem">
           <div class="tl-dot" aria-hidden="true"></div>
           <div class="tl-card">
-            <div class="tl-meta">${escHtml(formatDate(r.created_at))} · ${escHtml(r.author_name || 'دکتر باستانی‌نژاد')} · ${visitLabel}</div>
-            <h4>${visitLabel}</h4>
+            <div class="tl-meta">${escHtml(formatDate(r.created_at))} · دکتر باستانی‌نژاد</div>
+            <h4>${escHtml(r.chief_complaint || 'یادداشت پزشکی')}</h4>
             ${summary}
             ${r.plan ? `<div class="tl-note" style="margin-top:.45rem"><strong>برنامه درمانی:</strong> ${escHtml(r.plan)}</div>` : ''}
             <div class="tl-pills">${pill}</div>

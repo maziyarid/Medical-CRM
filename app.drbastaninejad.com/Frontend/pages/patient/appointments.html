@@ -181,20 +181,21 @@
             '</div>';
         } else {
           upEl.innerHTML = upcoming.map(a => {
-            // date_jalali returned exactly as-is from server (per contract)
-            const jalali  = esc(a.date_jalali || '—');
-            const time    = a.time ? ' · ساعت ' + esc(a.time) : '';
-            const reason  = esc(a.reason  || '—');
-            const prov    = a.provider_name ? ' · ' + esc(a.provider_name) : '';
+            // API now returns scheduled_at (MySQL DATETIME UTC) + duration_minutes
+            const dateStr  = a.scheduled_at ? String(a.scheduled_at).substring(0, 10) : '—';
+            const timeStr  = a.scheduled_at ? String(a.scheduled_at).substring(11, 16) : '';
+            const timeDisp = timeStr ? ' · ساعت ' + esc(timeStr) : '';
+            const reason   = esc(a.reason || '—');
+            const prov     = a.provider_name ? ' · ' + esc(a.provider_name) : '';
             const c = COLOR_MAP[a.status] || { bg: 'var(--porcelain)', color: 'var(--graphite)' };
             return '<div role="listitem" class="appt-card">' +
               '<div class="appt-date-block" style="background:' + c.bg + ';color:' + c.color + '">' +
-                '<strong>' + jalali + '</strong>' +
+                '<strong>' + esc(dateStr) + '</strong>' +
               '</div>' +
               '<div style="flex:1;min-width:0">' +
                 '<strong style="font-size:.95rem;display:block">' + reason + '</strong>' +
                 '<div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">' +
-                  jalali + time + prov +
+                  esc(dateStr) + timeDisp + prov +
                 '</div>' +
               '</div>' +
               pillFor(a.status) +
@@ -211,10 +212,10 @@
             '</td></tr>';
         } else {
           tbody.innerHTML = history.map(a => {
-            const jalali = esc(a.date_jalali || '—');
-            const reason = esc(a.reason || '—');
+            const dateStr = a.scheduled_at ? String(a.scheduled_at).substring(0, 10) : '—';
+            const reason  = esc(a.reason || '—');
             return '<tr>' +
-              '<td>' + jalali + '</td>' +
+              '<td>' + esc(dateStr) + '</td>' +
               '<td>' + reason + '</td>' +
               '<td>' + pillFor(a.status) + '</td>' +
             '</tr>';

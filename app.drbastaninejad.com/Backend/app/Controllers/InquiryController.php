@@ -54,6 +54,11 @@ final class InquiryController extends Controller
         $phone   = $this->validator->normaliseMobile((string)($body['phone'] ?? ''));
         $message = trim((string)($body['message'] ?? ''));
 
+        // Guard against null phone (should have been caught by validateInquiry, but belt-and-suspenders)
+        if ($phone === null) {
+            $this->validationError(['phone' => 'شماره تلفن معتبر نیست']);
+        }
+
         // Rate-limit check: per normalised phone number
         if ($this->model->countRecentByPhone($phone, self::RATE_WINDOW_MIN) >= self::RATE_LIMIT) {
             // Emit Retry-After header + retry_after in body per docs/API_CONTRACT.md §429
