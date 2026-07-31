@@ -17,8 +17,13 @@ final class Patient extends Model
 {
     protected string $table = 'patients';
 
-    public function search(int $clinicId, string $q = '', int $page = 1, int $perPage = 20): array
-    {
+    public function search(
+        int $clinicId,
+        string $q = '',
+        int $page = 1,
+        int $perPage = 20,
+        string $insuranceStatus = ''
+    ): array {
         $offset = max(0, ($page - 1) * $perPage);
         $db = $this->db();
 
@@ -31,14 +36,22 @@ final class Patient extends Model
             array_push($params, $like, $like, $like, $like);
         }
 
+        if ($insuranceStatus !== '') {
+            $where .= ' AND insurance_status = ?';
+            $params[] = $insuranceStatus;
+        }
+
         $countStmt = $db->prepare("SELECT COUNT(*) FROM patients WHERE $where");
         $countStmt->execute($params);
         $total = (int)$countStmt->fetchColumn();
 
         $stmt = $db->prepare(
             "SELECT id, first_name, last_name, mobile, national_id, insurance_status,
-                    (SELECT MAX(scheduled_at) FROM appointments a WHERE a.patient_id = patients.id) AS last_visit,
-                    (SELECT COUNT(*) FROM appointments a WHERE a.patient_id = patients.id AND a.scheduled_at > NOW()) AS upcoming_count
+                    (SELECT MAX(scheduled_at) FROM appointments a
+                     WHERE a.patient_id = patients.id AND a.deleted_at IS NULL) AS last_visit,
+                    (SELECT COUNT(*) FROM appointments a
+                     WHERE a.patient_id = patients.id AND a.scheduled_at > NOW()
+                       AND a.deleted_at IS NULL) AS upcoming_count
              FROM patients
              WHERE $where
              ORDER BY updated_at DESC
@@ -59,15 +72,26 @@ final class Patient extends Model
             return [];
         }
 
+        // Columns aliased to shape expected by patient-detail.html renderTimeline():
+        //   { type, timestamp, title, description, status }
         $sql = "
-            (SELECT 'intake' AS type, created_at AS ts, description AS summary, status FROM intakes WHERE patient_id = ?)
+            (SELECT 'intake'      AS type, created_at  AS timestamp,
+                    'پذیرش جدید' AS title, COALESCE(description,'') AS description, status
+             FROM intakes WHERE patient_id = ? AND deleted_at IS NULL)
             UNION ALL
-            (SELECT 'appointment' AS type, scheduled_at AS ts, visit_reason AS summary, status FROM appointments WHERE patient_id = ?)
+            (SELECT 'appointment' AS type, scheduled_at AS timestamp,
+                    COALESCE(visit_reason,'نوبت') AS title, COALESCE(notes,'') AS description, status
+             FROM appointments WHERE patient_id = ? AND deleted_at IS NULL)
             UNION ALL
-            (SELECT 'emr_note' AS type, created_at AS ts, chief_complaint AS summary, 'saved' AS status FROM emr_records WHERE patient_id = ?)
+            (SELECT 'emr_note'    AS type, created_at   AS timestamp,
+                    COALESCE(chief_complaint,'یادداشت پزشکی') AS title,
+                    COALESCE(diagnosis,'') AS description, 'saved' AS status
+             FROM emr_records WHERE patient_id = ? AND deleted_at IS NULL)
             UNION ALL
-            (SELECT 'invoice' AS type, created_at AS ts, CONCAT('فاکتور #', id) AS summary, status FROM invoices WHERE patient_id = ?)
-            ORDER BY ts DESC
+            (SELECT 'invoice'     AS type, created_at   AS timestamp,
+                    CONCAT('فاکتور #', id) AS title, '' AS description, status
+             FROM invoices WHERE patient_id = ?)
+            ORDER BY timestamp DESC
         ";
         $stmt = $db->prepare($sql);
         $stmt->execute([$patientId, $patientId, $patientId, $patientId]);

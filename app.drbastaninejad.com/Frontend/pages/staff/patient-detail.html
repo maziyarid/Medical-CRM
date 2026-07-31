@@ -220,6 +220,7 @@
   </div>
 
   <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/jalali.js"></script>
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
@@ -310,6 +311,18 @@
         ).join('');
     }
 
+    /** Convert UTC DATETIME string to Jalali numeric, fallback to ISO date. */
+    function toJalaliDate(dateStr) {
+      if (!dateStr) return '';
+      try {
+        const d = new Date(String(dateStr).replace(' ', 'T'));
+        if (isNaN(d.getTime())) return String(dateStr).substring(0, 10);
+        return Jalali.formatNumeric(d);
+      } catch (_) {
+        return String(dateStr).substring(0, 10);
+      }
+    }
+
     // ── Render timeline ───────────────────────────────────────────────────────
     function renderTimeline(items) {
       const tl = document.getElementById('timeline-list');
@@ -322,9 +335,12 @@
         return;
       }
       tl.innerHTML = items.map(item => {
-        // Timeline items may be intakes (created_at) or appointments (scheduled_at/timestamp)
-        const rawDate = item.scheduled_at || item.timestamp || item.date_jalali || item.date || '';
-        const date    = esc(rawDate ? String(rawDate).substring(0, 10) : '');
+        // Timeline items from PatientController.timeline():
+        //   intakes:      { type:'intake', timestamp, title, description, status }
+        //   appointments: { type:'appointment', timestamp (=scheduled_at), title, description, status }
+        // No date_jalali field — always use timestamp/scheduled_at
+        const rawDate = item.timestamp || item.scheduled_at || item.created_at || '';
+        const date    = esc(toJalaliDate(rawDate));
         const type    = esc(item.type || '');
         const title   = esc(item.title || '');
         const body    = esc(item.body || item.description || '');

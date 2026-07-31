@@ -139,6 +139,7 @@
   </div>
 
   <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/jalali.js"></script>
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
@@ -161,6 +162,18 @@
 
     function toFa(n) {
       return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+
+    /** Convert UTC DATETIME string to Jalali numeric, fallback to ISO date. */
+    function toJalaliDate(dateStr) {
+      if (!dateStr) return '—';
+      try {
+        const d = new Date(String(dateStr).replace(' ', 'T'));
+        if (isNaN(d.getTime())) return String(dateStr).substring(0, 10);
+        return Jalali.formatNumeric(d);
+      } catch (_) {
+        return String(dateStr).substring(0, 10);
+      }
     }
 
     // Insurance status — contract enum: active | inactive | pending | unknown
@@ -193,10 +206,8 @@
         const mobile     = esc(p.mobile || '—');
         const natId      = esc(p.national_id || '—');
         const upcoming   = p.upcoming_count != null ? toFa(p.upcoming_count) : '—';
-        // last_visit is UTC datetime; display date portion only
-        const lastVisit  = p.last_visit
-          ? esc(p.last_visit.slice(0, 10))
-          : '—';
+        // last_visit is UTC datetime — convert to Jalali for display
+        const lastVisit  = p.last_visit ? esc(toJalaliDate(p.last_visit)) : '—';
         return '<tr>' +
           '<td><div style="display:flex;gap:.6rem;align-items:center;">' +
             '<span class="avatar-md" aria-hidden="true">' + esc(initials) + '</span>' +
@@ -250,11 +261,10 @@
       const host = document.getElementById('table-host');
       MAZCRM.states.set(host, 'loading');
       try {
-        const res = await Staff.listPatients({
-          q:        state.q,
-          page:     state.page,
-          per_page: state.per_page,
-        });
+        const params = { q: state.q, page: state.page, per_page: state.per_page };
+        // Pass insurance_status filter when set — PatientController.index() supports it
+        if (state.insurance) params.insurance_status = state.insurance;
+        const res = await Staff.listPatients(params);
         const d = res.data || {};
         const rows = d.rows ?? [];
         state.total    = d.total    ?? rows.length;

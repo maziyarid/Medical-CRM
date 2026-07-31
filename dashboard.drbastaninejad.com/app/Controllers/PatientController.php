@@ -26,15 +26,21 @@ final class PatientController extends Controller
         $this->service = new PatientService();
     }
 
-    /** GET /api/v1/patients?q=&page=&per_page= */
+    /** GET /api/v1/patients?q=&page=&per_page=&insurance_status= */
     public function index(Request $req): array
     {
-        $clinicId = (int)($req->user['clinic_id'] ?? 1);
-        $q = trim((string)($req->query['q'] ?? ''));
-        $page = max(1, (int)($req->query['page'] ?? 1));
-        $perPage = min(100, max(1, (int)($req->query['per_page'] ?? 20)));
+        $clinicId       = (int)($req->user['clinic_id'] ?? 1);
+        $q              = trim((string)($req->query['q'] ?? ''));
+        $page           = max(1, (int)($req->query['page'] ?? 1));
+        $perPage        = min(100, max(1, (int)($req->query['per_page'] ?? 20)));
+        $insuranceStatus = trim((string)($req->query['insurance_status'] ?? ''));
 
-        $result = $this->patients->search($clinicId, $q, $page, $perPage);
+        $allowed = ['', 'active', 'inactive', 'pending', 'unknown'];
+        if (!in_array($insuranceStatus, $allowed, true)) {
+            $insuranceStatus = '';
+        }
+
+        $result = $this->patients->search($clinicId, $q, $page, $perPage, $insuranceStatus);
 
         $rows = array_map(function ($r) {
             return [

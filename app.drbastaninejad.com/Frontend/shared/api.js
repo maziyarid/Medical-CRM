@@ -361,13 +361,14 @@ export const Staff = {
 
   /**
    * GET /api/v1/patients  ✅ LIVE
-   * @param {{ q?: string, page?: number, per_page?: number }} params
+   * @param {{ q?: string, page?: number, per_page?: number, insurance_status?: string }} params
    */
   async listPatients(params = {}) {
     const qs = new URLSearchParams();
-    if (params.q)        qs.set('q', params.q);
-    if (params.page)     qs.set('page', String(params.page));
-    if (params.per_page) qs.set('per_page', String(params.per_page));
+    if (params.q)                qs.set('q',                params.q);
+    if (params.page)             qs.set('page',             String(params.page));
+    if (params.per_page)         qs.set('per_page',         String(params.per_page));
+    if (params.insurance_status) qs.set('insurance_status', params.insurance_status);
     const query = qs.toString() ? '?' + qs.toString() : '';
     return staffRequest('GET', '/patients' + query);
   },
