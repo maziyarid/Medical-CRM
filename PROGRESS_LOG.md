@@ -2222,3 +2222,80 @@ The frontend pages were written when emr_records had a SOAP schema (subjective /
 - Jalali display: all patient-facing date fields now show ISO YYYY-MM-DD (UTC). A Jalali formatter (`shared/jalali.js`) would improve UX — deferred, not blocking correctness.
 - `pages/patient/appointments.html` comment block at top still mentions `date_jalali` contract — stale comment only.
 - No integration test for the EMR save round-trip end-to-end (requires test DB + PHPUnit).
+
+## [2026] — Phase G — CSS Foundation: tokens-extended.css + components.css
+
+**Agent:** Bob (IBM)  
+**Commit:** `78e7c3a`  
+**Branch:** `main`
+
+### Audit performed (read-only, before writing anything)
+
+All 27 HTML pages in `app.drbastaninejad.com/Frontend/pages/` load two CSS
+files that did not exist on disk, causing 100 % broken layout in production:
+
+```html
+<link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>  <!-- MISSING -->
+<link rel="stylesheet" href="../../assets/css/components.css"/>        <!-- MISSING -->
+```
+
+Confirmed existing CSS coverage: `tokens.css` (base tokens), `base.css`
+(reset + sidebar + forms + tables + KPI + skeleton), `states.css`
+(state-host visibility + offline/session banners).
+
+### Backend todos — all verified as already correct (no code changes)
+
+| Item | Finding |
+|---|---|
+| `starts_at → scheduled_at` in DashboardController | Already uses `scheduled_at` — no change needed |
+| `starts_at → scheduled_at` in AnalyticsController | Already uses `scheduled_at` — no change needed |
+| Dashboard appointments migration 011 | Exists with full schema: `provider_id, visit_reason, room, duration_minutes, notes, deleted_at, cancellation_reason` |
+| `emr_templates` in SettingsController | Already in `show()` response — no change needed |
+| AppointmentController.store() `scheduled_at` | Confirmed correct |
+| EMR field mismatch audit | `emr.html` `save()` correctly maps SOAP fields → `chief_complaint/diagnosis/plan`; no fix needed |
+| ValidatorService namespace | `App\Validators\ValidatorService`, static methods — correct |
+
+### Files created
+
+| File | Size | Purpose |
+|---|---|---|
+| `app.drbastaninejad.com/Frontend/assets/css/tokens-extended.css` | 6.8 KB | Z-index scale, skeleton CSS vars, AI Copilot tokens, modal/calendar/badge/note tokens, print reset, RTL helpers, `.sr-only`, `.truncate` |
+| `app.drbastaninejad.com/Frontend/assets/css/components.css` | 26 KB | 25 sections covering every component class used across all 27 pages |
+
+### components.css sections
+
+1. Modal/dialog — `calendar.html` new-appt modal  
+2. Tabs — `settings.html`, `patient-detail.html`, `billing.html`  
+3. Timeline/activity feed — `dashboard.html` getTimelineEvents  
+4. Note entries — `emr.html` past-notes  
+5. Calendar appointment block — `.appt-block` + status variants  
+6. Conflict/gate banners — `calendar.html`, `dashboard.html`  
+7. Template pills — `emr.html` specialty selector  
+8. Checkbox grid — `emr.html` specialty fields  
+9. Media upload slot — `emr.html` before/after images  
+10. Save/success banner — `emr.html`  
+11. Filter bar / search row — `patients.html`, `tasks.html`, `billing.html`  
+12. Patient card + patients grid — `patients.html`  
+13. Detail header — `patient-detail.html`  
+14. Intake card — intake queue  
+15. Task card — `tasks.html`  
+16. Billing/invoice row — `billing.html`  
+17. Analytics chart — `.bar-chart`, `.ref-list` — `analytics.html`  
+18. Settings section — `settings.html`  
+19. AI Copilot panel — `emr.html`, `dashboard.html`  
+20. View switch — `calendar.html` day/week/month/list  
+21. Scroll wrappers  
+22. Divider + label — `login.html`  
+23. Pending/gate notice — `login.html`, `dashboard.html`  
+24. Breadcrumb  
+25. Responsive overrides (900 px, 480 px)
+
+### Next session priorities
+
+1. Wire Jalali date display — all date fields still show ISO `YYYY-MM-DD`; `jalali.js` `Jalali.formatNumeric()` and `app.js` `MAZCRM.formatJalali()` exist but are not called from the patient portal pages
+2. Dashboard OtpService stub — replace fragile `require` path with direct copy or shared include
+3. PHPUnit integration tests for AuthMiddleware token round-trip (needs test DB)
+4. `app.drbastaninejad.com/Frontend/pages/patient/appointments.html` — stale comment still references `date_jalali`
+5. UNIFIED_MASTER_PLAN Phase 5 (scheduling/communications) and Phase 6 (CRM expansion) — not started
+6. `docs/API_CONTRACT.md` — review against current backend state; appointment status enum not documented with Persian display labels
+
