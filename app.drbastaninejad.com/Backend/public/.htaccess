@@ -1,0 +1,38 @@
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# DEPLOYMENT GATE — DO NOT PUSH THIS FILE TO main UNTIL DEPLOYMENT_GATE.md
+# IS FULLY SATISFIED AND PRODUCT OWNER GRANTS EXPLICIT APPROVAL.
+# See: docs/DEPLOYMENT_GATE.md
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#
+# public/.htaccess — Apache/LiteSpeed rewrite rules for app.drbastaninejad.com
+#
+# Assumes DocumentRoot = app.drbastaninejad.com/Backend/public/
+# Verify actual server vhost DocumentRoot before deploying (DEPLOYMENT_GATE.md §2).
+
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+
+# Security headers (also set in PHP; belt-and-suspenders)
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Block access to sensitive non-public paths
+<FilesMatch "\.(env|bak|log|sql|json|key|pem|crt|p12)$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Allow direct access to real files and directories (assets, etc.)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route everything else to index.php
+    RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
