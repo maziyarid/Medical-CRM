@@ -107,6 +107,15 @@ final class AppointmentController extends Controller
         }
 
         $this->appointments->reschedule($appointmentId, $newStart, $newDuration);
+
+        // Cancel old reminders and schedule new ones for the updated time
+        $this->service->reschedule(
+            $appointmentId,
+            (int)$existing['patient_id'],
+            $clinicId,
+            $newStart
+        );
+
         return $this->success(['id' => $appointmentId]);
     }
 
@@ -147,9 +156,12 @@ final class AppointmentController extends Controller
         }
 
         $this->appointments->update($appointmentId, [
-            'status'            => 'cancelled',
+            'status'              => 'cancelled',
             'cancellation_reason' => $reason ?: null,
         ]);
+
+        // Cancel any pending reminders — no point sending an SMS for a cancelled appointment
+        (new \App\Services\ReminderService())->cancelForAppointment($appointmentId);
 
         return $this->success(['id' => $appointmentId, 'status' => 'cancelled']);
     }

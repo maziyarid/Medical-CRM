@@ -2793,3 +2793,131 @@ DB-touching paths use try/catch — zero false failures offline.
 3. **`ValidatorServiceTest`** — the existing 37-test suite already covers the dashboard `App\Validators\ValidatorService`; verify it still passes after the namespace move.
 4. **`docs/DEPLOYMENT_GATE.md` §3** — update the test inventory comment to include Phase M+N tests.
 
+
+---
+
+## 2026-08-01 — Phase O: Phase 5 Reminders + Bug Fixes + Tests — Agent: Bob (IBM)
+
+**Scope:** dashboard.drbastaninejad.com — Phase 5 reminder foundation, Patient::timeline() bug fix, DEPLOYMENT_GATE §3 update, PatientController unit tests.
+**Deployment:** No production/cPanel/VPS action authorized.
+
+### Pre-session governance audit
+
+| Check | Outcome |
+|---|---|
+| HEAD at session start | `aca4fa2` — Phase N commit |
+| Working tree clean | ✅ |
+| PII paths | **ZERO** |
+| Deployment-gated files staged | **ZERO** |
+
+---
+
+### Bug fix
+
+#### `Patient::timeline()` — `intakes.description` column does not exist
+
+**File:** `dashboard.drbastaninejad.com/app/Models/Patient.php`
+
+The UNION query selected `COALESCE(description,'')` from the `intakes` table. The `intakes`
+table (migration 001) has no `description` column — the patient-provided text is in `chief_complaint`.
+This caused a MySQL "unknown column" error whenever `PatientController::show()` was called.
+
+**Fix:** `COALESCE(description,'')` → `COALESCE(chief_complaint,'')` in the intakes UNION arm.
+
+---
+
+### Phase 5 — Scheduling & Communications foundation
+
+#### Migration 015 — `reminder_log` table
+
+`database/migrations/015_create_reminder_log_table.sql`
+
+New table with:
+- `appointment_id` FK → appointments (CASCADE delete)
+- `patient_id` FK → patients, `clinic_id` FK → clinics (clinic-scoped)
+- `channel` ENUM('sms','email')
+- `remind_at` — UTC pre-computed at booking time
+- `remind_offset_minutes` — default 60; configurable per reminder
+- `status` ENUM('pending','sent','failed','cancelled')
+- `attempts` / `max_attempts` — retry tracking (default max 3)
+- `sent_at`, `provider`, `error_message` — audit fields
+- UNIQUE KEY on (appointment_id, channel, remind_offset_minutes) — prevents duplicates
+- INDEX on (status, remind_at) — efficient `sendDue()` query
+
+#### `ReminderService` — NEW
+
+`app/Services/ReminderService.php` — three public methods:
+
+| Method | Purpose |
+|---|---|
+| `scheduleForAppointment(id, patientId, clinicId, scheduledAt)` | Insert pending reminder rows for all configured offsets. Idempotent (INSERT IGNORE). Never throws. |
+| `cancelForAppointment(appointmentId)` | Set status='cancelled' on all pending rows. Called on reschedule + destroy. |
+| `sendDue()` | Dispatch all pending rows where remind_at ≤ NOW(). Processes up to 50 per call. Returns sent count. Called from cron. |
+
+Configuration via ENV (no code changes needed to tune):
+- `SMS_REMINDER_OFFSETS` — comma-separated minutes before appointment (default: `"60,1440"`)
+- `EMAIL_REMINDER_ENABLED` — set `"1"` to enable email channel (default: off; Phase 5b)
+
+#### `AppointmentService` — wired to `ReminderService`
+
+`app/Services/AppointmentService.php`:
+- `create()` now calls `ReminderService::scheduleForAppointment()` after DB insert
+- New `reschedule()` method: `cancelForAppointment()` + `scheduleForAppointment()` for the new time
+
+#### `AppointmentController` — cancel/reschedule wired
+
+`app/Controllers/AppointmentController.php`:
+- `reschedule()` now calls `$this->service->reschedule(...)` after model update
+- `destroy()` now calls `(new ReminderService())->cancelForAppointment(...)` after status update
+
+---
+
+### `docs/DEPLOYMENT_GATE.md` §3 — test inventory updated
+
+Both PHPUnit comments updated to list all test files from Phase M+N:
+- dashboard unit: `ValidatorServiceTest` (37), `AppointmentControllerValidationTest` (8), `OtpControllerValidationTest` (15), `RbacMiddlewareTest` (10)
+- dashboard integration: `AuthMiddlewareTest` (9)
+- app unit: existing 5 files
+- app integration: existing `IntakeControllerIntegrationTest`
+
+---
+
+### New unit tests
+
+#### `tests/Unit/PatientControllerValidationTest.php` — NEW (8 cases, no DB for 5/8)
+
+| Test | Assertion |
+|---|---|
+| `store` — missing mobile | 422 |
+| `store` — invalid mobile | 422 |
+| `store` — invalid national ID | 422 |
+| `store` — valid national ID | not 422 (`@group db_optional`) |
+| `update` — invalid mobile | 422 |
+| `index` — invalid insurance_status | not 422 (silently ignored) |
+| `index` — all valid insurance_status values | not 422 |
+
+---
+
+### Files touched
+
+| File | Action |
+|---|---|
+| `dashboard.drbastaninejad.com/app/Models/Patient.php` | FIXED — intakes UNION `description` → `chief_complaint` |
+| `dashboard.drbastaninejad.com/database/migrations/015_create_reminder_log_table.sql` | NEW — Phase 5 reminder_log DDL |
+| `dashboard.drbastaninejad.com/app/Services/ReminderService.php` | NEW — Phase 5 reminder service |
+| `dashboard.drbastaninejad.com/app/Services/AppointmentService.php` | UPDATED — wired to ReminderService |
+| `dashboard.drbastaninejad.com/app/Controllers/AppointmentController.php` | UPDATED — reschedule + destroy call ReminderService |
+| `docs/DEPLOYMENT_GATE.md` | UPDATED — §3 test inventory Phase M+N |
+| `dashboard.drbastaninejad.com/tests/Unit/PatientControllerValidationTest.php` | NEW — 8 unit tests |
+| `PROGRESS_LOG.md` | UPDATED (this entry) |
+
+---
+
+### Next priorities
+
+1. **Product owner:** Apply migration 015 to `mazcrm_test`; verify `reminder_log` table created.
+2. **Cron setup:** Add `php -r "(new App\Services\ReminderService())->sendDue();"` to server crontab (every 5 minutes) — after deployment gate sign-off.
+3. **`SMS_REMINDER_OFFSETS` decision:** Confirm desired reminder timing with product owner (default: 60 min + 24 hours before appointment).
+4. **Phase 5b — email reminders:** Set `EMAIL_REMINDER_ENABLED=1` and implement `dispatchEmail()` once email provider is selected (UNIFIED_MASTER_PLAN §9).
+5. **`ReminderServiceTest`** — integration tests for `scheduleForAppointment()` and `sendDue()` (requires test DB with migration 015 applied).
+

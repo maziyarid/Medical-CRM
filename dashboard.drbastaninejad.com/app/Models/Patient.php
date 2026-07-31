@@ -76,7 +76,7 @@ final class Patient extends Model
         //   { type, timestamp, title, description, status }
         $sql = "
             (SELECT 'intake'      AS type, created_at  AS timestamp,
-                    'پذیرش جدید' AS title, COALESCE(description,'') AS description, status
+                    'پذیرش جدید' AS title, COALESCE(chief_complaint,'') AS description, status
              FROM intakes WHERE patient_id = ? AND deleted_at IS NULL)
             UNION ALL
             (SELECT 'appointment' AS type, scheduled_at AS timestamp,

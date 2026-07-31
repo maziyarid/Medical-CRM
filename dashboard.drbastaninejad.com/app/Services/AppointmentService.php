@@ -7,15 +7,16 @@ use App\Models\Appointment;
 
 /**
  * AppointmentService
- * Wraps creation so future reminder-scheduling (email/SMS X time before scheduled_at,
- * per ROADMAP.md §6) can hook in without touching the controller.
+ * Wraps creation so ReminderService can hook in without touching the controller.
+ * Phase 5 (UNIFIED_MASTER_PLAN.md §7): reminder scheduling is now wired.
+ * Offsets configurable via SMS_REMINDER_OFFSETS env var (default: 60,1440 minutes).
  */
 final class AppointmentService
 {
     public function create(int $clinicId, array $data): int
     {
         $appointment = new Appointment();
-        return $appointment->create([
+        $id = $appointment->create([
             'uuid'             => bin2hex(random_bytes(16)),
             'clinic_id'        => $clinicId,
             'patient_id'       => $data['patient_id'],
@@ -28,8 +29,29 @@ final class AppointmentService
             'status'           => 'scheduled',
             'created_at'       => date('Y-m-d H:i:s'),
         ]);
-        // Reminder scheduling hook (email/SMS) intentionally deferred — see ROADMAP.md
-        // "Reminder timing" open question. Do not add a reminder call here until that
-        // decision is confirmed; emaillog/reminder_sent_at columns already support it.
+
+        // Phase 5 — schedule SMS (and optionally email) reminders.
+        // ReminderService::scheduleForAppointment() is idempotent and never throws.
+        // Offsets are read from SMS_REMINDER_OFFSETS env var (default: "60,1440").
+        // Set SMS_REMINDER_OFFSETS="" to disable reminders without changing code.
+        (new ReminderService())->scheduleForAppointment(
+            $id,
+            (int)$data['patient_id'],
+            $clinicId,
+            $data['scheduled_at']
+        );
+
+        return $id;
+    }
+
+    /**
+     * Cancel pending reminders and reschedule them for the new time.
+     * Called by AppointmentController::reschedule() after a drag-and-drop move.
+     */
+    public function reschedule(int $appointmentId, int $patientId, int $clinicId, string $newScheduledAt): void
+    {
+        $rs = new ReminderService();
+        $rs->cancelForAppointment($appointmentId);
+        $rs->scheduleForAppointment($appointmentId, $patientId, $clinicId, $newScheduledAt);
     }
 }

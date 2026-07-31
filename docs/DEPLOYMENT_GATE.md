@@ -72,20 +72,30 @@ appears, record the service/process/port and obtain a reviewed remediation instr
 - [ ] Exact deployment commit SHA is recorded
 - [ ] PHP syntax checks pass
 - [ ] PHPUnit unit tests pass
-  <!-- Unit tests authored (2026-07-31):
-       tests/Unit/ValidatorServiceTest.php       — mobile, national ID, Jalali, validateIntake()
-       tests/Unit/JalaliConverterTest.php        — Jalali↔Gregorian conversion
-       tests/Unit/OtpServiceTest.php             — send, verify, rate-limit, replay prevention
-       tests/Unit/IntakeModelTest.php            — insert, findByUuid, updateSyncStatus,
-                                                   idempotency, failed_confirmed, outcome_unknown
+  <!-- Unit tests — app.drbastaninejad.com/Backend/ (authored 2026-07-31):
+       tests/Unit/ValidatorServiceTest.php        — mobile, national ID, Jalali, validateIntake()
+       tests/Unit/JalaliConverterTest.php         — Jalali↔Gregorian conversion
+       tests/Unit/OtpServiceTest.php              — send, verify, rate-limit, replay prevention
+       tests/Unit/IntakeModelTest.php             — insert, findByUuid, updateSyncStatus,
+                                                    idempotency, failed_confirmed, outcome_unknown
        tests/Unit/PatientPortalControllerTest.php — PATCH /patient/profile validation (15 cases)
-       ⚠ Tests require .env.testing + test DB (migration 001 applied). Run: ./vendor/bin/phpunit ⟫⟫ needs sign-off once DB is provisioned. -->
+                                                  — records() pagination clamping (12 cases)
+       Unit tests — dashboard.drbastaninejad.com/ (authored 2026-08-01):
+       tests/Unit/ValidatorServiceTest.php              — 37 cases: mobile, national ID, Jalali
+       tests/Unit/AppointmentControllerValidationTest.php — 8 cases: store/updateStatus validation
+       tests/Unit/OtpControllerValidationTest.php        — 15 cases: send/verify input validation
+       tests/Unit/RbacMiddlewareTest.php                 — 10 cases: super_admin bypass, patient scope
+       ⚠ All unit tests run offline (no DB). Run from each backend dir after composer install. -->
 - [ ] PHP integration tests pass
-  <!-- Integration test authored (2026-07-31):
+  <!-- Integration tests — app.drbastaninejad.com/Backend/ (authored 2026-07-31):
        tests/Integration/IntakeControllerIntegrationTest.php — POST /intakes happy path,
-         idempotent retry, outcome_unknown reconciliation, failed_confirmed,
-         double-submit race condition (7 test cases, @group intake_integration)
-       ⚠ Requires .env.testing with DB_DATABASE=maz_test and migration 001. -->
+         idempotent retry, outcome_unknown, failed_confirmed, double-submit (7 cases)
+       ⚠ Requires .env.testing with DB_DATABASE=maz_test and migration 001.
+       Integration tests — dashboard.drbastaninejad.com/ (authored 2026-08-01):
+       tests/Integration/AuthMiddlewareTest.php — 9 cases: valid/expired/revoked/inactive/deleted
+         staff token round-trip; missing/malformed/unknown token → 401
+       ⚠ Requires dashboard/.env.testing + mazcrm_test DB + migrations 010–014 applied.
+         Auto-skips when DB_HOST env not set (safe in offline CI). -->
 - [ ] Frontend build/development validation passes where applicable
 - [ ] Code review completed for authentication, intake, storage, and database changes
 - [ ] No unreviewed or abandoned alternate backend is reachable
