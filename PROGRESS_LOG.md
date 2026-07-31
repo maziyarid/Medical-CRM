@@ -2468,3 +2468,66 @@ dashboard.drbastaninejad.com/app/Models/Patient.php             (+26/-11)
 4. Error pages (`403.html`, `404.html`, `offline.html`, `session-expired.html`) —
    verify they are complete and linked correctly from all auth redirect paths
 
+
+---
+
+## 2026-08-01 — Phase L: Full Audit Reconciliation — Agent: Bob (IBM)
+
+**Commits audited:** All commits through `d284049` (Phase K) + `e2c1469` + `cdfb47d`
+**Branch:** `main` — working tree clean, `HEAD == origin/main`
+
+### Pre-session governance audit
+
+| Check | Outcome |
+|---|---|
+| Working tree clean | ✅ `git status` — nothing to commit |
+| `HEAD` == `origin/main` | ✅ Both at `d284049` |
+| PII paths | **ZERO** |
+| Deployment-gated files staged | **ZERO** |
+
+### To-do list audit — every item from the session brief verified
+
+| Item | Finding | Action |
+|---|---|---|
+| Revert `starts_at → scheduled_at` in DashboardController | Already `scheduled_at` — no revert needed | No change |
+| Revert `starts_at → scheduled_at` in AnalyticsController | Already `scheduled_at` — no revert needed | No change |
+| Write missing dashboard appointments migration | `database/migrations/011_create_appointments_table.sql` committed in `e2c1469` — full schema: `provider_id`, `visit_reason`, `room`, `duration_minutes`, `notes`, `deleted_at`, `cancellation_reason`, `uuid`, `scheduled_at` | No change needed |
+| Add `emr_templates` to SettingsController response | `SettingsController.show()` already queries `emr_templates` and returns the array in the flat response — committed in `e2c1469` | No change needed |
+| Verify `AppointmentController.store()` uses `scheduled_at` | Confirmed at line 80 — `scheduled_at` | No change needed |
+| Audit EMR form field mismatch | `emr.html` lines 249–257: maps `soap-s` → `chief_complaint`, `soap-a` → `diagnosis`, `soap-p` → `plan` before POST — matches `EmrController.store()` exactly | No change needed |
+| Fix EMR store() field mismatch | **No mismatch exists** — frontend already bridges SOAP UI to backend schema | No change needed |
+| Verify dashboard ValidatorService namespace | `dashboard.drbastaninejad.com/app/Validators/ValidatorService.php` — `App\Validators` namespace, all static methods. Committed in `e2c1469`. | No change needed |
+| Stage/commit/push all fixes | Commits `e2c1469` (dashboard fixes) and `cdfb47d` (app Router + tooling) confirmed in `git log`. `cdfb47d` also committed `PROGRESS_LOG` entries for both. | Already done |
+| Append PROGRESS_LOG + final commit | This entry | This entry |
+
+### Notes on phantom log entries
+
+The PROGRESS_LOG entries for "2026-07-31 — Phase C Audit" and "Remaining untracked files" (commits `e2c1469`, `cdfb47d`) appeared to be "unwritten" per the conversation summary but **do exist** in both the git log and the PROGRESS_LOG file. The confusion arose from a stale `git status` snapshot at session open. All work was confirmed committed.
+
+The git log also contains entries from **Session 10** (`0a32d03`) that made the following changes to `AnalyticsController.php` and `DashboardController.php`:
+
+- Session 10 (`0a32d03`) changed `scheduled_at → starts_at` in `AnalyticsController` (BillingController summary block)
+- Session 10's `DashboardController` rewrite (commit `39691c2`) restructured timeline events
+
+However, by `d284049` (HEAD), both controllers are confirmed to use `scheduled_at` in all appointment queries. The session-10 `starts_at` change only affected intermediate KPI queries that were later reverted in Phase K.
+
+### Current operational state (confirmed clean)
+
+| File | Column used | Status |
+|---|---|---|
+| `DashboardController.php` — `getTimelineEvents()` appointments query | `scheduled_at` | ✅ Correct |
+| `AnalyticsController.php` — KPI 2 (conversion rate) | `scheduled_at` | ✅ Correct |
+| `AnalyticsController.php` — KPI 4 (return rate) | `scheduled_at` | ✅ Correct |
+| `AppointmentController.store()` | `scheduled_at` | ✅ Correct |
+| `ValidatorService` (dashboard) | `App\Validators` — static | ✅ Correct |
+| `SettingsController.show()` | Returns `emr_templates[]` | ✅ Correct |
+| `EmrController.store()` | `chief_complaint`, `diagnosis`, `plan` | ✅ Correct |
+| `emr.html` save() | Maps soap-s→`chief_complaint`, soap-a→`diagnosis`, soap-p→`plan` | ✅ Correct |
+| Migration 011 | All dashboard appointment columns present | ✅ Correct |
+
+### Files touched this session
+- `PROGRESS_LOG.md` — UPDATED (this entry appended)
+
+### No code changes made
+All code was already correct. This session was a pure audit + log reconciliation pass.
+
