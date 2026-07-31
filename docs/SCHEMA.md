@@ -603,4 +603,81 @@ INSERT INTO specialties (name, label_fa) VALUES
 
 ---
 
+## 8. Derived View Schemas
+
+This section documents conceptual data shapes that are not tables themselves, but
+are composed in the application backend by `UNION`ing data from multiple source
+tables. They are used for timeline views in the patient portal and staff dashboard.
+
+### 8.1 DashboardTimelineEvent
+
+A generic event shape for the main staff dashboard (`DashboardController`). It
+summarizes recent, actionable clinic activity.
+
+**SQL Concept:**
+```sql
+(SELECT id, patient_id, created_at AS event_at, 'intake' AS type FROM intakes)
+UNION ALL
+(SELECT id, patient_id, starts_at AS event_at, 'appointment' AS type FROM appointments)
+UNION ALL
+(SELECT id, patient_id, created_at AS event_at, 'task' AS type FROM tasks)
+ORDER BY event_at DESC
+```
+
+**PHP/JSON Shape:**
+```json
+{
+  "id": "intake-123",              // stable unique ID, e.g. "<table>-<id>"
+  "type": "intake",                 // 'intake', 'appointment', 'task', 'payment', 'emr'
+  "timestamp": "2026-07-30T10:00:00Z", // UTC event time
+  "patient": {
+    "id": 45,
+    "name": "Bita Mohammadi",
+    "href": "/patients/45"
+  },
+  "title": "New Intake Received",
+  "description": "Submitted via web form, awaiting review.",
+  "status": {
+    "label": "Pending Review",
+    "badge": "warning"              // 'info', 'success', 'warning', 'error', 'muted'
+  },
+  "actors": [
+    { "type": "system", "name": "Web Form" }
+  ],
+  "href": "/intakes/123"
+}
+```
+
+### 8.2 PatientTimelineEvent
+
+A patient-centric event shape for the patient portal and the patient-specific
+view in the staff dashboard.
+
+**PHP/JSON Shape:**
+```json
+{
+  "id": "appt-567",
+  "type": "appointment",
+  "timestamp": "2026-08-15T14:30:00Z",
+  "title": "Rhinoplasty Consultation",
+  "description": "Follow-up with Dr. Bastaninejad.",
+  "icon": "calendar",               // MDI icon name
+  "status": "Confirmed",
+  "actors": [
+    { "type": "provider", "name": "Dr. Bastaninejad" }
+  ],
+  "data": {
+    "provider_id": 2,
+    "room_id": 3,
+    "reason": "Follow-up"
+  },
+  "actions": [
+    { "label": "Reschedule", "href": "/appointments/567/reschedule" },
+    { "label": "Cancel", "href": "/appointments/567/cancel", "danger": true }
+  ]
+}
+```
+
+---
+
 _M•Z · MAZ//ID · © 2026 Dr. Shahin Bastaninejad_

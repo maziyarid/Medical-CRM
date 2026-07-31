@@ -5,7 +5,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Services\OtpService;
-use App\Services\ValidatorService;
+use App\Validators\ValidatorService;
 
 /**
  * OtpController — handles POST /api/v1/auth/otp/send and /verify

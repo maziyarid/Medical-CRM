@@ -12,6 +12,11 @@ $router->get('/api/v1/appointments', [AppointmentController::class, 'index'], [
     fn() => new RbacMiddleware('appointments.view'),
 ]);
 
+$router->get('/api/v1/appointments/{id}', [AppointmentController::class, 'show'], [
+    AuthMiddleware::class,
+    fn() => new RbacMiddleware('appointments.view'),
+]);
+
 $router->post('/api/v1/appointments', [AppointmentController::class, 'store'], [
     AuthMiddleware::class,
     fn() => new RbacMiddleware('appointments.manage'),
@@ -23,6 +28,11 @@ $router->patch('/api/v1/appointments/{id}/reschedule', [AppointmentController::c
 ]);
 
 $router->patch('/api/v1/appointments/{id}/status', [AppointmentController::class, 'updateStatus'], [
+    AuthMiddleware::class,
+    fn() => new RbacMiddleware('appointments.manage'),
+]);
+
+$router->delete('/api/v1/appointments/{id}', [AppointmentController::class, 'destroy'], [
     AuthMiddleware::class,
     fn() => new RbacMiddleware('appointments.manage'),
 ]);

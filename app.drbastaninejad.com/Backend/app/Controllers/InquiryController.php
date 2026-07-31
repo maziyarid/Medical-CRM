@@ -5,7 +5,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Models\InquiryModel;
-use App\Services\ValidatorService;
+use App\Validators\ValidatorService;
 
 /**
  * InquiryController — handles POST /api/v1/inquiries

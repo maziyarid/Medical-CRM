@@ -7,7 +7,7 @@ use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Database;
 use App\Services\OtpService;
-use App\Services\ValidatorService;
+use App\Validators\ValidatorService;
 
 /**
  * OtpController — Phase B deliverable

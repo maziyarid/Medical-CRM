@@ -7,7 +7,7 @@ use App\Core\Controller;
 use App\Core\Request;
 use App\Core\Database;
 use App\Models\IntakeModel;
-use App\Services\ValidatorService;
+use App\Validators\ValidatorService;
 use App\Services\GoogleSheetsService;
 
 /**

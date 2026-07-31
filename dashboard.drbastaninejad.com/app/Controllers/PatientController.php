@@ -6,7 +6,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Models\Patient;
-use App\Services\ValidatorService;
+use App\Validators\ValidatorService;
 use App\Services\PatientService;
 
 /**

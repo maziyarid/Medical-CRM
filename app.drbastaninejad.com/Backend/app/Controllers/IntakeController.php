@@ -7,7 +7,7 @@ use App\Core\Controller;
 use App\Models\IntakeModel;
 use App\Services\GoogleSheetsService;
 use App\Services\JalaliConverter;
-use App\Services\ValidatorService;
+use App\Validators\ValidatorService;
 
 /**
  * IntakeController — handles POST /api/v1/intakes and GET /api/v1/intakes

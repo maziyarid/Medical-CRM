@@ -110,6 +110,50 @@ final class AppointmentController extends Controller
         return $this->success(['id' => $appointmentId]);
     }
 
+    /** GET /api/v1/appointments/{id} — detail view */
+    public function show(Request $req, string $id): array
+    {
+        $clinicId = (int)($req->user['clinic_id'] ?? 1);
+        $appointmentId = (int)$id;
+
+        $row = $this->appointments->find($appointmentId);
+        if (!$row || (int)$row['clinic_id'] !== $clinicId) {
+            return $this->error('نوبت یافت نشد', 404);
+        }
+
+        return $this->success([
+            'id'               => (int)$row['id'],
+            'patient_id'       => (int)$row['patient_id'],
+            'provider_id'      => (int)$row['provider_id'],
+            'scheduled_at'     => $row['scheduled_at'],
+            'duration_minutes' => (int)$row['duration_minutes'],
+            'visit_reason'     => $row['visit_reason'],
+            'status'           => $row['status'],
+            'room'             => $row['room'] ?? null,
+            'notes'            => $row['notes'] ?? null,
+        ]);
+    }
+
+    /** DELETE /api/v1/appointments/{id} — cancel with reason */
+    public function destroy(Request $req, string $id): array
+    {
+        $clinicId = (int)($req->user['clinic_id'] ?? 1);
+        $appointmentId = (int)$id;
+        $reason = trim((string)($req->body['reason'] ?? ''));
+
+        $existing = $this->appointments->find($appointmentId);
+        if (!$existing || (int)$existing['clinic_id'] !== $clinicId) {
+            return $this->error('نوبت یافت نشد', 404);
+        }
+
+        $this->appointments->update($appointmentId, [
+            'status'            => 'cancelled',
+            'cancellation_reason' => $reason ?: null,
+        ]);
+
+        return $this->success(['id' => $appointmentId, 'status' => 'cancelled']);
+    }
+
     /** PATCH /api/v1/appointments/{id}/status */
     public function updateStatus(Request $req, string $id): array
     {
