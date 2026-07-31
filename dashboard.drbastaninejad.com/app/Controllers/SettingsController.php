@@ -38,6 +38,15 @@ final class SettingsController extends Controller
             $workingHours = json_decode($row['working_hours_json'], true);
         }
 
+        // Fetch all EMR templates so the frontend Settings screen can list/manage them
+        $tplStmt = $db->prepare(
+            "SELECT id, name, specialty, schema_json, created_at
+             FROM emr_templates
+             ORDER BY specialty ASC, name ASC"
+        );
+        $tplStmt->execute();
+        $emrTemplates = $tplStmt->fetchAll();
+
         return $this->success([
             'id'            => (int)$row['id'],
             'name'          => $row['name'],
@@ -46,6 +55,7 @@ final class SettingsController extends Controller
             'timezone'      => $row['timezone'] ?? 'Asia/Tehran',
             'working_hours' => $workingHours,
             'updated_at'    => $row['updated_at'],
+            'emr_templates' => $emrTemplates,
         ]);
     }
 

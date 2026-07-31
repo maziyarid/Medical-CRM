@@ -23,7 +23,7 @@ final class DashboardController extends Controller
 
         $todayCount = $db->prepare(
             "SELECT COUNT(*) FROM appointments
-             WHERE clinic_id = ? AND DATE(starts_at) = CURDATE() AND status != 'cancelled'"
+             WHERE clinic_id = ? AND DATE(scheduled_at) = CURDATE() AND status != 'cancelled'"
         );
         $todayCount->execute([$clinicId]);
         $appointmentsToday = (int)$todayCount->fetchColumn();
@@ -35,7 +35,7 @@ final class DashboardController extends Controller
         $pending = (int)$pendingIntakes->fetchColumn();
 
         $revenueToday = $db->prepare(
-            "SELECT COALESCE(SUM(payable),0) FROM invoices
+            "SELECT COALESCE(SUM(amount_rials),0) FROM invoices
              WHERE clinic_id = ? AND status = 'paid' AND DATE(created_at) = CURDATE()"
         );
         $revenueToday->execute([$clinicId]);
@@ -100,43 +100,37 @@ final class DashboardController extends Controller
             ];
         }, $intakeStmt->fetchAll());
 
-        // 2. Fetch recent and upcoming appointments
+        // 2. Fetch recent and upcoming appointments (no providers/users join — not in schema)
         $apptStmt = $db->prepare(
-            "SELECT a.id, a.patient_id, a.starts_at, a.status, a.reason,
-                    p.first_name, p.last_name, u.full_name AS provider_name
+            "SELECT a.id, a.patient_id, a.scheduled_at, a.status, a.visit_reason,
+                    p.first_name, p.last_name
              FROM appointments a
              JOIN patients p ON a.patient_id = p.id
-             LEFT JOIN providers pr ON a.provider_id = pr.id
-             LEFT JOIN users u ON pr.user_id = u.id
-             WHERE a.clinic_id = ? AND a.starts_at BETWEEN NOW() - INTERVAL 7 DAY AND NOW() + INTERVAL 7 DAY
-             ORDER BY a.starts_at DESC LIMIT ?"
+             WHERE a.clinic_id = ? AND a.deleted_at IS NULL
+               AND a.scheduled_at BETWEEN NOW() - INTERVAL 7 DAY AND NOW() + INTERVAL 7 DAY
+             ORDER BY a.scheduled_at DESC LIMIT ?"
         );
         $apptStmt->execute([$clinicId, $limit]);
-        $appointments = array_map(function ($r) {
-            $statusMap = [
-                'booked' => ['label' => 'رزرو شده', 'badge' => 'info'],
-                'confirmed' => ['label' => 'تایید شده', 'badge' => 'success'],
-                'arrived' => ['label' => 'رسیده', 'badge' => 'primary'],
-                'in_progress' => ['label' => 'در حال ویزیت', 'badge' => 'warning'],
-                'completed' => ['label' => 'تکمیل شده', 'badge' => 'muted'],
-                'no_show' => ['label' => 'حاضر نشده', 'badge' => 'error'],
-                'cancelled' => ['label' => 'لغو شده', 'badge' => 'secondary'],
-            ];
-            $title = 'نوبت ' . ($r['reason'] ?? 'معاینه');
+        $apptStatusMap = [
+            'scheduled'  => ['label' => 'زمان‌بندی شده', 'badge' => 'info'],
+            'confirmed'  => ['label' => 'تایید شده',      'badge' => 'success'],
+            'cancelled'  => ['label' => 'لغو شده',        'badge' => 'error'],
+            'completed'  => ['label' => 'تکمیل شده',      'badge' => 'muted'],
+        ];
+        $appointments = array_map(function ($r) use ($apptStatusMap) {
             return [
-                'id' => 'appointment-' . $r['id'],
-                'type' => 'appointment',
-                'timestamp' => $r['starts_at'],
-                'patient' => [
-                    'id' => $r['patient_id'],
+                'id'        => 'appointment-' . $r['id'],
+                'type'      => 'appointment',
+                'timestamp' => $r['scheduled_at'],
+                'patient'   => [
+                    'id'   => $r['patient_id'],
                     'name' => trim($r['first_name'] . ' ' . $r['last_name']),
-                    'href' => '/patients/' . $r['patient_id']
+                    'href' => '/patients/' . $r['patient_id'],
                 ],
-                'title' => $title,
-                'description' => 'با ' . ($r['provider_name'] ?? 'پزشک'),
-                'status' => $statusMap[$r['status']] ?? ['label' => $r['status'], 'badge' => 'secondary'],
-                'actors' => [['type' => 'provider', 'name' => $r['provider_name'] ?? 'کلینیک']],
-                'href' => '/appointments/' . $r['id'],
+                'title'       => 'نوبت ' . ($r['visit_reason'] ?? 'معاینه'),
+                'description' => date('H:i', strtotime($r['scheduled_at'])),
+                'status'      => $apptStatusMap[$r['status']] ?? ['label' => $r['status'], 'badge' => 'secondary'],
+                'href'        => '/appointments/' . $r['id'],
             ];
         }, $apptStmt->fetchAll());
 
