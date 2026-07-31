@@ -16,16 +16,17 @@ final class AppointmentService
     {
         $appointment = new Appointment();
         return $appointment->create([
-            'clinic_id' => $clinicId,
-            'patient_id' => $data['patient_id'],
-            'provider_id' => $data['provider_id'],
-            'scheduled_at' => $data['scheduled_at'],
+            'uuid'             => bin2hex(random_bytes(16)),
+            'clinic_id'        => $clinicId,
+            'patient_id'       => $data['patient_id'],
+            'provider_id'      => $data['provider_id'],
+            'scheduled_at'     => $data['scheduled_at'],
             'duration_minutes' => $data['duration_minutes'],
-            'visit_reason' => $data['visit_reason'],
-            'room' => $data['room'],
-            'notes' => $data['notes'],
-            'status' => 'scheduled',
-            'created_at' => date('Y-m-d H:i:s'),
+            'visit_reason'     => $data['visit_reason'],
+            'room'             => $data['room'],
+            'notes'            => $data['notes'],
+            'status'           => 'scheduled',
+            'created_at'       => date('Y-m-d H:i:s'),
         ]);
         // Reminder scheduling hook (email/SMS) intentionally deferred — see ROADMAP.md
         // "Reminder timing" open question. Do not add a reminder call here until that

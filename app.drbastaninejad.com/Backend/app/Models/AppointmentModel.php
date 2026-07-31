@@ -34,13 +34,15 @@ final class AppointmentModel extends Model
 
         $stmt = $this->db()->prepare(
             'SELECT id AS appointment_id,
-                    date_jalali,
-                    appointment_time AS `time`,
-                    reason,
+                    scheduled_at,
+                    duration_minutes,
+                    visit_reason AS reason,
                     status,
+                    room,
                     "دکتر شاهین باستانی‌نژاد" AS provider_name
              FROM appointments
              WHERE patient_id = ?
+               AND deleted_at IS NULL
              ORDER BY scheduled_at DESC
              LIMIT ? OFFSET ?'
         );
@@ -65,12 +67,13 @@ final class AppointmentModel extends Model
     public function nextForPatient(int $patientId): ?array
     {
         $stmt = $this->db()->prepare(
-            'SELECT date_jalali,
-                    appointment_time AS `time`,
-                    reason,
+            'SELECT scheduled_at,
+                    duration_minutes,
+                    visit_reason AS reason,
                     status
              FROM appointments
              WHERE patient_id = ?
+               AND deleted_at IS NULL
                AND status IN ("confirmed", "scheduled")
                AND scheduled_at >= UTC_TIMESTAMP()
              ORDER BY scheduled_at ASC

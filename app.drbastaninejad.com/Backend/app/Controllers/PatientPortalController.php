@@ -321,23 +321,25 @@ final class PatientPortalController extends Controller
         $page      = max(1, (int)($_GET['page']     ?? 1));
         $perPage   = min(50, max(1, (int)($_GET['per_page'] ?? 10)));
 
-        $db     = \App\Core\Database::getInstance();
+        $db     = \App\Core\Database::conn();
         $offset = ($page - 1) * $perPage;
 
-        $total = (int)$db->query(
-            'SELECT COUNT(*) FROM emr_records WHERE patient_id = ? AND is_draft = 0',
-            [$patientId]
-        )->fetchColumn();
+        $totalStmt = $db->prepare(
+            'SELECT COUNT(*) FROM emr_records WHERE patient_id = ? AND deleted_at IS NULL'
+        );
+        $totalStmt->execute([$patientId]);
+        $total = (int)$totalStmt->fetchColumn();
 
-        $rows = $db->query(
-            'SELECT id, visit_type, author_name, subjective, assessment, plan,
-                    is_signed, signed_at, created_at
+        $rowsStmt = $db->prepare(
+            'SELECT id, chief_complaint, diagnosis, plan, ai_accepted,
+                    created_at
              FROM emr_records
-             WHERE patient_id = ? AND is_draft = 0
+             WHERE patient_id = ? AND deleted_at IS NULL
              ORDER BY created_at DESC
-             LIMIT ? OFFSET ?',
-            [$patientId, $perPage, $offset]
-        )->fetchAll(\PDO::FETCH_ASSOC);
+             LIMIT ? OFFSET ?'
+        );
+        $rowsStmt->execute([$patientId, $perPage, $offset]);
+        $rows = $rowsStmt->fetchAll();
 
         $this->json([
             'items'      => $rows,
@@ -345,7 +347,7 @@ final class PatientPortalController extends Controller
                 'total'        => $total,
                 'per_page'     => $perPage,
                 'current_page' => $page,
-                'last_page'    => (int)ceil($total / $perPage),
+                'last_page'    => $total > 0 ? (int)ceil($total / $perPage) : 1,
             ],
         ]);
     }
