@@ -8,7 +8,7 @@ use App\Models\AppointmentModel;
 use App\Models\PatientMediaModel;
 use App\Models\NotificationPreferenceModel;
 use App\Models\PatientModel;
-use App\Services\ValidatorService;
+use App\Validators\ValidatorService;
 
 /**
  * PatientPortalController — Phase C patient portal endpoints.
@@ -27,6 +27,7 @@ use App\Services\ValidatorService;
  *   GET   /api/v1/patient/documents                 → documents()
  *   GET   /api/v1/patient/notification-preferences  → getNotificationPrefs()
  *   PATCH /api/v1/patient/notification-preferences  → patchNotificationPrefs()
+ *   GET   /api/v1/patient/records                   → records()
  */
 final class PatientPortalController extends Controller
 {
@@ -299,6 +300,55 @@ final class PatientPortalController extends Controller
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    // GET /api/v1/patient/records
+    // -------------------------------------------------------------------------
+
+    /**
+     * Paginated read-only timeline of this patient's EMR records (signed notes only).
+     * Query params: page (int, default 1), per_page (int, default 10, max 50).
+     * Per docs/API_CONTRACT.md §GET /patient/records (Phase E)
+     *
+     * Response data:
+     *   items[]: { id, visit_type, author_name, subjective, assessment, plan,
+     *              is_signed, signed_at, created_at }
+     *   pagination: { total, per_page, current_page, last_page }
+     */
+    public function records(): void
+    {
+        $patientId = (int)$this->authUser()['user_id'];
+        $page      = max(1, (int)($_GET['page']     ?? 1));
+        $perPage   = min(50, max(1, (int)($_GET['per_page'] ?? 10)));
+
+        $db     = \App\Core\Database::getInstance();
+        $offset = ($page - 1) * $perPage;
+
+        $total = (int)$db->query(
+            'SELECT COUNT(*) FROM emr_records WHERE patient_id = ? AND is_draft = 0',
+            [$patientId]
+        )->fetchColumn();
+
+        $rows = $db->query(
+            'SELECT id, visit_type, author_name, subjective, assessment, plan,
+                    is_signed, signed_at, created_at
+             FROM emr_records
+             WHERE patient_id = ? AND is_draft = 0
+             ORDER BY created_at DESC
+             LIMIT ? OFFSET ?',
+            [$patientId, $perPage, $offset]
+        )->fetchAll(\PDO::FETCH_ASSOC);
+
+        $this->json([
+            'items'      => $rows,
+            'pagination' => [
+                'total'        => $total,
+                'per_page'     => $perPage,
+                'current_page' => $page,
+                'last_page'    => (int)ceil($total / $perPage),
+            ],
+        ]);
+    }
 
     /**
      * Return the resolved auth user from AuthMiddleware.

@@ -60,3 +60,7 @@ $router->get('/api/v1/patient/notification-preferences', [PatientPortalControlle
 $router->patch('/api/v1/patient/notification-preferences', [PatientPortalController::class, 'patchNotificationPrefs'], [
     AuthMiddleware::class,
 ]);
+
+$router->get('/api/v1/patient/records', [PatientPortalController::class, 'records'], [
+    AuthMiddleware::class,
+]);

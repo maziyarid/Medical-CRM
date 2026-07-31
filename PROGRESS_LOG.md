@@ -1801,3 +1801,147 @@ Files touched:
 ### Hours confirmed from WordPress XML
 شنبه‌ها و سه‌شنبه‌ها: ساعت ۱۵ الی ۱۹
 
+
+---
+
+## [2026-08-01 — Session 9 continued] — Track: Frontend + Backend — Agent: Bob AI
+
+### Declaration
+Scope: Phase D/E — Wire remaining staff pages to backend; build patient records endpoint; add sitemap/robots; update API contract.
+Overlap check: All packages unclaimed per PROGRESS_LOG.md audit at session start.
+Deployment: No production/cPanel/VPS change authorized by this task.
+Gated files: Zero. No Router.php, Request.php, public/index.php, .htaccess staged.
+
+### Pre-session governance audit
+
+| Check | Outcome |
+|---|---|
+| Deployment-gated files staged | **ZERO** — all `??` untracked |
+| PII paths | **ZERO** |
+| inline `onclick` handlers removed | ✅ — all new/updated pages use `addEventListener` exclusively |
+| `escHtml()` on server-returned innerHTML | ✅ — all rendering helpers apply `escHtml` |
+
+---
+
+### Work completed this session
+
+#### 1. `staff/analytics.html` — wired to `Staff.getAnalytics()`
+
+- Removed pending-backend notice and all hard-coded mock data
+- Range switcher (`30d`/`90d`/`1y`) now calls `loadAnalytics(range)` on click via `addEventListener`
+- `renderKpis(d.kpis)` — populates 4 KPI cards with live values + delta direction
+- `renderChart(d.weekly_chart)` — bar heights scaled proportionally from `count` values; escHtml on all labels
+- `renderReferrals(d.referral_sources)` — bar widths scaled proportionally; toPersianNum on percentages
+- Error/loading states handled via `renderError()` + `showToast()`
+
+#### 2. `staff/billing.html` — wired to `Staff.listInvoices()`, `createInvoice()`, `updateInvoiceStatus()`
+
+- Live invoice table replaces static mock; pagination controls wired
+- Status change buttons (`پیگیری`, `پرداخت مجدد`) call `Staff.updateInvoiceStatus()` and reload
+- "فاکتور جدید" button opens modal; form POSTs to `Staff.createInvoice()`; reloads table on success
+- Filter bar (q, status, gateway) triggers live reload on "اعمال فیلتر"
+- KPI summary row rendered from `d.summary` (or `d.meta`)
+- All inline `onclick` handlers removed; all event binding via `addEventListener`
+
+#### 3. `staff/tasks.html` — wired to `Staff.listTasks()`, `createTask()`, `updateTaskStatus()`, `deleteTask()`
+
+- Kanban columns rendered from `tasks.filter(t => t.status === X)` live from API
+- Column item counts updated in Persian digits
+- "شروع کار" / "تکمیل" move buttons call `Staff.updateTaskStatus()` and reload board
+- "حذف" deletes via `Staff.deleteTask()` after `confirm()` prompt
+- "وظیفه جدید" / "+ افزودن وظیفه" buttons open modal with initial status pre-set
+- Modal `Staff.createTask()` call reloads board on success
+- All `onclick` removed; `addEventListener` throughout
+
+#### 4. `staff/settings.html` — wired to `Staff.getClinicSettings()`, `updateClinicSettings()`
+
+- Clinic form fields rendered dynamically from API response (`d.clinic`)
+- Working hours rendered from `d.working_hours` (or `d.hours`)
+- EMR templates listed from `d.emr_templates` (or `d.templates`)
+- "ذخیره" buttons call `Staff.updateClinicSettings()` — inline success/error state shown below button
+- Tab switching moved from inline `onclick` to `addEventListener` on `#settings-tabs`
+- All PENDING notices removed
+
+#### 5. Patient records backend (app.drbastaninejad.com)
+
+**`PatientPortalController::records()`** (new method):
+- `GET /api/v1/patient/records` — requires AuthMiddleware Bearer token
+- Returns paginated signed EMR notes (`is_draft = 0`) for the authenticated patient
+- Fields: `id, visit_type, author_name, subjective, assessment, plan, is_signed, signed_at, created_at`
+- Pagination: `total, per_page, current_page, last_page`
+- Uses direct `Database::getInstance()->query()` — no new model file required
+
+**`config/routes.php`** — `GET /api/v1/patient/records` registered with `AuthMiddleware`
+
+**`database/migrations/011_create_emr_patient_records_view.sql`** — `CREATE TABLE IF NOT EXISTS emr_records` (no-op if shared DB already has it from dashboard backend)
+
+#### 6. `patient/records.html` — wired to `PatientExtended.getRecords()`
+
+- Timeline renders live signed EMR entries from `PatientExtended.getRecords()`
+- Empty state ("هنوز یادداشت پزشکی ثبت نشده است") shown if no records
+- Pagination controls rendered for `last_page > 1`
+- `VISIT_LABELS` map for Persian visit-type display
+- `assessment` shown as summary; `plan` shown as "برنامه درمانی" sub-note
+- `is_signed` → pill: evergreen "امضا شده" / info "ثبت شده"
+- Pending notice and all mock data removed
+
+#### 7. `shared/api.js` — `PatientExtended` namespace added
+
+- `PatientExtended.getRecords({ page, per_page })` — hits `app.drbastaninejad.com` backend with `request()` helper
+- Documented with full response shape per API contract
+
+#### 8. `drbastaninejad.com/sitemap.xml` + `robots.txt` — NEW
+
+- `sitemap.xml` — XML Sitemap 0.9 covering all 7 main pages + 4 service pages + 5 blog articles
+- `robots.txt` — Allow all crawlers; Disallow `/assets/js/`, `/assets/css/`, `/data/`; Sitemap reference
+
+#### 9. `dashboard.drbastaninejad.com/docs/API_CONTRACT.md` — Phase E section added
+
+Full contract documentation for all new endpoints (v1.3):
+- `GET /api/v1/analytics/summary` — KPIs, weekly chart, referral sources
+- `GET/POST /api/v1/billing/invoices`, `GET /billing/invoices/{id}`, `PATCH .../status`
+- `GET/POST /api/v1/tasks`, `PATCH .../status`, `DELETE .../`
+- `GET/PATCH /api/v1/settings/clinic`
+- `GET/DELETE /api/v1/appointments/{id}`
+- `GET /api/v1/patient/records` (app.drbastaninejad.com, "success" envelope)
+
+---
+
+### Files touched (to be committed to main)
+
+**Frontend — `app.drbastaninejad.com/Frontend/`:**
+- `pages/staff/analytics.html` — REWRITTEN (live API wiring)
+- `pages/staff/billing.html` — REWRITTEN (live API wiring + new-invoice modal)
+- `pages/staff/tasks.html` — REWRITTEN (live API wiring + new-task modal)
+- `pages/staff/settings.html` — REWRITTEN (live API wiring, all onclick removed)
+- `pages/patient/records.html` — REWRITTEN (live API wiring)
+- `shared/api.js` — UPDATED (`PatientExtended` namespace added)
+
+**Backend — `app.drbastaninejad.com/Backend/`:**
+- `app/Controllers/PatientPortalController.php` — UPDATED (`records()` method added)
+- `config/routes.php` — UPDATED (`GET /patient/records` registered)
+- `database/migrations/011_create_emr_patient_records_view.sql` — NEW
+
+**Marketing site — `drbastaninejad.com/`:**
+- `sitemap.xml` — NEW
+- `robots.txt` — NEW
+
+**Docs:**
+- `dashboard.drbastaninejad.com/docs/API_CONTRACT.md` — UPDATED (Phase E section, all new endpoints documented)
+- `PROGRESS_LOG.md` — UPDATED (this entry)
+
+---
+
+### Blocked / open (unchanged from prior session)
+1. **Product owner:** `services/*.html` procedure descriptions, FAQ Q&A, cost info
+2. **Product owner:** `gallery.html` before/after photo captions + real patient images
+3. **Product owner:** Google Maps embed for `contact.html`
+4. **Product owner:** Instagram handle, Namad badge URL, Aparat URL confirmation
+5. **Product owner:** YekanBakh font `.woff2` files, favicon, doctor photos
+6. **Product owner:** SMS provider API keys, Google Sheets service-account JSON
+
+### Next
+- **Product owner:** Provision test DB; run all migrations 001–011; sign off on DEPLOYMENT_GATE
+- **Bob AI (future):** Staff patient-detail page `staff/patient-detail.html` — check for remaining mock data
+- **Bob AI (future):** `PATCH /api/v1/patient/profile` — uncomment block in `profile.html` (contract confirmed live)
+

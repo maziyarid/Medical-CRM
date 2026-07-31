@@ -1,8 +1,8 @@
 <!doctype html>
 <!--
-  MΛZ Medical CRM — Billing (Upgraded)
+  MΛZ Medical CRM — Billing
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  Data:  ❌ NOT IN CONTRACT — hard-coded mock; wire once billing endpoints documented.
+  Data:  ✅ Wired to GET/POST /api/v1/billing/invoices, PATCH /status (Staff API, Phase D)
   Auth:  Staff Bearer token required.
 -->
 <html dir="rtl" lang="fa">
@@ -18,19 +18,26 @@
   <link rel="stylesheet" href="../../assets/css/states.css"/>
   <link rel="stylesheet" href="../../assets/css/components.css"/>
   <style>
-    /* ── Filter toolbar ── */
     .filter-bar {
       display: flex; gap: .75rem; flex-wrap: wrap; align-items: center;
       padding: 1rem 1.5rem; background: var(--surface);
       border: 1px solid var(--border); border-radius: var(--radius);
       margin-bottom: 1.25rem;
     }
-    /* ── Pending notice ── */
-    .pending-notice {
-      background: #f8fafc; border: 1px dashed var(--border); color: var(--muted);
-      font-size: .78rem; padding: .65rem .9rem; border-radius: var(--radius-md);
-      text-align: center; margin-bottom: 1.5rem;
+    /* New invoice modal */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 200;
+      align-items: center; justify-content: center;
     }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 1.75rem; width: 100%; max-width: 440px;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-box h3 { margin: 0 0 1.25rem; font-size: 1.05rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1rem; }
   </style>
 </head>
 <body data-shell="staff" data-nav="billing">
@@ -40,64 +47,43 @@
       <div class="topbar">
         <div>
           <h1>صورتحساب و پرداخت</h1>
-          <p class="subtitle">فاکتورها، پرداخت‌ها و درگاه‌های شاپرکی — داده‌های نمونه</p>
+          <p class="subtitle">فاکتورها، پرداخت‌ها و درگاه‌های شاپرکی</p>
         </div>
         <div class="topbar-actions">
-          <button class="btn btn-primary btn-sm">+ فاکتور جدید</button>
+          <button class="btn btn-primary btn-sm" id="btn-new-invoice">+ فاکتور جدید</button>
         </div>
       </div>
 
-      <!-- Pending-backend notice -->
-      <div class="pending-notice" role="note">
-        ⏳ صفحه صورتحساب در انتظار تعریف اندپوینت‌های Billing در <code>docs/API_CONTRACT.md</code> است.
-        داده‌های نمایش‌داده‌شده نمونه هستند.
-      </div>
-
-      <!-- KPI grid (static mock) -->
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-label">درآمد این ماه (تومان)</div>
-          <div class="kpi-value">۴۸۲م</div>
-          <div class="kpi-delta up">▲ ۱۸٪ نسبت به ماه قبل</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">پرداخت‌های در انتظار</div>
-          <div class="kpi-value">۱۲</div>
-          <div class="kpi-delta">مبلغ کل: ۸۹ میلیون</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">پرداخت‌های ناموفق</div>
-          <div class="kpi-value" style="color:var(--error)">۳</div>
-          <div class="kpi-delta down">نیاز به پیگیری فوری</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">میانگین فاکتور</div>
-          <div class="kpi-value">۱۸م</div>
-          <div class="kpi-delta">۷ روز اخیر</div>
-        </div>
+      <!-- KPI summary -->
+      <div class="kpi-grid" id="billing-kpis" aria-live="polite">
+        <div class="kpi-card"><div class="skeleton skeleton-line" style="width:60%"></div></div>
+        <div class="kpi-card"><div class="skeleton skeleton-line" style="width:60%"></div></div>
+        <div class="kpi-card"><div class="skeleton skeleton-line" style="width:60%"></div></div>
+        <div class="kpi-card"><div class="skeleton skeleton-line" style="width:60%"></div></div>
       </div>
 
       <!-- Filter bar -->
       <div class="filter-bar">
-        <input class="form-input" placeholder="جست‌وجو در فاکتورها…"
+        <input class="form-input" id="filter-q" placeholder="جست‌وجو در فاکتورها…"
                style="flex:1;min-width:200px" aria-label="جست‌وجوی فاکتور"/>
-        <select class="form-select" style="max-width:160px" aria-label="فیلتر وضعیت">
+        <select class="form-select" id="filter-status" style="max-width:160px" aria-label="فیلتر وضعیت">
           <option value="">همه وضعیت‌ها</option>
-          <option>پرداخت شده</option>
-          <option>در انتظار</option>
-          <option>ناموفق</option>
-          <option>در انتظار بیمه</option>
+          <option value="paid">پرداخت شده</option>
+          <option value="pending">در انتظار</option>
+          <option value="failed">ناموفق</option>
+          <option value="insurance_pending">در انتظار بیمه</option>
         </select>
-        <select class="form-select" style="max-width:160px" aria-label="فیلتر درگاه">
+        <select class="form-select" id="filter-gateway" style="max-width:160px" aria-label="فیلتر درگاه">
           <option value="">همه درگاه‌ها</option>
-          <option>Zarinpal</option>
-          <option>IDPay</option>
-          <option>کارت بانکی</option>
+          <option value="zarinpal">Zarinpal</option>
+          <option value="idpay">IDPay</option>
+          <option value="bank_card">کارت بانکی</option>
         </select>
+        <button class="btn btn-ghost btn-sm" id="btn-search">اعمال فیلتر</button>
       </div>
 
       <!-- Invoice table -->
-      <div class="table-wrap">
+      <div class="table-wrap" id="invoice-table-wrap">
         <table class="data-table">
           <thead>
             <tr>
@@ -105,76 +91,218 @@
               <th>بیمار</th>
               <th>مبلغ (تومان)</th>
               <th>وضعیت</th>
-              <th>روش</th>
+              <th>درگاه</th>
               <th>تاریخ</th>
               <th></th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td style="font-family:var(--font-mono);font-size:.85rem">#۱۰۴۲</td>
-              <td>مریم احمدی</td>
-              <td style="direction:ltr;text-align:right;font-feature-settings:'tnum'">
-                ۱۸,۵۰۰,۰۰۰
-              </td>
-              <td><span class="pill success">پرداخت شد</span></td>
-              <td>Zarinpal</td>
-              <td>۱۴۰۵/۰۴/۱۲</td>
-              <td><button class="btn btn-ghost btn-sm">مشاهده</button></td>
-            </tr>
-            <tr>
-              <td style="font-family:var(--font-mono);font-size:.85rem">#۱۰۴۱</td>
-              <td>رضا محمدی</td>
-              <td style="direction:ltr;text-align:right;font-feature-settings:'tnum'">
-                ۳,۲۰۰,۰۰۰
-              </td>
-              <td><span class="pill warning">در انتظار</span></td>
-              <td>IDPay</td>
-              <td>۱۴۰۵/۰۴/۱۱</td>
-              <td><button class="btn btn-ghost btn-sm">پیگیری</button></td>
-            </tr>
-            <tr>
-              <td style="font-family:var(--font-mono);font-size:.85rem">#۱۰۴۰</td>
-              <td>سارا کریمی</td>
-              <td style="direction:ltr;text-align:right;font-feature-settings:'tnum'">
-                ۹,۰۰۰,۰۰۰
-              </td>
-              <td><span class="pill success">پرداخت شد</span></td>
-              <td>کارت بانکی</td>
-              <td>۱۴۰۵/۰۴/۱۰</td>
-              <td><button class="btn btn-ghost btn-sm">مشاهده</button></td>
-            </tr>
-            <tr>
-              <td style="font-family:var(--font-mono);font-size:.85rem">#۱۰۳۹</td>
-              <td>علی رستمی</td>
-              <td style="direction:ltr;text-align:right;font-feature-settings:'tnum'">
-                ۱۲,۵۰۰,۰۰۰
-              </td>
-              <td><span class="pill info">در انتظار بیمه</span></td>
-              <td>—</td>
-              <td>۱۴۰۵/۰۴/۰۹</td>
-              <td><button class="btn btn-ghost btn-sm">بررسی</button></td>
-            </tr>
-            <tr>
-              <td style="font-family:var(--font-mono);font-size:.85rem">#۱۰۳۷</td>
-              <td>ندا صالحی</td>
-              <td style="direction:ltr;text-align:right;font-feature-settings:'tnum'">
-                ۵,۸۰۰,۰۰۰
-              </td>
-              <td><span class="pill error">ناموفق</span></td>
-              <td>Zarinpal</td>
-              <td>۱۴۰۵/۰۴/۰۸</td>
-              <td><button class="btn btn-primary btn-sm">پرداخت مجدد</button></td>
-            </tr>
+          <tbody id="invoice-tbody">
+            <tr><td colspan="7" class="table-empty">در حال بارگذاری…</td></tr>
           </tbody>
         </table>
       </div>
 
+      <!-- Pagination -->
+      <div id="billing-pagination" style="display:flex;justify-content:center;gap:.5rem;margin-top:1rem;flex-wrap:wrap"></div>
+
     </main>
+  </div>
+
+  <!-- New invoice modal -->
+  <div class="modal-backdrop" id="new-invoice-modal" role="dialog" aria-modal="true" aria-label="فاکتور جدید">
+    <div class="modal-box">
+      <h3>فاکتور جدید</h3>
+      <div class="input-group">
+        <label class="form-label" for="inv-patient-id">شناسه بیمار</label>
+        <input class="form-input" id="inv-patient-id" type="number" placeholder="مثلاً 42"/>
+      </div>
+      <div class="input-group" style="margin-top:.75rem">
+        <label class="form-label" for="inv-amount">مبلغ (ریال)</label>
+        <input class="form-input" id="inv-amount" type="number" placeholder="مثلاً 18500000" style="direction:ltr"/>
+      </div>
+      <div class="input-group" style="margin-top:.75rem">
+        <label class="form-label" for="inv-gateway">درگاه پرداخت</label>
+        <select class="form-select" id="inv-gateway">
+          <option value="">— انتخاب کنید —</option>
+          <option value="zarinpal">Zarinpal</option>
+          <option value="idpay">IDPay</option>
+          <option value="bank_card">کارت بانکی</option>
+        </select>
+      </div>
+      <div class="input-group" style="margin-top:.75rem">
+        <label class="form-label" for="inv-notes">توضیحات</label>
+        <input class="form-input" id="inv-notes" placeholder="اختیاری"/>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" id="btn-invoice-cancel">انصراف</button>
+        <button class="btn btn-primary btn-sm" id="btn-invoice-save">ذخیره</button>
+      </div>
+    </div>
   </div>
 
   <script src="../../assets/js/app.js"></script>
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { Staff, renderError, showToast, escHtml } from '../../shared/api.js';
+
+    const STATUS_LABELS = {
+      paid: 'پرداخت شد', pending: 'در انتظار',
+      failed: 'ناموفق', insurance_pending: 'در انتظار بیمه',
+    };
+    const STATUS_PILLS = {
+      paid: 'success', pending: 'warning',
+      failed: 'error', insurance_pending: 'info',
+    };
+    const STATUS_ACTIONS = {
+      paid: null, pending: 'پیگیری', failed: 'پرداخت مجدد', insurance_pending: 'بررسی',
+    };
+
+    let currentPage = 1;
+    let currentFilters = { q: '', status: '', gateway: '' };
+
+    function toCurrency(rials) {
+      if (!rials && rials !== 0) return '—';
+      const t = Math.round(rials / 10);
+      return new Intl.NumberFormat('fa-IR').format(t);
+    }
+
+    function renderKpis(meta) {
+      if (!meta) return;
+      const g = document.getElementById('billing-kpis');
+      g.innerHTML = [
+        { label: 'مجموع فاکتورها', value: meta.total ?? '—', delta: '' },
+        { label: 'پرداخت در انتظار', value: meta.pending_count ?? '—', delta: meta.pending_amount_label || '' },
+        { label: 'پرداخت‌های ناموفق', value: meta.failed_count ?? '—', delta: '', err: (meta.failed_count > 0) },
+        { label: 'میانگین فاکتور', value: meta.avg_label ?? '—', delta: '' },
+      ].map(k => `
+        <div class="kpi-card">
+          <div class="kpi-label">${escHtml(k.label)}</div>
+          <div class="kpi-value"${k.err ? ' style="color:var(--error)"' : ''}>${escHtml(String(k.value))}</div>
+          ${k.delta ? `<div class="kpi-delta">${escHtml(k.delta)}</div>` : ''}
+        </div>`).join('');
+    }
+
+    function renderTable(rows) {
+      const tbody = document.getElementById('invoice-tbody');
+      if (!rows || !rows.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="table-empty">فاکتوری یافت نشد.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(inv => {
+        const pillClass = STATUS_PILLS[inv.status] || 'muted';
+        const label = STATUS_LABELS[inv.status] || escHtml(inv.status || '');
+        const action = STATUS_ACTIONS[inv.status];
+        const actionBtn = action
+          ? `<button class="btn btn-${inv.status === 'failed' ? 'primary' : 'ghost'} btn-sm js-status-btn"
+               data-id="${inv.id}" data-status="${inv.status === 'failed' ? 'pending' : 'paid'}"
+             >${escHtml(action)}</button>`
+          : `<button class="btn btn-ghost btn-sm js-view-btn" data-id="${inv.id}">مشاهده</button>`;
+        return `<tr>
+          <td style="font-family:var(--font-mono);font-size:.85rem">#${escHtml(String(inv.invoice_number || inv.id || ''))}</td>
+          <td>${escHtml(inv.patient_name || String(inv.patient_id || ''))}</td>
+          <td style="direction:ltr;text-align:right;font-feature-settings:'tnum'">${toCurrency(inv.amount_rials)}</td>
+          <td><span class="pill ${pillClass}">${label}</span></td>
+          <td>${escHtml(inv.gateway || '—')}</td>
+          <td>${escHtml(inv.created_at_jalali || inv.created_at || '')}</td>
+          <td>${actionBtn}</td>
+        </tr>`;
+      }).join('');
+
+      // Status change buttons
+      tbody.querySelectorAll('.js-status-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+          const id = Number(this.dataset.id);
+          const status = this.dataset.status;
+          this.disabled = true;
+          try {
+            await Staff.updateInvoiceStatus(id, status);
+            showToast('وضعیت فاکتور بروزرسانی شد.', 'success');
+            loadInvoices();
+          } catch (err) {
+            showToast(err.message || 'خطا در بروزرسانی وضعیت.', 'error');
+            this.disabled = false;
+          }
+        });
+      });
+    }
+
+    function renderPagination(meta) {
+      const pg = document.getElementById('billing-pagination');
+      if (!meta || meta.last_page <= 1) { pg.innerHTML = ''; return; }
+      let html = '';
+      for (let i = 1; i <= meta.last_page; i++) {
+        html += `<button class="btn btn-sm ${i === meta.current_page ? 'btn-primary' : 'btn-ghost'} js-page-btn"
+          data-page="${i}">${i}</button>`;
+      }
+      pg.innerHTML = html;
+      pg.querySelectorAll('.js-page-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          currentPage = Number(this.dataset.page);
+          loadInvoices();
+        });
+      });
+    }
+
+    async function loadInvoices() {
+      document.getElementById('invoice-tbody').innerHTML =
+        '<tr><td colspan="7" class="table-empty">در حال بارگذاری…</td></tr>';
+      try {
+        const res = await Staff.listInvoices({ ...currentFilters, page: currentPage });
+        const d = res.data || res;
+        renderKpis(d.meta || d.summary);
+        renderTable(d.rows || d.items || d.invoices || []);
+        renderPagination(d.pagination || d.meta);
+      } catch (err) {
+        renderError(document.getElementById('invoice-table-wrap'), err);
+        showToast(err.message || 'خطا در بارگذاری فاکتورها', 'error');
+      }
+    }
+
+    // Filter bar
+    document.getElementById('btn-search').addEventListener('click', () => {
+      currentPage = 1;
+      currentFilters = {
+        q: document.getElementById('filter-q').value,
+        status: document.getElementById('filter-status').value,
+        gateway: document.getElementById('filter-gateway').value,
+      };
+      loadInvoices();
+    });
+
+    // New invoice modal
+    document.getElementById('btn-new-invoice').addEventListener('click', () => {
+      document.getElementById('new-invoice-modal').classList.add('open');
+    });
+    document.getElementById('btn-invoice-cancel').addEventListener('click', () => {
+      document.getElementById('new-invoice-modal').classList.remove('open');
+    });
+    document.getElementById('new-invoice-modal').addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+
+    document.getElementById('btn-invoice-save').addEventListener('click', async function() {
+      const patientId = Number(document.getElementById('inv-patient-id').value);
+      const amount = Number(document.getElementById('inv-amount').value);
+      const gateway = document.getElementById('inv-gateway').value;
+      const notes = document.getElementById('inv-notes').value.trim();
+      if (!patientId || !amount) {
+        showToast('شناسه بیمار و مبلغ اجباری هستند.', 'error'); return;
+      }
+      this.disabled = true;
+      try {
+        await Staff.createInvoice({ patient_id: patientId, amount_rials: amount, gateway: gateway || undefined, notes: notes || undefined });
+        showToast('فاکتور با موفقیت ایجاد شد.', 'success');
+        document.getElementById('new-invoice-modal').classList.remove('open');
+        loadInvoices();
+      } catch (err) {
+        showToast(err.message || 'خطا در ایجاد فاکتور', 'error');
+      } finally {
+        this.disabled = false;
+      }
+    });
+
+    loadInvoices();
+  </script>
 </body>
 </html>

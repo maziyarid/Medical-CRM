@@ -1,9 +1,8 @@
 <!doctype html>
 <!--
-  MΛZ Medical CRM — Patient Medical Records (Upgraded)
+  MΛZ Medical CRM — Patient Medical Records
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  Data:  ❌ NOT IN CONTRACT — no GET /patient/records endpoint defined yet.
-         Hard-coded read-only timeline. Wire when backend adds endpoint.
+  Data:  ✅ Wired to GET /api/v1/patient/records (app backend, Phase E)
   Auth:  Patient Bearer token required — requireAuth() guard.
 -->
 <html dir="rtl" lang="fa">
@@ -19,7 +18,6 @@
   <link rel="stylesheet" href="../../assets/css/states.css"/>
   <link rel="stylesheet" href="../../assets/css/components.css"/>
   <style>
-    /* ── Timeline ── */
     .records-timeline { position: relative; padding-inline-start: 1.75rem; }
     .records-timeline::before {
       content: ''; position: absolute;
@@ -39,12 +37,8 @@
     .tl-card .tl-meta { font-size: .75rem; color: var(--muted); margin-bottom: .3rem; }
     .tl-card h4 { margin: 0 0 .3rem; font-size: .95rem; }
     .tl-card p  { font-size: .85rem; color: var(--muted); line-height: 1.7; margin: 0; }
-    /* ── Pending notice ── */
-    .pending-notice {
-      background: #f8fafc; border: 1px dashed var(--border); color: var(--muted);
-      font-size: .78rem; padding: .65rem .9rem; border-radius: var(--radius-md);
-      text-align: center; margin-bottom: 1.5rem;
-    }
+    .tl-card .tl-pills { margin-top: .5rem; display: flex; gap: .35rem; }
+    .tl-note { font-size: .82rem; color: var(--muted); padding: .65rem .75rem; background: var(--surface); border-radius: var(--radius-sm); }
   </style>
 </head>
 <body data-shell="patient" data-nav="records">
@@ -58,51 +52,22 @@
         </div>
       </div>
 
-      <!-- Pending-backend notice -->
-      <div class="pending-notice" role="note">
-        ⏳ پرونده پزشکی در انتظار تعریف اندپوینت مربوطه در <code>docs/API_CONTRACT.md</code> است.
-        داده‌های نمایش‌داده‌شده نمونه هستند.
-      </div>
-
       <section class="panel">
         <h3 style="margin-bottom:1.25rem">ویزیت‌ها و یادداشت‌های پزشک</h3>
 
-        <div class="records-timeline" role="list">
-
-          <div class="tl-entry" role="listitem">
+        <div class="records-timeline" id="records-timeline" role="list" aria-live="polite">
+          <!-- JS renders entries here -->
+          <div class="tl-entry">
             <div class="tl-dot" aria-hidden="true"></div>
             <div class="tl-card">
-              <div class="tl-meta">۱۴۰۵/۰۴/۱۲ · دکتر باستانی‌نژاد · ویزیت پیگیری</div>
-              <h4>ویزیت پیگیری — هفته دوم پس از عمل</h4>
-              <p>روند بهبود مناسب. تورم بینی کاهش یافته. توصیه به ادامه محدودیت فعالیت به مدت ۲ هفته.</p>
-              <div style="margin-top:.5rem;display:flex;gap:.35rem">
-                <span class="pill evergreen">امضا شده</span>
-              </div>
+              <div class="skeleton skeleton-line" style="width:50%"></div>
+              <div class="skeleton skeleton-line" style="width:70%;margin-top:.5rem"></div>
             </div>
           </div>
-
-          <div class="tl-entry" role="listitem">
-            <div class="tl-dot" aria-hidden="true"></div>
-            <div class="tl-card">
-              <div class="tl-meta">۱۴۰۵/۰۳/۲۸ · دکتر باستانی‌نژاد · عمل جراحی</div>
-              <h4>جراحی رینوپلاستی</h4>
-              <p>عمل بدون عارضه انجام شد. بیمار در بیدارسازی هوشیار و پایدار.</p>
-              <div style="margin-top:.5rem;display:flex;gap:.35rem">
-                <span class="pill info">ثبت شده</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="tl-entry" role="listitem">
-            <div class="tl-dot" aria-hidden="true"></div>
-            <div class="tl-card">
-              <div class="tl-meta">۱۴۰۵/۰۳/۱۵ · تشکیل پرونده</div>
-              <h4>پذیرش اولیه</h4>
-              <p>فرم پذیرش دیجیتال تکمیل و امضا شده — بدون سابقه بیماری قابل توجه.</p>
-            </div>
-          </div>
-
         </div>
+
+        <!-- Pagination -->
+        <div id="records-pagination" style="display:flex;justify-content:center;gap:.5rem;margin-top:1rem;flex-wrap:wrap"></div>
 
         <p style="font-size:.78rem;color:var(--muted);margin-top:1.25rem;padding-top:.75rem;border-top:1px solid var(--border)">
           ⚠ این اطلاعات توسط تیم پزشکی ثبت شده و فقط قابل مشاهده است.
@@ -117,8 +82,86 @@
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
-    import { requireAuth } from '../../shared/api.js';
+    import { requireAuth, renderError, showToast, escHtml } from '../../shared/api.js';
+    import { PatientExtended } from '../../shared/api.js';
+
     if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
+
+    const VISIT_LABELS = {
+      consultation: 'مشاوره اولیه',
+      pre_op:       'قبل از عمل',
+      post_op:      'بعد از عمل',
+      follow_up:    'ویزیت پیگیری',
+      surgery:      'عمل جراحی',
+    };
+
+    let currentPage = 1;
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      // Just display as-is; server returns created_at in MySQL DATETIME format
+      return dateStr.replace('T', ' ').substring(0, 10);
+    }
+
+    function renderEntries(items) {
+      const timeline = document.getElementById('records-timeline');
+      if (!items || !items.length) {
+        timeline.innerHTML = `<div class="tl-entry">
+          <div class="tl-card" style="text-align:center;color:var(--muted)">هنوز یادداشت پزشکی ثبت نشده است.</div>
+        </div>`;
+        return;
+      }
+      timeline.innerHTML = items.map(r => {
+        const visitLabel = VISIT_LABELS[r.visit_type] || escHtml(r.visit_type || 'ویزیت');
+        const pill = r.is_signed
+          ? '<span class="pill evergreen">امضا شده</span>'
+          : '<span class="pill info">ثبت شده</span>';
+        const summary = r.assessment
+          ? `<p>${escHtml(r.assessment)}</p>`
+          : (r.subjective ? `<p>${escHtml(r.subjective)}</p>` : '');
+        return `<div class="tl-entry" role="listitem">
+          <div class="tl-dot" aria-hidden="true"></div>
+          <div class="tl-card">
+            <div class="tl-meta">${escHtml(formatDate(r.created_at))} · ${escHtml(r.author_name || 'دکتر باستانی‌نژاد')} · ${visitLabel}</div>
+            <h4>${visitLabel}</h4>
+            ${summary}
+            ${r.plan ? `<div class="tl-note" style="margin-top:.45rem"><strong>برنامه درمانی:</strong> ${escHtml(r.plan)}</div>` : ''}
+            <div class="tl-pills">${pill}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderPagination(pagination) {
+      const pg = document.getElementById('records-pagination');
+      if (!pagination || pagination.last_page <= 1) { pg.innerHTML = ''; return; }
+      let html = '';
+      for (let i = 1; i <= pagination.last_page; i++) {
+        html += `<button class="btn btn-sm ${i === pagination.current_page ? 'btn-primary' : 'btn-ghost'} js-page-btn"
+          data-page="${i}">${i}</button>`;
+      }
+      pg.innerHTML = html;
+      pg.querySelectorAll('.js-page-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          currentPage = Number(this.dataset.page);
+          loadRecords();
+        });
+      });
+    }
+
+    async function loadRecords() {
+      try {
+        const res = await PatientExtended.getRecords({ page: currentPage });
+        const d = res.data || res;
+        renderEntries(d.items || []);
+        renderPagination(d.pagination);
+      } catch (err) {
+        renderError(document.getElementById('records-timeline'), err);
+        showToast(err.message || 'خطا در بارگذاری پرونده پزشکی', 'error');
+      }
+    }
+
+    loadRecords();
   </script>
 </body>
 </html>

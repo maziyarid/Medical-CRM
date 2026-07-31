@@ -353,9 +353,7 @@ async function staffRequest(method, path, body = null) {
 export const Staff = {
   /**
    * GET /api/v1/dashboard/overview  ✅ LIVE
-   * Returns: { metrics[], attention[], today[] }
-   * Per dashboard.drbastaninejad.com/docs/API_CONTRACT.md §Phase D
-   * Requires: Bearer token with dashboard.view permission
+   * Returns: { metrics[], timeline[] }
    */
   async getOverview() {
     return staffRequest('GET', '/dashboard/overview');
@@ -363,11 +361,6 @@ export const Staff = {
 
   /**
    * GET /api/v1/patients  ✅ LIVE
-   * Returns: { rows[], total, page, per_page }
-   * rows[]: { id, name, mobile, national_id, insurance_status, last_visit, upcoming_count }
-   * Per dashboard.drbastaninejad.com/docs/API_CONTRACT.md §GET /patients
-   * Requires: Bearer token with patients.view permission
-   *
    * @param {{ q?: string, page?: number, per_page?: number }} params
    */
   async listPatients(params = {}) {
@@ -379,15 +372,238 @@ export const Staff = {
     return staffRequest('GET', '/patients' + query);
   },
 
-  /**
-   * GET /api/v1/patients/{id}  ✅ LIVE
-   * Returns: { patient{id,name,mobile,national_id,birth_date,insurance_status,home_address}, timeline[] }
-   * Per dashboard.drbastaninejad.com/docs/API_CONTRACT.md §GET /patients/{id}
-   *
-   * @param {number|string} id
-   */
+  /** GET /api/v1/patients/{id}  ✅ LIVE */
   async getPatient(id) {
     return staffRequest('GET', `/patients/${id}`);
+  },
+
+  // ── Appointments ──────────────────────────────────────────────────
+
+  /**
+   * GET /api/v1/appointments  ✅ LIVE
+   * @param {{ from?: string, to?: string, provider_id?: number }} params
+   */
+  async listAppointments(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.from)        qs.set('from', params.from);
+    if (params.to)          qs.set('to',   params.to);
+    if (params.provider_id) qs.set('provider_id', String(params.provider_id));
+    const query = qs.toString() ? '?' + qs.toString() : '';
+    return staffRequest('GET', '/appointments' + query);
+  },
+
+  /**
+   * GET /api/v1/appointments/{id}  ✅ LIVE
+   */
+  async getAppointment(id) {
+    return staffRequest('GET', `/appointments/${id}`);
+  },
+
+  /**
+   * POST /api/v1/appointments  ✅ LIVE
+   * @param {{ patient_id, provider_id, scheduled_at, duration_minutes?, visit_reason?, room?, notes? }} body
+   */
+  async createAppointment(body) {
+    return staffRequest('POST', '/appointments', body);
+  },
+
+  /**
+   * PATCH /api/v1/appointments/{id}/reschedule  ✅ LIVE
+   * @param {number} id
+   * @param {{ scheduled_at: string, duration_minutes?: number }} body
+   */
+  async rescheduleAppointment(id, body) {
+    return staffRequest('PATCH', `/appointments/${id}/reschedule`, body);
+  },
+
+  /**
+   * PATCH /api/v1/appointments/{id}/status  ✅ LIVE
+   * @param {number} id
+   * @param {string} status — scheduled|confirmed|cancelled|completed
+   */
+  async setAppointmentStatus(id, status) {
+    return staffRequest('PATCH', `/appointments/${id}/status`, { status });
+  },
+
+  /**
+   * DELETE /api/v1/appointments/{id}  ✅ LIVE
+   * @param {number} id
+   * @param {string} reason
+   */
+  async cancelAppointment(id, reason) {
+    return staffRequest('DELETE', `/appointments/${id}`, { reason });
+  },
+
+  // ── EMR ───────────────────────────────────────────────────────────
+
+  /**
+   * GET /api/v1/patients/{patientId}/emr  ✅ LIVE
+   */
+  async getEmr(patientId) {
+    return staffRequest('GET', `/patients/${patientId}/emr`);
+  },
+
+  /**
+   * POST /api/v1/patients/{patientId}/emr  ✅ LIVE
+   * @param {number} patientId
+   * @param {{ visit_type, subjective, objective, assessment, plan, is_draft? }} body
+   */
+  async createEmrNote(patientId, body) {
+    return staffRequest('POST', `/patients/${patientId}/emr`, body);
+  },
+
+  /**
+   * GET /api/v1/emr/templates  ✅ LIVE
+   */
+  async getEmrTemplates() {
+    return staffRequest('GET', '/emr/templates');
+  },
+
+  /**
+   * POST /api/v1/ai/emr-draft  ✅ LIVE
+   * @param {{ patient_id: number, prompt: string }} body
+   */
+  async aiEmrDraft(body) {
+    return staffRequest('POST', '/ai/emr-draft', body);
+  },
+
+  // ── Analytics ─────────────────────────────────────────────────────
+
+  /**
+   * GET /api/v1/analytics/summary  ✅ LIVE
+   * @param {{ range?: '30d'|'90d'|'1y', date_from?: string, date_to?: string }} params
+   */
+  async getAnalytics(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.range)     qs.set('range',     params.range);
+    if (params.date_from) qs.set('date_from', params.date_from);
+    if (params.date_to)   qs.set('date_to',   params.date_to);
+    const query = qs.toString() ? '?' + qs.toString() : '';
+    return staffRequest('GET', '/analytics/summary' + query);
+  },
+
+  // ── Billing / Invoices ────────────────────────────────────────────
+
+  /**
+   * GET /api/v1/billing/invoices  ✅ LIVE
+   * @param {{ q?: string, status?: string, gateway?: string, page?: number }} params
+   */
+  async listInvoices(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.q)       qs.set('q',       params.q);
+    if (params.status)  qs.set('status',  params.status);
+    if (params.gateway) qs.set('gateway', params.gateway);
+    if (params.page)    qs.set('page',    String(params.page));
+    const query = qs.toString() ? '?' + qs.toString() : '';
+    return staffRequest('GET', '/billing/invoices' + query);
+  },
+
+  /**
+   * GET /api/v1/billing/invoices/{id}  ✅ LIVE
+   */
+  async getInvoice(id) {
+    return staffRequest('GET', `/billing/invoices/${id}`);
+  },
+
+  /**
+   * POST /api/v1/billing/invoices  ✅ LIVE
+   * @param {{ patient_id, amount_rials, gateway?, notes? }} body
+   */
+  async createInvoice(body) {
+    return staffRequest('POST', '/billing/invoices', body);
+  },
+
+  /**
+   * PATCH /api/v1/billing/invoices/{id}/status  ✅ LIVE
+   * @param {number} id
+   * @param {string} status — pending|paid|failed|insurance_pending
+   */
+  async updateInvoiceStatus(id, status) {
+    return staffRequest('PATCH', `/billing/invoices/${id}/status`, { status });
+  },
+
+  // ── Tasks ─────────────────────────────────────────────────────────
+
+  /**
+   * GET /api/v1/tasks  ✅ LIVE
+   * @param {{ status?: string, assignee_id?: number }} params
+   */
+  async listTasks(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.status)      qs.set('status',      params.status);
+    if (params.assignee_id) qs.set('assignee_id', String(params.assignee_id));
+    const query = qs.toString() ? '?' + qs.toString() : '';
+    return staffRequest('GET', '/tasks' + query);
+  },
+
+  /**
+   * POST /api/v1/tasks  ✅ LIVE
+   * @param {{ title, priority, assignee_id?, due_date?, notes? }} body
+   */
+  async createTask(body) {
+    return staffRequest('POST', '/tasks', body);
+  },
+
+  /**
+   * PATCH /api/v1/tasks/{id}/status  ✅ LIVE
+   * @param {number} id
+   * @param {string} status — todo|in_progress|done
+   */
+  async updateTaskStatus(id, status) {
+    return staffRequest('PATCH', `/tasks/${id}/status`, { status });
+  },
+
+  /**
+   * DELETE /api/v1/tasks/{id}  ✅ LIVE
+   */
+  async deleteTask(id) {
+    return staffRequest('DELETE', `/tasks/${id}`);
+  },
+
+  // ── Settings ──────────────────────────────────────────────────────
+
+  /**
+   * GET /api/v1/settings/clinic  ✅ LIVE
+   */
+  async getClinicSettings() {
+    return staffRequest('GET', '/settings/clinic');
+  },
+
+  /**
+   * PATCH /api/v1/settings/clinic  ✅ LIVE
+   * @param {{ name?, phone?, address?, timezone?, working_hours? }} body
+   */
+  async updateClinicSettings(body) {
+    return staffRequest('PATCH', '/settings/clinic', body);
+  },
+
+  // ── Patient Records (app.drbastaninejad.com) ──────────────────────
+  // NOTE: this hits the patient-facing backend, not the dashboard backend.
+  // Uses the main `request()` helper, not staffRequest().
+};
+
+// ---------------------------------------------------------------------------
+// Patient extended — additional endpoints on app.drbastaninejad.com backend
+// ---------------------------------------------------------------------------
+export const PatientExtended = {
+  /**
+   * GET /api/v1/patient/records  ✅ LIVE (Phase E, 2026-08-01)
+   * Paginated read-only timeline of the patient's signed EMR records.
+   * Per docs/API_CONTRACT.md §GET /patient/records
+   *
+   * Response data:
+   *   items[]: { id, visit_type, author_name, subjective, assessment, plan,
+   *              is_signed, signed_at, created_at }
+   *   pagination: { total, per_page, current_page, last_page }
+   *
+   * @param {{ page?: number, per_page?: number }} params
+   */
+  async getRecords(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.page)     qs.set('page',     String(params.page));
+    if (params.per_page) qs.set('per_page', String(params.per_page));
+    const query = qs.toString() ? '?' + qs.toString() : '';
+    return request('GET', '/patient/records' + query);
   },
 };
 
