@@ -310,6 +310,88 @@ export const Patient = {
 };
 
 // ---------------------------------------------------------------------------
+// Staff API — dashboard.drbastaninejad.com endpoints
+// Uses the "ok" envelope (not "success") per the dashboard API contract.
+// Documented in dashboard.drbastaninejad.com/docs/API_CONTRACT.md §Phase D
+// ---------------------------------------------------------------------------
+
+const STAFF_API_BASE = 'https://dashboard.drbastaninejad.com/api/v1';
+
+/** Core fetch for all staff (dashboard) endpoints. */
+async function staffRequest(method, path, body = null) {
+  const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const config = { method, headers };
+  if (body !== null) config.body = JSON.stringify(body);
+
+  let response;
+  try {
+    response = await fetch(`${STAFF_API_BASE}${path}`, config);
+  } catch (networkErr) {
+    throw { code: 'NETWORK_ERROR', message: getPersianError('NETWORK_ERROR'), raw: networkErr };
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    throw { code: 'SERVER_ERROR', message: getPersianError('SERVER_ERROR'), httpStatus: response.status };
+  }
+
+  // Dashboard backend uses "ok" discriminator (not "success")
+  if (!response.ok || data.ok === false) {
+    const code = (response.status === 401 ? 'UNAUTHORIZED'
+                : response.status === 403 ? 'FORBIDDEN'
+                : 'SERVER_ERROR');
+    throw { code, message: getPersianError(code), httpStatus: response.status, raw: data };
+  }
+
+  return data;
+}
+
+export const Staff = {
+  /**
+   * GET /api/v1/dashboard/overview  ✅ LIVE
+   * Returns: { metrics[], attention[], today[] }
+   * Per dashboard.drbastaninejad.com/docs/API_CONTRACT.md §Phase D
+   * Requires: Bearer token with dashboard.view permission
+   */
+  async getOverview() {
+    return staffRequest('GET', '/dashboard/overview');
+  },
+
+  /**
+   * GET /api/v1/patients  ✅ LIVE
+   * Returns: { rows[], total, page, per_page }
+   * rows[]: { id, name, mobile, national_id, insurance_status, last_visit, upcoming_count }
+   * Per dashboard.drbastaninejad.com/docs/API_CONTRACT.md §GET /patients
+   * Requires: Bearer token with patients.view permission
+   *
+   * @param {{ q?: string, page?: number, per_page?: number }} params
+   */
+  async listPatients(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.q)        qs.set('q', params.q);
+    if (params.page)     qs.set('page', String(params.page));
+    if (params.per_page) qs.set('per_page', String(params.per_page));
+    const query = qs.toString() ? '?' + qs.toString() : '';
+    return staffRequest('GET', '/patients' + query);
+  },
+
+  /**
+   * GET /api/v1/patients/{id}  ✅ LIVE
+   * Returns: { patient{id,name,mobile,national_id,birth_date,insurance_status,home_address}, timeline[] }
+   * Per dashboard.drbastaninejad.com/docs/API_CONTRACT.md §GET /patients/{id}
+   *
+   * @param {number|string} id
+   */
+  async getPatient(id) {
+    return staffRequest('GET', `/patients/${id}`);
+  },
+};
+
+// ---------------------------------------------------------------------------
 // UI helpers — skeleton / placeholder / error banner
 // ---------------------------------------------------------------------------
 
