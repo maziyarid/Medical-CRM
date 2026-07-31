@@ -127,6 +127,7 @@
   </div>
 
   <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/jalali.js"></script>
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
@@ -160,6 +161,28 @@
       return '<span class="pill ' + m[0] + '">' + m[1] + '</span>';
     }
 
+    /**
+     * Convert a UTC DATETIME string ("2026-08-15 14:30:00" or ISO) to
+     * Jalali numeric display ("۱۴۰۵/۰۵/۲۴") using jalali.js Jalali global.
+     * Falls back to raw YYYY-MM-DD if Jalali is unavailable.
+     */
+    function toJalaliDate(dateStr) {
+      if (!dateStr) return '—';
+      try {
+        // MySQL DATETIME uses space separator; Date() needs 'T' or replaces space
+        const d = new Date(String(dateStr).replace(' ', 'T'));
+        if (isNaN(d.getTime())) return String(dateStr).substring(0, 10);
+        return Jalali.formatNumeric(d); // e.g. "۱۴۰۵/۰۵/۲۴"
+      } catch (_) {
+        return String(dateStr).substring(0, 10);
+      }
+    }
+
+    function toTimeStr(dateStr) {
+      if (!dateStr) return '';
+      return String(dateStr).substring(11, 16); // HH:MM in UTC — clinic is Tehran so display as-is
+    }
+
     async function loadAppointments() {
       const host = document.getElementById('appts-host');
       MAZCRM.states.set(host, 'loading');
@@ -181,21 +204,20 @@
             '</div>';
         } else {
           upEl.innerHTML = upcoming.map(a => {
-            // API now returns scheduled_at (MySQL DATETIME UTC) + duration_minutes
-            const dateStr  = a.scheduled_at ? String(a.scheduled_at).substring(0, 10) : '—';
-            const timeStr  = a.scheduled_at ? String(a.scheduled_at).substring(11, 16) : '';
-            const timeDisp = timeStr ? ' · ساعت ' + esc(timeStr) : '';
-            const reason   = esc(a.reason || '—');
-            const prov     = a.provider_name ? ' · ' + esc(a.provider_name) : '';
+            const jalaliDate = toJalaliDate(a.scheduled_at);
+            const timeStr    = toTimeStr(a.scheduled_at);
+            const timeDisp   = timeStr ? ' · ساعت ' + esc(timeStr) : '';
+            const reason     = esc(a.reason || '—');
+            const prov       = a.provider_name ? ' · ' + esc(a.provider_name) : '';
             const c = COLOR_MAP[a.status] || { bg: 'var(--porcelain)', color: 'var(--graphite)' };
             return '<div role="listitem" class="appt-card">' +
               '<div class="appt-date-block" style="background:' + c.bg + ';color:' + c.color + '">' +
-                '<strong>' + esc(dateStr) + '</strong>' +
+                '<strong>' + esc(jalaliDate) + '</strong>' +
               '</div>' +
               '<div style="flex:1;min-width:0">' +
                 '<strong style="font-size:.95rem;display:block">' + reason + '</strong>' +
                 '<div style="font-size:.8rem;color:var(--muted);margin-top:.2rem">' +
-                  esc(dateStr) + timeDisp + prov +
+                  esc(jalaliDate) + timeDisp + prov +
                 '</div>' +
               '</div>' +
               pillFor(a.status) +
@@ -212,10 +234,10 @@
             '</td></tr>';
         } else {
           tbody.innerHTML = history.map(a => {
-            const dateStr = a.scheduled_at ? String(a.scheduled_at).substring(0, 10) : '—';
-            const reason  = esc(a.reason || '—');
+            const jalaliDate = toJalaliDate(a.scheduled_at);
+            const reason     = esc(a.reason || '—');
             return '<tr>' +
-              '<td>' + esc(dateStr) + '</td>' +
+              '<td>' + esc(jalaliDate) + '</td>' +
               '<td>' + reason + '</td>' +
               '<td>' + pillFor(a.status) + '</td>' +
             '</tr>';

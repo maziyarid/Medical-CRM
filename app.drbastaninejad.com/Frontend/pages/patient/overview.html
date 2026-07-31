@@ -139,6 +139,7 @@
   </div>
 
   <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/jalali.js"></script>
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
@@ -150,6 +151,21 @@
 
     function toFa(n) {
       return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+
+    /**
+     * Convert a UTC DATETIME string to Jalali numeric display ("۱۴۰۵/۰۵/۲۴").
+     * Falls back to ISO YYYY-MM-DD if Jalali global is unavailable.
+     */
+    function toJalaliDate(dateStr) {
+      if (!dateStr) return '';
+      try {
+        const d = new Date(String(dateStr).replace(' ', 'T'));
+        if (isNaN(d.getTime())) return String(dateStr).substring(0, 10);
+        return Jalali.formatNumeric(d);
+      } catch (_) {
+        return String(dateStr).substring(0, 10);
+      }
     }
 
     function fillAvatar(name) {
@@ -177,9 +193,9 @@
         const appt = d.next_appointment;
         if (appt) {
           // scheduled_at is a MySQL DATETIME UTC string e.g. "2026-08-15 14:30:00"
-          const dateStr  = appt.scheduled_at ? String(appt.scheduled_at).substring(0, 10) : '';
-          const timeStr  = appt.scheduled_at ? String(appt.scheduled_at).substring(11, 16) : '';
-          const apptDisplay = [dateStr, timeStr ? ('ساعت ' + timeStr) : null]
+          const jalaliDate = toJalaliDate(appt.scheduled_at);
+          const timeStr    = appt.scheduled_at ? String(appt.scheduled_at).substring(11, 16) : '';
+          const apptDisplay = [jalaliDate, timeStr ? ('ساعت ' + timeStr) : null]
             .filter(Boolean).join(' — ');
           document.getElementById('ov-next-appt').textContent = apptDisplay || '—';
           document.getElementById('ov-next-reason').textContent = appt.reason || '—';
@@ -209,9 +225,9 @@
         // Display it in the upcoming list if present.
         const list = document.getElementById('ov-upcoming-list');
         if (appt) {
-          const dateStr2 = appt.scheduled_at ? String(appt.scheduled_at).substring(0, 10) : '';
-          const timeStr2 = appt.scheduled_at ? String(appt.scheduled_at).substring(11, 16) : '';
-          const apptDisplay = [dateStr2, timeStr2 ? ('ساعت ' + timeStr2) : null]
+          const jalaliDate2 = toJalaliDate(appt.scheduled_at);
+          const timeStr2    = appt.scheduled_at ? String(appt.scheduled_at).substring(11, 16) : '';
+          const apptDisplay = [jalaliDate2, timeStr2 ? ('ساعت ' + timeStr2) : null]
             .filter(Boolean).join(' — ');
           list.innerHTML =
             '<div role="listitem" style="display:flex;align-items:center;gap:1rem;' +
