@@ -1,8 +1,7 @@
 {
-    "name": "maz/dashboard-backend",
-    "description": "dashboard.drbastaninejad.com PHP 8.x MVC backend — MΛZ Medical CRM",
+    "name": "maziyarid/dashboard-drbastaninejad",
+    "description": "dashboard.drbastaninejad.com — MΛZ Medical CRM staff backend",
     "type": "project",
-    "license": "proprietary",
     "require": {
         "php": ">=8.1"
     },
@@ -18,10 +17,6 @@
         "psr-4": {
             "Tests\\": "tests/"
         }
-    },
-    "scripts": {
-        "test": "phpunit",
-        "test:unit": "phpunit --testsuite Unit"
     },
     "config": {
         "optimize-autoloader": true,

@@ -2531,3 +2531,156 @@ However, by `d284049` (HEAD), both controllers are confirmed to use `scheduled_a
 ### No code changes made
 All code was already correct. This session was a pure audit + log reconciliation pass.
 
+
+---
+
+## 2026-08-01 — Phase M: Dashboard Test Infrastructure + Bug Fixes — Agent: Bob (IBM)
+
+**Scope:** dashboard.drbastaninejad.com — PHPUnit scaffold, AuthMiddleware integration test, AppointmentController unit test, EmrRecord bug fix, Database.php test-harness support.
+**Deployment:** No production/cPanel/VPS action authorized.
+**Gated files:** None staged.
+
+### Pre-session governance audit
+
+| Check | Outcome |
+|---|---|
+| Working tree clean at session start | ✅ `git status` — nothing to commit (Phase L `171bb8e`) |
+| PII paths | **ZERO** |
+| Deployment-gated files staged | **ZERO** |
+
+---
+
+### Work completed
+
+#### 1. Bug fix — `EmrRecord::forPatient()` column name mismatch
+
+**File:** `dashboard.drbastaninejad.com/app/Models/EmrRecord.php`
+
+`forPatient()` joined `users u` and selected `u.name AS author_name`. The `users` table
+(migration 012) defines the column as `full_name`, not `name`. This would cause a silent
+MySQL error (empty `author_name` or query failure depending on SQL mode).
+
+**Fix:** `u.name` → `u.full_name` in the JOIN SELECT.
+
+---
+
+#### 2. `composer.json` — created
+
+`dashboard.drbastaninejad.com/composer.json` was **missing** — PHPUnit could not be
+installed or invoked. Created with:
+- `require-dev: phpunit/phpunit ^10.5`
+- PSR-4 autoload: `App\ → app/`, `Tests\ → tests/`
+
+---
+
+#### 3. `phpunit.xml` — Integration testsuite added
+
+The existing `phpunit.xml` only had a `Unit` testsuite. Added:
+- `Integration` testsuite pointing at `tests/Integration/`
+- Removed stale coverage/html report config (no CI runner configured)
+- Bumped schema URL to `10.5`
+
+---
+
+#### 4. `Database::reset()` + ENV fallback — `Database.php`
+
+Two additions to `app/Core/Database.php`:
+
+**`reset()` method:** Sets the singleton instance to `null`. Required by integration
+test `tearDown()` to release the connection between tests.
+
+**ENV fallback in `conn()`:** When `BASE_PATH` is not defined (PHPUnit bootstrap — no
+`index.php` to define it), `conn()` now reads `$_ENV['DB_HOST/PORT/NAME/USER/PASS']`
+directly instead of crashing with "undefined constant BASE_PATH". Keys match
+`config/database.php` (`DB_NAME`, `DB_USER`, `DB_PASS`).
+
+---
+
+#### 5. `tests/Integration/AuthMiddlewareTest.php` — NEW (7 test cases, `@group db`)
+
+Full token round-trip integration test for `AuthMiddleware`:
+
+| Test | What is verified |
+|---|---|
+| `testValidStaffTokenPassesThroughAndPopulatesUser` | Valid token → null return, `$req->user` populated with `id`, `clinic_id`, `role`, `user_type`, `name` |
+| `testMissingAuthorizationHeaderReturns401` | No Authorization header → 401 |
+| `testBearerPrefixMissingReturns401` | `Token abc` (not `Bearer`) → 401 |
+| `testEmptyTokenAfterBearerReturns401` | `Bearer ` (empty) → 401 |
+| `testUnknownTokenReturns401` | Random token not in DB → 401, `$req->user` remains null |
+| `testExpiredTokenReturns401` | Token with `expires_at` in the past → 401 |
+| `testRevokedTokenReturns401` | Token with `revoked_at` set → 401 |
+| `testInactiveStaffUserReturns401` | Valid token but `users.is_active = 0` → 401 |
+| `testSoftDeletedStaffUserReturns401` | Valid token but `users.deleted_at` set → 401 |
+
+`setUp()` calls `markTestSkipped()` if `DB_HOST` is absent from `$_ENV` or if the DB
+is unreachable — zero false failures in offline environments.
+
+`tearDown()` deletes all rows inserted by the test via the `$cleanup` registry, then
+calls `Database::reset()`.
+
+---
+
+#### 6. `tests/Unit/AppointmentControllerValidationTest.php` — NEW (6 validation tests, no DB)
+
+Tests the validation-layer of `AppointmentController` without a database:
+
+| Test | What is verified |
+|---|---|
+| `testStoreMissingPatientIdReturns422` | `store()` — missing `patient_id` → 422 with field name in message |
+| `testStoreMissingProviderIdReturns422` | `store()` — missing `provider_id` → 422 |
+| `testStoreMissingScheduledAtReturns422` | `store()` — missing `scheduled_at` → 422 |
+| `testStoreEmptyBodyReturns422ForFirstRequiredField` | `store()` — empty body → 422 |
+| `testUpdateStatusWithInvalidStatusReturns422` | `updateStatus()` — `'unknown_value'` → 422 |
+| `testUpdateStatusWithNullStatusReturns422` | `updateStatus()` — null status → 422 |
+| `testUpdateStatusWithValidStatusDoesNotReturn422` | All 4 valid statuses → not 422 (`@group db_optional`) |
+| `testStoreMissingDurationMinutesUsesDefault` | Duration missing → default 20 applied, no 422 (`@group db_optional`) |
+
+---
+
+#### 7. `.env.testing.example` — created
+
+`dashboard.drbastaninejad.com/.env.testing.example` — placeholder file listing
+required ENV keys (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`, `APP_ENV`,
+`DEFAULT_CLINIC_ID`) and the migration run order for the test DB.
+
+---
+
+### Files touched
+
+| File | Action |
+|---|---|
+| `dashboard.drbastaninejad.com/app/Models/EmrRecord.php` | FIXED — `u.name` → `u.full_name` |
+| `dashboard.drbastaninejad.com/app/Core/Database.php` | UPDATED — `reset()` + ENV fallback in `conn()` |
+| `dashboard.drbastaninejad.com/composer.json` | CREATED |
+| `dashboard.drbastaninejad.com/phpunit.xml` | UPDATED — Integration suite added |
+| `dashboard.drbastaninejad.com/.env.testing.example` | CREATED |
+| `dashboard.drbastaninejad.com/tests/Integration/AuthMiddlewareTest.php` | NEW — 9 integration tests |
+| `dashboard.drbastaninejad.com/tests/Unit/AppointmentControllerValidationTest.php` | NEW — 8 unit tests |
+| `PROGRESS_LOG.md` | UPDATED (this entry) |
+
+---
+
+### To run tests
+
+```bash
+cd dashboard.drbastaninejad.com
+composer install
+
+# Unit tests — no DB required
+./vendor/bin/phpunit --testsuite Unit
+
+# Integration tests — requires .env.testing + mazcrm_test DB + migrations applied
+cp .env.testing.example .env.testing
+# edit .env.testing with real credentials
+./vendor/bin/phpunit --testsuite Integration
+```
+
+---
+
+### Next priorities
+
+1. **Product owner:** Apply migrations 010–014 to `mazcrm_test`; run integration tests.
+2. **Phase 5 (scheduling/communications)** — UNIFIED_MASTER_PLAN §7: SMS reminder stub, AppointmentService reminder hook, email template model.
+3. **`PatientPortalController`** (dashboard) — currently a stub that duplicates app backend; decide whether to keep or tombstone (Phase D backend merge decision).
+4. **`docs/DEPLOYMENT_GATE.md`** audit — review against current migration state (001–014 all present).
+

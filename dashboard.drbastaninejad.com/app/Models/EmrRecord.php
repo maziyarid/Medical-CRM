@@ -19,7 +19,7 @@ final class EmrRecord extends Model
     public function forPatient(int $patientId, int $clinicId): array
     {
         $stmt = $this->db()->prepare(
-            "SELECT e.*, u.name AS author_name
+            "SELECT e.*, u.full_name AS author_name
              FROM emr_records e
              LEFT JOIN users u ON u.id = e.author_id
              WHERE e.patient_id = ? AND e.clinic_id = ? AND e.deleted_at IS NULL
