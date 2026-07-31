@@ -138,10 +138,10 @@
     // Enum: confirmed | scheduled | cancelled | completed
     // Persian display labels — per product-owner requirement to avoid raw values in UI
     const STATUS_MAP = {
-      confirmed:  ['pill--evergreen', 'تأیید شده'],
-      scheduled:  ['pill--info',      'در انتظار تأیید'],
-      cancelled:  ['pill--muted',     'لغو شده'],
-      completed:  ['pill--success',   'انجام شد'],
+      confirmed:  ['evergreen', 'تأیید شده'],
+      scheduled:  ['info',      'در انتظار تأیید'],
+      cancelled:  ['muted',     'لغو شده'],
+      completed:  ['success',   'انجام شد'],
     };
 
     const COLOR_MAP = {
@@ -155,7 +155,7 @@
     function esc(s) { return MAZCRM.escHtml(String(s ?? '')); }
 
     function pillFor(s) {
-      const m = STATUS_MAP[s] || ['pill--muted', esc(s) || '—'];
+      const m = STATUS_MAP[s] || ['muted', esc(s) || '—'];
       // m[1] is a hardcoded Persian string — safe; no escaping needed here
       return '<span class="pill ' + m[0] + '">' + m[1] + '</span>';
     }

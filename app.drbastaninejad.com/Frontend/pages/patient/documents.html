@@ -2,9 +2,10 @@
 <!--
   MΛZ Medical CRM — Patient Documents (Production-wired)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  API:  GET /patient/documents  ⚠️ PENDING — renders pending-backend state until live
-  Note: When live, the API returns signed URLs with expiry. The page checks
-        doc.url_expires_at and renders an "expired" overlay if the URL has expired.
+  API:  GET /patient/documents  ✅ LIVE (2026-07-30, Phase C — PatientMediaModel)
+  Note: API returns signed URLs with expiry. The page checks doc.url_expires_at and
+        renders an "expired" overlay if the URL has expired.
+        CDN_BASE_URL must be set in .env for signed_url to be non-null.
         requireAuth() guard protects the page.
 -->
 <html dir="rtl" lang="fa">
@@ -216,10 +217,10 @@
 
         MAZCRM.states.set(host, 'ready');
       } catch (err) {
-        if (err.httpStatus === 404 || err.httpStatus === 501) {
-          MAZCRM.states.set(host, 'pending');
-        } else if (err.httpStatus === 401) {
+        if (err.httpStatus === 401) {
           window.location.replace('../auth/patient-login.html');
+        } else if (err.httpStatus === 403) {
+          window.location.replace('../errors/403.html');
         } else {
           document.getElementById('docs-error-msg').textContent =
             err.message || 'خطای سرور. لطفاً دوباره تلاش کنید.';

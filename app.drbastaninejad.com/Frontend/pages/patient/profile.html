@@ -2,12 +2,12 @@
 <!--
   MΛZ Medical CRM — Patient Profile
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  API:  GET /api/v1/patient/profile  ✅ LIVE (2026-07-30, Blackbox AI Phase C)
+  API:  GET  /api/v1/patient/profile  ✅ LIVE (2026-07-30, Blackbox AI Phase C)
+        PATCH /api/v1/patient/profile ✅ LIVE (2026-07-31, Blackbox AI Phase C cont.)
   Confirmed response fields (docs/API_CONTRACT.md §GET /patient/profile):
     first_name, last_name, father_name, national_id, birth_date,
     mobile, email, home_tel, home_address
-  PUT/PATCH /api/v1/patient/profile: NOT in docs/API_CONTRACT.md — save button
-    shows Backend requirements note; no request is sent until endpoint is documented.
+  PATCH writable fields: email, home_tel, home_address
   Note: requireAuth() guard; 403 navigates to pages/errors/403.html.
 -->
 <html dir="rtl" lang="fa">
@@ -224,21 +224,6 @@
                             id="btn-save-profile">ذخیره تغییرات</button>
                   </div>
 
-                  <!--
-                    Backend requirements note (Bob AI → Blackbox AI):
-                    PUT or PATCH /api/v1/patient/profile is NOT documented in
-                    docs/API_CONTRACT.md. The save button currently shows this
-                    notice instead of sending a request.
-                    Please add to docs/API_CONTRACT.md:
-                      - Method (PUT vs PATCH), route, and allowed fields
-                      - 422 field-level error shape for: email, home_tel, home_address
-                      - Whether national_id/mobile are updatable (assumed: no)
-                    Until documented, the save action is intentionally disabled.
-                  -->
-                  <div id="patch-pending-note" class="patch-pending" hidden>
-                    ⏳ ذخیره‌سازی به <code>PATCH /api/v1/patient/profile</code> متکی است که
-                    هنوز در قرارداد API مستند نشده. پس از تأیید توسط تیم فنی، فعال می‌شود.
-                  </div>
                   <div id="patch-save-note"
                        style="display:none;background:var(--success-soft);border:1px solid #86efac;
                               color:#14532d;border-radius:var(--radius-md);
@@ -439,12 +424,9 @@
       document.getElementById('pf-home-address').value = _snapshot.home_address;
     }
 
-    // ── Profile form submit ────────────────────────────────────────────────────
-    // PATCH /api/v1/patient/profile is NOT documented in docs/API_CONTRACT.md.
-    // Until Blackbox AI adds the route, the save button shows a Backend requirements
-    // notice and does NOT send any request.
-    // When the endpoint is documented, replace the body of this handler with the
-    // wired implementation (see Backend requirements note in PROGRESS_LOG.md).
+    // ── Profile form submit ─────────────────────────────────────────────────────
+    // PATCH /api/v1/patient/profile — ✅ LIVE (docs/API_CONTRACT.md v1.2 §PATCH /patient/profile)
+    // Writable: email, home_tel, home_address. Identity fields are read-only.
     document.getElementById('profile-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       clearFieldErrors();
@@ -456,56 +438,49 @@
         return;
       }
 
-      // PATCH route not yet in API_CONTRACT.md — show backend requirements notice
-      document.getElementById('patch-pending-note').hidden = false;
-
-      /*
-       * ── TO BE WIRED when Blackbox AI documents PATCH /api/v1/patient/profile ──
-       *
-       * const btn = document.getElementById('btn-save-profile');
-       * btn.disabled = true;
-       * btn.textContent = 'در حال ذخیره…';
-       * try {
-       *   await Patient.updateProfile({
-       *     email:        document.getElementById('pf-email').value.trim(),
-       *     home_tel:     document.getElementById('pf-home-tel').value.trim(),
-       *     home_address: document.getElementById('pf-home-address').value.trim(),
-       *   });
-       *   updateSnapshot();   // <-- reset dirty detection to new saved state
-       *   cancelEdit();
-       *   const note = document.getElementById('patch-save-note');
-       *   note.textContent = 'تغییرات با موفقیت ذخیره شد.';
-       *   note.style.display = 'block';
-       *   setTimeout(() => { note.style.display = 'none'; }, 4000);
-       * } catch (err) {
-       *   if (err.httpStatus === 403) {
-       *     window.location.replace('../errors/403.html');
-       *     return;
-       *   }
-       *   if (err.httpStatus === 422 && err.raw && err.raw.error && err.raw.error.fields) {
-       *     const fields = err.raw.error.fields;
-       *     const fieldMap = {
-       *       email:        ['grp-email',        'err-email'],
-       *       home_tel:     ['grp-home-tel',     'err-home-tel'],
-       *       home_address: ['grp-home-address', 'err-home-address'],
-       *     };
-       *     Object.keys(fields).forEach(key => {
-       *       const [grpId, errId] = fieldMap[key] || [];
-       *       if (grpId) document.getElementById(grpId).classList.add('has-error');
-       *       if (errId) document.getElementById(errId).textContent = esc(fields[key]);
-       *     });
-       *     const first = document.querySelector('.input-group.has-error input');
-       *     if (first) first.focus();
-       *   } else {
-       *     const errEl = document.getElementById('patch-error');
-       *     errEl.textContent = esc(err.message || 'خطای سرور. دوباره تلاش کنید.');
-       *     errEl.style.display = 'block';
-       *   }
-       * } finally {
-       *   btn.disabled = false;
-       *   btn.textContent = 'ذخیره تغییرات';
-       * }
-       */
+      const btn = document.getElementById('btn-save-profile');
+      btn.disabled = true;
+      btn.textContent = 'در حال ذخیره…';
+      try {
+        await Patient.updateProfile({
+          email:        document.getElementById('pf-email').value.trim(),
+          home_tel:     document.getElementById('pf-home-tel').value.trim(),
+          home_address: document.getElementById('pf-home-address').value.trim(),
+        });
+        updateSnapshot();   // reset dirty detection to new saved state
+        cancelEdit();
+        const note = document.getElementById('patch-save-note');
+        note.textContent = 'تغییرات با موفقیت ذخیره شد.';
+        note.style.display = 'block';
+        setTimeout(() => { note.style.display = 'none'; }, 4000);
+      } catch (err) {
+        if (err.httpStatus === 403) {
+          window.location.replace('../errors/403.html');
+          return;
+        }
+        if (err.httpStatus === 422 && err.raw && err.raw.error && err.raw.error.fields) {
+          const fields = err.raw.error.fields;
+          const fieldMap = {
+            email:        ['grp-email',        'err-email'],
+            home_tel:     ['grp-home-tel',     'err-home-tel'],
+            home_address: ['grp-home-address', 'err-home-address'],
+          };
+          Object.keys(fields).forEach(key => {
+            const [grpId, errId] = fieldMap[key] || [];
+            if (grpId) document.getElementById(grpId).classList.add('has-error');
+            if (errId) document.getElementById(errId).textContent = esc(fields[key]);
+          });
+          const first = document.querySelector('.input-group.has-error input');
+          if (first) first.focus();
+        } else {
+          const errEl = document.getElementById('patch-error');
+          errEl.textContent = esc(err.message || 'خطای سرور. دوباره تلاش کنید.');
+          errEl.style.display = 'block';
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'ذخیره تغییرات';
+      }
     });
 
     // ── Load profile ──────────────────────────────────────────────────────────

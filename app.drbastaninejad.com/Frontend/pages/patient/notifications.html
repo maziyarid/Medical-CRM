@@ -3,7 +3,7 @@
   MΛZ Medical CRM — Notification Preferences (Production-wired)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
   API:
-    GET  /patient/notification-preferences  ⚠️ PENDING — pending-backend for read side
+    GET  /patient/notification-preferences  ✅ LIVE (2026-07-30, Phase C — NotificationPreferenceModel)
     PATCH /patient/notification-preferences ✅ LIVE    — save button is wired to real API
 
   CONTRACT COMPLIANCE NOTE (docs/API_CONTRACT.md §3.4):
@@ -13,9 +13,9 @@
       email_appointment_reminder  → toggle row 3  [LIVE]
       email_marketing             → toggle row 4  [LIVE]
 
-    Two toggles present in the old mock that have NO backend field are HIDDEN:
-      "drug_reminder"   → not in contract — hidden with aria-hidden
-      "promotions"      → not in contract — hidden with aria-hidden
+  Two toggles present in the old mock that have NO backend field are HIDDEN:
+    "drug_reminder"   → not in contract — hidden with aria-hidden
+    "promotions"      → not in contract — hidden with aria-hidden
 
   requireAuth() guard protects the page.
 -->
@@ -244,21 +244,16 @@
       const host = document.getElementById('notif-host');
       MAZCRM.states.set(host, 'loading');
 
-      let gateState = false;
-
-      // Try GET preferences (PENDING endpoint)
+      // GET preferences (✅ LIVE)
       try {
         const res = await Patient.getNotificationPreferences();
         applyPrefs(res.data || {});
-        document.getElementById('get-pending-note').hidden = true;
       } catch (getErr) {
-        if (getErr.httpStatus === 404 || getErr.httpStatus === 501) {
-          // GET is pending — show inline note, use defaults, stay ready
-          // (PATCH is still live so the form is still actionable)
-          document.getElementById('get-pending-note').hidden = false;
-          gateState = 'get-pending';
-        } else if (getErr.httpStatus === 401) {
+        if (getErr.httpStatus === 401) {
           window.location.replace('../auth/patient-login.html');
+          return;
+        } else if (getErr.httpStatus === 403) {
+          window.location.replace('../errors/403.html');
           return;
         } else {
           // Hard error — go to error state
