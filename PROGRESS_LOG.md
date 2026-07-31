@@ -2362,3 +2362,44 @@ dashboard.drbastaninejad.com/app/Services/OtpService.php         (+85/- 5)
 5. `docs/API_CONTRACT.md` — appointment status enum Persian labels still undocumented
 6. PHPUnit integration test for AuthMiddleware token round-trip (requires test DB)
 
+
+## [2026] — Phase I — Staff Pages Audit: requireAuth, Billing Pagination, Jalali Dates, Task Status
+
+**Agent:** Bob (IBM)
+**Commit:** `5bd0861`
+**Branch:** `main`
+
+### Audit performed (read-only, before editing)
+
+Read all three staff pages + their controllers + shared/api.js Staff methods
++ all four route files. Found 5 concrete bugs:
+
+| # | File | Bug | Fix |
+|---|---|---|---|
+| 1 | `analytics.html` | No auth guard — page rendered for unauthenticated users | Add `requireAuth('../auth/login.html')` |
+| 2 | `billing.html` | No auth guard | Add `requireAuth('../auth/login.html')` |
+| 3 | `billing.html` | Date column read `inv.created_at_jalali` (field does not exist in BillingController) falling back to raw ISO string | Add `jalali.js` + `toJalaliDate(inv.created_at)` |
+| 4 | `billing.html` | `renderPagination(d.pagination)` — BillingController returns flat `{rows,total,page,per_page}`, not a nested pagination object → `d.pagination` always `undefined` → no page buttons ever rendered | Changed signature to `renderPagination(total, perPage, page)`, compute `lastPage = Math.ceil(total/perPage)` |
+| 5 | `TaskController.store()` | Hardcoded `status = 'todo'` in INSERT — "add task" button on the `in_progress` column sends `{status:'in_progress'}` but task always landed in todo | Read `status` from body, validate against `['todo','in_progress','done']`, default `'todo'` on invalid; return `status` in response |
+| 6 | `tasks.html` | No auth guard | Add `requireAuth('../auth/login.html')` |
+
+### Files changed
+
+```
+app.drbastaninejad.com/Frontend/pages/staff/analytics.html  (+2)
+app.drbastaninejad.com/Frontend/pages/staff/billing.html    (+30/-8)
+app.drbastaninejad.com/Frontend/pages/staff/tasks.html      (+2)
+dashboard.drbastaninejad.com/app/Controllers/TaskController.php (+10/-4)
+```
+
+### Next session priorities
+
+1. `pages/staff/patients.html` — verify requireAuth present (read file), check
+   search/filter wiring vs PatientController response shape
+2. `pages/staff/patient-detail.html` — verify requireAuth, check all API calls match
+3. `pages/staff/settings.html` — verify requireAuth, check settings save round-trip
+4. `docs/API_CONTRACT.md` — still not reviewed; appointment status enum Persian
+   display labels undocumented
+5. PHPUnit integration tests for AuthMiddleware token round-trip (needs test DB)
+6. UNIFIED_MASTER_PLAN Phase 5 (scheduling/communications) — not started
+
