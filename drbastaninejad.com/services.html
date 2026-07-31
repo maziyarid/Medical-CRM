@@ -26,6 +26,16 @@
       "@type": "PostalAddress",
       "addressLocality": "تهران",
       "addressCountry": "IR"
+    },
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "خدمات جراحی بینی",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "MedicalProcedure", "name": "جراحی بینی اولیه (راینوپلاستی)" } },
+        { "@type": "Offer", "itemOffered": { "@type": "MedicalProcedure", "name": "جراحی بینی ترمیمی" } },
+        { "@type": "Offer", "itemOffered": { "@type": "MedicalProcedure", "name": "جراحی بینی گوشتی" } },
+        { "@type": "Offer", "itemOffered": { "@type": "MedicalProcedure", "name": "رفع قوز بینی" } }
+      ]
     }
   }
   </script>
@@ -35,22 +45,36 @@
 </head>
 <body>
 
+<a class="sr-only" href="#main-content" style="position:absolute;top:-40px;left:0;background:var(--evergreen);color:#fff;padding:.5rem 1rem;z-index:999;border-radius:0 0 6px 0;transition:top .2s" onfocus="this.style.top='0'">رفتن به محتوای اصلی</a>
+
 <nav class="site-nav" role="navigation" aria-label="ناوبری اصلی">
   <div class="nav-inner">
-    <a href="index.html" class="nav-brand"><div class="mark" aria-hidden="true">MΛZ</div><div class="brand-text">دکتر شاهین باستانی‌نژاد<small>جراح تخصصی</small></div></a>
+    <a href="index.html" class="nav-brand" aria-label="صفحه اصلی — دکتر شاهین باستانی نژاد">
+      <div class="mark" aria-hidden="true">MΛZ</div>
+      <div class="brand-text">دکتر شاهین باستانی نژاد<small>جراح و متخصص گوش، گلو و بینی</small></div>
+    </a>
     <ul class="nav-links" role="list">
       <li><a href="index.html">خانه</a></li>
       <li><a href="about.html">درباره دکتر</a></li>
       <li><a href="services.html" class="active" aria-current="page">خدمات</a></li>
       <li><a href="gallery.html">نمونه کارها</a></li>
+      <li><a href="blog.html">مقالات</a></li>
       <li><a href="contact.html">تماس</a></li>
     </ul>
-    <div class="nav-cta"><a href="booking.html" class="btn btn-primary btn-sm">نوبت‌گیری</a></div>
+    <div class="nav-cta">
+      <a href="tel:[CONTENT: phone]" class="tel-link" aria-label="تماس تلفنی">[CONTENT: phone]</a>
+      <a href="booking.html" class="btn btn-primary btn-sm">نوبت‌گیری</a>
+    </div>
     <button class="nav-toggle" id="nav-toggle" aria-controls="nav-mobile" aria-expanded="false" aria-label="باز کردن منو"><span></span><span></span><span></span></button>
   </div>
-  <div id="nav-mobile" class="nav-mobile">
-    <a href="index.html">خانه</a><a href="about.html">درباره دکتر</a><a href="services.html">خدمات</a><a href="gallery.html">نمونه کارها</a><a href="contact.html">تماس</a>
-    <a href="booking.html" class="btn btn-primary" style="margin-top:.5rem;text-align:center">نوبت‌گیری</a>
+  <div id="nav-mobile" class="nav-mobile" role="menu">
+    <a href="index.html" role="menuitem">خانه</a>
+    <a href="about.html" role="menuitem">درباره دکتر</a>
+    <a href="services.html" role="menuitem">خدمات</a>
+    <a href="gallery.html" role="menuitem">نمونه کارها</a>
+    <a href="blog.html" role="menuitem">مقالات</a>
+    <a href="contact.html" role="menuitem">تماس</a>
+    <a href="booking.html" class="btn btn-primary" role="menuitem" style="margin-top:.5rem;text-align:center">نوبت‌گیری آنلاین</a>
   </div>
 </nav>
 
@@ -60,79 +84,69 @@
   <header class="services-hero" aria-labelledby="services-heading">
     <div class="container text-center">
       <div class="section-label">خدمات تخصصی</div>
-      <h1 id="services-heading" style="margin-top:.75rem">[CONTENT: عنوان صفحه خدمات]</h1>
+      <h1 id="services-heading" style="margin-top:.75rem">جراحی بینی با بالاترین استانداردها</h1>
       <p class="lead" style="margin-top:1rem;max-width:560px;margin-inline:auto">
-        [CONTENT: توضیح کوتاه خدمات ارائه شده — محصول به اطلاع‌رسانی نیاز دارد]
+        [CONTENT: توضیح کوتاه خدمات — محصول به اطلاع‌رسانی نیاز دارد]
       </p>
     </div>
   </header>
 
-  <!-- Procedures grid -->
+  <!-- 4 confirmed service cards -->
   <section class="section" aria-labelledby="procedures-heading">
     <div class="container">
       <h2 id="procedures-heading" class="sr-only">لیست خدمات</h2>
       <div class="procedure-grid" role="list">
 
-        <!--
-          TEMPLATE — Repeat this block for each procedure.
-          Replace [CONTENT: …] placeholders. Do not invent procedure names or clinical claims.
-          Link href should point to services/{slug}.html stub pages.
-        -->
         <article class="service-card" role="listitem">
           <div class="s-icon" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            <img src="assets/images/راینوپلاستی-اولیه-min.jpg" alt=""
+                 width="52" height="52" loading="lazy"
+                 style="width:52px;height:52px;object-fit:cover;border-radius:var(--radius-md)"
+                 onerror="this.style.display='none'"/>
           </div>
-          <h3>[CONTENT: نام خدمت / عمل جراحی ۱]</h3>
-          <p>[CONTENT: توضیح کوتاه — محصول به اطلاع‌رسانی نیاز دارد]</p>
-          <a href="services/[CONTENT-slug].html" class="s-link">
-            بیشتر بدانید
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </a>
+          <h3><a href="services/rhinoplasty-primary.html" style="color:inherit;text-decoration:none">جراحی بینی اولیه (راینوپلاستی)</a></h3>
+          <p>[CONTENT: توضیح کوتاه جراحی بینی اولیه — محصول به اطلاع‌رسانی نیاز دارد]<br>
+          <small>[REVIEWED: product owner confirms medical accuracy]</small></p>
+          <a href="services/rhinoplasty-primary.html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
         <article class="service-card" role="listitem">
           <div class="s-icon" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            <img src="assets/images/عمل-جراحی-زیبایی-min.jpg" alt=""
+                 width="52" height="52" loading="lazy"
+                 style="width:52px;height:52px;object-fit:cover;border-radius:var(--radius-md)"
+                 onerror="this.style.display='none'"/>
           </div>
-          <h3>[CONTENT: نام خدمت ۲]</h3>
-          <p>[CONTENT: توضیح کوتاه]</p>
-          <a href="services/[CONTENT-slug].html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+          <h3><a href="services/rhinoplasty-revision.html" style="color:inherit;text-decoration:none">جراحی بینی ترمیمی</a></h3>
+          <p>[CONTENT: توضیح کوتاه جراحی بینی ترمیمی — محصول به اطلاع‌رسانی نیاز دارد]<br>
+          <small>[REVIEWED: product owner confirms medical accuracy]</small></p>
+          <a href="services/rhinoplasty-revision.html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
         <article class="service-card" role="listitem">
           <div class="s-icon" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l3 3 5-6"/><circle cx="12" cy="12" r="10"/></svg>
+            <img src="assets/images/جراحی-بینی-گوشتی-مقاله-min.jpg" alt=""
+                 width="52" height="52" loading="lazy"
+                 style="width:52px;height:52px;object-fit:cover;border-radius:var(--radius-md)"
+                 onerror="this.style.display='none'"/>
           </div>
-          <h3>[CONTENT: نام خدمت ۳]</h3>
-          <p>[CONTENT: توضیح کوتاه]</p>
-          <a href="services/[CONTENT-slug].html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+          <h3><a href="services/rhinoplasty-fleshy.html" style="color:inherit;text-decoration:none">جراحی بینی گوشتی</a></h3>
+          <p>[CONTENT: توضیح کوتاه جراحی بینی گوشتی — محصول به اطلاع‌رسانی نیاز دارد]<br>
+          <small>[REVIEWED: product owner confirms medical accuracy]</small></p>
+          <a href="services/rhinoplasty-fleshy.html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
         <article class="service-card" role="listitem">
           <div class="s-icon" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <img src="assets/images/رفع-قوزبینی-min.jpg" alt=""
+                 width="52" height="52" loading="lazy"
+                 style="width:52px;height:52px;object-fit:cover;border-radius:var(--radius-md)"
+                 onerror="this.style.display='none'"/>
           </div>
-          <h3>[CONTENT: نام خدمت ۴]</h3>
-          <p>[CONTENT: توضیح کوتاه]</p>
-          <a href="services/[CONTENT-slug].html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-        </article>
-
-        <article class="service-card" role="listitem">
-          <div class="s-icon" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <h3>[CONTENT: نام خدمت ۵]</h3>
-          <p>[CONTENT: توضیح کوتاه]</p>
-          <a href="services/[CONTENT-slug].html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-        </article>
-
-        <article class="service-card" role="listitem">
-          <div class="s-icon" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          </div>
-          <h3>[CONTENT: نام خدمت ۶]</h3>
-          <p>[CONTENT: توضیح کوتاه]</p>
-          <a href="services/[CONTENT-slug].html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+          <h3><a href="services/hump-removal.html" style="color:inherit;text-decoration:none">رفع قوز بینی</a></h3>
+          <p>[CONTENT: توضیح کوتاه رفع قوز بینی — محصول به اطلاع‌رسانی نیاز دارد]<br>
+          <small>[REVIEWED: product owner confirms medical accuracy]</small></p>
+          <a href="services/hump-removal.html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </article>
 
       </div>
@@ -140,25 +154,59 @@
   </section>
 
   <!-- CTA -->
-  <section class="cta-banner" aria-labelledby="services-cta-heading">
+  <div class="cta-banner" role="region" aria-labelledby="services-cta-heading">
     <div class="container">
-      <h2 id="services-cta-heading">آماده شروع هستید؟</h2>
+      <h2 id="services-cta-heading">برای مشاوره آماده‌اید؟</h2>
       <p>فرم پرونده اولیه را تکمیل کنید — تیم ما با شما تماس می‌گیرد.</p>
-      <a href="https://app.drbastaninejad.com/" class="btn btn-primary btn-lg" rel="noopener">تشکیل پرونده اولیه</a>
+      <a href="https://app.drbastaninejad.com/" class="btn btn-primary" rel="noopener">تشکیل پرونده اولیه</a>
     </div>
-  </section>
+  </div>
 
 </main>
 
 <footer class="site-footer" role="contentinfo">
   <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="mark" aria-hidden="true">MΛZ</div>
+        <h2 style="font-size:1rem;font-weight:800;color:#fff;margin-bottom:.5rem">دکتر شاهین باستانی نژاد</h2>
+        <p>جراح و متخصص گوش، گلو و بینی | جراح پلاستیک بینی</p>
+      </div>
+      <nav class="footer-col" aria-label="لینک‌های سریع">
+        <h4>لینک‌های سریع</h4>
+        <ul role="list">
+          <li><a href="index.html">خانه</a></li>
+          <li><a href="about.html">درباره دکتر</a></li>
+          <li><a href="gallery.html">نمونه کارها</a></li>
+          <li><a href="blog.html">مقالات</a></li>
+          <li><a href="contact.html">تماس</a></li>
+        </ul>
+      </nav>
+      <nav class="footer-col" aria-label="خدمات">
+        <h4>خدمات</h4>
+        <ul role="list">
+          <li><a href="services/rhinoplasty-primary.html">جراحی بینی اولیه</a></li>
+          <li><a href="services/rhinoplasty-revision.html">جراحی بینی ترمیمی</a></li>
+          <li><a href="services/rhinoplasty-fleshy.html">جراحی بینی گوشتی</a></li>
+          <li><a href="services/hump-removal.html">رفع قوز بینی</a></li>
+        </ul>
+      </nav>
+      <div class="footer-col">
+        <h4>تماس با ما</h4>
+        <ul role="list">
+          <li><a href="tel:[CONTENT: phone]">[CONTENT: شماره تلفن]</a></li>
+          <li style="color:rgba(255,255,255,0.6);font-size:.85rem">[CONTENT: آدرس]</li>
+          <li><a href="contact.html">نقشه و راهنمای مسیر</a></li>
+        </ul>
+      </div>
+    </div>
     <div class="footer-bottom">
-      <span>© ۱۴۰۵ کلینیک دکتر شاهین باستانی‌نژاد</span>
+      <span>© ۱۴۰۵ کلینیک دکتر شاهین باستانی نژاد — تمامی حقوق محفوظ است.</span>
       <span class="maz-sig">MΛ<span class="z">Z</span> // <a href="https://maziyarid.com" target="_blank" rel="noopener">Maziyar</a></span>
     </div>
   </div>
 </footer>
 
-<script src="assets/js/main.js" defer></script>
+<script src="assets/js/main.js"></script>
 </body>
 </html>
