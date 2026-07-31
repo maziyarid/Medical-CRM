@@ -1528,3 +1528,95 @@ New §0 "Canonical frontend decision" added at top of README:
 1. Begin wiring the staff CRM pages (`app.drbastaninejad.com/Frontend/pages/staff/`) to the backend API — starting with `dashboard.html` (GET /api/v1/dashboard/overview) and `patients.html` (GET /api/v1/patients).
 2. Verify `dashboard.drbastaninejad.com/app/Controllers/DashboardController.php` has the `GET /dashboard/overview` endpoint matching the dashboard API contract.
 3. Document any missing staff endpoints in `docs/API_CONTRACT.md` before wiring frontend.
+
+---
+
+## [2026-07-31 — Session 6] — Track: Frontend + Documentation — Agent: Bob AI
+
+### Declaration
+Scope: Continue incomplete parts — resume from last PROGRESS_LOG entry.
+Package: Complete all open items from previous sessions; 4 commits.
+Overlap check: All items below were explicitly listed as "Next" in prior entries.
+Deployment: No production or cPanel/VPS change authorized.
+
+### Pre-session governance audit
+
+| Check | Outcome |
+|---|---|
+| `HEAD` == `origin/main` | ✅ `d9b728c` — Blackbox AI canonical frontend decision commit |
+| `intake.html` at HEAD | **603 lines** — no regression |
+| PII paths staged | **ZERO** |
+| Deployment-gated files staged | **ZERO** — 6 gated files remain `??` untracked throughout |
+| Modified uncommitted files at session start | 4 files (dashboard.html, shared/api.js, dashboard API contract, services.html) |
+| Untracked at session start | `drbastaninejad.com/services/` (4 files) |
+
+### Work completed this session
+
+#### Commit 1: `docs(dashboard)` — d029058
+- `dashboard.drbastaninejad.com/docs/API_CONTRACT.md` — Phase D section added
+- `GET /api/v1/dashboard/overview` with full `metrics[4]`, `attention[]`, `today[]` response shapes
+- `GET /api/v1/patients` (paginated + searchable), `GET /api/v1/patients/{id}`, `POST /api/v1/patients`, `PUT /api/v1/patients/{id}`
+- Unblocks `staff/dashboard.html` and `staff/patients.html` wiring
+
+#### Commit 2: `feat(marketing)` — e323434 — Package 4
+- `drbastaninejad.com/services.html`: 4 confirmed service cards with real images, no SVG icon placeholders; hasOfferCatalog JSON-LD; blog nav link; skip link; ARIA improvements; `h1` confirmed (was `[CONTENT]`)
+- `drbastaninejad.com/services/rhinoplasty-primary.html` — NEW (MedicalProcedure JSON-LD, OG, RTL, hreflang)
+- `drbastaninejad.com/services/rhinoplasty-revision.html` — NEW
+- `drbastaninejad.com/services/rhinoplasty-fleshy.html` — NEW
+- `drbastaninejad.com/services/hump-removal.html` — NEW
+- All `[CONTENT]` placeholders retained for product-owner-supplied clinical text
+
+#### Commit 3: `feat(frontend/staff)` — 263d5d1 — Staff dashboard wiring
+- `app.drbastaninejad.com/Frontend/shared/api.js`: `Staff` namespace added — `staffRequest()` using `"ok"` envelope (dashboard.drbastaninejad.com), `Staff.getOverview()`, `Staff.listPatients(params)`, `Staff.getPatient(id)`
+- `app.drbastaninejad.com/Frontend/pages/staff/dashboard.html`: all `onclick` attributes removed → `addEventListener`; `data-href` + delegated keyboard nav on KPI cards; `loadDashboard()` reads `data.metrics[0..3].value` via `Staff.getOverview()`; attention list rendered from `data.attention[]`; `loadAppointments()` reads `data.today[]`; `statusMap` updated (submitted → completed); `window.` pollution removed; `escHtml` on all server strings
+
+#### Commit 4: `fix(frontend/patient)` — c1de303 — Patient portal completions
+- `patient/appointments.html`: `pill--evergreen/info/muted/success` → `evergreen/info/muted/success` (CSS is `.pill.evergreen` not `.pill.pill--evergreen`; `pillFor()` prepends `"pill "`)
+- `patient/profile.html`: PATCH block uncommented (contract confirmed live in docs/API_CONTRACT.md v1.2); `patch-pending-note` element + Backend requirements HTML comment removed; header comment updated
+- `patient/documents.html`: header comment `⚠️ PENDING → ✅ LIVE`; `404/501 → pending` catch arm removed; `403 → errors/403.html` arm added
+- `patient/notifications.html`: GET comment `⚠️ PENDING → ✅ LIVE`; `gateState`/`404/501 → get-pending-note` arm removed; `403` arm added
+
+### API/design notes
+
+| Item | Status |
+|---|---|
+| Staff namespace envelope `"ok"` | Confirmed — dashboard.drbastaninejad.com uses `ok`, not `success` |
+| Phase D contracts: overview, patients list, patients/{id} | **Confirmed** — added to dashboard API contract |
+| pill CSS convention | **Confirmed** — `.pill.evergreen` (space class, not BEM double-dash) |
+| PATCH /patient/profile writable fields | **Confirmed** — email, home_tel, home_address only |
+| `drbastaninejad.com/services/` — clinical content | **[CONTENT] — product owner must supply** |
+
+### Files touched (committed to main)
+
+| File | Commit | Action |
+|---|---|---|
+| `dashboard.drbastaninejad.com/docs/API_CONTRACT.md` | d029058 | UPDATED — Phase D section added |
+| `drbastaninejad.com/services.html` | e323434 | UPDATED — confirmed cards, nav, JSON-LD |
+| `drbastaninejad.com/services/rhinoplasty-primary.html` | e323434 | NEW |
+| `drbastaninejad.com/services/rhinoplasty-revision.html` | e323434 | NEW |
+| `drbastaninejad.com/services/rhinoplasty-fleshy.html` | e323434 | NEW |
+| `drbastaninejad.com/services/hump-removal.html` | e323434 | NEW |
+| `app.drbastaninejad.com/Frontend/shared/api.js` | 263d5d1 | UPDATED — Staff namespace |
+| `app.drbastaninejad.com/Frontend/pages/staff/dashboard.html` | 263d5d1 | UPDATED — Staff.getOverview() wired |
+| `app.drbastaninejad.com/Frontend/pages/patient/appointments.html` | c1de303 | UPDATED — pill classes |
+| `app.drbastaninejad.com/Frontend/pages/patient/profile.html` | c1de303 | UPDATED — PATCH live |
+| `app.drbastaninejad.com/Frontend/pages/patient/documents.html` | c1de303 | UPDATED — LIVE state |
+| `app.drbastaninejad.com/Frontend/pages/patient/notifications.html` | c1de303 | UPDATED — LIVE state |
+
+### Blocked / open
+
+- `staff/patients.html` — not yet wired to `Staff.listPatients()` (endpoint now documented)
+- `staff/patient-detail.html` — not yet wired to `Staff.getPatient(id)`
+- `drbastaninejad.com/services/` `[CONTENT]` — product owner must supply clinical descriptions, FAQ answers, pre/post-op instructions
+- `drbastaninejad.com/blog.html` index + 9 article stubs — Package 6, not yet created
+- PATCH /patient/profile: `home_tel` regex on backend validates digits-only max 15. Frontend inputs have no `pattern` attribute enforcement. Can be added in a polish pass.
+- All deployment-gated files remain `??` untracked — NOT staged
+
+### Next
+
+- **Bob AI:** `staff/patients.html` → `Staff.listPatients()` (GET /api/v1/patients)
+- **Bob AI:** `staff/patient-detail.html` → `Staff.getPatient(id)` (GET /api/v1/patients/{id})
+- **Bob AI:** `drbastaninejad.com/blog.html` + 9 article stubs (Package 6)
+- **Product owner:** Supply clinical content for `drbastaninejad.com/services/*.html` `[CONTENT]` placeholders
+- **Blackbox AI:** `DashboardController::overview()` in `dashboard.drbastaninejad.com` — verify the endpoint exists and matches Phase D contract shape (metrics[4], attention[], today[])
+
