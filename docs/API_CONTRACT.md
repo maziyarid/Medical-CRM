@@ -1,755 +1,530 @@
+# API Contract — MΛZ Medical CRM
 <!-- MAZ//ID · © 2026 Maziyar / Dr. Shahin Bastaninejad -->
 
-# API CONTRACT
-## MΛZ Medical CRM — Dr. Shahin Bastaninejad Platform
-
-> **This is the single source of truth for every HTTP endpoint.**
-> Frontend agents read this. Backend agents write to it (append new sections when adding routes).
-> Never invent an endpoint that is not documented here.
-
-**Base URL:** `https://app.drbastaninejad.com/api/v1`
-**Content-Type:** `application/json` (all requests and responses)
-**Charset:** UTF-8
-**Version:** 1.2 — Phase A+B+C live | PATCH /patient/profile added
-**Last updated:** 2026-07-31
-
-> ⚠️ **ENVELOPE MISMATCH NOTE (2026-07-29, Blackbox AI):**
-> This contract (`docs/API_CONTRACT.md`) governs **`app.drbastaninejad.com`** and uses
-> `"success": true/false` as the response discriminator.
-> The dashboard contract (`dashboard.drbastaninejad.com/docs/API_CONTRACT.md`) governs
-> **`dashboard.drbastaninejad.com`** and uses `"ok": true/false`.
-> These are intentionally different contracts for different subdomains served by separate
-> backends. **Frontend code for `app.*` must use `response.success`, not `response.ok`.**
-> Backend code for `app.*` must never adopt the `"ok"` envelope without a written
-> amendment to UNIFIED_MASTER_PLAN.md approved by the product owner.
+This document is the canonical reference for every HTTP endpoint in the platform.
+It is append-only. Every change to a response shape, field name, or status enum
+**must** be reflected here before merging.
 
 ---
 
-## Status Legend
+## Global conventions
 
-| Badge | Meaning |
+| Convention | Value |
 |---|---|
-| ✅ **LIVE** | Implemented, committed, deployable |
-| ⚠️ **PENDING** | Designed, not yet committed to repo |
-| 🔒 **AUTH REQUIRED** | Must send `Authorization: Bearer {token}` header |
-| 🟡 **STAFF ONLY** | Requires role: `receptionist`, `nurse`, `doctor`, or `superadmin` |
+| Base URL — patient app | `https://app.drbastaninejad.com/api/v1` |
+| Base URL — staff dashboard | `https://dashboard.drbastaninejad.com/api/v1` |
+| Content-Type | `application/json` |
+| Auth header | `Authorization: Bearer <token>` |
+| Datetime format | MySQL `YYYY-MM-DD HH:MM:SS` UTC — display as Jalali via `Jalali.formatNumeric()` |
+| Boolean | `1` / `0` in DB; `true` / `false` in JSON |
+| Pagination default | `page=1`, `per_page=20`, max `per_page=100` |
 
----
+### Response envelopes
 
-## Authentication Model
-
-### Bearer token
-All protected routes require the header:
-```
-Authorization: Bearer {raw_token}
-```
-- Token is obtained via `POST /auth/otp/verify`
-- Stored client-side in `localStorage` under key `mz_auth_token`
-- Server stores SHA-256 hash of the raw token in `auth_tokens` table
-- Never expires in Phase A+B (expiry logic is Phase C)
-- `user_type` discriminator in `auth_tokens`: `patient` | `staff`
-
-### Rate limiting (OTP)
-- Max 3 OTP send requests per mobile per 10 minutes
-- Enforced in `OtpService::isRateLimited()` against `otp_codes` table
-- Exceeding the limit returns `429` with code `OTP_RATE_LIMITED`
-
----
-
-## Shared Response Envelope
-
-Every response — success or error — uses this outer shape:
-
+**app.drbastaninejad.com** (patient portal):
 ```json
-{
-  "success": true | false,
-  "data":    { ... }  ,
-  "error":   { "code": "ERROR_CODE", "message": "Human-readable string", "fields": { ... } }
-}
+{ "success": true, "data": { ... } }
+{ "success": false, "error": "message" }
 ```
 
-- On success: `success: true`, `data` present, `error` absent.
-- On error: `success: false`, `error` present, `data` absent.
-- `error.fields` is present only for validation errors — maps field name → first error message.
-
----
-
-## Error Code Registry
-
-| Code | HTTP | Meaning |
-|---|---|---|
-| `VALIDATION_FAILED` | 422 | One or more input fields failed validation; see `error.fields` |
-| `INVALID_NATIONAL_ID` | 422 | Code Meli failed mod-11 checksum |
-| `INVALID_MOBILE` | 422 | Mobile number not in 09XXXXXXXXX format |
-| `INVALID_JALALI_DATE` | 422 | Birth date is not a valid Jalali date |
-| `DUPLICATE_SUBMISSION` | 200 | Idempotent re-submit: same UUID already processed; returns original `data` |
-| `OTP_RATE_LIMITED` | 429 | More than 3 OTP requests in 10 min for this mobile |
-| `OTP_INVALID` | 422 | OTP code does not match stored hash |
-| `OTP_EXPIRED` | 422 | OTP code has passed its 5-minute TTL |
-| `UNAUTHORIZED` | 401 | No or invalid bearer token |
-| `FORBIDDEN` | 403 | Valid token but insufficient role |
-| `NOT_FOUND` | 404 | Resource does not exist |
-| `SERVER_ERROR` | 500 | Unexpected server-side failure |
-| `NETWORK_ERROR` | — | Client-side: fetch failed entirely (no HTTP response) |
-
----
-
-## ───────────────────────────────────────────
-## SECTION 1 — Auth Endpoints
-## ───────────────────────────────────────────
-
-### `POST /auth/otp/send` ✅ LIVE
-
-Send a 5-digit OTP SMS to an Iranian mobile number. Public endpoint.
-
-**Request body**
+**dashboard.drbastaninejad.com** (staff CRM):
 ```json
-{
-  "mobile": "09121234567"
-}
+{ "ok": true,  "status": 200, "data": { ... }, "errors": null, "meta": null }
+{ "ok": false, "status": 422, "data": null, "errors": [{"field": "mobile", "message": "..."}], "meta": null }
 ```
 
-| Field | Type | Required | Rules |
-|---|---|---|---|
-| `mobile` | string | ✔ | Must match `09[0-9]{9}` after digit normalisation. Persian/Arabic digits accepted. |
+### HTTP status codes used
 
-**Success response** `200`
+| Code | Meaning |
+|---|---|
+| 200 | OK |
+| 201 | Created |
+| 400 | Bad request |
+| 401 | Unauthenticated — client must redirect to login |
+| 403 | Forbidden — RBAC check failed |
+| 404 | Resource not found |
+| 409 | Conflict (e.g. appointment slot overlap) |
+| 422 | Validation error |
+| 500 | Server error |
+
+---
+
+## Authentication endpoints (shared / both subdomains)
+
+### POST /api/v1/auth/otp/send
+Send a one-time password to a mobile number.
+
+**Body:**
+```json
+{ "mobile": "09121234567" }
+```
+**Response 200:**
+```json
+{ "success": true, "data": { "expires_in": 300 } }
+```
+**Error 429:** Rate limited (3 attempts per 10 minutes).
+
+---
+
+### POST /api/v1/auth/otp/verify
+Verify OTP and issue a bearer token.
+
+**Body:**
+```json
+{ "mobile": "09121234567", "code": "12345" }
+```
+**Response 200:**
 ```json
 {
   "success": true,
   "data": {
-    "expires_in": 300
-  }
-}
-```
-- `expires_in`: seconds until the OTP expires (300 = 5 minutes).
-- The OTP itself is **never** returned in the response. In non-production environments it is written to `error_log` for testing.
-
-**Error responses**
-
-| Code | HTTP | Trigger |
-|---|---|---|
-| `INVALID_MOBILE` | 422 | Mobile format invalid |
-| `OTP_RATE_LIMITED` | 429 | More than 3 requests in 10 min |
-| `SERVER_ERROR` | 500 | SMS gateway unreachable |
-
----
-
-### `POST /auth/otp/verify` ✅ LIVE
-
-Verify a 5-digit OTP and receive a bearer token. Public endpoint.
-
-**Request body**
-```json
-{
-  "mobile": "09121234567",
-  "otp":    "12345"
-}
-```
-
-| Field | Type | Required | Rules |
-|---|---|---|---|
-| `mobile` | string | ✔ | Same rules as send endpoint |
-| `otp` | string | ✔ | Exactly 5 digits. Persian/Arabic digits accepted. |
-
-**Success response** `200`
-```json
-{
-  "success": true,
-  "data": {
-    "token":      "a3f8...c2d1",
-    "expires_at": null,
-    "user_type":  "patient"
-  }
-}
-```
-- `token`: the raw bearer token. Store in `localStorage.mz_auth_token`. Only returned once, never retrievable again.
-- `expires_at`: `null` in Phase A+B. Phase C will add a timestamp.
-- `user_type`: `patient` | `staff`.
-
-**Error responses**
-
-| Code | HTTP | Trigger |
-|---|---|---|
-| `INVALID_MOBILE` | 422 | Mobile format invalid |
-| `OTP_INVALID` | 422 | Code does not match bcrypt hash |
-| `OTP_EXPIRED` | 422 | Code TTL has passed |
-| `SERVER_ERROR` | 500 | Unexpected failure |
-
----
-
-### `POST /auth/password` ⚠️ PENDING (Phase C)
-
-Staff password login (receptionist, nurse, doctor, superadmin). Not yet implemented.
-
-**Planned request body**
-```json
-{
-  "username": "staff_username_or_email",
-  "password": "plain_text_password"
-}
-```
-
-**Planned success response** `200`
-```json
-{
-  "success": true,
-  "data": {
-    "token":     "...",
-    "user_type": "staff",
-    "role":      "receptionist"
-  }
-}
-```
-
----
-
-## ───────────────────────────────────────────
-## SECTION 2 — Intake Endpoints
-## ───────────────────────────────────────────
-
-### `POST /intakes` ✅ LIVE
-
-Submit patient intake form. Public endpoint (patient self-service, OTP already verified in Step 1 of the wizard).
-
-**Idempotency:** include `submission_uuid` (UUIDv4, client-generated). If the server receives the same UUID twice, it returns `200` with `duplicate: true` and the original `intake_id`. The DB enforces this via `UNIQUE KEY uk_submission_uuid` on the `intakes` table.
-
-**Request body**
-```json
-{
-  "submission_uuid": "550e8400-e29b-41d4-a716-446655440000",
-  "mobile":          "09121234567",
-  "first_name":      "مریم",
-  "last_name":       "احمدی",
-  "father_name":     "علی",
-  "national_id":     "0079643178",
-  "birth_date":      "1370/05/12",
-  "home_tel":        "02112345678",
-  "home_address":    "تهران، ...",
-  "email":           "maryam@example.com",
-  "visit_reason":    "مشاوره جراحی بینی",
-  "description":     "توضیحات اختیاری",
-  "medical_history": ["hypertension", "diabetes"],
-  "current_drugs":   ["aspirin"],
-  "signature":       "data:image/png;base64,...",
-  "is_transfer":     0
-}
-```
-
-| Field | Type | Required | Rules |
-|---|---|---|---|
-| `submission_uuid` | string (UUID v4) | ✔ | Client-generated. Stored once; second attempt returns existing record. |
-| `mobile` | string | ✔ | `09[0-9]{9}` |
-| `first_name` | string | ✔ | 2–60 chars |
-| `last_name` | string | ✔ | 2–60 chars |
-| `father_name` | string | ✘ | max 60 chars |
-| `national_id` | string | ✔ | 10 digits, mod-11 checksum validated server-side |
-| `birth_date` | string | ✔ | Jalali format `YYYY/MM/DD` — server converts to Gregorian for DB |
-| `home_tel` | string | ✘ | digits only |
-| `home_address` | string | ✘ | max 255 chars |
-| `email` | string | ✘ | valid email format |
-| `visit_reason` | string | ✔ | max 120 chars |
-| `description` | string | ✘ | max 1000 chars |
-| `medical_history` | string[] | ✘ | allowed values: `hypertension`, `diabetes`, `thyroid`, `heart`, `asthma`, `allergy`, `autoimmune`, `scleroderma`, `bleeding`, `pregnancy` |
-| `current_drugs` | string[] | ✘ | allowed values: `hbp`, `aspirin`, `anticoagulant`, `steroid`, `ocp`, `other` |
-| `signature` | string | ✔ | Base64 PNG data URI from signature pad |
-| `is_transfer` | int | ✘ | `0` (default) = new patient, `1` = transfer. Staff-set only. |
-
-**Success response** `200`
-```json
-{
-  "success": true,
-  "data": {
-    "intake_id":  1042,
-    "patient_id": 87,
-    "duplicate":  false
-  }
-}
-```
-- If `duplicate: true` the same `intake_id` and `patient_id` from the original submission are returned. Not an error — handle gracefully on the client.
-
-**Error responses**
-
-| Code | HTTP | Trigger |
-|---|---|---|
-| `VALIDATION_FAILED` | 422 | Any required field missing or malformed; see `error.fields` |
-| `INVALID_NATIONAL_ID` | 422 | Mod-11 checksum failed |
-| `INVALID_MOBILE` | 422 | Mobile format invalid |
-| `INVALID_JALALI_DATE` | 422 | Birth date not a valid Jalali date |
-| `SERVER_ERROR` | 500 | DB write or Sheets write failure |
-
----
-
-### `GET /intakes` ✅ LIVE 🔒 AUTH REQUIRED 🟡 STAFF ONLY
-
-Paginated intake queue for staff (receptionist, doctor, superadmin).
-
-**Query parameters**
-
-| Param | Type | Default | Description |
-|---|---|---|---|
-| `page` | int | 1 | Page number (1-based) |
-| `per_page` | int | 20 | Results per page (max 100) |
-| `status` | string | all | Filter: `pending` \| `processed` \| `all` |
-| `clinic_id` | int | — | Filter by clinic (superadmin only) |
-
-**Success response** `200`
-```json
-{
-  "success": true,
-  "data": {
-    "items": [
-      {
-        "intake_id":   1042,
-        "patient_id":  87,
-        "first_name":  "مریم",
-        "last_name":   "احمدی",
-        "mobile":      "09121234567",
-        "national_id": "0079643178",
-        "visit_reason":"مشاوره جراحی بینی",
-        "submitted_at":"2026-07-27T10:15:00Z",
-        "status":      "pending"
-      }
-    ],
-    "pagination": {
-      "total":        142,
-      "per_page":     20,
-      "current_page": 1,
-      "last_page":    8
+    "token": "<64-char hex>",
+    "expires_at": "2026-09-15 10:30:00",
+    "user_type": "patient",
+    "user": {
+      "uuid": "abc123...",
+      "first_name": "مریم",
+      "last_name": "احمدی",
+      "mobile": "09121234567",
+      "role": "patient"
     }
   }
 }
 ```
+**`user_type`:** `"patient"` (app backend) or `"staff"` (dashboard backend).
+**Token storage:** `localStorage` key `mz_auth_token` (set by `shared/api.js` `setToken()`).
 
-**Error responses**
+---
 
-| Code | HTTP | Trigger |
+## Patient portal endpoints (app.drbastaninejad.com)
+
+All require `Authorization: Bearer <token>` where `user_type = "patient"`.
+
+### GET /api/v1/patient/overview
+Dashboard overview for a single patient.
+
+**Response 200 `data`:**
+```json
+{
+  "patient_name": "مریم احمدی",
+  "next_appointment": {
+    "appointment_id": 14,
+    "scheduled_at": "2026-08-15 14:30:00",
+    "duration_minutes": 20,
+    "reason": "ویزیت پیگیری",
+    "status": "confirmed"
+  },
+  "total_intakes": 3,
+  "total_documents": 5,
+  "last_intake_date": "2026-07-10"
+}
+```
+`next_appointment` is `null` when no upcoming appointment exists.
+
+---
+
+### GET /api/v1/patient/appointments
+List all appointments for the authenticated patient.
+
+**Query params:** `page`, `per_page`
+
+**Response 200 `data`:**
+```json
+{
+  "items": [
+    {
+      "appointment_id": 14,
+      "scheduled_at": "2026-08-15 14:30:00",
+      "duration_minutes": 20,
+      "reason": "ویزیت پیگیری",
+      "status": "confirmed",
+      "provider_name": "دکتر باستانی‌نژاد"
+    }
+  ],
+  "pagination": {
+    "total": 4,
+    "per_page": 20,
+    "current_page": 1,
+    "last_page": 1
+  }
+}
+```
+
+**`status` enum — Persian display labels:**
+
+| Value | Persian label | Pill class |
 |---|---|---|
-| `UNAUTHORIZED` | 401 | No or invalid token |
-| `FORBIDDEN` | 403 | Patient token used on staff route |
+| `scheduled` | در انتظار تأیید | `info` |
+| `confirmed` | تأیید شده | `evergreen` |
+| `cancelled` | لغو شده | `muted` |
+| `completed` | انجام شد | `success` |
 
 ---
 
-## ───────────────────────────────────────────
-## SECTION 3 — Patient Portal Endpoints
-## ✅ LIVE (Phase C — implemented 2026-07-30)
-## ───────────────────────────────────────────
+### GET /api/v1/patient/records
+Paginated read-only timeline of signed EMR records.
 
-> Backend: `app.drbastaninejad.com/Backend/app/Controllers/PatientPortalController.php`
-> All routes registered in `config/routes.php`. All require `AuthMiddleware` (Bearer token).
-> Supporting models: `PatientModel`, `AppointmentModel`, `PatientMediaModel`, `NotificationPreferenceModel`
-> Migrations: 005 (patient_media), 006 (notification_preferences), 007 (appointments)
-
-### `GET /patient/overview` ✅ LIVE 🔒 AUTH REQUIRED
-
-Summary card data for the patient portal home screen.
-
-**Planned success response** `200`
+**Response 200 `data`:**
 ```json
 {
-  "success": true,
-  "data": {
-    "patient_name":        "مریم احمدی",
-    "next_appointment": {
-      "date_jalali":   "۱۴ مرداد",
-      "time":          "۱۰:۳۰",
-      "reason":        "ویزیت پیگیری",
-      "status":        "confirmed"
-    },
-    "total_intakes":    3,
-    "total_documents":  5,
-    "last_intake_date": "1405/04/12"
-  }
+  "items": [
+    {
+      "id": 7,
+      "chief_complaint": "درد شکمی",
+      "diagnosis": "کولیت",
+      "plan": "استراحت + دارو",
+      "ai_accepted": false,
+      "created_at": "2026-07-20 09:15:00"
+    }
+  ],
+  "pagination": { "total": 12, "per_page": 10, "current_page": 1, "last_page": 2 }
 }
 ```
 
 ---
 
-### `GET /patient/profile` ✅ LIVE 🔒 AUTH REQUIRED
+### GET /api/v1/patient/profile
+**Response 200 `data`:** `{ id, uuid, first_name, last_name, mobile, national_id, birth_date, home_address, insurance_status }`
 
-Patient's own editable profile fields.
+### PATCH /api/v1/patient/profile
+**Body (all optional):** `{ first_name, last_name, home_address }`
 
-**Planned success response** `200`
+---
+
+## Staff dashboard endpoints (dashboard.drbastaninejad.com)
+
+All require `Authorization: Bearer <token>` where `user_type = "staff"`.
+All responses use the `{ ok, status, data, errors, meta }` envelope.
+
+---
+
+### GET /api/v1/dashboard/overview
+Staff dashboard KPIs and activity timeline.
+
+**Response 200 `data`:**
 ```json
 {
-  "success": true,
-  "data": {
-    "first_name":   "مریم",
-    "last_name":    "احمدی",
-    "father_name":  "علی",
-    "national_id":  "0079643178",
-    "birth_date":   "1370/05/12",
-    "mobile":       "09121234567",
-    "email":        "maryam@example.com",
-    "home_tel":     "02112345678",
+  "metrics": [
+    { "label": "نوبت‌های امروز",      "value": "12", "icon": "calendar",            "href": "/appointments" },
+    { "label": "پذیرش‌های در انتظار", "value": "4",  "icon": "clipboard-account",   "href": "/intakes", "deltaDir": "down" },
+    { "label": "درآمد امروز",         "value": "۱,۸۴۰,۰۰۰ تومان", "icon": "finance", "href": "/billing" },
+    { "label": "وظایف باز",           "value": "6",  "icon": "check-circle-outline", "href": "/tasks" }
+  ],
+  "timeline": [
+    {
+      "id": "intake-5",
+      "type": "intake",
+      "timestamp": "2026-08-14 08:21:00",
+      "patient": { "id": 12, "name": "رضا محمدی", "href": "/patients/12" },
+      "title": "پذیرش جدید دریافت شد",
+      "description": "از طریق وب‌سایت ارسال شده.",
+      "status": { "label": "در انتظار بررسی", "badge": "warning" },
+      "actors": [{ "type": "system", "name": "فرم وب" }],
+      "href": "/intakes/5"
+    }
+  ]
+}
+```
+
+---
+
+### GET /api/v1/patients
+List patients with search and insurance filter.
+
+**Query params:** `q`, `page`, `per_page`, `insurance_status`
+
+**`insurance_status` enum:** `active` | `inactive` | `pending` | `unknown`
+
+**Response 200 `data`:**
+```json
+{
+  "rows": [
+    {
+      "id": 12,
+      "name": "رضا محمدی",
+      "mobile": "09131112233",
+      "national_id": "0022334455",
+      "insurance_status": "active",
+      "last_visit": "2026-07-20 09:15:00",
+      "upcoming_count": 1
+    }
+  ],
+  "total": 48,
+  "page": 1,
+  "per_page": 20
+}
+```
+No nested `pagination` object — compute `last_page = Math.ceil(total / per_page)` on the client.
+
+---
+
+### GET /api/v1/patients/{id}
+Patient detail with activity timeline.
+
+**Response 200 `data`:**
+```json
+{
+  "patient": {
+    "id": 12,
+    "name": "رضا محمدی",
+    "mobile": "09131112233",
+    "national_id": "0022334455",
+    "birth_date": "1370-05-12",
+    "insurance_status": "active",
     "home_address": "تهران، ..."
-  }
+  },
+  "timeline": [
+    {
+      "type": "appointment",
+      "timestamp": "2026-08-10 11:00:00",
+      "title": "مشاوره اولیه",
+      "description": "",
+      "status": "confirmed"
+    }
+  ]
+}
+```
+**Timeline `type` values:** `intake` | `appointment` | `emr_note` | `invoice`
+
+---
+
+### GET /api/v1/appointments
+Calendar events for a date range.
+
+**Query params:** `from` (YYYY-MM-DD HH:MM:SS), `to`, `provider_id`
+
+**Response 200 `data`:**
+```json
+{
+  "events": [
+    {
+      "id": 14,
+      "patient_id": 12,
+      "patient_name": "رضا محمدی",
+      "provider_id": 3,
+      "start": "2026-08-15 14:30:00",
+      "duration_minutes": 20,
+      "reason": "ویزیت پیگیری",
+      "status": "confirmed",
+      "badge": "success",
+      "room": "اتاق ۱",
+      "notes": null
+    }
+  ]
+}
+```
+
+**`status` / `badge` enum:**
+
+| `status` | `badge` | Persian label |
+|---|---|---|
+| `scheduled` | `info` | زمان‌بندی شده |
+| `confirmed` | `success` | تایید شده |
+| `cancelled` | `error` | لغو شده |
+| `completed` | `muted` | تکمیل شده |
+
+---
+
+### POST /api/v1/appointments
+Create a new appointment.
+
+**Body:**
+```json
+{
+  "patient_id": 12,
+  "provider_id": 3,
+  "scheduled_at": "2026-08-15 14:30:00",
+  "duration_minutes": 20,
+  "visit_reason": "مشاوره اولیه",
+  "room": "اتاق ۱",
+  "notes": null
+}
+```
+**Response 201:** `{ "id": 14 }`
+**Response 409:** Conflict — slot already booked for this provider.
+
+---
+
+### PATCH /api/v1/appointments/{id}/reschedule
+**Body:** `{ "scheduled_at": "...", "duration_minutes": 20 }`
+
+### PATCH /api/v1/appointments/{id}/status
+**Body:** `{ "status": "confirmed" }` — allowed: `scheduled|confirmed|cancelled|completed`
+
+### DELETE /api/v1/appointments/{id}
+**Body:** `{ "reason": "بیمار لغو کرد" }`
+
+---
+
+### GET /api/v1/patients/{id}/emr
+**Response 200 `data`:** `{ "records": [ { id, chief_complaint, diagnosis, plan, ai_accepted, created_at } ] }`
+
+### POST /api/v1/patients/{id}/emr
+**Body:** `{ "chief_complaint": "...", "diagnosis": null, "plan": null, "appointment_id": null, "template_id": null, "specialty_fields": {} }`
+**Response 201:** `{ "id": 7 }`
+
+### GET /api/v1/emr/templates
+**Query:** `specialty` (optional filter)
+**Response 200 `data`:** `{ "templates": [ { id, name, specialty, schema_json } ] }`
+
+### POST /api/v1/ai/emr-draft
+**Body:** `{ "chief_complaint": "...", "context": {} }`
+**Response 200 `data`:** `{ "draft": "...", "requires_review": true }`
+Note: AI draft is **never** auto-saved. Staff must Accept/Edit/Discard.
+
+---
+
+### GET /api/v1/analytics/summary
+**Query params:** `range` (`30d` | `90d` | `1y`), `date_from`, `date_to`
+
+**Response 200 `data`:**
+```json
+{
+  "range": { "from": "2026-07-01 00:00:00", "to": "2026-07-31 23:59:59" },
+  "kpis": [
+    { "key": "new_patients",    "label": "مراجعین جدید",            "value": 23,  "delta_pct": 12.5, "delta_dir": "up" },
+    { "key": "conversion_rate", "label": "نرخ تبدیل مشاوره → عمل", "value": 68.0,"delta_pct": 0,    "delta_dir": "" },
+    { "key": "revenue",         "label": "درآمد (ریال)",            "value": 1840000000, "delta_pct": -5.2, "delta_dir": "down" },
+    { "key": "return_rate",     "label": "نرخ بازگشت بیمار",        "value": 34.0,"delta_pct": 0,    "delta_dir": "" }
+  ],
+  "chart_new_patients": [
+    { "week": "202630", "count": 5 }
+  ],
+  "referral_sources": [
+    { "source": "وب‌سایت", "count": 14, "pct": 60.9 }
+  ]
 }
 ```
 
 ---
 
-### `PATCH /patient/profile` ✅ LIVE 🔒 AUTH REQUIRED
+### GET /api/v1/billing/invoices
+**Query params:** `q`, `status`, `gateway`, `page`, `per_page`
 
-Partial update of the patient's own editable contact fields.
-Only the three fields below are writable by the patient; identity fields
-(`national_id`, `mobile`, `first_name`, `last_name`, `birth_date`) are NOT writable.
+**`status` enum:** `pending` | `paid` | `failed` | `insurance_pending`
 
-**Request body** (any non-empty subset)
+**Response 200 `data`:**
 ```json
 {
-  "email":        "new@example.com",
-  "home_tel":     "02112345678",
-  "home_address": "تهران، ..."
+  "rows": [
+    {
+      "id": 3,
+      "patient_id": 12,
+      "patient_name": "رضا محمدی",
+      "amount_rials": 18500000,
+      "status": "paid",
+      "gateway": "zarinpal",
+      "notes": null,
+      "created_at": "2026-07-20 09:15:00"
+    }
+  ],
+  "total": 87,
+  "page": 1,
+  "per_page": 20,
+  "summary": {
+    "total": 87,
+    "pending_count": 4,
+    "pending_amount_label": "۷م",
+    "failed_count": 1,
+    "avg_label": "۱۸م"
+  }
+}
+```
+No nested `pagination` — compute `last_page = Math.ceil(total / per_page)`.
+
+**`status` display labels:**
+
+| Value | Persian | Pill class |
+|---|---|---|
+| `paid` | پرداخت شد | `success` |
+| `pending` | در انتظار | `warning` |
+| `failed` | ناموفق | `error` |
+| `insurance_pending` | در انتظار بیمه | `info` |
+
+### POST /api/v1/billing/invoices
+**Body:** `{ "patient_id": 12, "amount_rials": 18500000, "gateway": "zarinpal", "notes": null }`
+**Response 201:** `{ "id": 3 }`
+
+### PATCH /api/v1/billing/invoices/{id}/status
+**Body:** `{ "status": "paid" }`
+
+---
+
+### GET /api/v1/tasks
+**Query params:** `status`, `assignee_id`
+
+**Response 200 `data`:**
+```json
+{
+  "columns": {
+    "todo":        [ { "id": 1, "title": "...", "priority": "high", "status": "todo", "assignee_name": null, "due_date": null } ],
+    "in_progress": [],
+    "done":        []
+  },
+  "total": 6
 }
 ```
 
-| Field | Type | Required | Rules |
+**`priority` enum:** `high` | `medium` | `low`
+**`status` enum:** `todo` | `in_progress` | `done`
+
+### POST /api/v1/tasks
+**Body:** `{ "title": "...", "priority": "medium", "status": "todo", "assignee_id": null, "due_date": null, "notes": null }`
+**Response 201:** `{ "id": 1, "status": "todo" }`
+
+### PATCH /api/v1/tasks/{id}/status
+**Body:** `{ "status": "in_progress" }`
+
+### DELETE /api/v1/tasks/{id}
+**Response 200:** `{ "id": 1 }`
+
+---
+
+### GET /api/v1/settings/clinic
+**Response 200 `data`** (flat — no nesting):
+```json
+{
+  "id": 1,
+  "name": "کلینیک دکتر باستانی‌نژاد",
+  "phone": "02188001234",
+  "address": "تهران، ...",
+  "timezone": "Asia/Tehran",
+  "working_hours": [
+    { "day": "saturday",  "day_label": "شنبه",    "active": true,  "open": "09:00", "close": "18:00" },
+    { "day": "friday",    "day_label": "جمعه",    "active": false, "open": null,    "close": null }
+  ],
+  "updated_at": "2026-07-15 12:00:00",
+  "emr_templates": [
+    { "id": 1, "name": "رینوپلاستی", "specialty": "plastic_surgery", "schema_json": "{...}", "created_at": "2026-07-01" }
+  ]
+}
+```
+
+### PATCH /api/v1/settings/clinic
+**Body (all optional):** `{ "name", "phone", "address", "timezone", "working_hours" }`
+**Response 200:** `{ "id": 1 }`
+
+---
+
+## Health check
+
+### GET /api/v1/health (both subdomains)
+No auth required. Used by `offline.html` retry probe.
+**Response 200:** `{ "ok": true, "version": "1.0.0" }`
+
+---
+
+## Storage keys (client-side)
+
+| Key | Storage | Set by | Value |
 |---|---|---|---|
-| `email` | string | ✘ | valid email, max 120 chars, or empty string to clear |
-| `home_tel` | string | ✘ | digits only, max 15 chars, or empty string to clear |
-| `home_address` | string | ✘ | max 255 chars, or empty string to clear |
-
-> At least one field must be present — an empty body returns `400 EMPTY_PATCH`.
-
-**Success response** `200` — returns the full updated profile (same shape as `GET /patient/profile`)
-```json
-{
-  "success": true,
-  "data": {
-    "first_name":   "مریم",
-    "last_name":    "احمدی",
-    "father_name":  "علی",
-    "national_id":  "0079643178",
-    "birth_date":   "1370/05/12",
-    "mobile":       "09121234567",
-    "email":        "new@example.com",
-    "home_tel":     "02112345678",
-    "home_address": "تهران، ..."
-  }
-}
-```
-
-**Error codes**
-
-| Code | HTTP | Meaning |
-|---|---|---|
-| `VALIDATION_FAILED` | 422 | Invalid field value — `error.fields` map present |
-| `EMPTY_PATCH` | 400 | No writable field supplied |
-| `UNAUTHORIZED` | 401 | No or invalid token |
-
-> Backend: `PatientPortalController::updateProfile()` → `PatientModel::updateProfile()`
-> Route: registered in `config/routes.php`
+| `mz_auth_token` | `localStorage` | `shared/api.js setToken()` | 64-char hex bearer token |
+| `mz_intake_uuid` | `sessionStorage` | `shared/api.js getOrCreateIntakeUUID()` | UUIDv4 for idempotent intake submissions |
 
 ---
 
-### `GET /patient/appointments` ✅ LIVE 🔒 AUTH REQUIRED
-
-List of patient's own appointments (read-only).
-
-**Query params:** `page` (int, default 1), `per_page` (int, default 10).
-
-**Planned success response** `200`
-```json
-{
-  "success": true,
-  "data": {
-    "items": [
-      {
-        "appointment_id": 55,
-        "date_jalali":    "1405/05/14",
-        "time":           "10:30",
-        "reason":         "ویزیت پیگیری — جراحی بینی",
-        "status":         "confirmed",
-        "provider_name":  "دکتر شاهین باستانی‌نژاد"
-      }
-    ],
-    "pagination": { "total": 4, "per_page": 10, "current_page": 1, "last_page": 1 }
-  }
-}
-```
-
-**Status enum values:** `confirmed` | `scheduled` | `cancelled` | `completed`
-
----
-
-### `GET /patient/documents` ✅ LIVE 🔒 AUTH REQUIRED
-
-Patient's uploaded media files with short-lived signed download URLs.
-
-**Planned success response** `200`
-```json
-{
-  "success": true,
-  "data": {
-    "items": [
-      {
-        "media_uuid":   "abc123",
-        "file_name":    "pre-op-front.jpg",
-        "mime_type":    "image/jpeg",
-        "size_bytes":   204800,
-        "uploaded_at":  "2026-07-15T08:00:00Z",
-        "signed_url":   "https://cdn.arvancloud.com/...",
-        "url_expires":  "2026-07-27T12:00:00Z"
-      }
-    ]
-  }
-}
-```
-- `signed_url` TTL: 1 hour. Client must re-fetch the list when downloading after the expiry.
-
----
-
-### `GET /patient/notification-preferences` ✅ LIVE 🔒 AUTH REQUIRED
-
-**Planned success response** `200`
-```json
-{
-  "success": true,
-  "data": {
-    "sms_appointment_reminder":  true,
-    "sms_status_change":         true,
-    "email_appointment_reminder":false,
-    "email_marketing":           false
-  }
-}
-```
-
----
-
-### `PATCH /patient/notification-preferences` ✅ LIVE 🔒 AUTH REQUIRED
-
-Update one or more notification preferences. Send only the keys you want to change (partial update).
-
-**Request body** (any subset of the fields above)
-```json
-{
-  "sms_appointment_reminder":   true,
-  "email_appointment_reminder": true
-}
-```
-
-**Success response** `200` — returns the full updated preferences object (same shape as GET).
-
----
-
-## ───────────────────────────────────────────
-## SECTION 4 — Staff CRM Endpoints (Existing)
-## ✅ LIVE (committed in original MVC skeleton)
-## ───────────────────────────────────────────
-
-> These routes exist in the PHP files but are not yet reachable in production because `AuthMiddleware.php` and `RbacMiddleware.php` have not been committed (Phase C Task 1). Shapes below are derived from existing controller code.
-
-### `GET /dashboard/kpis` ✅ LIVE 🔒 AUTH REQUIRED 🟡 STAFF ONLY
-
-**Success response** `200`
-```json
-{
-  "success": true,
-  "data": {
-    "today_appointments": 12,
-    "pending_intakes":    4,
-    "monthly_revenue":    "18400000",
-    "open_tasks":         6
-  }
-}
-```
-
----
-
-### `GET /patients` ✅ LIVE 🔒 AUTH REQUIRED 🟡 STAFF ONLY
-
-Search/list patients.
-
-**Query params:** `q` (string, search term), `page`, `per_page`.
-
-**Success response** `200`
-```json
-{
-  "success": true,
-  "data": {
-    "items": [
-      {
-        "patient_id": 87,
-        "first_name": "مریم",
-        "last_name":  "احمدی",
-        "mobile":     "09121234567",
-        "status":     "active",
-        "last_visit": "1405/04/12"
-      }
-    ],
-    "pagination": { "total": 142, "per_page": 20, "current_page": 1, "last_page": 8 }
-  }
-}
-```
-
----
-
-### `GET /patients/{id}` ✅ LIVE 🔒 AUTH REQUIRED 🟡 STAFF ONLY
-
-Full patient detail including EMR summary and appointment timeline.
-
----
-
-### `GET /appointments` ✅ LIVE 🔒 AUTH REQUIRED 🟡 STAFF ONLY
-
-**Query params:** `date` (YYYY-MM-DD), `provider_id`, `status`, `page`, `per_page`.
-
----
-
-### `POST /appointments` ✅ LIVE 🔒 AUTH REQUIRED 🟡 STAFF ONLY
-
-Create a new appointment. Conflict detection runs server-side.
-
-**Request body**
-```json
-{
-  "patient_id":   87,
-  "provider_id":  1,
-  "room_id":      2,
-  "start_at":     "2026-08-03 10:30:00",
-  "end_at":       "2026-08-03 11:00:00",
-  "reason":       "ویزیت پیگیری",
-  "status":       "scheduled"
-}
-```
-
-**Appointment status enum:** `scheduled` | `confirmed` | `in_progress` | `completed` | `cancelled` | `no_show`
-
----
-
-### `PATCH /appointments/{id}` ✅ LIVE 🔒 AUTH REQUIRED 🟡 STAFF ONLY
-
-Update appointment fields (partial update). Used for rescheduling and status changes.
-
----
-
-### `DELETE /appointments/{id}` ✅ LIVE 🔒 AUTH REQUIRED 🟡 STAFF ONLY
-
-Soft-delete (sets `deleted_at`).
-
----
-
-### `GET /emr/{patient_id}` ✅ LIVE 🔒 AUTH REQUIRED 🟡 STAFF ONLY
-
-Fetch all EMR records for a patient.
-
----
-
-### `POST /emr/{patient_id}` ✅ LIVE 🔒 AUTH REQUIRED 🟡 STAFF ONLY
-
-Create a new EMR entry (consultation note, post-op note, etc.).
-
-**Request body**
-```json
-{
-  "template_id":  3,
-  "notes":        "post-op week 2 — healing well",
-  "attachments":  []
-}
-```
-
----
-
-## ───────────────────────────────────────────
-## SECTION 4B — Public Utility Endpoints
-## ✅ LIVE
-## ───────────────────────────────────────────
-
-### `POST /api/v1/inquiries` ✅ LIVE — public, no auth required
-
-Contact form submission from `drbastaninejad.com/contact.html`.
-No OTP, no national-ID, no medical data.
-
-**Request body**
-```json
-{
-  "name":    "علی رضایی",
-  "phone":   "09121234567",
-  "message": "لطفاً در مورد جراحی بینی راهنمایی بفرمایید"
-}
-```
-
-- `phone` — Iranian mobile; normalised server-side (accepts `09xx`, `+989xx`, Persian digits)
-- `message` — 10–2000 characters
-- Rate limit: max 3 submissions per phone per 30 minutes → `429 INQUIRY_RATE_LIMITED`
-
-**Success response** `201`
-```json
-{
-  "success": true,
-  "data": { "inquiry_id": 7 }
-}
-```
-
-**Error codes**
-
-| Code | HTTP | Meaning |
-|---|---|---|
-| `VALIDATION_FAILED` | 422 | Missing/invalid field — `error.fields` map |
-| `INQUIRY_RATE_LIMITED` | 429 | Too many submissions from this phone — see Retry-After below |
-
-**429 Retry-After shape**
-
-HTTP header: `Retry-After: <seconds>` (integer, seconds until rate-limit window resets — max 1800).
-
-Response body:
-```json
-{
-  "success": false,
-  "error": {
-    "code":       "INQUIRY_RATE_LIMITED",
-    "message":    "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً ۳۰ دقیقه صبر کنید.",
-    "retry_after": 1800
-  }
-}
-```
-
-- `error.retry_after` mirrors the `Retry-After` header value (seconds as integer).
-- Client should read `error.retry_after` (body) or the `Retry-After` header to display a countdown.
-- If the client cannot read the header (CORS), fall back to `error.retry_after` from the body.
-
-> Backend: `InquiryController::store()` → `InquiryModel` → `inquiries` table (migration 009)
-
----
-
-## ───────────────────────────────────────────
-## SECTION 5 — Future Endpoints (Phase 6–8)
-## ⚠️ PENDING — not yet designed in detail
-## ───────────────────────────────────────────
-
-| Endpoint | Phase | Notes |
-|---|---|---|
-| `POST /billing/payment` | 6 | Zarinpal + IDPay redirect init |
-| `GET /billing` | 6 | Patient/staff billing list |
-| `GET /tasks` | 6 | Kanban task list |
-| `POST /tasks` | 6 | Create task |
-| `PATCH /tasks/{id}` | 6 | Update task status/assignee |
-| `GET /analytics/referrals` | 6 | Referral source conversion |
-| `GET /analytics/revenue` | 6 | Date-range revenue |
-| `GET /settings/clinic` | 6 | Clinic profile |
-| `PATCH /settings/clinic` | 6 | Update clinic profile |
-| `GET /settings/working-hours` | 6 | Weekly schedule |
-| `PATCH /settings/working-hours` | 6 | Update weekly schedule |
-| `POST /ai/query` | 7 | OpenRouter AI copilot |
-| `POST /media/upload` | 6 | File upload (ArvanCloud S3) |
-| `GET /media/{uuid}/url` | 6 | Get signed short-TTL URL |
-
----
-
-## Appendix A — Jalali Date Format
-
-All dates in **request bodies** must be Jalali (Shamsi) format: `YYYY/MM/DD` (e.g. `1370/05/12`).  
-All dates in **response bodies** are returned as ISO 8601 UTC (e.g. `2026-07-27T10:00:00Z`) unless the field is named `*_jalali` in which case it is the formatted Jalali string for display.
-
-Conversion is handled server-side by `JalaliConverter::jalaliStringToGregorian()` (pure PHP, no external deps). The client must never convert dates independently — always send Jalali, always store Gregorian. `birth_date` in the `intakes` table is now populated from the Jalali input.
-
----
-
-## Appendix B — Persian Digit Normalisation
-
-Before any numeric field is validated server-side, it passes through `ValidatorService::normalizePersianDigits()` which converts Unicode Persian (`۰`–`۹`) and Arabic (`٠`–`٩`) digits to ASCII. **The frontend must do the same** before sending using `normalizePersianDigits()` from `shared/api.js`.
-
----
-
-*MZ — MAZ//ID · https://maziyarid.com · © 2026 Maziyar / Dr. Shahin Bastaninejad*
+## Changelog
+
+| Date | Change |
+|---|---|
+| 2026-08-xx | Initial write — all endpoints documented, status enums confirmed, storage keys verified |

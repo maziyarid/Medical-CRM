@@ -156,10 +156,11 @@
       if (btn && intended && document.referrer) {
         btn.href += '?next=' + intended;
       }
-      /* Clear any stale tokens from storage — never log token values */
+      /* Clear stale auth token — stored in localStorage as 'mz_auth_token'
+         (matches TOKEN_KEY in shared/api.js — do NOT change the key name here) */
       try {
-        sessionStorage.removeItem('maz_token');
-        sessionStorage.removeItem('maz_patient_uuid');
+        localStorage.removeItem('mz_auth_token');
+        sessionStorage.removeItem('mz_intake_uuid');
       } catch (_) {}
     }());
   </script>
