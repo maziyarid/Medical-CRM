@@ -2299,3 +2299,66 @@ Confirmed existing CSS coverage: `tokens.css` (base tokens), `base.css`
 5. UNIFIED_MASTER_PLAN Phase 5 (scheduling/communications) and Phase 6 (CRM expansion) — not started
 6. `docs/API_CONTRACT.md` — review against current backend state; appointment status enum not documented with Persian display labels
 
+
+## [2026] — Phase H — Jalali Date Display + OtpService Stub Fix
+
+**Agent:** Bob (IBM)
+**Commit:** `8092445`
+**Branch:** `main`
+
+### Work completed
+
+#### 1. Jalali date display — 3 patient portal pages
+
+All three pages now load `jalali.js` before `states.js` and convert
+every `scheduled_at` / `created_at` UTC DATETIME string to Jalali
+numeric format (`۱۴۰۵/۰۵/۲۴`) using `Jalali.formatNumeric()`.
+A `try/catch` + `NaN` guard falls back to ISO `YYYY-MM-DD` if the
+`Jalali` global is unavailable (e.g. slow network).
+
+| File | Change |
+|---|---|
+| `pages/patient/appointments.html` | Stale HTML comment fixed (`date_jalali` → `scheduled_at`); `toJalaliDate()` + `toTimeStr()` added; upcoming cards + history table both use Jalali dates |
+| `pages/patient/records.html` | `formatDate()` rewritten to call `Jalali.formatNumeric()`; function signature unchanged so all callers work transparently |
+| `pages/patient/overview.html` | `toJalaliDate()` added; next_appointment KPI display + upcoming-list item both use Jalali dates |
+
+#### 2. Dashboard OtpService stub — replaced with full implementation
+
+`dashboard.drbastaninejad.com/app/Services/OtpService.php` was a stub
+that used `require_once` with a relative path pointing into
+`app.drbastaninejad.com/Backend/`. This breaks on any production
+deployment where the two subdomains live in separate document roots
+(the normal layout).
+
+Replaced with a fully self-contained class:
+
+- `isRateLimited()` — identical to app-backend canonical
+- `send()` — identical to app-backend canonical (bcrypt hash, SmsProviderChain, dev log)
+- `verify()` — identical to app-backend canonical
+- `issueToken()` — **staff variant**: queries `users JOIN roles` (not `patients`),
+  inserts `auth_tokens` with `user_type = 'staff'`, returns `clinic_id` + `role`
+  in the payload
+
+No more cross-subdomain filesystem `require_once`.
+
+### Files changed
+
+```
+app.drbastaninejad.com/Frontend/pages/patient/appointments.html  (+66/-28)
+app.drbastaninejad.com/Frontend/pages/patient/overview.html      (+38/- 9)
+app.drbastaninejad.com/Frontend/pages/patient/records.html       (+18/- 4)
+dashboard.drbastaninejad.com/app/Services/OtpService.php         (+85/- 5)
+```
+
+### Next session priorities
+
+1. `pages/staff/analytics.html` — chart rendering: bar chart and referral-source bars
+   currently render with static/mock widths; wire to `GET /api/v1/analytics/summary`
+   and set `.bar` heights + `.ref-bar` widths from API data
+2. `pages/staff/tasks.html` — task list API wiring; `TaskController` exists but
+   `GET /api/v1/tasks` response shape needs verification against the page
+3. `pages/staff/billing.html` — invoice list API wiring; `BillingController` exists
+4. UNIFIED_MASTER_PLAN Phase 5 (scheduling/communications) — not started
+5. `docs/API_CONTRACT.md` — appointment status enum Persian labels still undocumented
+6. PHPUnit integration test for AuthMiddleware token round-trip (requires test DB)
+
