@@ -74,7 +74,7 @@ final class TaskController extends Controller
 
     /**
      * POST /api/v1/tasks
-     * Body: { title, priority, assignee_id?, due_date?, notes? }
+     * Body: { title, priority?, status?, assignee_id?, due_date?, notes? }
      */
     public function store(Request $req): array
     {
@@ -90,22 +90,29 @@ final class TaskController extends Controller
             return $this->error('اولویت نامعتبر است', 422);
         }
 
+        // Honour initial status from client (e.g. "add task" button on in_progress column)
+        $status = $in['status'] ?? 'todo';
+        if (!in_array($status, ['todo', 'in_progress', 'done'], true)) {
+            $status = 'todo';
+        }
+
         $db = Database::conn();
         $stmt = $db->prepare(
             "INSERT INTO tasks (clinic_id, title, priority, status, assignee_id, due_date, notes, created_at, updated_at)
-             VALUES (?, ?, ?, 'todo', ?, ?, ?, NOW(), NOW())"
+             VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())"
         );
         $stmt->execute([
             $clinicId,
             trim($in['title']),
             $priority,
+            $status,
             !empty($in['assignee_id']) ? (int)$in['assignee_id'] : null,
             $in['due_date'] ?? null,
             $in['notes']    ?? null,
         ]);
         $taskId = (int)$db->lastInsertId();
 
-        return $this->success(['id' => $taskId], 201);
+        return $this->success(['id' => $taskId, 'status' => $status], 201);
     }
 
     /**
