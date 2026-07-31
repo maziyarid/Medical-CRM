@@ -1620,3 +1620,126 @@ Deployment: No production or cPanel/VPS change authorized.
 - **Product owner:** Supply clinical content for `drbastaninejad.com/services/*.html` `[CONTENT]` placeholders
 - **Blackbox AI:** `DashboardController::overview()` in `dashboard.drbastaninejad.com` — verify the endpoint exists and matches Phase D contract shape (metrics[4], attention[], today[])
 
+
+---
+
+## [2026-07-31 — Session 7] — Track: Frontend + Marketing — Agent: Bob AI
+
+### Declaration
+Scope: Continue from Session 6 "Next" items.
+Package: P2-A (staff/patients.html), P2-B (staff/patient-detail.html), Package 6 (blog.html + 5 article stubs).
+Overlap check: All items were listed as explicit "Next" in Session 6 log.
+Deployment: No production or cPanel/VPS change authorized.
+
+### Pre-session governance audit
+
+| Check | Outcome |
+|---|---|
+| `HEAD` == `origin/main` | ✅ `8f4b57e` — Session 6 PROGRESS_LOG commit |
+| `intake.html` at HEAD | **603 lines** — no regression |
+| PII paths staged | **ZERO** |
+| Deployment-gated files staged | **ZERO** — 6 gated files remain `??` untracked throughout |
+
+---
+
+### Commit 1: `feat(marketing)` — d5bcf94 — Package 6
+
+**`drbastaninejad.com/blog.html`** (NEW):
+- 5 article cards with confirmed images, slugs, category labels (جراحی بینی / راهنمای بیمار)
+- `Blog` JSON-LD (schema.org) + OG `article`-type tags + canonical + hreflang fa-IR
+- Full nav/footer matching services.html pattern; `blog.html` marked `class="active" aria-current="page"`
+- CTA banner region + full footer grid with service links
+
+**`drbastaninejad.com/blog/` — 5 NEW article stubs:**
+
+| File | H1 | Category |
+|---|---|---|
+| `rhinoplasty-revision.html` | جراحی بینی ترمیمی چیست؟ | جراحی بینی |
+| `rhinoplasty-fleshy.html`   | جراحی بینی گوشتی چیست؟ | جراحی بینی |
+| `pre-op-steps.html`         | اقدامات ضروری قبل از جراحی بینی | راهنمای بیمار |
+| `post-op-care.html`         | مراقبت‌های بعد از عمل | راهنمای بیمار |
+| `rhinoplasty.html`          | جراحی بینی (رینوپلاستی) چیست؟ | جراحی بینی |
+
+Each stub: `Article` JSON-LD with Physician author + MedicalOrganization publisher, `og:image` from confirmed WP inventory, breadcrumb trail, `[CONTENT]` placeholder for body + `[REVIEWED]` tag, context-aware sidebar (related articles + related services), `dir="rtl" lang="fa-IR"`, self-hosted CSS only, no external scripts/tracking.
+
+Also in this commit: `patients.html` and `patient-detail.html` (staff wiring — see below).
+
+---
+
+### Commit 2 (merged into d5bcf94): Staff page wiring
+
+**`app.drbastaninejad.com/Frontend/pages/staff/patients.html`** (REWRITTEN):
+- `import { Staff, isAuthenticated }` — raw `fetch()` and local `apiFetch()` removed
+- `Staff.listPatients({ q, page, per_page })` from confirmed Phase D contract
+- Response aligned to contract: `rows[]`, `insurance_status`, `name` (full string from server), `upcoming_count`, `last_visit` (UTC datetime, date portion only)
+- Filter select corrected to `insurance_status` enum: `active | inactive | pending | unknown`
+- Column headings: `ویزیت` → `نوبت‌های آتی`, `وضعیت` → `بیمه`
+- `insurancePill()` with `escHtml` replacing old `pillFor()` with invented status codes
+- Server-side search via `Staff.listPatients({q})` — debounced 350ms
+- Real server-side pagination: `renderPagination()` from `res.data.total` / `res.data.per_page`
+- `empty` state slot added (separate from error)
+- `onclick` → `addEventListener` on all buttons; `window.filterRows/filterStatus` removed
+- `encodeURIComponent` on patient id in `href`
+- `403` → `errors/403.html`; `404/503` → deployment gate inline notice
+
+**`app.drbastaninejad.com/Frontend/pages/staff/patient-detail.html`** (REWRITTEN):
+- 100% hard-coded mock replaced with `Staff.getPatient(patientId)` via `?id=` URL param
+- `data-state` host (loading / ready / error) with skeleton loader
+- `populateHeader()`: avatar initials from `pt.name`, `insurancePill()`, meta line
+- `populatePersonal()`: Personal info tab renders `<dl>` grid from contract fields
+- `renderTimeline()`: renders `data.timeline[]` items (`date_jalali`, `type`, `title`, `body`); empty state when `timeline === []`
+- Tab switching: `addEventListener` on all 6 tabs; `.tab-panel.active` CSS class toggle; `aria-selected` managed
+- Panels 2–5 (medical history, documents, billing, internal notes): `state-empty` placeholder (Phase future)
+- Dr. Copilot card: placeholder explaining Phase 7 / `POST /api/v1/ai/draft` not yet live
+- All `onclick` on tabs removed → `addEventListener`
+- `escHtml` applied to all server-returned strings in innerHTML
+- `breadcrumb-name` and `document.title` updated with patient name after load
+
+---
+
+### API/design notes
+
+| Item | Status |
+|---|---|
+| Staff.listPatients — Phase D shape (`rows[]`, `insurance_status`, `name`) | **Confirmed** (dashboard API_CONTRACT.md §GET /api/v1/patients) |
+| Staff.getPatient — Phase D shape (`patient{}`, `timeline[]`) | **Confirmed** (dashboard API_CONTRACT.md §GET /api/v1/patients/{id}) |
+| `timeline[]` schema — `type`, `date_jalali`, `title`, `body`/`description` fields | **Assumed** — contract documents empty `timeline: []`. Bob AI renders all present fields; extra fields are gracefully ignored. Blackbox AI should document timeline event shape when Phase D backend is implemented |
+| `last_visit` in rows[] — UTC datetime string | **Confirmed** — date portion only displayed |
+| blog article body content | **[CONTENT] — product owner must supply** |
+| blog article publish dates | **[CONTENT] — product owner must supply** |
+
+### Backend requirements (open)
+
+**Timeline event shape** — `GET /api/v1/patients/{id}` returns `"timeline": []` in the contract. The frontend renders `item.date_jalali`, `item.type`, `item.title`, `item.body` (or `item.description`). Please document the full shape of a populated timeline event in `dashboard.drbastaninejad.com/docs/API_CONTRACT.md §GET /api/v1/patients/{id}` once the timeline write path is implemented (Phase 5+ EMR/billing).
+
+### Files touched (committed to main)
+
+| File | Commit | Action |
+|---|---|---|
+| `app.drbastaninejad.com/Frontend/pages/staff/patients.html` | d5bcf94 | REWRITTEN |
+| `app.drbastaninejad.com/Frontend/pages/staff/patient-detail.html` | d5bcf94 | REWRITTEN |
+| `drbastaninejad.com/blog.html` | d5bcf94 | NEW |
+| `drbastaninejad.com/blog/rhinoplasty-revision.html` | d5bcf94 | NEW |
+| `drbastaninejad.com/blog/rhinoplasty-fleshy.html` | d5bcf94 | NEW |
+| `drbastaninejad.com/blog/pre-op-steps.html` | d5bcf94 | NEW |
+| `drbastaninejad.com/blog/post-op-care.html` | d5bcf94 | NEW |
+| `drbastaninejad.com/blog/rhinoplasty.html` | d5bcf94 | NEW |
+
+### Blocked / open
+
+- `timeline[]` event shape — see Backend requirements above
+- `staff/calendar.html`, `staff/emr.html`, `staff/billing.html`, `staff/tasks.html`, `staff/analytics.html`, `staff/settings.html` — not yet wired (Phase 4–7 backend not implemented)
+- `drbastaninejad.com/blog/*.html` `[CONTENT]` — product owner must supply article bodies, publish dates, FAQ answers
+- `drbastaninejad.com/gallery.html` — structure exists; full confirmed image pairs need wiring (Package 5)
+- `drbastaninejad.com/about.html` — biography + credentials `[CONTENT]` awaiting product owner
+- All 6 deployment-gated files remain `??` untracked — NOT staged
+
+### Next
+
+- **Product owner:** Supply content for `blog/*.html` `[CONTENT]` placeholders (article bodies, dates, phone numbers)
+- **Product owner:** Supply content for `about.html` biography + `services/*.html` clinical descriptions
+- **Bob AI:** `gallery.html` — Package 5: wire confirmed before/after image pairs + consent disclaimer
+- **Bob AI:** `about.html` — Package 3: biography + credentials section (blocked on product owner content)
+- **Blackbox AI:** Document timeline event shape in dashboard API contract
+- **Blackbox AI:** Implement `DashboardController::overview()` to match Phase D contract shape
+
