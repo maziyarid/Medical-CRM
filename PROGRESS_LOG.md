@@ -1729,7 +1729,7 @@ Also in this commit: `patients.html` and `patient-detail.html` (staff wiring —
 
 - `timeline[]` event shape — see Backend requirements above
 - `staff/calendar.html`, `staff/emr.html`, `staff/billing.html`, `staff/tasks.html`, `staff/analytics.html`, `staff/settings.html` — not yet wired (Phase 4–7 backend not implemented)
-- `drbastaninejad.com/blog/*.html` `[CONTENT]` — product owner must supply article bodies, publish dates, FAQ answers
+
 - `drbastaninejad.com/gallery.html` — structure exists; full confirmed image pairs need wiring (Package 5)
 - `drbastaninejad.com/about.html` — biography + credentials `[CONTENT]` awaiting product owner
 - All 6 deployment-gated files remain `??` untracked — NOT staged
@@ -1742,4 +1742,62 @@ Also in this commit: `patients.html` and `patient-detail.html` (staff wiring —
 - **Bob AI:** `about.html` — Package 3: biography + credentials section (blocked on product owner content)
 - **Blackbox AI:** Document timeline event shape in dashboard API contract
 - **Blackbox AI:** Implement `DashboardController::overview()` to match Phase D contract shape
+
+## [2024-05-30] — Track: Marketing Site Content — Agent: Gemini CLI
+
+Phase: Content Population
+Completed: Populated `drbastaninejad.com/blog/*.html` articles with content (article bodies, publish dates, phone numbers in navigation) from `WordPress.2026-07-09.xml`.
+Files touched:
+- `drbastaninejad.com/blog/post-op-care.html`
+- `drbastaninejad.com/blog/pre-op-steps.html`
+- `drbastaninejad.com/blog/rhinoplasty-fleshy.html`
+- `drbastaninejad.com/blog/rhinoplasty-revision.html`
+- `drbastaninejad.com/blog/rhinoplasty.html`
+
+
+## [2026-08-01 — Session 8] — Track: Marketing Site Content — Agent: Bob AI
+
+**Instruction source:** Continuation of Session 7 content-fill pass  
+**Scope:** `drbastaninejad.com/` — fill all extractable `[CONTENT]` placeholders using confirmed WordPress XML data
+
+### Completed fills
+
+| File | Placeholder(s) | Source |
+|---|---|---|
+| `components/nav.html` | phone | WP XML confirmed |
+| `components/footer.html` | phone, address, tagline | WP XML confirmed |
+| `index.html` | JSON-LD phone/address/hours/sameAs, hero desc, trust numbers (×3), trust badges (×4), services desc (×4), about-teaser bio, blog excerpts (×2), Instagram handle, CTA text, Namad URL, footer phone/address/tagline | WP XML + bio confirmed |
+| `contact.html` | JSON-LD phone/address/hours, welcome text, address value, phones (×3), hours, email→form redirect | WP XML confirmed |
+| `booking.html` | JSON-LD phone/address, lead text, follow-up time, phone | WP XML confirmed |
+| `about.html` | JSON-LD phone/alumniOf/memberOf, hero lead, quick facts (×5), biography (4 paragraphs), education (×3 entries), philosophy + quote | WP XML bio confirmed |
+| `services.html` | JSON-LD phone, nav phone, hero lead, service cards (×4), footer phone/address | WP XML derived |
+| `blog.html` | nav phone, article excerpts (×5), footer address/phone | WP XML derived |
+| `blog/rhinoplasty.html` | JSON-LD description | Derived from article |
+| `blog/rhinoplasty-revision.html` | JSON-LD description | Derived from article |
+| `blog/rhinoplasty-fleshy.html` | JSON-LD description | Derived from article |
+| `blog/pre-op-steps.html` | JSON-LD description | Derived from article |
+| `blog/post-op-care.html` | JSON-LD description | Derived from article |
+| `services/rhinoplasty-primary.html` | nav phone | WP XML confirmed |
+| `services/rhinoplasty-revision.html` | nav phone | WP XML confirmed |
+| `services/rhinoplasty-fleshy.html` | nav phone | WP XML confirmed |
+| `services/hump-removal.html` | nav phone | WP XML confirmed |
+| `gallery.html` | filter pill labels (×4) | Derived from service names |
+
+### Still blocked (product owner required)
+
+- `services/*.html` — procedure descriptions, FAQ questions/answers, cost details (`[CONTENT: product owner to supply medical description]`)
+- `gallery.html` — before/after photo captions (`[CONTENT: توضیح نمونه]`) — pending patient consent images
+- `contact.html` — Google Maps embed (`[CONTENT: embed نقشه]`)
+- `index.html` lines 155/240 — hero/about image `onerror` text (not rendered; image files needed from product owner)
+
+### Phone numbers confirmed from WordPress XML
+- مطب ۱: `۰۲۱–۸۶۰۸۷۲۵۰` (tel:02186087250)
+- مطب ۲: `۰۲۱–۸۸۲۰۵۶۰۶` (tel:02188205606)  
+- موبایل: `۰۹۹۱–۲۴۹۶۶۵۹` (tel:09912496659)
+
+### Address confirmed from WordPress XML
+تهران، خیابان نلسون ماندلا، نرسیده به چهارراه جهان کودک، خیابان صانعی، ساختمان نور پلاک ۱ واحد ۶
+
+### Hours confirmed from WordPress XML
+شنبه‌ها و سه‌شنبه‌ها: ساعت ۱۵ الی ۱۹
 
