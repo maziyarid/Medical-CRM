@@ -2403,3 +2403,68 @@ dashboard.drbastaninejad.com/app/Controllers/TaskController.php (+10/-4)
 5. PHPUnit integration tests for AuthMiddleware token round-trip (needs test DB)
 6. UNIFIED_MASTER_PLAN Phase 5 (scheduling/communications) — not started
 
+
+## [2026] — Phase J — Staff Pages Full Audit: patients / patient-detail / settings
+
+**Agent:** Bob (IBM)
+**Commit:** `763b973`
+**Branch:** `main`
+
+### Audit performed (read-only, before editing)
+
+Read all 3 remaining unaudited staff pages, `PatientController`, `Patient` model,
+`BillingController` (already audited), `SettingsController` (already correct),
+and `shared/api.js` Staff namespace.
+
+### Bugs found and fixed
+
+| # | File | Bug | Fix |
+|---|---|---|---|
+| 1 | `patients.html` | `last_visit` shown as raw ISO `YYYY-MM-DD` via `.slice(0,10)` | `toJalaliDate(p.last_visit)` via `jalali.js` |
+| 2 | `patients.html` | Insurance filter stored in `state.insurance` but **never passed** to `Staff.listPatients()` | `if (state.insurance) params.insurance_status = state.insurance` |
+| 3 | `patient-detail.html` | Timeline date read `item.date_jalali` (phantom — not in `PatientController`) then fell back to `.substring(0,10)` | Remove phantom; use `item.timestamp \|\| item.scheduled_at \|\| item.created_at` → `toJalaliDate()` |
+| 4 | `settings.html` | **No `requireAuth` guard** | Added `requireAuth('../auth/login.html')` |
+| 5 | `settings.html` | `renderClinicForm(d.clinic \|\| d)` — `SettingsController` returns flat object, not `{clinic:{...}}`; the `\|\| d` masked it | `renderClinicForm(d)` directly |
+| 6 | `settings.html` | `renderEmrTemplates` showed phantom `t.version` pill; `specialty` field never displayed | Show `t.specialty` label; replace version pill with static "فعال" |
+| 7 | `shared/api.js` | `Staff.listPatients()` accepted `insurance_status` param but never set it in the query string | `qs.set('insurance_status', params.insurance_status)` |
+| 8 | `PatientController.index()` | No `insurance_status` filter — param from frontend silently ignored | Read + validate against `['','active','inactive','pending','unknown']`; pass to model |
+| 9 | `Patient.search()` | No `$insuranceStatus` param | Add 5th param; `AND insurance_status = ?` when non-empty |
+| 10 | `Patient.search()` | Sub-queries for `last_visit` / `upcoming_count` included soft-deleted appointments | Add `AND a.deleted_at IS NULL` |
+| 11 | `Patient.timeline()` | UNION aliases `ts`, `summary` — frontend reads `item.timestamp`, `item.title`, `item.description` | Rename to `timestamp`, `title`, `description`; add description column to all arms; filter `deleted_at IS NULL` |
+
+### Files changed
+
+```
+app.drbastaninejad.com/Frontend/pages/staff/patients.html       (+27/-5)
+app.drbastaninejad.com/Frontend/pages/staff/patient-detail.html (+30/-8)
+app.drbastaninejad.com/Frontend/pages/staff/settings.html       (+18/-9)
+app.drbastaninejad.com/Frontend/shared/api.js                   (+2/-1)
+dashboard.drbastaninejad.com/app/Controllers/PatientController.php (+10/-4)
+dashboard.drbastaninejad.com/app/Models/Patient.php             (+26/-11)
+```
+
+### Remaining staff pages — audit status
+
+| Page | Auth guard | API shape | Jalali dates | Status |
+|---|---|---|---|---|
+| `dashboard.html` | ✅ `isAuthenticated()` | ✅ | ✅ | Clean |
+| `calendar.html` | ✅ `requireAuth` | ✅ | ✅ | Clean |
+| `emr.html` | ✅ `requireAuth` | ✅ | ✅ | Clean |
+| `analytics.html` | ✅ fixed Phase I | ✅ | n/a | Clean |
+| `billing.html` | ✅ fixed Phase I | ✅ fixed Phase I | ✅ fixed Phase I | Clean |
+| `tasks.html` | ✅ fixed Phase I | ✅ | n/a | Clean |
+| `patients.html` | ✅ `isAuthenticated()` | ✅ fixed Phase J | ✅ fixed Phase J | Clean |
+| `patient-detail.html` | ✅ `isAuthenticated()` | ✅ fixed Phase J | ✅ fixed Phase J | Clean |
+| `settings.html` | ✅ fixed Phase J | ✅ fixed Phase J | n/a | Clean |
+
+**All 9 staff pages now have correct auth guards, API shape alignment, and Jalali date display.**
+
+### Next session priorities
+
+1. `docs/API_CONTRACT.md` — write/update with canonical endpoint shapes, status enum
+   Persian labels, and confirmed field names (currently undocumented)
+2. PHPUnit integration tests for `AuthMiddleware` token round-trip (requires test DB)
+3. UNIFIED_MASTER_PLAN Phase 5 (scheduling / communications) — not started
+4. Error pages (`403.html`, `404.html`, `offline.html`, `session-expired.html`) —
+   verify they are complete and linked correctly from all auth redirect paths
+
