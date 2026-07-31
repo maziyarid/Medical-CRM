@@ -2152,3 +2152,42 @@ All previously untracked and modified files have been committed. Working tree is
 - `app.drbastaninejad.com` — missing `OtpService::issueToken()` implementation audit
 - Frontend staff login page wiring (currently hits `/api/v1/auth/otp/send` — verify round-trip)
 - PHPUnit integration tests for AuthMiddleware token resolution (requires test DB)
+
+
+---
+
+## 2026-07-31 — Phase E: Schema fixes, docs rewrite, auth_tokens migration
+
+**Agent:** Bob (IBM)
+**Commit:** `aefb48f` — `fix+docs: schema fixes, docs/SCHEMA.md rewrite, auth_tokens migration`
+**Branch:** `main`
+
+### Bugs fixed
+
+| File | Bug | Fix |
+|---|---|---|
+| `app.drbastaninejad.com/Backend/app/Models/AppointmentModel.php` | `listForPatient()` and `nextForPatient()` queried phantom columns `date_jalali`, `appointment_time`, `reason` that don't exist in the actual appointments table | Replaced with `scheduled_at`, `duration_minutes`, `visit_reason AS reason`, `room`; added `deleted_at IS NULL` filter |
+| `app.drbastaninejad.com/Backend/app/Controllers/PatientPortalController.php` | `records()` called `Database::getInstance()` (method doesn't exist — only `::conn()` exists); queried columns `is_draft`, `visit_type`, `author_name`, `subjective` that are not in the emr_records schema; division-by-zero in `last_page` when `total = 0` | Changed to `::conn()`, fixed column list to `chief_complaint`, `diagnosis`, `plan`, `ai_accepted`, `deleted_at IS NULL` filter; fixed `last_page` |
+| `dashboard.drbastaninejad.com/app/Services/AppointmentService.php` | `create()` omitted the `uuid` field; appointments.uuid is `NOT NULL UNIQUE` — every INSERT would fail with a constraint violation | Added `uuid => bin2hex(random_bytes(16))` |
+
+### New files
+
+| File | Purpose |
+|---|---|
+| `dashboard.drbastaninejad.com/database/migrations/014_create_auth_tokens_table.sql` | `auth_tokens` table for the dashboard DDL sequence. `AuthMiddleware` queries this on every request. Canonical schema from app/migrations/004; uses `CREATE TABLE IF NOT EXISTS` so safe to run on shared DB. |
+| `docs/SCHEMA.md` | Complete rewrite. Previous version described a future 22-table target schema that had diverged from operational code. New version is the ground-truth reference for all tables that exist per migrations 001–014, with column types, constraints, FK notes, soft-delete rules, migration run order, and naming conventions. |
+
+### Migration run order (updated)
+
+Full sequence to reach current state:
+app/001 → app/002 → app/003 (patients) → app/004 (auth_tokens OR dash/014) → app/005–010 →
+dash/004–007 (ALTER intakes) → dash/008 (invoices) → dash/009 (tasks) →
+dash/010 (clinics) → dash/011 (appointments) → dash/012 (users/RBAC) →
+dash/013 (emr_records/templates) → seed/001
+
+### Remaining known gaps
+
+- `app.drbastaninejad.com`: `PatientPortalController.overview()` calls `patientModel->lastIntakeDate()` which returns `created_at` date — adequate for now
+- `app.drbastaninejad.com`: `AppointmentModel.listForPatient()` returns `scheduled_at` (DATETIME) but old portal HTML may have expected `date_jalali` — frontend `records.html` should be audited
+- No integration tests yet for `AuthMiddleware` token round-trip (requires test DB)
+- `OtpService` in dashboard: stub redirects to app backend canonical — test that relative path resolves correctly in deployment
