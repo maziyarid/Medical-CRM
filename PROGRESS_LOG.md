@@ -2191,3 +2191,34 @@ dash/013 (emr_records/templates) → seed/001
 - `app.drbastaninejad.com`: `AppointmentModel.listForPatient()` returns `scheduled_at` (DATETIME) but old portal HTML may have expected `date_jalali` — frontend `records.html` should be audited
 - No integration tests yet for `AuthMiddleware` token round-trip (requires test DB)
 - `OtpService` in dashboard: stub redirects to app backend canonical — test that relative path resolves correctly in deployment
+
+
+---
+
+## 2026-07-31 — Phase F: Frontend/backend field-name alignment pass
+
+**Agent:** Bob (IBM)
+**Commit:** `bc7941c` — `fix(frontend+backend): align all UI field names with actual API schema`
+**Branch:** `main`
+
+### Root cause
+
+The frontend pages were written when emr_records had a SOAP schema (subjective / objective / assessment / plan) and appointments had a presentation-layer Jalali date column (date_jalali / appointment_time). Both schemas were revised in prior sessions to match the operational database (emr_records: chief_complaint / diagnosis / plan; appointments: scheduled_at). This pass fixes every UI file that still referenced the old field names.
+
+### Changes
+
+| File | Changes |
+|---|---|
+| `PatientPortalController.overview()` | `next_appointment` shape: removed phantom `date_jalali`/`time` (AppointmentModel no longer returns them); now returns `scheduled_at` + `duration_minutes` |
+| `InquiryController.store()` | Added null guard after `normaliseMobile()` (returns `?string`); prevents PHP type error if validation is bypassed |
+| `pages/patient/records.html` | Removed `visit_type`/`is_signed`/`assessment`/`subjective`/`author_name`; renders `chief_complaint`/`diagnosis`/`plan`/`ai_accepted` |
+| `pages/patient/appointments.html` | Removed `date_jalali`/`time`; uses `scheduled_at.substring(0,10)` and `(11,16)` for date and time |
+| `pages/patient/overview.html` | Same `scheduled_at` adaptation for next_appointment KPI and upcoming list |
+| `pages/staff/patient-detail.html` | Timeline date: prefers `scheduled_at` → `timestamp` → `date_jalali` → `date` with `substring(0,10)` |
+| `pages/staff/emr.html` | (1) `loadNotes()`: `res.data.records` (not `.notes`); (2) renders `chief_complaint`/`diagnosis`; (3) `save()` POST body remapped from SOAP fields to `chief_complaint`/`diagnosis`/`plan` |
+
+### Known remaining gaps
+
+- Jalali display: all patient-facing date fields now show ISO YYYY-MM-DD (UTC). A Jalali formatter (`shared/jalali.js`) would improve UX — deferred, not blocking correctness.
+- `pages/patient/appointments.html` comment block at top still mentions `date_jalali` contract — stale comment only.
+- No integration test for the EMR save round-trip end-to-end (requires test DB + PHPUnit).
