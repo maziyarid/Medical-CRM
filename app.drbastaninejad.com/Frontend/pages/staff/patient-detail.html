@@ -1,9 +1,12 @@
 <!doctype html>
 <!--
-  MΛZ Medical CRM — Patient Master View + Timeline (Upgraded)
+  MΛZ Medical CRM — Patient Detail + Timeline
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  Data:  ❌ NOT IN CONTRACT — hard-coded mock; wire once patient-detail endpoint documented.
-  Auth:  Staff Bearer token required.
+  API:  GET /api/v1/patients/{id}  ✅ LIVE (dashboard.drbastaninejad.com, Phase D)
+  Contract: dashboard.drbastaninejad.com/docs/API_CONTRACT.md §GET /api/v1/patients/{id}
+  Response: { ok:true, data:{ patient{}, timeline[] } }
+  Envelope: "ok" — see shared/api.js Staff.getPatient(id)
+  Note: id taken from URL ?id=. 401 → login. 403/404 → error page.
 -->
 <html dir="rtl" lang="fa">
 <head>
@@ -18,129 +21,352 @@
   <link rel="stylesheet" href="../../assets/css/states.css"/>
   <link rel="stylesheet" href="../../assets/css/components.css"/>
   <style>
-    .patient-header { display:flex;gap:1.25rem;align-items:center;padding:1.5rem 2rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:1.5rem;flex-wrap:wrap; }
-    .patient-header .avatar-lg { width:76px;height:76px;border-radius:50%;background:var(--evergreen-soft);color:var(--evergreen);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.5rem;flex-shrink:0; }
+    /* Patient header card */
+    .patient-header {
+      display:flex; gap:1.25rem; align-items:center;
+      padding:1.5rem 2rem; background:var(--surface);
+      border:1px solid var(--border); border-radius:var(--radius);
+      box-shadow:var(--shadow-sm); margin-bottom:1.5rem; flex-wrap:wrap;
+    }
+    .patient-header .avatar-lg {
+      width:76px; height:76px; border-radius:50%;
+      background:var(--evergreen-soft); color:var(--evergreen);
+      display:flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:1.5rem; flex-shrink:0;
+    }
     .patient-header .meta strong { font-size:1.15rem; }
-    .patient-header .meta small { display:block;color:var(--muted);font-size:.82rem;margin-top:.15rem; }
-    .patient-header .actions { margin-inline-start:auto;display:flex;gap:.5rem;flex-wrap:wrap; }
-    .tabs { display:flex;gap:.25rem;border-bottom:1px solid var(--border);margin-bottom:1.5rem;overflow-x:auto; }
-    .tab { padding:.75rem 1.25rem;background:none;border:none;border-bottom:2px solid transparent;font-family:inherit;font-size:.9rem;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap; }
-    .tab.active { color:var(--evergreen);border-bottom-color:var(--evergreen); }
-    .timeline { position:relative;padding-inline-start:2rem; }
-    .timeline::before { content:'';position:absolute;inset-inline-start:.5rem;top:0;bottom:0;width:2px;background:var(--border); }
-    .tl-item { position:relative;padding:1rem 0 1.25rem 0; }
-    .tl-item::before { content:'';position:absolute;inset-inline-start:-1.7rem;top:1.5rem;width:14px;height:14px;border-radius:50%;background:var(--evergreen);border:3px solid var(--surface);box-shadow:0 0 0 2px var(--evergreen-soft); }
-    .tl-item .tl-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:.9rem 1.1rem; }
-    .tl-item .tl-meta { font-size:.72rem;color:var(--muted);margin-bottom:.35rem; }
-    .tl-item h4 { font-size:.95rem;margin-bottom:.35rem; }
-    .tl-item p { font-size:.85rem;color:var(--muted); }
+    .patient-header .meta small { display:block; color:var(--muted); font-size:.82rem; margin-top:.15rem; }
+    .patient-header .actions { margin-inline-start:auto; display:flex; gap:.5rem; flex-wrap:wrap; }
+    /* Tabs */
+    .tabs { display:flex; gap:.25rem; border-bottom:1px solid var(--border); margin-bottom:1.5rem; overflow-x:auto; }
+    .tab {
+      padding:.75rem 1.25rem; background:none; border:none;
+      border-bottom:2px solid transparent; font-family:inherit;
+      font-size:.9rem; font-weight:600; color:var(--muted); cursor:pointer; white-space:nowrap;
+    }
+    .tab.active { color:var(--evergreen); border-bottom-color:var(--evergreen); }
+    /* Timeline */
+    .timeline { position:relative; padding-inline-start:2rem; }
+    .timeline::before {
+      content:''; position:absolute; inset-inline-start:.5rem;
+      top:0; bottom:0; width:2px; background:var(--border);
+    }
+    .tl-item { position:relative; padding:1rem 0 1.25rem 0; }
+    .tl-item::before {
+      content:''; position:absolute; inset-inline-start:-1.7rem; top:1.5rem;
+      width:14px; height:14px; border-radius:50%;
+      background:var(--evergreen); border:3px solid var(--surface);
+      box-shadow:0 0 0 2px var(--evergreen-soft);
+    }
+    .tl-item .tl-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius-md); padding:.9rem 1.1rem;
+    }
+    .tl-item .tl-meta { font-size:.72rem; color:var(--muted); margin-bottom:.35rem; }
+    .tl-item h4 { font-size:.95rem; margin-bottom:.35rem; }
+    .tl-item p { font-size:.85rem; color:var(--muted); }
+    /* Tab panels */
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
   </style>
 </head>
 <body data-shell="staff" data-nav="patients">
   <div class="app-shell">
     <main class="main">
+
+      <!-- Breadcrumb -->
       <div class="topbar">
         <div>
-          <h1 style="font-size:1.1rem;color:var(--muted)"><a href="patients.html" style="color:var(--muted)">بیماران</a> › پرونده بیمار</h1>
+          <h1 style="font-size:1.1rem;color:var(--muted)">
+            <a href="patients.html" style="color:var(--muted)">بیماران</a> ›
+            <span id="breadcrumb-name">پرونده بیمار</span>
+          </h1>
         </div>
       </div>
 
-      <div class="patient-header">
-        <div class="avatar-lg">م ا</div>
-        <div class="meta">
-          <strong>مریم احمدی</strong>
-          <small>۰۹۱۲۱۲۳۴۵۶۷ · کد ملی ۰۰۷۹۶۴۳۱۷۸ · متولد ۱۳۷۰/۰۵/۱۲</small>
-          <div style="margin-top:.5rem;display:flex;gap:.35rem;flex-wrap:wrap;">
-            <span class="pill evergreen">حساب فعال</span>
-            <span class="pill success">بیمه تأیید شده</span>
-            <span class="pill muted">جراحی بینی</span>
+      <!-- Page host with data-state -->
+      <div id="page-host" data-state="loading">
+
+        <!-- Loading -->
+        <div class="slot-loading" aria-hidden="true">
+          <div class="panel" style="padding:1.5rem 2rem;margin-bottom:1.5rem;">
+            <div style="display:flex;gap:1.25rem;align-items:center;flex-wrap:wrap;">
+              <div class="skeleton" style="width:76px;height:76px;border-radius:50%;flex-shrink:0;"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:.6rem;">
+                <div class="skeleton" style="height:20px;width:220px;border-radius:6px;"></div>
+                <div class="skeleton" style="height:14px;width:300px;border-radius:6px;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel" style="padding:1.5rem;">
+            <div class="skeleton" style="height:14px;width:40%;border-radius:6px;margin-bottom:1rem;"></div>
+            <div class="skeleton" style="height:80px;border-radius:8px;margin-bottom:.75rem;"></div>
+            <div class="skeleton" style="height:80px;border-radius:8px;width:90%;"></div>
           </div>
         </div>
-        <div class="actions">
-          <button class="btn btn-primary btn-sm">+ نوبت جدید</button>
-          <button class="btn btn-secondary btn-sm">ویرایش</button>
-          <button class="btn btn-ghost btn-sm">پیام</button>
+
+        <!-- Ready -->
+        <div class="slot-ready">
+
+          <!-- Patient header -->
+          <div class="patient-header">
+            <div class="avatar-lg" id="pt-avatar" aria-hidden="true"></div>
+            <div class="meta">
+              <strong id="pt-name">—</strong>
+              <small id="pt-meta">—</small>
+              <div style="margin-top:.5rem;display:flex;gap:.35rem;flex-wrap:wrap;" id="pt-pills"></div>
+            </div>
+            <div class="actions">
+              <button class="btn btn-primary btn-sm" id="btn-new-appt">+ نوبت جدید</button>
+              <button class="btn btn-secondary btn-sm" disabled title="در مرحله بعد پیاده‌سازی می‌شود">ویرایش</button>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="tabs" role="tablist" aria-label="بخش‌های پرونده بیمار">
+            <button class="tab active" role="tab" id="tab-0" aria-selected="true"
+                    aria-controls="panel-0">تایم‌لاین</button>
+            <button class="tab" role="tab" id="tab-1" aria-selected="false"
+                    aria-controls="panel-1">اطلاعات فردی</button>
+            <button class="tab" role="tab" id="tab-2" aria-selected="false"
+                    aria-controls="panel-2">تاریخچه پزشکی</button>
+            <button class="tab" role="tab" id="tab-3" aria-selected="false"
+                    aria-controls="panel-3">مدارک و تصاویر</button>
+            <button class="tab" role="tab" id="tab-4" aria-selected="false"
+                    aria-controls="panel-4">صورتحساب</button>
+            <button class="tab" role="tab" id="tab-5" aria-selected="false"
+                    aria-controls="panel-5">یادداشت‌های داخلی</button>
+          </div>
+
+          <!-- Panel 0: Timeline -->
+          <div id="panel-0" class="tab-panel active" role="tabpanel" aria-labelledby="tab-0">
+            <div class="grid-main">
+              <section>
+                <div class="timeline" id="timeline-list"></div>
+              </section>
+              <aside style="display:flex;flex-direction:column;gap:1.25rem;">
+                <!-- Dr. Copilot placeholder — Phase 7 feature -->
+                <div class="panel" style="padding:1.25rem 1.5rem;background:linear-gradient(135deg,#f8fafc,#eef2ff);border-color:#dbeafe">
+                  <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;">
+                    <span style="background:var(--maz-primary,#4f46e5);color:#fff;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:700;">Dr. Copilot</span>
+                    <strong style="font-size:.85rem">پیش‌نویس یادداشت</strong>
+                  </div>
+                  <p style="font-size:.82rem;line-height:1.75;color:var(--muted)">
+                    اندپوینت AI در فاز ۷ پیاده‌سازی می‌شود.
+                    این بخش پس از راه‌اندازی <code>POST /api/v1/ai/draft</code> فعال خواهد شد.
+                  </p>
+                </div>
+              </aside>
+            </div>
+          </div>
+
+          <!-- Panel 1: Personal info (read from patient object) -->
+          <div id="panel-1" class="tab-panel" role="tabpanel" aria-labelledby="tab-1">
+            <section class="panel" style="padding:1.5rem;">
+              <h3 style="margin-bottom:1rem">اطلاعات فردی</h3>
+              <dl id="pt-personal" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem 2rem;font-size:.9rem;"></dl>
+            </section>
+          </div>
+
+          <!-- Panels 2–5: placeholders (future phases) -->
+          <div id="panel-2" class="tab-panel" role="tabpanel" aria-labelledby="tab-2">
+            <div class="state-panel state-empty" role="status">
+              <div class="state-icon" aria-hidden="true">⏳</div>
+              <h3>تاریخچه پزشکی</h3>
+              <p>این بخش در فاز بعدی پیاده‌سازی می‌شود.</p>
+            </div>
+          </div>
+          <div id="panel-3" class="tab-panel" role="tabpanel" aria-labelledby="tab-3">
+            <div class="state-panel state-empty" role="status">
+              <div class="state-icon" aria-hidden="true">⏳</div>
+              <h3>مدارک و تصاویر</h3>
+              <p>این بخش در فاز بعدی پیاده‌سازی می‌شود.</p>
+            </div>
+          </div>
+          <div id="panel-4" class="tab-panel" role="tabpanel" aria-labelledby="tab-4">
+            <div class="state-panel state-empty" role="status">
+              <div class="state-icon" aria-hidden="true">⏳</div>
+              <h3>صورتحساب</h3>
+              <p>این بخش در فاز بعدی پیاده‌سازی می‌شود.</p>
+            </div>
+          </div>
+          <div id="panel-5" class="tab-panel" role="tabpanel" aria-labelledby="tab-5">
+            <div class="state-panel state-empty" role="status">
+              <div class="state-icon" aria-hidden="true">⏳</div>
+              <h3>یادداشت‌های داخلی</h3>
+              <p>این بخش در فاز بعدی پیاده‌سازی می‌شود.</p>
+            </div>
+          </div>
+
+        </div><!-- .slot-ready -->
+
+        <!-- Error -->
+        <div class="slot-error">
+          <div class="state-panel state-error" role="alert">
+            <div class="state-icon" aria-hidden="true">⚠️</div>
+            <h3>بارگذاری پرونده بیمار ناموفق بود</h3>
+            <p id="detail-error-msg">لطفاً دوباره تلاش کنید.</p>
+            <div class="state-actions">
+              <button type="button" class="btn btn-secondary btn-sm"
+                      id="detail-retry-btn">تلاش مجدد</button>
+              <a href="patients.html" class="btn btn-ghost btn-sm">← بازگشت</a>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="tabs" role="tablist" aria-label="بخش‌های پرونده بیمار">
-        <button class="tab active" role="tab" aria-selected="true"
-                onclick="switchTab(this,0)">تایم‌لاین</button>
-        <button class="tab" role="tab" aria-selected="false"
-                onclick="switchTab(this,1)">اطلاعات فردی</button>
-        <button class="tab" role="tab" aria-selected="false"
-                onclick="switchTab(this,2)">تاریخچه پزشکی</button>
-        <button class="tab" role="tab" aria-selected="false"
-                onclick="switchTab(this,3)">مدارک و تصاویر</button>
-        <button class="tab" role="tab" aria-selected="false"
-                onclick="switchTab(this,4)">صورتحساب</button>
-        <button class="tab" role="tab" aria-selected="false"
-                onclick="switchTab(this,5)">یادداشت‌های داخلی</button>
-      </div>
+      </div><!-- #page-host -->
 
-      <div class="grid-main">
-        <section>
-          <div class="timeline">
-            <div class="tl-item"><div class="tl-card">
-              <div class="tl-meta">۱۴۰۵/۰۴/۱۲ — پرونده الکترونیک</div>
-              <h4>ویزیت پیگیری — هفته دوم پس از عمل</h4>
-              <p>روند بهبود مناسب. تورم کاهش یافته. توصیه به ادامه محدودیت فعالیت به مدت ۲ هفته.</p>
-              <div style="margin-top:.5rem;display:flex;gap:.35rem"><span class="pill evergreen">امضا شده</span><span class="pill info">توسط دکتر باستانی‌نژاد</span></div>
-            </div></div>
-            <div class="tl-item"><div class="tl-card">
-              <div class="tl-meta">۱۴۰۵/۰۴/۰۵ — صورتحساب</div>
-              <h4>فاکتور #۱۰۲۴ — پرداخت شد</h4>
-              <p>مبلغ ۱۸,۵۰۰,۰۰۰ تومان از طریق زرین‌پال</p>
-              <div style="margin-top:.5rem;display:flex;gap:.35rem"><span class="pill success">پرداخت شده</span></div>
-            </div></div>
-            <div class="tl-item"><div class="tl-card">
-              <div class="tl-meta">۱۴۰۵/۰۳/۲۸ — تصاویر</div>
-              <h4>۶ عکس پیش‌عمل بارگذاری شد</h4>
-              <p>نمای روبرو، نیم‌رخ چپ، نیم‌رخ راست، سه‌ربع‌رخ چپ و راست، نمای پایین.</p>
-            </div></div>
-            <div class="tl-item"><div class="tl-card">
-              <div class="tl-meta">۱۴۰۵/۰۳/۱۵ — پذیرش</div>
-              <h4>تشکیل پرونده اولیه</h4>
-              <p>فرم پذیرش دیجیتال — بدون سابقه بیماری قابل توجه.</p>
-              <div style="margin-top:.5rem;display:flex;gap:.35rem"><span class="pill evergreen">تأیید شده</span><span class="pill muted">منبع: اینستاگرام</span></div>
-            </div></div>
-          </div>
-        </section>
-
-        <aside style="display:flex;flex-direction:column;gap:1.25rem;">
-          <div class="panel" style="padding:1.25rem 1.5rem;">
-            <h3 style="font-size:.95rem;margin-bottom:.75rem;">خلاصه پزشکی</h3>
-            <div style="display:flex;flex-direction:column;gap:.5rem;font-size:.85rem;">
-              <div><small style="color:var(--muted)">تاریخچه</small><div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.2rem"><span class="pill evergreen">فشار خون</span><span class="pill evergreen">حساسیت دارویی</span></div></div>
-              <div><small style="color:var(--muted)">داروها</small><div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.2rem"><span class="pill muted">داروی فشار</span><span class="pill muted">آسپرین</span></div></div>
-            </div>
-          </div>
-          <div class="panel" style="padding:1.25rem 1.5rem;background:linear-gradient(135deg,#f8fafc,#eef2ff);border-color:#dbeafe">
-            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;">
-              <span style="background:var(--maz-primary);color:#fff;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:700;font-family:var(--font-mono)">Dr. Copilot</span>
-              <strong style="font-size:.85rem">پیش‌نویس یادداشت</strong>
-            </div>
-            <p style="font-size:.82rem;line-height:1.75">بیمار در وضعیت هفته دوم پس از رینوپلاستی است. تورم بینی ۳۰٪ کاهش یافته. توصیه به ادامه محدودیت ورزش تا ۴ هفته. پیشنهاد ویزیت بعدی: ۲ هفته دیگر.</p>
-            <div style="margin-top:.5rem;display:flex;gap:.5rem;flex-wrap:wrap">
-              <button class="btn btn-primary btn-sm">پذیرش و ذخیره</button>
-              <button class="btn btn-secondary btn-sm">ویرایش</button>
-            </div>
-            <div style="margin-top:.5rem;font-size:.7rem;color:var(--muted);font-family:var(--font-mono)">model: claude-3-haiku · tier: mid · cost: $0.0021</div>
-          </div>
-        </aside>
-      </div>
     </main>
   </div>
+
   <script src="../../assets/js/app.js"></script>
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
-  <script>
-    function switchTab(btn, idx) {
-      document.querySelectorAll('.tabs .tab').forEach(function (t, i) {
-        t.classList.toggle('active', i === idx);
-        t.setAttribute('aria-selected', String(i === idx));
-      });
+  <script type="module">
+    import { Staff, isAuthenticated } from '../../shared/api.js';
+
+    // ── Auth guard ───────────────────────────────────────────────────────────
+    if (!isAuthenticated()) {
+      window.location.replace('../auth/login.html');
     }
+
+    // ── Get patient id from URL ───────────────────────────────────────────────
+    const patientId = new URLSearchParams(location.search).get('id');
+    if (!patientId) {
+      window.location.replace('patients.html');
+    }
+
+    const esc = MAZCRM.escHtml;
+
+    // ── Tab switching ─────────────────────────────────────────────────────────
+    document.querySelectorAll('.tabs .tab').forEach((btn, idx) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tabs .tab').forEach((t, i) => {
+          t.classList.toggle('active', i === idx);
+          t.setAttribute('aria-selected', String(i === idx));
+        });
+        document.querySelectorAll('.tab-panel').forEach((p, i) => {
+          p.classList.toggle('active', i === idx);
+        });
+      });
+    });
+
+    // ── Retry ─────────────────────────────────────────────────────────────────
+    document.getElementById('detail-retry-btn')
+      .addEventListener('click', () => loadPatient());
+
+    // ── New appointment nav ───────────────────────────────────────────────────
+    document.getElementById('btn-new-appt')
+      .addEventListener('click', () => { location.href = 'calendar.html'; });
+
+    // ── Insurance map ────────────────────────────────────────────────────────
+    const INS_MAP = {
+      active:   ['evergreen', 'بیمه فعال'],
+      inactive: ['error',     'بیمه غیرفعال'],
+      pending:  ['warning',   'بیمه در انتظار'],
+      unknown:  ['muted',     'بیمه نامشخص'],
+    };
+
+    function insurancePill(s) {
+      const m = INS_MAP[s] || ['muted', esc(s) || '—'];
+      return '<span class="pill ' + m[0] + '">' + m[1] + '</span>';
+    }
+
+    // ── Populate patient header ───────────────────────────────────────────────
+    function populateHeader(pt) {
+      const name = esc(pt.name || '—');
+      document.title = (pt.name || 'پرونده بیمار') + ' — MΛZ Medical CRM';
+      document.getElementById('breadcrumb-name').textContent = pt.name || 'پرونده بیمار';
+
+      // Initials for avatar
+      const initials = (pt.name || '').split(' ').map(w => w.charAt(0)).slice(0, 2).join('');
+      document.getElementById('pt-avatar').textContent = esc(initials) || '?';
+
+      document.getElementById('pt-name').innerHTML = name;
+      document.getElementById('pt-meta').innerHTML =
+        (pt.mobile ? '<span style="direction:ltr;display:inline-block">' + esc(pt.mobile) + '</span>' : '') +
+        (pt.national_id ? ' · کد ملی ' + esc(pt.national_id) : '') +
+        (pt.birth_date ? ' · متولد ' + esc(pt.birth_date) : '') +
+        (pt.home_address ? '<br>' + esc(pt.home_address) : '');
+
+      document.getElementById('pt-pills').innerHTML = insurancePill(pt.insurance_status);
+    }
+
+    // ── Populate personal info tab ────────────────────────────────────────────
+    function populatePersonal(pt) {
+      const fields = [
+        ['نام و نام خانوادگی', pt.name],
+        ['شماره همراه', pt.mobile],
+        ['کد ملی', pt.national_id],
+        ['تاریخ تولد', pt.birth_date],
+        ['آدرس', pt.home_address],
+        ['وضعیت بیمه', pt.insurance_status],
+      ];
+      document.getElementById('pt-personal').innerHTML = fields
+        .map(([lbl, val]) =>
+          '<div><dt style="font-size:.78rem;color:var(--muted);margin-bottom:.2rem">' +
+            esc(lbl) + '</dt>' +
+            '<dd style="font-weight:600">' + esc(val || '—') + '</dd></div>'
+        ).join('');
+    }
+
+    // ── Render timeline ───────────────────────────────────────────────────────
+    function renderTimeline(items) {
+      const tl = document.getElementById('timeline-list');
+      if (!items || !items.length) {
+        tl.innerHTML =
+          '<div class="state-panel state-empty" role="status" style="margin:0">' +
+            '<div class="state-icon" aria-hidden="true">🌿</div>' +
+            '<h3>هنوز رویدادی ثبت نشده است</h3>' +
+          '</div>';
+        return;
+      }
+      tl.innerHTML = items.map(item => {
+        const date    = esc(item.date_jalali || item.date || '');
+        const type    = esc(item.type || '');
+        const title   = esc(item.title || '');
+        const body    = esc(item.body || item.description || '');
+        return '<div class="tl-item"><div class="tl-card">' +
+          (date || type ? '<div class="tl-meta">' + date + (type ? ' — ' + type : '') + '</div>' : '') +
+          (title ? '<h4>' + title + '</h4>' : '') +
+          (body  ? '<p>' + body + '</p>' : '') +
+        '</div></div>';
+      }).join('');
+    }
+
+    // ── Main loader ───────────────────────────────────────────────────────────
+    async function loadPatient() {
+      const host = document.getElementById('page-host');
+      MAZCRM.states.set(host, 'loading');
+      try {
+        const res = await Staff.getPatient(patientId);
+        const d   = res.data || {};
+        const pt  = d.patient || {};
+        populateHeader(pt);
+        populatePersonal(pt);
+        renderTimeline(d.timeline || []);
+        MAZCRM.states.set(host, 'ready');
+      } catch (err) {
+        if (err.httpStatus === 401) {
+          window.location.replace('../auth/login.html');
+        } else if (err.httpStatus === 403) {
+          window.location.replace('../errors/403.html');
+        } else if (err.httpStatus === 404) {
+          document.getElementById('detail-error-msg').textContent =
+            'این بیمار پیدا نشد. ممکن است پرونده حذف شده باشد.';
+          MAZCRM.states.set(host, 'error');
+        } else {
+          document.getElementById('detail-error-msg').textContent =
+            err.code === 'NETWORK_ERROR'
+              ? 'اتصال اینترنت را بررسی کنید.'
+              : 'خطای سرور — لطفاً دوباره تلاش کنید.';
+          MAZCRM.states.set(host, 'error');
+        }
+      }
+    }
+
+    // ── Bootstrap ─────────────────────────────────────────────────────────────
+    loadPatient();
   </script>
 </body>
 </html>
