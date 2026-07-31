@@ -2102,3 +2102,53 @@ commit of WordPress export data files (`WordPress.2026-07-09.xml` is ~12 MB).
 ### Working tree state after this session
 
 All previously untracked and modified files have been committed. Working tree is clean.
+
+
+---
+
+## 2026-07-31 — Phase D: RBAC foundation, migrations, middleware fix, tests (dashboard subdomain)
+
+**Agent:** Bob (IBM)
+**Commit:** `bbdd061` — `feat(dashboard): RBAC foundation, migrations, tests, and bootstrap`
+**Branch:** `main`
+**Plan source:** UNIFIED_MASTER_PLAN.md §5 (Required Backend Capabilities) + §6 (Phase 3–6)
+
+### Bugs fixed
+
+| File | Issue | Fix |
+|---|---|---|
+| `app/Middleware/AuthMiddleware.php` | UTF-16 LE encoding (double-byte per character, entire file garbled) — would cause fatal PHP parse error on include | Rewritten as UTF-8; logic identical |
+| `app/Middleware/RbacMiddleware.php` | Same UTF-16 LE corruption | Rewritten as UTF-8; logic identical |
+| `app/Core/Controller.php` | Missing `validationError()` method — `OtpController` calls it, would throw fatal error | Added with consistent 5-key envelope `{ok, status, data, errors, meta}` |
+| `public/index.php` | Route files `routes.billing`, `routes.tasks`, `routes.analytics`, `routes.settings` not registered — those controllers were unreachable | Added all 4; reordered so `routes.dashboard` loads first |
+
+### New files
+
+| File | Purpose |
+|---|---|
+| `database/migrations/012_create_users_roles_permissions.sql` | `users`, `roles`, `permissions`, `role_user`, `permission_role` tables. Required by `AuthMiddleware` (staff login) and `RbacMiddleware` (permission lookup). Roles: `super_admin`, `doctor`, `receptionist`, `nurse`. |
+| `database/migrations/013_create_emr_records_templates.sql` | `emr_records` (chief_complaint, diagnosis, plan, specialty_fields JSON, ai_draft) + `emr_templates` (specialty-scoped form schemas). FKs to clinics, patients, appointments. |
+| `database/seeds/001_seed_clinic_roles_permissions.sql` | Default clinic (id=1), 4 roles, 17 named permissions, scoped grants per role, synthetic superadmin user. SYNTHETIC DATA ONLY. |
+| `tests/Unit/ValidatorServiceTest.php` | 37 PHPUnit 10 assertions covering all public methods of `App\Validators\ValidatorService`: Persian digit normalization, mobile normalization (6 input formats), mobile validation, Code Meli mod-11 checksum, Jalali date validation (7 valid + 8 invalid), Jalali→Gregorian conversion (6 vectors). |
+| `composer.json` | PHPUnit 10 dev dependency; PSR-4 autoload for `App\` and `Tests\`. |
+| `phpunit.xml` | PHPUnit 10 config; Unit testsuite targeting `tests/Unit/`. |
+| `tests/bootstrap.php` | Autoloader (Composer or fallback PSR-4) + `.env.testing` loader. |
+
+### Migration run order (full sequence 001–013 + seed)
+
+`001_create_intakes_table` → `002_create_otp_codes_table` → `003_create_auth_tokens_table`
+→ `004_add_email_visit_reason_to_intakes` → `005_add_password_hash_to_patients`
+→ `006_add_sheets_sync_status_to_intakes` → `007_add_birth_date_jalali_to_intakes`
+→ `008_create_invoices_table` → `009_create_tasks_table`
+→ `010_create_clinics_add_cancel_reason` → `011_create_appointments_table`
+→ `012_create_users_roles_permissions` → `013_create_emr_records_templates`
+→ seed: `001_seed_clinic_roles_permissions`
+
+**Note:** Migrations 001–007 operate on the `intakes` table which must exist before `010` adds the clinics table and `011` adds appointments (FK to clinics + patients). The `patients` table is created by `app.drbastaninejad.com/Backend/database/migrations/003_create_patients_table.sql` — both backends share one database.
+
+### Remaining gaps (next session)
+
+- `docs/SCHEMA.md` update for new tables (users, roles, permissions, emr_records, emr_templates)
+- `app.drbastaninejad.com` — missing `OtpService::issueToken()` implementation audit
+- Frontend staff login page wiring (currently hits `/api/v1/auth/otp/send` — verify round-trip)
+- PHPUnit integration tests for AuthMiddleware token resolution (requires test DB)
