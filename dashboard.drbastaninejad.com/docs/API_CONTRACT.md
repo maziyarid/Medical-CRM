@@ -295,6 +295,128 @@ All endpoints below require a valid patient-scoped Bearer token obtained from `/
 
 ---
 
+## Phase D — Staff Dashboard & Patient Management
+
+All endpoints below require a valid staff-scoped Bearer token.
+
+---
+
+### `GET /api/v1/dashboard/overview`
+
+**Auth:** Bearer token (staff, requires `dashboard.view` permission)
+**Purpose:** Aggregate KPI metrics and today's schedule for the staff dashboard home screen
+**Route file:** `config/routes.dashboard.php`
+**Controller:** `DashboardController::overview()`
+
+#### Response `data`
+
+```json
+{
+  "metrics": [
+    { "label": "نوبت‌های امروز",      "value": "5",            "href": "#calendar",  "deltaDir": "" },
+    { "label": "پذیرش‌های در انتظار", "value": "3",            "href": "#patients",  "deltaDir": "down" },
+    { "label": "درآمد امروز",          "value": "۱۲۰٬۰۰۰ تومان", "href": "#billing",   "deltaDir": "" },
+    { "label": "وظایف باز",           "value": "8",            "href": "#tasks",     "deltaDir": "" }
+  ],
+  "attention": [
+    { "patient": "علی محمدی", "item": "پذیرش بررسی‌نشده", "badge": "warning", "status": "در انتظار" }
+  ],
+  "today": [
+    { "patient": "مریم احمدی", "time": "10:00", "reason": "ویزیت", "status": "confirmed", "badge": "success" }
+  ]
+}
+```
+
+> `metrics` always has exactly 4 items in the same order.
+> `attention` and `today` are empty arrays when nothing matches.
+> `time` is in `HH:MM` format (UTC displayed as Tehran time by the frontend).
+
+**401** — token missing / expired
+**403** — `dashboard.view` permission not present on role
+
+---
+
+### `GET /api/v1/patients`
+
+**Auth:** Bearer token (staff, requires `patients.view` permission)
+**Purpose:** Paginated, searchable list of all patients for the staff Patient Master Index
+
+#### Query params
+
+| Param | Default | Notes |
+|---|---|---|
+| `q` | — | free-text search: first_name, last_name, mobile, national_id |
+| `page` | 1 | |
+| `per_page` | 20 | max 100 |
+
+#### Response `data`
+
+```json
+{
+  "rows": [
+    {
+      "id": 1,
+      "name": "علی محمدی",
+      "mobile": "09121234567",
+      "national_id": "0079643178",
+      "insurance_status": "active",
+      "last_visit": "2026-07-15 10:00:00",
+      "upcoming_count": 2
+    }
+  ],
+  "total": 120,
+  "page": 1,
+  "per_page": 20
+}
+```
+
+> `last_visit` is a UTC datetime string; Jalali conversion is at the presentation layer.
+> `insurance_status` values: `active` | `inactive` | `pending` | `unknown`.
+
+---
+
+### `GET /api/v1/patients/{id}`
+
+**Auth:** Bearer token (staff, requires `patients.view` permission)
+**Purpose:** Full patient header + timeline for the Patient Detail screen
+
+#### Response `data`
+
+```json
+{
+  "patient": {
+    "id": 1,
+    "name": "علی محمدی",
+    "mobile": "09121234567",
+    "national_id": "0079643178",
+    "birth_date": "1990-05-12",
+    "insurance_status": "active",
+    "home_address": "تهران، خیابان ولیعصر"
+  },
+  "timeline": []
+}
+```
+
+---
+
+### `POST /api/v1/patients`
+
+**Auth:** Bearer token (staff, requires `patients.manage` permission)
+**Purpose:** Create a new patient record outside the public intake flow
+**Body:** `first_name`, `last_name`, `mobile` (required), `national_id`, `home_address`
+**Response:** `{ "ok": true, "data": { "id": 42 }, "meta": null, "errors": null }` (201)
+
+---
+
+### `PUT /api/v1/patients/{id}`
+
+**Auth:** Bearer token (staff, requires `patients.manage` permission)
+**Purpose:** Update patient editable fields
+**Writable fields:** `first_name`, `last_name`, `mobile`, `home_address`, `insurance_status`
+**Response:** `{ "ok": true, "data": { "id": 42 } }`
+
+---
+
 ## Idempotency & Dual-Write Notes
 
 1. The `submission_uuid` **UNIQUE** constraint is enforced at the DB level in `intakes.submission_uuid`, not only in PHP. A duplicate INSERT will throw a PDO exception, which the controller converts to a 200 idempotent response.
