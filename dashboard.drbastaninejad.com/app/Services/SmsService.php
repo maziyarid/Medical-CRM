@@ -50,13 +50,14 @@ final class SmsService
 
         $response = @file_get_contents($url, false, $ctx);
         if ($response === false) {
-            throw new \RuntimeException('Kavenegar API request failed');
+            error_log('[SmsService] Kavenegar API request failed for ' . $mobile);
+            return;
         }
 
-        $json = json_decode($response, true);
+        $json   = json_decode($response, true);
         $status = $json['return']['status'] ?? 0;
         if ((int)$status !== 200) {
-            throw new \RuntimeException('Kavenegar returned status ' . $status . ': ' . $response);
+            error_log('[SmsService] Kavenegar returned status ' . $status . ' for ' . $mobile . ': ' . $response);
         }
     }
 

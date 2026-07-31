@@ -114,12 +114,15 @@ final class OtpService
         $db = Database::conn();
 
         // Dashboard OTP authenticates staff users (users table, not patients).
+        // users.full_name — the column is full_name, not first_name/last_name (migration 012).
+        // Role comes via role_user → roles pivot — no role_id column on users.
         $stmt = $db->prepare(
-            'SELECT u.id, u.uuid, u.first_name, u.last_name, u.mobile,
-                    u.clinic_id, r.name AS role_name
+            'SELECT u.id, u.uuid, u.full_name, u.mobile, u.clinic_id,
+                    r.name AS role_name
              FROM users u
-             LEFT JOIN roles r ON u.role_id = r.id
-             WHERE u.mobile = ? AND u.deleted_at IS NULL
+             LEFT JOIN role_user ru ON ru.user_id = u.id
+             LEFT JOIN roles r      ON r.id = ru.role_id
+             WHERE u.mobile = ? AND u.is_active = 1 AND u.deleted_at IS NULL
              ORDER BY u.created_at DESC LIMIT 1'
         );
         $stmt->execute([$mobile]);
@@ -141,14 +144,13 @@ final class OtpService
             'token'      => $token,
             'expires_at' => $expiresAt,
             'user'       => [
-                'id'         => (int)$user['id'],
-                'uuid'       => $user['uuid'],
-                'first_name' => $user['first_name'],
-                'last_name'  => $user['last_name'],
-                'mobile'     => $user['mobile'],
-                'clinic_id'  => (int)$user['clinic_id'],
-                'role'       => $user['role_name'] ?? 'staff',
-                'user_type'  => 'staff',
+                'id'        => (int)$user['id'],
+                'uuid'      => $user['uuid'],
+                'name'      => $user['full_name'],
+                'mobile'    => $user['mobile'],
+                'clinic_id' => (int)$user['clinic_id'],
+                'role'      => $user['role_name'] ?? 'staff',
+                'user_type' => 'staff',
             ],
         ];
     }

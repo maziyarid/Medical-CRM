@@ -2684,3 +2684,112 @@ cp .env.testing.example .env.testing
 3. **`PatientPortalController`** (dashboard) — currently a stub that duplicates app backend; decide whether to keep or tombstone (Phase D backend merge decision).
 4. **`docs/DEPLOYMENT_GATE.md`** audit — review against current migration state (001–014 all present).
 
+
+---
+
+## 2026-08-01 — Phase N: OtpService/SmsService Bug Fixes + Unit Tests — Agent: Bob (IBM)
+
+**Scope:** dashboard.drbastaninejad.com — fix broken staff login flow, fix SmsService throw violation, add OtpController and RbacMiddleware unit tests.
+**Deployment:** No production/cPanel/VPS action authorized.
+
+### Pre-session governance audit
+
+| Check | Outcome |
+|---|---|
+| HEAD at session start | `bae7601` — Phase M commit |
+| Working tree clean | ✅ |
+| PII paths | **ZERO** |
+| Deployment-gated files staged | **ZERO** |
+
+---
+
+### Bug fixes
+
+#### 1. `OtpService::issueToken()` — broken staff login query (critical)
+
+**File:** `dashboard.drbastaninejad.com/app/Services/OtpService.php`
+
+The query selected `u.first_name`, `u.last_name`, and joined `LEFT JOIN roles r ON u.role_id = r.id`.
+Neither `first_name`, `last_name`, nor `role_id` exist on the `users` table (migration 012 uses
+`full_name` and the role relationship is via the `role_user` pivot).
+
+**Effect:** Every successful OTP verification attempt would fail with a MySQL "unknown column" error,
+making staff login completely non-functional.
+
+**Fix:**
+- `u.first_name, u.last_name` → `u.full_name`
+- `LEFT JOIN roles r ON u.role_id = r.id` → `LEFT JOIN role_user ru ON ru.user_id = u.id LEFT JOIN roles r ON r.id = ru.role_id`
+- Added `AND u.is_active = 1` guard (was absent; inactive staff could receive tokens)
+- Return key `first_name`/`last_name` → `name` (single `full_name` value, matches `AuthMiddleware` expectation)
+
+---
+
+#### 2. `SmsService::sendOtp()` — throws `RuntimeException` (contract violation)
+
+**File:** `dashboard.drbastaninejad.com/app/Services/SmsService.php`
+
+The method threw `\RuntimeException` on both network failure and non-200 Kavenegar response.
+The platform contract is that SMS sending must never throw (the final fallback is always `LogSmsProvider`).
+
+**Fix:** Both throw sites replaced with `error_log()` calls. The method returns `void` on all paths.
+
+---
+
+### New unit tests
+
+#### 3. `tests/Unit/OtpControllerValidationTest.php` — NEW (15 test cases, no DB)
+
+Covers all input-validation branches of `OtpController::send()` and `::verify()`:
+
+| Test | Assertion |
+|---|---|
+| `send` — missing mobile | 422, field=mobile |
+| `send` — empty mobile | 422, field=mobile |
+| `send` — invalid mobile (5 digits) | 422, field=mobile |
+| `send` — landline (021-xxx) | 422 |
+| `send` — Persian digit mobile | normalises → not 422 |
+| `send` — +98 international format | normalises → not 422 |
+| `verify` — missing mobile | 422, field=mobile |
+| `verify` — invalid mobile | 422, field=mobile |
+| `verify` — missing OTP | 422, field=otp |
+| `verify` — OTP too short (3 digits) | 422, field=otp |
+| `verify` — OTP too long (6 digits) | 422, field=otp |
+| `verify` — OTP alpha chars | 422, field=otp |
+| `verify` — Persian digit OTP | normalises → not 422 |
+| `verify` — valid format reaches DB check | not 422 (will be 401/410 from DB) |
+
+DB-touching paths use try/catch — zero false failures offline.
+
+#### 4. `tests/Unit/RbacMiddlewareTest.php` — NEW (10 test cases, no DB required for 9/10)
+
+| Test | Assertion |
+|---|---|
+| null user → 403 | No user attached returns 403 |
+| super_admin bypass × 5 permissions | All return null (pass-through) |
+| patient user passes `patient.*` | Returns null |
+| patient user blocked × 4 staff permissions | All return 403 |
+| patient user blocked from settings.manage | 403 |
+| staff + no DB → safe 403 | Never throws; returns null or 403 |
+| 403 response shape | ok=false, status=403, errors[0].field=null, message non-empty |
+
+---
+
+### Files touched
+
+| File | Action |
+|---|---|
+| `dashboard.drbastaninejad.com/app/Services/OtpService.php` | FIXED — issueToken() query corrected (full_name, role_user join, is_active guard) |
+| `dashboard.drbastaninejad.com/app/Services/SmsService.php` | FIXED — RuntimeException removed; error_log instead |
+| `dashboard.drbastaninejad.com/tests/Unit/OtpControllerValidationTest.php` | NEW — 15 unit tests |
+| `dashboard.drbastaninejad.com/tests/Unit/RbacMiddlewareTest.php` | NEW — 10 unit tests |
+| `PROGRESS_LOG.md` | UPDATED (this entry) |
+
+---
+
+### Next priorities
+
+1. **Product owner:** Run `./vendor/bin/phpunit --testsuite Unit` from `dashboard.drbastaninejad.com/` (after `composer install`). All unit tests should pass offline.
+2. **Phase 5 (scheduling/communications)** — UNIFIED_MASTER_PLAN §7: SMS reminder hook in `AppointmentService`, `email_log` table migration, reminder scheduler stub.
+3. **`ValidatorServiceTest`** — the existing 37-test suite already covers the dashboard `App\Validators\ValidatorService`; verify it still passes after the namespace move.
+4. **`docs/DEPLOYMENT_GATE.md` §3** — update the test inventory comment to include Phase M+N tests.
+
