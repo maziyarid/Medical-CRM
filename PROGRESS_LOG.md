@@ -2076,3 +2076,29 @@ page/per_page null/zero/negative/above-max/string coercion and offset arithmetic
 | `dashboard.drbastaninejad.com/public/.htaccess` | Untracked — committed as part of this session |
 | `dashboard.drbastaninejad.com/public/index.php` | Untracked — committed as part of this session |
 
+
+---
+
+## 2026-07-31 — Remaining untracked files committed (app subdomain + tooling)
+
+**Agent:** Bob (IBM)
+**Commit:** `cdfb47d` — `feat(app): add Router, front controller, and WordPress XML tooling`
+**Branch:** `main`
+
+### Files committed
+
+| File | Description |
+|---|---|
+| `app.drbastaninejad.com/Backend/app/Core/Router.php` | Lightweight HTTP router for the app subdomain: GET/POST/PATCH/DELETE, named `{placeholder}` segments, per-route middleware arrays. Deployment-gated. Completes the bootstrap chain: `index.php → Router → routes.php → controllers`. |
+| `app.drbastaninejad.com/Backend/public/.htaccess` | Apache/LiteSpeed rewrite: block sensitive extensions (env, sql, key, pem), route all requests to `index.php`. Deployment-gated. |
+| `app.drbastaninejad.com/Backend/public/index.php` | Front controller: `.env` loader, PSR-4 autoloader, CORS/security headers (same-origin-family: `app/dashboard/drbastaninejad.com`), Router dispatch. Deployment-gated. |
+| `parse_wordpress.ps1` | PowerShell utility to parse WordPress WXR XML exports (incl. Elementor JSON post-meta) into structured JSON for content migration. |
+
+### .gitignore update
+
+Added `WordPress.*.xml` and `wordpress-*.xml` patterns to prevent accidental
+commit of WordPress export data files (`WordPress.2026-07-09.xml` is ~12 MB).
+
+### Working tree state after this session
+
+All previously untracked and modified files have been committed. Working tree is clean.
