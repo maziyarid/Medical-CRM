@@ -2041,3 +2041,38 @@ page/per_page null/zero/negative/above-max/string coercion and offset arithmetic
 - **Bob AI (future):** Add EMR templates to SettingsController (currently returns null `emr_templates`)
 - **Bob AI (future):** Staff patient-detail page audit for any remaining `✅ LIVE` mismatches
 
+
+---
+
+## 2026-07-31 — Phase C Audit & Fixes (dashboard subdomain)
+
+**Agent:** Bob (IBM)
+**Commit:** `e2c1469` — `fix(dashboard): namespace + appointments migration + settings emr_templates`
+**Branch:** `main`
+
+### Audit findings (read-only, no-change)
+
+| Item | Finding |
+|---|---|
+| `DashboardController` — `starts_at` vs `scheduled_at` | Already uses `scheduled_at` — no change needed |
+| `AnalyticsController` — `starts_at` vs `scheduled_at` | Already uses `scheduled_at` — no change needed |
+| `AppointmentController.store()` — `scheduled_at` | Confirmed line 80 — no change needed |
+| EMR field mismatch audit | `emr.js` sends `chief_complaint` / `diagnosis` / `plan`; `EmrController` expects the same — no mismatch |
+
+### Changes made
+
+| File | Change |
+|---|---|
+| `dashboard.drbastaninejad.com/app/Validators/ValidatorService.php` | **Created.** Moved `ValidatorService` to namespace `App\Validators` (canonical location). All 3 controllers (`IntakeController`, `OtpController`, `PatientController`) already imported `App\Validators\ValidatorService` — file was missing, causing fatal autoload errors. Added `isValidCodeMeli()` alias used by `PatientController`. |
+| `dashboard.drbastaninejad.com/database/migrations/011_create_appointments_table.sql` | **Created.** Full `appointments` table DDL with all columns required by the dashboard: `provider_id`, `visit_reason`, `room`, `duration_minutes`, `notes`, `deleted_at`, `cancellation_reason`, `uuid`, `scheduled_at`. Force-added via `git add -f` (overrides `*.sql` gitignore rule for migration files). |
+| `dashboard.drbastaninejad.com/app/Controllers/SettingsController.php` | **Updated.** `GET /api/v1/settings/clinic` now includes `emr_templates` array (all rows from `emr_templates` table, ordered by specialty/name) so the Settings screen can list and manage EMR form templates. |
+
+### Files staged from pre-existing uncommitted work
+
+| File | Origin |
+|---|---|
+| `dashboard.drbastaninejad.com/app/Core/Request.php` | Untracked — committed as part of this session |
+| `dashboard.drbastaninejad.com/app/Core/Router.php` | Untracked — committed as part of this session |
+| `dashboard.drbastaninejad.com/public/.htaccess` | Untracked — committed as part of this session |
+| `dashboard.drbastaninejad.com/public/index.php` | Untracked — committed as part of this session |
+
