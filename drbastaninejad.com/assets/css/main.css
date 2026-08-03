@@ -187,7 +187,7 @@ p  { font-size: 1rem; line-height: 1.75; }
   .nav-cta .tel-link { display: block; font-size: 0.82rem; font-weight: 600; color: var(--muted); }
 }
 @media (min-width: 769px) {
-  .nav-mobile { display: none !important; }
+  /* .nav-mobile visibility is controlled by translateX in nav-footer.css — NOT display */
   .nav-cta .tel-link { display: none; }
 }
 
