@@ -36,6 +36,8 @@
   <link rel="stylesheet" href="assets/css/tokens.css"/>
   <link rel="stylesheet" href="assets/fonts/FontAwesome/css/all.css"/>
   <link rel="stylesheet" href="assets/css/main.css"/>
+  <link rel="stylesheet" href="assets/css/premium.css"/>
+  <link rel="stylesheet" href="assets/css/design-refresh.css"/>
 </head>
 <body>
 
@@ -46,17 +48,39 @@
     <ul class="nav-links" role="list">
       <li><a href="index.html">خانه</a></li>
       <li><a href="about.html" class="active" aria-current="page">درباره دکتر</a></li>
-      <li><a href="services.html">خدمات</a></li>
+      <li>
+        <a href="services/rhinoplasty-primary.html">جراحی بینی</a>
+        <div class="nav-dropdown" role="list">
+          <span class="nav-dropdown-group-label">بر اساس بافت</span>
+          <a href="services/rhinoplasty-bony.html">بینی استخوانی</a>
+          <a href="services/rhinoplasty-fleshy.html">بینی گوشتی</a>
+          <span class="nav-dropdown-group-label">بر اساس سبک و هدف</span>
+          <a href="services/rhinoplasty-natural.html">بینی طبیعی</a>
+          <a href="services/rhinoplasty-fantasy.html">بینی فانتزی</a>
+          <a href="services/rhinoplasty-revision.html">جراحی ترمیمی</a>
+          <span class="nav-dropdown-group-label">درمانی</span>
+          <a href="services/septoplasty.html">انحراف بینی</a>
+          <a href="services/turbinoplasty.html">شاخک‌های بینی</a>
+          <a href="services/sinus-endoscopy.html">آندوسکوپی سینوس</a>
+        </div>
+      </li>
       <li><a href="gallery.html">نمونه کارها</a></li>
       <li><a href="blog.html">مقالات</a></li>
+      <li><a href="faq.html">سوالات متداول</a></li>
       <li><a href="contact.html">تماس</a></li>
     </ul>
     <div class="nav-cta"><a href="booking.html" class="btn btn-primary btn-sm">نوبت‌گیری</a></div>
     <button class="nav-toggle" id="nav-toggle" aria-controls="nav-mobile" aria-expanded="false" aria-label="باز کردن منو"><span></span><span></span><span></span></button>
   </div>
-  <div id="nav-mobile" class="nav-mobile">
-    <a href="index.html">خانه</a><a href="about.html">درباره دکتر</a><a href="services.html">خدمات</a><a href="gallery.html">نمونه کارها</a><a href="blog.html">مقالات</a><a href="contact.html">تماس</a>
-    <a href="booking.html" class="btn btn-primary" style="margin-top:.5rem;text-align:center">نوبت‌گیری</a>
+  <div id="nav-mobile" class="nav-mobile" role="menu">
+    <a href="index.html" role="menuitem">خانه</a>
+    <a href="about.html" class="active" aria-current="page" role="menuitem">درباره دکتر</a>
+    <a href="services/rhinoplasty-primary.html" role="menuitem">جراحی بینی</a>
+    <a href="gallery.html" role="menuitem">نمونه کارها</a>
+    <a href="blog.html" role="menuitem">مقالات</a>
+    <a href="faq.html" role="menuitem">سوالات متداول</a>
+    <a href="contact.html" role="menuitem">تماس</a>
+    <a href="booking.html" class="btn btn-primary" role="menuitem" style="margin-top:.5rem;text-align:center">نوبت‌گیری آنلاین</a>
   </div>
 </nav>
 
@@ -96,23 +120,23 @@
           <div class="section-label">اطلاعات کلیدی</div>
           <div class="about-list" role="list" style="margin-top:1rem">
             <div class="about-list-item" role="listitem">
-              <div class="dot" aria-hidden="true"></div>
+              <div class="about-list-icon" aria-hidden="true"><i class="fa-solid fa-user-doctor"></i></div>
               <p><strong>تخصص:</strong> گوش، گلو و بینی | جراحی پلاستیک بینی</p>
             </div>
             <div class="about-list-item" role="listitem">
-              <div class="dot" aria-hidden="true"></div>
+              <div class="about-list-icon" aria-hidden="true"><i class="fa-solid fa-award"></i></div>
               <p><strong>بورد تخصصی:</strong> گوش، گلو و بینی — رتبه چهارم کشوری</p>
             </div>
             <div class="about-list-item" role="listitem">
-              <div class="dot" aria-hidden="true"></div>
+              <div class="about-list-icon" aria-hidden="true"><i class="fa-solid fa-business-time"></i></div>
               <p><strong>سال‌های تجربه:</strong> بیش از ۱۵ سال (از ۱۳۸۸)</p>
             </div>
             <div class="about-list-item" role="listitem">
-              <div class="dot" aria-hidden="true"></div>
+              <div class="about-list-icon" aria-hidden="true"><i class="fa-solid fa-language"></i></div>
               <p><strong>زبان‌ها:</strong> فارسی، انگلیسی</p>
             </div>
             <div class="about-list-item" role="listitem">
-              <div class="dot" aria-hidden="true"></div>
+              <div class="about-list-icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></div>
               <p><strong>محل فعالیت:</strong> بیمارستان امیراعلم تهران | مطب خصوصی — خ. نلسون ماندلا</p>
             </div>
           </div>
@@ -372,5 +396,6 @@
 </footer>
 
 <script src="assets/js/main.js" defer></script>
+<script src="assets/js/premium.js" defer></script>
 </body>
 </html>

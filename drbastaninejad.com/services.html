@@ -5,14 +5,14 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>خدمات جراحی بینی | کلینیک دکتر شاهین باستانی نژاد</title>
-  <meta name="description" content="خدمات تخصصی جراحی بینی شامل راینوپلاستی اولیه، جراحی بینی ترمیمی، جراحی بینی گوشتی و رفع قوز بینی توسط دکتر شاهین باستانی نژاد."/>
-  <meta name="keywords" content="جراحی بینی، راینوپلاستی، جراحی بینی گوشتی، رفع قوز بینی، جراحی بینی ترمیمی"/>
+  <meta name="description" content="خدمات تخصصی جراحی بینی: راینوپلاستی اولیه، ترمیمی، بینی گوشتی، بینی استخوانی، بینی طبیعی، فانتزی، سپتوپلاستی، توربینوپلاستی و آندوسکوپی سینوس."/>
+  <meta name="keywords" content="جراحی بینی، راینوپلاستی، جراحی بینی گوشتی، رفع قوز بینی، سپتوپلاستی، توربینوپلاستی"/>
   <link rel="canonical" href="https://drbastaninejad.com/services.html"/>
   <link rel="alternate" hreflang="fa-IR" href="https://drbastaninejad.com/services.html"/>
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://drbastaninejad.com/services.html"/>
   <meta property="og:title" content="خدمات جراحی بینی | کلینیک دکتر شاهین باستانی نژاد"/>
-  <meta property="og:description" content="خدمات تخصصی جراحی بینی: راینوپلاستی اولیه، ترمیمی، گوشتی و رفع قوز بینی."/>
+  <meta property="og:description" content="خدمات تخصصی جراحی بینی و درمانی گوش، گلو و بینی توسط دکتر شاهین باستانی نژاد."/>
   <meta property="og:image" content="https://drbastaninejad.com/assets/images/Blog/Blog-101.webp"/>
   <script type="application/ld+json">
   {
@@ -22,21 +22,7 @@
     "url": "https://drbastaninejad.com",
     "medicalSpecialty": ["جراحی بینی", "گوش، گلو و بینی", "جراحی پلاستیک"],
     "telephone": "+982186087250",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "تهران",
-      "addressCountry": "IR"
-    },
-    "hasOfferCatalog": {
-      "@type": "OfferCatalog",
-      "name": "خدمات جراحی بینی",
-      "itemListElement": [
-        { "@type": "Offer", "itemOffered": { "@type": "MedicalProcedure", "name": "جراحی بینی اولیه (راینوپلاستی)" } },
-        { "@type": "Offer", "itemOffered": { "@type": "MedicalProcedure", "name": "جراحی بینی ترمیمی" } },
-        { "@type": "Offer", "itemOffered": { "@type": "MedicalProcedure", "name": "جراحی بینی گوشتی" } },
-        { "@type": "Offer", "itemOffered": { "@type": "MedicalProcedure", "name": "رفع قوز بینی" } }
-      ]
-    }
+    "address": { "@type": "PostalAddress", "addressLocality": "تهران", "addressCountry": "IR" }
   }
   </script>
   <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg"/>
@@ -45,6 +31,8 @@
   <link rel="stylesheet" href="assets/css/tokens.css"/>
   <link rel="stylesheet" href="assets/fonts/FontAwesome/css/all.css"/>
   <link rel="stylesheet" href="assets/css/main.css"/>
+  <link rel="stylesheet" href="assets/css/premium.css"/>
+  <link rel="stylesheet" href="assets/css/design-refresh.css"/>
 </head>
 <body>
 
@@ -58,9 +46,25 @@
     <ul class="nav-links" role="list">
       <li><a href="index.html">خانه</a></li>
       <li><a href="about.html">درباره دکتر</a></li>
-      <li><a href="services.html" class="active" aria-current="page">خدمات</a></li>
+      <li>
+        <a href="services/rhinoplasty-primary.html">جراحی بینی</a>
+        <div class="nav-dropdown" role="list">
+          <span class="nav-dropdown-group-label">بر اساس بافت</span>
+          <a href="services/rhinoplasty-bony.html">بینی استخوانی</a>
+          <a href="services/rhinoplasty-fleshy.html">بینی گوشتی</a>
+          <span class="nav-dropdown-group-label">بر اساس سبک و هدف</span>
+          <a href="services/rhinoplasty-natural.html">بینی طبیعی</a>
+          <a href="services/rhinoplasty-fantasy.html">بینی فانتزی</a>
+          <a href="services/rhinoplasty-revision.html">جراحی ترمیمی</a>
+          <span class="nav-dropdown-group-label">درمانی</span>
+          <a href="services/septoplasty.html">انحراف بینی</a>
+          <a href="services/turbinoplasty.html">شاخک‌های بینی</a>
+          <a href="services/sinus-endoscopy.html">آندوسکوپی سینوس</a>
+        </div>
+      </li>
       <li><a href="gallery.html">نمونه کارها</a></li>
       <li><a href="blog.html">مقالات</a></li>
+      <li><a href="faq.html">سوالات متداول</a></li>
       <li><a href="contact.html">تماس</a></li>
     </ul>
     <div class="nav-cta">
@@ -72,9 +76,10 @@
   <div id="nav-mobile" class="nav-mobile" role="menu">
     <a href="index.html" role="menuitem">خانه</a>
     <a href="about.html" role="menuitem">درباره دکتر</a>
-    <a href="services.html" role="menuitem">خدمات</a>
+    <a href="services/rhinoplasty-primary.html" role="menuitem">جراحی بینی</a>
     <a href="gallery.html" role="menuitem">نمونه کارها</a>
     <a href="blog.html" role="menuitem">مقالات</a>
+    <a href="faq.html" role="menuitem">سوالات متداول</a>
     <a href="contact.html" role="menuitem">تماس</a>
     <a href="booking.html" class="btn btn-primary" role="menuitem" style="margin-top:.5rem;text-align:center">نوبت‌گیری آنلاین</a>
   </div>
@@ -83,100 +88,246 @@
 <main id="main-content">
 
   <!-- Hero -->
-  <header class="services-hero" aria-labelledby="services-heading">
+  <header class="band-gradient section-md" aria-labelledby="services-heading">
     <div class="container text-center">
-      <div class="section-label">خدمات تخصصی</div>
-      <h1 id="services-heading" style="margin-top:.75rem">جراحی بینی با بالاترین استانداردها</h1>
+      <span class="sh-eyebrow">خدمات تخصصی</span>
+      <h1 id="services-heading" style="margin-top:1rem">جراحی بینی با بالاترین استانداردها</h1>
       <p class="lead" style="margin-top:1rem;max-width:620px;margin-inline:auto">
-        تمامی خدمات جراحی زیبایی و جراحی پلاستیک صورت دکتر شاهین باستانی نژاد در این صفحه قابل دسترسی است.
+        از جراحی زیبایی اولیه تا اصلاح‌های ترمیمی پیچیده و درمان مشکلات تنفسی — هر روش با رعایت کامل استانداردهای ایمنی و زیبایی‌شناسی انجام می‌شود.
       </p>
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;margin-top:2rem">
+        <a href="#cosmetic" class="btn btn-primary">جراحی زیبایی</a>
+        <a href="#functional" class="btn btn-outline">جراحی درمانی</a>
+      </div>
     </div>
   </header>
 
-  <!-- 4 confirmed service cards -->
-  <section class="section" aria-labelledby="procedures-heading">
+  <!-- Trust strip mini -->
+  <div class="trust-strip-v2" role="region" aria-label="اعتبار کلینیک">
     <div class="container">
-      <h2 id="procedures-heading" class="sr-only">لیست خدمات</h2>
-      <div class="procedure-grid" role="list">
+      <div class="trust-strip-v2-inner" role="list">
+        <div class="trust-badge-v2" role="listitem">
+          <div class="tb-icon" aria-hidden="true"><i class="fa-solid fa-award"></i></div>
+          <div><div class="tb-text">بورد تخصصی گوش، گلو و بینی</div><div class="tb-sub">رتبه چهارم کشوری</div></div>
+        </div>
+        <div class="trust-badge-v2" role="listitem">
+          <div class="tb-icon" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></div>
+          <div><div class="tb-text">عضو هیئت علمی دانشگاه علوم پزشکی تهران</div></div>
+        </div>
+        <div class="trust-badge-v2" role="listitem">
+          <div class="tb-icon" aria-hidden="true"><i class="fa-solid fa-clock"></i></div>
+          <div><div class="tb-text">بیش از ۱۵ سال تجربه تخصصی</div></div>
+        </div>
+        <div class="trust-badge-v2" role="listitem">
+          <div class="tb-icon" aria-hidden="true"><i class="fa-solid fa-users"></i></div>
+          <div><div class="tb-text">بیش از ۲۰۰۰ عمل موفق</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <article class="service-card" role="listitem">
-          <div class="s-icon" aria-hidden="true">
-            <img src="assets/images/Blog/Blog-101.webp" alt=""
-                 width="52" height="52" loading="lazy"
-                 style="width:52px;height:52px;object-fit:cover;border-radius:var(--radius-md)"/>
-          </div>
-          <h3><a href="services/rhinoplasty-primary.html" style="color:inherit;text-decoration:none">جراحی بینی اولیه (راینوپلاستی)</a></h3>
-          <p>اصلاح فرم، اندازه و تناسب بینی با چهره برای کسانی که برای اولین بار تحت جراحی قرار می‌گیرند.</p>
-          <a href="services/rhinoplasty-primary.html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-        </article>
+  <!-- Cosmetic services -->
+  <section class="section band-white" id="cosmetic" aria-labelledby="cosmetic-heading">
+    <div class="container">
+      <div class="sh">
+        <span class="sh-eyebrow">جراحی زیبایی</span>
+        <h2 id="cosmetic-heading">خدمات جراحی زیبایی بینی</h2>
+        <p class="sh-sub">جراحی زیبایی بینی با هدف بهبود فرم و هماهنگی با چهره، با حفظ کامل عملکرد تنفسی.</p>
+      </div>
 
-        <article class="service-card" role="listitem">
-          <div class="s-icon" aria-hidden="true">
-            <img src="assets/images/Blog/Blog-102.webp" alt=""
-                 width="52" height="52" loading="lazy"
-                 style="width:52px;height:52px;object-fit:cover;border-radius:var(--radius-md)"/>
-          </div>
-          <h3><a href="services/rhinoplasty-revision.html" style="color:inherit;text-decoration:none">جراحی بینی ترمیمی</a></h3>
-          <p>اصلاح نواقص جراحی قبلی یا بهبود نتیجه‌ای که به دلیل تغییرات بافتی رضایت‌بخش نبوده است.</p>
-          <a href="services/rhinoplasty-revision.html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-        </article>
+      <div class="services-hub-grid" role="list">
 
-        <article class="service-card" role="listitem">
-          <div class="s-icon" aria-hidden="true">
-            <img src="assets/images/Blog/Blog-103.webp" alt=""
-                 width="52" height="52" loading="lazy"
-                 style="width:52px;height:52px;object-fit:cover;border-radius:var(--radius-md)"/>
-          </div>
-          <h3><a href="services/rhinoplasty-fleshy.html" style="color:inherit;text-decoration:none">جراحی بینی گوشتی</a></h3>
-          <p>بینی گوشتی با پوست ضخیم نیازمند تکنیک‌های ویژه برای ساختاردهی غضروف و کنترل پوست است.</p>
-          <a href="services/rhinoplasty-fleshy.html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-        </article>
+        <!-- 1: Primary rhinoplasty -->
+        <a href="services/rhinoplasty-primary.html" class="services-hub-card" role="listitem">
+          <span class="hub-badge badge-cosmetic">زیبایی</span>
+          <div class="hub-icon" aria-hidden="true"><i class="fa-solid fa-notes-medical"></i></div>
+          <h3>جراحی بینی اولیه (راینوپلاستی)</h3>
+          <p>اصلاح فرم، اندازه و تناسب بینی با چهره برای کسانی که برای اولین بار تحت جراحی قرار می‌گیرند. از رفع قوز تا تغییر شکل نوک بینی — طرح اختصاصی برای هر بیمار.</p>
+          <span class="hub-link">اطلاعات بیشتر <i class="fa-solid fa-arrow-left fa-sm"></i></span>
+        </a>
 
-        <article class="service-card" role="listitem">
-          <div class="s-icon" aria-hidden="true">
-            <img src="assets/images/Blog/Blog-106.webp" alt=""
-                 width="52" height="52" loading="lazy"
-                 style="width:52px;height:52px;object-fit:cover;border-radius:var(--radius-md)"/>
-          </div>
-          <h3><a href="services/hump-removal.html" style="color:inherit;text-decoration:none">رفع قوز بینی</a></h3>
-          <p>برداشت پله یا قوز استخوانی/غضروفی بینی و ایجاد پروفایل صاف و طبیعی در نیمرخ.</p>
-          <a href="services/hump-removal.html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-        </article>
+        <!-- 2: Revision rhinoplasty -->
+        <a href="services/rhinoplasty-revision.html" class="services-hub-card" role="listitem">
+          <span class="hub-badge badge-cosmetic">زیبایی</span>
+          <div class="hub-icon" aria-hidden="true"><i class="fa-solid fa-repeat"></i></div>
+          <h3>جراحی بینی ترمیمی</h3>
+          <p>اصلاح نواقص باقی‌مانده از عمل قبلی — از قوز مجدد تا مشکلات تنفسی. نیازمند تکنیک‌های پیشرفته و تجربه بالا در جراحی‌های ثانویه.</p>
+          <span class="hub-link">اطلاعات بیشتر <i class="fa-solid fa-arrow-left fa-sm"></i></span>
+        </a>
+
+        <!-- 3: Fleshy nose -->
+        <a href="services/rhinoplasty-fleshy.html" class="services-hub-card" role="listitem">
+          <span class="hub-badge badge-cosmetic">زیبایی</span>
+          <div class="hub-icon" aria-hidden="true"><i class="fa-solid fa-draw-polygon"></i></div>
+          <h3>جراحی بینی گوشتی</h3>
+          <p>بینی گوشتی با پوست ضخیم و چرب چالش‌برانگیزترین نوع رینوپلاستی است. کنترل پوست و ساختاردهی صحیح به غضروف نیازمند تکنیک‌های تخصصی است.</p>
+          <span class="hub-link">اطلاعات بیشتر <i class="fa-solid fa-arrow-left fa-sm"></i></span>
+        </a>
+
+        <!-- 4: Bony nose -->
+        <a href="services/rhinoplasty-bony.html" class="services-hub-card" role="listitem">
+          <span class="hub-badge badge-cosmetic">زیبایی</span>
+          <div class="hub-icon" aria-hidden="true"><i class="fa-solid fa-bone"></i></div>
+          <h3>جراحی بینی استخوانی</h3>
+          <p>بینی استخوانی با پوست نازک و اسکلت محکم امکان نمایش دقیق‌تر ساختار غضروفی را فراهم می‌کند. نتایج پایدارتر و ظریف‌تر با این نوع بینی قابل دستیابی است.</p>
+          <span class="hub-link">اطلاعات بیشتر <i class="fa-solid fa-arrow-left fa-sm"></i></span>
+        </a>
+
+        <!-- 5: Natural style -->
+        <a href="services/rhinoplasty-natural.html" class="services-hub-card" role="listitem">
+          <span class="hub-badge badge-cosmetic">سبک زیبایی</span>
+          <div class="hub-icon" aria-hidden="true"><i class="fa-solid fa-leaf"></i></div>
+          <h3>جراحی بینی طبیعی</h3>
+          <p>حفظ هارمونی طبیعی چهره با اصلاحات ظریف — نتیجه‌ای که دیده می‌شود بدون اینکه مشخص باشد عمل انجام شده. مناسب برای کسانی که جراحی ناپیدا می‌خواهند.</p>
+          <span class="hub-link">اطلاعات بیشتر <i class="fa-solid fa-arrow-left fa-sm"></i></span>
+        </a>
+
+        <!-- 6: Fantasy style -->
+        <a href="services/rhinoplasty-fantasy.html" class="services-hub-card" role="listitem">
+          <span class="hub-badge badge-cosmetic">سبک زیبایی</span>
+          <div class="hub-icon" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <h3>جراحی بینی فانتزی</h3>
+          <p>برای کسانی که تغییر مشخص‌تری می‌خواهند — نوک برگشته، پروفایل شسته‌رفته یا ظاهری متمایز. نیازمند بررسی دقیق تناسبات و انتظارات واقع‌بینانه.</p>
+          <span class="hub-link">اطلاعات بیشتر <i class="fa-solid fa-arrow-left fa-sm"></i></span>
+        </a>
 
       </div>
     </div>
   </section>
 
+  <!-- Functional services -->
+  <section class="section band-porcelain" id="functional" aria-labelledby="functional-heading">
+    <div class="container">
+      <div class="sh">
+        <span class="sh-eyebrow">جراحی درمانی</span>
+        <h2 id="functional-heading">خدمات درمانی بینی</h2>
+        <p class="sh-sub">جراحی‌های درمانی برای بهبود جریان هوا، رفع انسداد تنفسی و درمان بیماری‌های بینی و سینوس.</p>
+      </div>
+
+      <div class="services-hub-grid" role="list">
+
+        <!-- 7: Septoplasty -->
+        <a href="services/septoplasty.html" class="services-hub-card" role="listitem">
+          <span class="hub-badge badge-functional">درمانی</span>
+          <div class="hub-icon" aria-hidden="true"><i class="fa-solid fa-lungs"></i></div>
+          <h3>جراحی انحراف بینی (سپتوپلاستی)</h3>
+          <p>اصلاح دیواره میانی منحرف‌شده بینی برای بهبود جریان هوا و رفع مشکلات تنفسی. اغلب همزمان با جراحی زیبایی انجام می‌شود.</p>
+          <span class="hub-link">اطلاعات بیشتر <i class="fa-solid fa-arrow-left fa-sm"></i></span>
+        </a>
+
+        <!-- 8: Turbinoplasty -->
+        <a href="services/turbinoplasty.html" class="services-hub-card" role="listitem">
+          <span class="hub-badge badge-functional">درمانی</span>
+          <div class="hub-icon" aria-hidden="true"><i class="fa-solid fa-wind"></i></div>
+          <h3>کاهش حجم شاخک‌های بینی (توربینوپلاستی)</h3>
+          <p>بزرگی شاخک‌های بینی (توربینات) می‌تواند مانع تنفس سالم شود. این روش با کاهش حجم شاخک‌ها مجرای هوا را بازتر می‌کند.</p>
+          <span class="hub-link">اطلاعات بیشتر <i class="fa-solid fa-arrow-left fa-sm"></i></span>
+        </a>
+
+        <!-- 9: Sinus endoscopy -->
+        <a href="services/sinus-endoscopy.html" class="services-hub-card" role="listitem">
+          <span class="hub-badge badge-functional">درمانی</span>
+          <div class="hub-icon" aria-hidden="true"><i class="fa-solid fa-microscope"></i></div>
+          <h3>آندوسکوپی سینوس (FESS)</h3>
+          <p>جراحی آندوسکوپیک سینوس‌های بینی برای درمان سینوزیت مزمن، پولیپ بینی و سایر بیماری‌های سینوس. کمترین تهاجم، بهترین نتیجه.</p>
+          <span class="hub-link">اطلاعات بیشتر <i class="fa-solid fa-arrow-left fa-sm"></i></span>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- How to choose section -->
+  <section class="section band-white" aria-labelledby="choose-heading">
+    <div class="container">
+      <div class="sh sh-center">
+        <span class="sh-eyebrow">راهنمای انتخاب</span>
+        <h2 id="choose-heading">کدام جراحی برای من مناسب است؟</h2>
+        <p class="sh-sub">انتخاب نوع جراحی بستگی به ساختار بینی، اهداف و وضعیت سلامت شما دارد. در مشاوره اولیه، دکتر باستانی‌نژاد پس از معاینه دقیق، بهترین گزینه را با شما در میان می‌گذارد.</p>
+      </div>
+      <div class="steps-grid" role="list">
+        <article class="step-card" role="listitem">
+          <div class="step-num-badge" aria-hidden="true">۱</div>
+          <h3>ارزیابی آناتومی</h3>
+          <p>نوع پوست، ساختار استخوانی و غضروفی، و تناسبات چهره شما بررسی می‌شود.</p>
+        </article>
+        <article class="step-card" role="listitem">
+          <div class="step-num-badge" aria-hidden="true">۲</div>
+          <h3>بررسی انتظارات</h3>
+          <p>اهداف شما با امکانات واقعی جراحی تطبیق داده می‌شود تا رضایت نهایی تضمین شود.</p>
+        </article>
+        <article class="step-card" role="listitem">
+          <div class="step-num-badge" aria-hidden="true">۳</div>
+          <h3>طرح اختصاصی</h3>
+          <p>یک برنامه جراحی کاملاً شخصی‌سازی‌شده برای بینی شما تدوین می‌شود.</p>
+        </article>
+        <article class="step-card" role="listitem">
+          <div class="step-num-badge" aria-hidden="true">۴</div>
+          <h3>پیگیری کامل</h3>
+          <p>از روز عمل تا رسیدن به نتیجه نهایی، در تمام مراحل کنار شما هستیم.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Before-After teaser -->
+  <section class="section band-porcelain" aria-labelledby="ba-teaser-heading">
+    <div class="container">
+      <div class="sh sh-center">
+        <span class="sh-eyebrow">نمونه کارها</span>
+        <h2 id="ba-teaser-heading">نتایج واقعی جراحی</h2>
+        <p class="sh-sub">بیش از ۱۷۸ نمونه قبل و بعد با رضایت کتبی بیماران.</p>
+      </div>
+      <div class="gallery-mosaic" role="list">
+        <figure class="gallery-mosaic-item" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (10).webp" alt="نمونه جراحی بینی — قبل و بعد" width="600" height="400" loading="lazy"/>
+        </figure>
+        <figure class="gallery-mosaic-item" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (20).webp" alt="نمونه جراحی بینی — قبل و بعد" width="600" height="400" loading="lazy"/>
+        </figure>
+        <figure class="gallery-mosaic-item" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (30).webp" alt="نمونه جراحی بینی — قبل و بعد" width="600" height="400" loading="lazy"/>
+        </figure>
+        <figure class="gallery-mosaic-item" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (40).webp" alt="نمونه جراحی بینی — قبل و بعد" width="600" height="400" loading="lazy"/>
+        </figure>
+        <figure class="gallery-mosaic-item" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (50).webp" alt="نمونه جراحی بینی — قبل و بعد" width="600" height="400" loading="lazy"/>
+        </figure>
+        <a href="gallery.html" class="gallery-mosaic-item gallery-mosaic-more" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (60).webp" alt="" width="600" height="400" loading="lazy"/>
+          <div class="gallery-mosaic-more-overlay">
+            <span style="font-size:1.2rem;font-weight:700">مشاهده گالری کامل</span>
+            <span style="font-size:.85rem;opacity:.8">+۱۷۸ نمونه دیگر</span>
+          </div>
+        </a>
+      </div>
+      <div class="text-center" style="margin-top:2.5rem">
+        <a href="gallery.html" class="btn btn-outline">مشاهده همه نمونه‌ها</a>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA -->
-  <div class="cta-banner" role="region" aria-labelledby="services-cta-heading">
+  <section class="final-cta-band" aria-labelledby="services-cta-heading">
     <div class="container">
       <h2 id="services-cta-heading">برای مشاوره آماده‌اید؟</h2>
-      <p>فرم پرونده اولیه را تکمیل کنید — تیم ما با شما تماس می‌گیرد.</p>
-      <a href="https://app.drbastaninejad.com/" class="btn btn-primary" rel="noopener">تشکیل پرونده اولیه</a>
+      <p>فرم پرونده اولیه را تکمیل کنید — تیم ما در اسرع وقت با شما تماس می‌گیرد.</p>
+      <div class="cta-actions">
+        <a href="https://app.drbastaninejad.com/" class="btn btn-white btn-lg" rel="noopener">تشکیل پرونده اولیه</a>
+        <a href="contact.html" class="btn btn-white-outline btn-lg">تماس با ما</a>
+      </div>
     </div>
-  </div>
+  </section>
 
 </main>
 
 <footer class="site-footer" role="contentinfo">
   <div class="container">
-    <!-- Social links -->
     <div style="display:flex;justify-content:center;gap:1.25rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:1.25rem" role="list" aria-label="شبکه‌های اجتماعی">
-      <a href="https://www.instagram.com/dr.bastaninejad" target="_blank" rel="noopener noreferrer"
-         role="listitem" aria-label="اینستاگرام دکتر باستانی‌نژاد"
-         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
-        <i class="fa-brands fa-instagram" aria-hidden="true"></i> اینستاگرام
-      </a>
-      <a href="https://www.youtube.com/@dr.bastaninejad" target="_blank" rel="noopener noreferrer"
-         role="listitem" aria-label="یوتیوب دکتر باستانی‌نژاد"
-         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
-        <i class="fa-brands fa-youtube" aria-hidden="true"></i> یوتیوب
-      </a>
-      <a href="https://www.aparat.com/dr.bastaninejad" target="_blank" rel="noopener noreferrer"
-         role="listitem" aria-label="آپارات دکتر باستانی‌نژاد"
-         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
-        <i class="fa-brands fa-youtube" aria-hidden="true"></i> آپارات
-      </a>
+      <a href="https://www.instagram.com/dr.bastaninejad" target="_blank" rel="noopener noreferrer" role="listitem" aria-label="اینستاگرام دکتر باستانی‌نژاد" style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none"><i class="fa-brands fa-instagram" aria-hidden="true"></i> اینستاگرام</a>
+      <a href="https://www.youtube.com/@dr.bastaninejad" target="_blank" rel="noopener noreferrer" role="listitem" aria-label="یوتیوب دکتر باستانی‌نژاد" style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none"><i class="fa-brands fa-youtube" aria-hidden="true"></i> یوتیوب</a>
+      <a href="https://www.aparat.com/dr.bastaninejad" target="_blank" rel="noopener noreferrer" role="listitem" aria-label="آپارات دکتر باستانی‌نژاد" style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none"><i class="fa-brands fa-youtube" aria-hidden="true"></i> آپارات</a>
     </div>
     <div class="footer-grid">
       <div class="footer-brand">
@@ -190,26 +341,35 @@
           <li><a href="about.html">درباره دکتر</a></li>
           <li><a href="gallery.html">نمونه کارها</a></li>
           <li><a href="blog.html">مقالات</a></li>
+          <li><a href="faq.html">سوالات متداول</a></li>
           <li><a href="contact.html">تماس</a></li>
         </ul>
       </nav>
-      <nav class="footer-col" aria-label="خدمات">
-        <h4>خدمات</h4>
+      <nav class="footer-col" aria-label="خدمات جراحی">
+        <h4>خدمات زیبایی</h4>
         <ul role="list">
           <li><a href="services/rhinoplasty-primary.html">جراحی بینی اولیه</a></li>
           <li><a href="services/rhinoplasty-revision.html">جراحی بینی ترمیمی</a></li>
           <li><a href="services/rhinoplasty-fleshy.html">جراحی بینی گوشتی</a></li>
-          <li><a href="services/hump-removal.html">رفع قوز بینی</a></li>
+          <li><a href="services/rhinoplasty-bony.html">جراحی بینی استخوانی</a></li>
+          <li><a href="services/rhinoplasty-natural.html">بینی طبیعی</a></li>
+          <li><a href="services/rhinoplasty-fantasy.html">بینی فانتزی</a></li>
         </ul>
       </nav>
-      <div class="footer-col">
-        <h4>تماس با ما</h4>
+      <nav class="footer-col" aria-label="خدمات درمانی">
+        <h4>خدمات درمانی</h4>
+        <ul role="list">
+          <li><a href="services/septoplasty.html">انحراف بینی</a></li>
+          <li><a href="services/turbinoplasty.html">شاخک‌های بینی</a></li>
+          <li><a href="services/sinus-endoscopy.html">آندوسکوپی سینوس</a></li>
+        </ul>
+        <h4 style="margin-top:1.5rem">تماس با ما</h4>
         <ul role="list">
           <li><a href="tel:02186087250">۰۲۱–۸۶۰۸۷۲۵۰</a></li>
-          <li style="color:rgba(255,255,255,0.6);font-size:.85rem">تهران، خ. نلسون ماندلا، خ. صانعی، ساختمان نور، پلاک ۱ واحد ۶</li>
-          <li><a href="contact.html">نقشه و راهنمای مسیر</a></li>
+          <li><a href="tel:02188205606">۰۲۱–۸۸۲۰۵۶۰۶</a></li>
+          <li style="color:rgba(255,255,255,0.6);font-size:.85rem;line-height:1.7">تهران، خ. نلسون ماندلا،<br>خ. صانعی، ساختمان نور، پلاک ۱ واحد ۶</li>
         </ul>
-      </div>
+      </nav>
     </div>
     <div class="footer-bottom">
       <span>© ۱۴۰۵ کلینیک دکتر شاهین باستانی نژاد — تمامی حقوق محفوظ است.</span>
@@ -219,5 +379,6 @@
 </footer>
 
 <script src="assets/js/main.js"></script>
+<script src="assets/js/premium.js"></script>
 </body>
 </html>

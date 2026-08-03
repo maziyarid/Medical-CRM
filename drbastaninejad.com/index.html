@@ -56,6 +56,8 @@
   <link rel="stylesheet" href="assets/css/tokens.css"/>
   <link rel="stylesheet" href="assets/fonts/FontAwesome/css/all.css"/>
   <link rel="stylesheet" href="assets/css/main.css"/>
+  <link rel="stylesheet" href="assets/css/premium.css"/>
+  <link rel="stylesheet" href="assets/css/design-refresh.css"/>
 </head>
 <body>
 
@@ -71,9 +73,25 @@
     <ul class="nav-links" role="list">
       <li><a href="index.html" class="active" aria-current="page">خانه</a></li>
       <li><a href="about.html">درباره دکتر</a></li>
-      <li><a href="services.html">خدمات</a></li>
+      <li>
+        <a href="services/rhinoplasty-primary.html">جراحی بینی</a>
+        <div class="nav-dropdown" role="list">
+          <span class="nav-dropdown-group-label">بر اساس بافت</span>
+          <a href="services/rhinoplasty-bony.html">بینی استخوانی</a>
+          <a href="services/rhinoplasty-fleshy.html">بینی گوشتی</a>
+          <span class="nav-dropdown-group-label">بر اساس سبک و هدف</span>
+          <a href="services/rhinoplasty-natural.html">بینی طبیعی</a>
+          <a href="services/rhinoplasty-fantasy.html">بینی فانتزی</a>
+          <a href="services/rhinoplasty-revision.html">جراحی ترمیمی</a>
+          <span class="nav-dropdown-group-label">درمانی</span>
+          <a href="services/septoplasty.html">انحراف بینی</a>
+          <a href="services/turbinoplasty.html">شاخک‌های بینی</a>
+          <a href="services/sinus-endoscopy.html">آندوسکوپی سینوس</a>
+        </div>
+      </li>
       <li><a href="gallery.html">نمونه کارها</a></li>
       <li><a href="blog.html">مقالات</a></li>
+      <li><a href="faq.html">سوالات متداول</a></li>
       <li><a href="contact.html">تماس</a></li>
     </ul>
     <div class="nav-cta">
@@ -87,9 +105,10 @@
   <div id="nav-mobile" class="nav-mobile" role="menu">
     <a href="index.html" role="menuitem">خانه</a>
     <a href="about.html" role="menuitem">درباره دکتر</a>
-    <a href="services.html" role="menuitem">خدمات</a>
+    <a href="services/rhinoplasty-primary.html" role="menuitem">جراحی بینی</a>
     <a href="gallery.html" role="menuitem">نمونه کارها</a>
     <a href="blog.html" role="menuitem">مقالات</a>
+    <a href="faq.html" role="menuitem">سوالات متداول</a>
     <a href="contact.html" role="menuitem">تماس</a>
     <a href="booking.html" class="btn btn-primary" role="menuitem" style="margin-top:.5rem;text-align:center">نوبت‌گیری آنلاین</a>
   </div>
@@ -97,117 +116,114 @@
 
 <main id="main-content">
 
-  <!-- ── Hero ─────────────────────────────────────────────────────────────────── -->
-  <section class="hero" aria-labelledby="hero-heading">
-    <div class="container">
-      <div class="hero-inner">
-        <div class="hero-content">
-          <div class="hero-label" role="text">
-            جراح متخصص · تهران
-          </div>
-          <h1 id="hero-heading">
-            دکتر شاهین<br/>
-            <em>باستانی نژاد</em>
-          </h1>
-          <p class="hero-desc">
-            جراح و متخصص گوش، گلو و بینی · عضو هیئت علمی دانشگاه علوم پزشکی تهران · بیش از یک دهه تجربه در جراحی زیبایی بینی
-          </p>
-          <div class="hero-actions">
-            <a href="https://app.drbastaninejad.com/" class="btn btn-primary btn-lg"
-               rel="noopener" aria-label="تشکیل پرونده اولیه در سامانه نوبت‌گیری آنلاین">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              تشکیل پرونده اولیه
-            </a>
-            <a href="about.html" class="btn btn-outline">بیشتر بدانید</a>
-          </div>
-          <div class="hero-trust" role="list">
-            <div class="trust-item" role="listitem">
-              <span class="value">+۱۵</span>
-              <span class="label">سال تجربه</span>
-            </div>
-            <div class="trust-item" role="listitem">
-              <span class="value">+۲۰۰۰</span>
-              <span class="label">عمل موفق</span>
-            </div>
-            <div class="trust-item" role="listitem">
-              <span class="value">۹۷٪</span>
-              <span class="label">رضایت بیمار</span>
-            </div>
-          </div>
+  <!-- ========================================================================
+       PREMIUM HERO V2
+       ========================================================================= -->
+  <section class="hero-v2" aria-labelledby="hero-h1">
+    <div class="container hero-v2-inner">
+      <div>
+        <div class="sh-eyebrow">جراح متخصص · تهران · بیش از ۱۵ سال تجربه</div>
+        <h1 id="hero-h1">دستیابی به زیبایی طبیعی،<br/><em>با حفظ عملکرد تنفسی</em></h1>
+        <p class="lead" style="margin-block:1rem 2rem;max-width:480px">
+          دکتر شاهین باستانی‌نژاد — جراح و متخصص گوش، گلو و بینی، عضو هیئت علمی دانشگاه علوم پزشکی تهران و دبیر کمیته علمی رینولوژی انجمن جراحی پلاستیک بینی ایران.
+        </p>
+        <div class="hero-actions">
+          <a href="https://app.drbastaninejad.com/" class="btn btn-primary btn-lg" rel="noopener">تشکیل پرونده اولیه</a>
+          <a href="about.html" class="btn btn-outline">بیشتر بدانید</a>
         </div>
-        <!-- Hero photo — formal portrait (Doctor folder) -->
-        <div class="hero-visual">
-          <div class="hero-photo-wrap">
-            <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (1).webp"
-                 alt="دکتر شاهین باستانی نژاد — جراح و متخصص گوش، گلو و بینی"
-                 width="400" height="533"
-                 loading="eager"
-                 style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg)"/>
-          </div>
+        <div class="hero-v2-stats" role="list">
+          <div class="hero-stat" role="listitem"><span class="val">+۱۵</span><span class="lbl">سال تجربه</span></div>
+          <div class="hero-stat" role="listitem"><span class="val">+۲۰۰۰</span><span class="lbl">عمل موفق</span></div>
+          <div class="hero-stat" role="listitem"><span class="val">+۱۷۸</span><span class="lbl">نمونه گالری</span></div>
         </div>
+      </div>
+      <div class="hero-v2-photo">
+        <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (1).webp" alt="دکتر شاهین باستانی‌نژاد" width="420" height="560" loading="eager"/>
+        <div class="hero-chip hero-chip-1">عضو هیئت علمی TUMS</div>
+        <div class="hero-chip hero-chip-2">رتبه چهارم بورد تخصصی</div>
       </div>
     </div>
   </section>
 
-  <!-- ── Trust strip ───────────────────────────────────────────────────────────── -->
-  <div class="trust-strip" role="region" aria-label="اعتبار و مجوزها">
+  <!-- ========================================================================
+       TRUST STRIP V2
+       ========================================================================= -->
+  <div class="trust-strip-v2" role="region" aria-label="اعتبار و مجوزها">
     <div class="container">
-      <div class="trust-strip-inner" role="list">
-        <div class="trust-badge" role="listitem">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span>عضو هیئت علمی دانشگاه علوم پزشکی تهران</span>
+      <div class="trust-strip-v2-inner" role="list">
+        <div class="trust-badge-v2" role="listitem">
+          <div class="tb-icon" aria-hidden="true">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <span class="tb-text">عضو هیئت علمی دانشگاه علوم پزشکی تهران</span>
         </div>
-        <div class="trust-badge" role="listitem">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
-          <span>بورد تخصصی گوش، گلو و بینی</span>
+        <div class="trust-badge-v2" role="listitem">
+          <div class="tb-icon" aria-hidden="true">
+            <i class="fa-solid fa-award"></i>
+          </div>
+          <span class="tb-text">بورد تخصصی گوش، گلو و بینی</span>
         </div>
-        <div class="trust-badge" role="listitem">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <span>مجوز وزارت بهداشت و درمان</span>
+        <div class="trust-badge-v2" role="listitem">
+          <div class="tb-icon" aria-hidden="true">
+            <i class="fa-solid fa-check-circle"></i>
+          </div>
+          <span class="tb-text">مجوز وزارت بهداشت و درمان</span>
         </div>
-        <div class="trust-badge" role="listitem">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <span>دبیر کمیته علمی رینولوژی انجمن جراحی پلاستیک بینی ایران</span>
+        <div class="trust-badge-v2" role="listitem">
+          <div class="tb-icon" aria-hidden="true">
+            <i class="fa-solid fa-users"></i>
+          </div>
+          <span class="tb-text">دبیر کمیته علمی رینولوژی</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ── Services teaser ──────────────────────────────────────────────────────── -->
-  <section class="section services-section" aria-labelledby="services-heading">
+  <!-- ========================================================================
+       SERVICES GRID
+       ========================================================================= -->
+  <section class="section band-white" aria-labelledby="services-heading">
     <div class="container">
-      <div class="text-center" style="margin-bottom:3rem">
-        <div class="section-label">خدمات تخصصی</div>
-        <h2 id="services-heading" class="section-heading">جراحی بینی با بالاترین استانداردها</h2>
-        <p class="section-subheading" style="margin-inline:auto">
+      <div class="sh sh-center">
+        <span class="sh-eyebrow">خدمات تخصصی</span>
+        <h2 id="services-heading">جراحی بینی با بالاترین استانداردها</h2>
+        <p class="sh-sub">
           از جراحی بینی اولیه تا اصلاح‌های ترمیمی پیچیده — هر عمل با رعایت کامل استانداردهای ایمنی و زیبایی‌شناسی انجام می‌شود.
         </p>
       </div>
-      <div class="grid-3" role="list">
-        <article class="service-card" role="listitem">
-          <div class="s-icon" aria-hidden="true">
-            <img src="assets/images/Blog/Blog-101.webp" alt="" width="28" height="28" loading="lazy" style="border-radius:var(--radius-sm);width:28px;height:28px;object-fit:cover"/>
+      <div class="svc-grid" role="list">
+        <a href="services/rhinoplasty-primary.html" class="svc-card" role="listitem">
+          <div class="svc-card-icon" aria-hidden="true">
+            <i class="fa-solid fa-notes-medical"></i>
           </div>
-          <h3><a href="services/rhinoplasty-primary.html" style="color:inherit;text-decoration:none">جراحی بینی اولیه (راینوپلاستی)</a></h3>
+          <h3>جراحی بینی اولیه (راینوپلاستی)</h3>
           <p>اصلاح فرم، اندازه و تناسب بینی با چهره — برای افرادی که برای اولین بار تحت جراحی قرار می‌گیرند.</p>
-          <a href="services/rhinoplasty-primary.html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-        </article>
-        <article class="service-card" role="listitem">
-          <div class="s-icon" aria-hidden="true">
-            <img src="assets/images/Blog/Blog-102.webp" alt="" width="28" height="28" loading="lazy" style="border-radius:var(--radius-sm);width:28px;height:28px;object-fit:cover"/>
+          <span class="svc-card-link">بیشتر بدانید <i class="fa-solid fa-arrow-left"></i></span>
+        </a>
+        <a href="services/rhinoplasty-revision.html" class="svc-card" role="listitem">
+          <div class="svc-card-icon" aria-hidden="true">
+            <i class="fa-solid fa-repeat"></i>
           </div>
-          <h3><a href="services/rhinoplasty-revision.html" style="color:inherit;text-decoration:none">جراحی بینی ترمیمی</a></h3>
+          <h3>جراحی بینی ترمیمی</h3>
           <p>اصلاح نواقص جراحی قبلی یا بهبود نتیجه‌ای که به دلیل تغییرات بافتی رضایت‌بخش نبوده است.</p>
-          <a href="services/rhinoplasty-revision.html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-        </article>
-        <article class="service-card" role="listitem">
-          <div class="s-icon" aria-hidden="true">
-            <img src="assets/images/Blog/Blog-106.webp" alt="" width="28" height="28" loading="lazy" style="border-radius:var(--radius-sm);width:28px;height:28px;object-fit:cover"/>
+          <span class="svc-card-link">بیشتر بدانید <i class="fa-solid fa-arrow-left"></i></span>
+        </a>
+        <a href="services/rhinoplasty-fleshy.html" class="svc-card" role="listitem">
+          <div class="svc-card-icon" aria-hidden="true">
+            <i class="fa-solid fa-draw-polygon"></i>
           </div>
-          <h3><a href="services/hump-removal.html" style="color:inherit;text-decoration:none">رفع قوز بینی</a></h3>
-          <p>برداشت پله یا قوز استخوانی/غضروفی بینی و ایجاد پروفایل صاف و طبیعی در نیمرخ.</p>
-          <a href="services/hump-removal.html" class="s-link">بیشتر بدانید <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
-        </article>
+          <h3>جراحی بینی گوشتی</h3>
+          <p>بینی گوشتی با پوست ضخیم چالش‌برانگیزترین نوع رینوپلاستی است — روش جراحی و نتایج را بخوانید.</p>
+          <span class="svc-card-link">بیشتر بدانید <i class="fa-solid fa-arrow-left"></i></span>
+        </a>
+        <a href="services/rhinoplasty.html" class="svc-card" role="listitem">
+          <div class="svc-card-icon" aria-hidden="true">
+            <i class="fa-solid fa-list-check"></i>
+          </div>
+          <h3>همه خدمات جراحی بینی</h3>
+          <p>آشنایی با انواع جراحی بینی بر اساس بافت، سبک و اهداف درمانی — راهنمای کامل خدمات.</p>
+          <span class="svc-card-link">مشاهده همه <i class="fa-solid fa-arrow-left"></i></span>
+        </a>
       </div>
       <div class="text-center" style="margin-top:2.5rem">
         <a href="services.html" class="btn btn-outline">مشاهده همه خدمات</a>
@@ -215,92 +231,178 @@
     </div>
   </section>
 
-  <!-- ── About teaser ─────────────────────────────────────────────────────────── -->
-  <section class="section about-section" aria-labelledby="about-teaser-heading">
+  <!-- ========================================================================
+       DOCTOR SPOTLIGHT
+       ========================================================================= -->
+  <section class="section band-porcelain" aria-labelledby="doctor-heading">
     <div class="container">
-      <div class="about-grid">
+      <div class="doctor-spotlight">
         <div>
-          <!-- About-teaser: OR/clinical setting photo -->
-          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (3).webp"
-               alt="دکتر شاهین باستانی نژاد در محیط بالینی"
-               width="480" height="360"
-               loading="lazy"
-               style="border-radius:var(--radius-lg);width:100%;object-fit:cover"/>
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (1).webp" alt="دکتر شاهین باستانی نژاد" width="340" height="453" loading="lazy" style="width:100%;border-radius:var(--radius-lg);object-fit:cover"/>
         </div>
         <div>
-          <div class="section-label">درباره دکتر</div>
-          <h2 id="about-teaser-heading" class="section-heading" style="margin-top:.75rem">
-            دکتر شاهین باستانی نژاد
-          </h2>
-          <p class="lead">جراح و متخصص گوش، گلو و بینی | جراح پلاستیک بینی</p>
-          <p style="margin-top:1rem">
+          <span class="sh-eyebrow">درباره دکتر</span>
+          <h2 id="doctor-heading">دکتر شاهین باستانی‌نژاد</h2>
+          <div class="doctor-cred-pills">
+            <span class="cred-pill">عضو هیئت علمی TUMS</span>
+            <span class="cred-pill">رتبه چهارم بورد تخصصی</span>
+            <span class="cred-pill">دبیر کمیته علمی رینولوژی</span>
+          </div>
+          <p style="margin-top:1rem;line-height:1.8;color:var(--muted)">
             دکتر شاهین باستانی‌نژاد، متخصص گوش، گلو و بینی و عضو هیئت علمی دانشگاه علوم پزشکی تهران، فارغ‌التحصیل دانشگاه اصفهان (۱۳۷۵) و دستیار تخصصی دانشگاه تهران (۱۳۸۴–۱۳۸۸) است. ایشان در آزمون بورد تخصصی رتبه چهارم کشوری را کسب نموده و دبیر کمیته علمی رینولوژی انجمن جراحی پلاستیک بینی ایران می‌باشند.
           </p>
-          <a href="about.html" class="btn btn-outline" style="margin-top:1.5rem">بیشتر بدانید</a>
+          <blockquote class="doctor-quote" style="margin-top:1.5rem;font-size:1.1rem">
+            هدف ما دستیابی به زیبایی طبیعی و همزمان حفظ کامل عملکرد تنفسی بینی است. هر بیمار با آناتومی منحصر به فردش مورد ارزیابی قرار می‌گیرد و طرح جراحی اختصاصی برای او تدوین می‌شود.
+          </blockquote>
+          <a href="about.html" class="btn btn-primary" style="margin-top:1.5rem">بیشتر بدانید</a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── Before/After showcase ─────────────────────────────────────────────────── -->
-  <!-- LEGAL NOTE: confirm written patient consent before publishing real images. -->
-  <section class="section gallery-section" aria-labelledby="ba-heading">
+  <!-- ========================================================================
+       GALLERY MOSAIC
+       ========================================================================= -->
+  <section class="section band-white" aria-labelledby="gallery-heading">
     <div class="container">
-      <div class="text-center" style="margin-bottom:3rem">
-        <div class="section-label">نتایج عمل</div>
-        <h2 id="ba-heading" class="section-heading">نمونه کارها — قبل و بعد</h2>
-        <p class="section-subheading" style="margin-inline:auto">
-          تمامی تصاویر با رضایت کامل بیماران منتشر شده است.
-          <a href="gallery.html" style="font-size:.85rem;margin-inline-start:.5rem">مشاهده گالری کامل ←</a>
-        </p>
+      <div class="sh sh-center">
+        <span class="sh-eyebrow">گالری تصاویر</span>
+        <h2 id="gallery-heading">نمونه کارها — قبل و بعد</h2>
+        <p class="sh-sub">تمامی تصاویر با رضایت کامل بیماران منتشر شده است.</p>
       </div>
-      <div class="ba-grid">
-
-        <!-- Real paired images from Before-After folder. Left=before, right=after. -->
-        <figure class="ba-card">
-          <img class="ba-img"
-               src="assets/images/Before-After/Before-n-After%20(1).webp"
-               alt="نمونه جراحی بینی — سمت چپ قبل، سمت راست بعد از عمل"
-               width="800" height="400" loading="lazy"/>
-          <figcaption class="ba-label"><span>قبل</span><span>بعد</span></figcaption>
+      <div class="gallery-mosaic" role="list">
+        <figure class="gallery-mosaic-item" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (1).webp" alt="نمونه جراحی بینی — قبل و بعد" width="600" height="800" loading="lazy"/>
         </figure>
-
-        <figure class="ba-card">
-          <img class="ba-img"
-               src="assets/images/Before-After/Before-n-After%20(2).webp"
-               alt="نمونه جراحی بینی — سمت چپ قبل، سمت راست بعد از عمل"
-               width="800" height="400" loading="lazy"/>
-          <figcaption class="ba-label"><span>قبل</span><span>بعد</span></figcaption>
+        <figure class="gallery-mosaic-item" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (2).webp" alt="نمونه جراحی بینی — قبل و بعد" width="600" height="800" loading="lazy"/>
         </figure>
-
-        <figure class="ba-card">
-          <img class="ba-img"
-               src="assets/images/Before-After/Before-n-After%20(3).webp"
-               alt="نمونه جراحی بینی — سمت چپ قبل، سمت راست بعد از عمل"
-               width="800" height="400" loading="lazy"/>
-          <figcaption class="ba-label"><span>قبل</span><span>بعد</span></figcaption>
+        <figure class="gallery-mosaic-item" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (3).webp" alt="نمونه جراحی بینی — قبل و بعد" width="600" height="800" loading="lazy"/>
         </figure>
-
+        <figure class="gallery-mosaic-item" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (4).webp" alt="نمونه جراحی بینی — قبل و بعد" width="600" height="800" loading="lazy"/>
+        </figure>
+        <figure class="gallery-mosaic-item" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (5).webp" alt="نمونه جراحی بینی — قبل و بعد" width="600" height="800" loading="lazy"/>
+        </figure>
+        <a href="gallery.html" class="gallery-mosaic-item gallery-mosaic-more" role="listitem">
+          <img src="assets/images/Before-After/Before-n-After (6).webp" alt="" width="600" height="800" loading="lazy"/>
+          <div class="gallery-mosaic-more-overlay">
+            <span style="font-size:1.2rem;font-weight:700">مشاهده گالری کامل</span>
+            <span style="font-size:.85rem;opacity:.8">+۱۷۸ تصویر دیگر</span>
+          </div>
+        </a>
       </div>
       <div class="text-center" style="margin-top:2.5rem">
-        <a href="gallery.html" class="btn btn-outline">مشاهده گالری کامل</a>
+        <a href="gallery.html" class="btn btn-outline">مشاهده همه نمونه کارها</a>
       </div>
     </div>
   </section>
 
-  <!-- ── Blog teasers ──────────────────────────────────────────────────────────── -->
-  <section class="section" aria-labelledby="blog-teaser-heading" style="background:var(--surface)">
+  <!-- ========================================================================
+       PROCESS STEPS
+       ========================================================================= -->
+  <section class="section band-porcelain" aria-labelledby="steps-heading">
     <div class="container">
-      <div class="text-center" style="margin-bottom:3rem">
-        <div class="section-label">مقالات آموزشی</div>
-        <h2 id="blog-teaser-heading" class="section-heading">آخرین مقالات</h2>
+      <div class="sh sh-center">
+        <span class="sh-eyebrow">فرایند درمان</span>
+        <h2 id="steps-heading">مراحل جراحی بینی</h2>
+        <p class="sh-sub">از مشاوره اولیه تا پیگیری‌های پس از عمل — همراه شما در تمام مراحل.</p>
       </div>
-      <div class="blog-grid">
+      <div class="steps-grid" role="list">
+        <article class="step-card reveal" role="listitem">
+          <div class="step-num-badge" aria-hidden="true">۱</div>
+          <h3>مشاوره تخصصی</h3>
+          <p>ارزیابی دقیق آناتومی بینی، بررسی انتظارات بیمار و تعیین اهداف قابل دستیابی.</p>
+        </article>
+        <article class="step-card reveal" role="listitem">
+          <div class="step-num-badge" aria-hidden="true">۲</div>
+          <h3>آمادگی قبل از عمل</h3>
+          <p>انجام آزمایشات لازم، مشاوره‌های پیش از جراحی و آماده‌سازی کامل بیمار.</p>
+        </article>
+        <article class="step-card reveal" role="listitem">
+          <div class="step-num-badge" aria-hidden="true">۳</div>
+          <h3>روز جراحی</h3>
+          <p>انجام جراحی در محیط بیمارستانی با رعایت کامل پروتکل‌های ایمنی و بهداشتی.</p>
+        </article>
+        <article class="step-card reveal" role="listitem">
+          <div class="step-num-badge" aria-hidden="true">۴</div>
+          <h3>دوره بهبودی</h3>
+          <p>پیگیری‌های منظم پس از عمل، برداشتن آتل و مشاوره‌های لازم برای دستیابی به بهترین نتیجه.</p>
+        </article>
+      </div>
+    </div>
+  </section>
 
-        <a class="blog-card" href="blog/rhinoplasty-revision.html">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-102.webp"
-               alt="جراحی بینی ترمیمی چیست" width="600" height="338" loading="lazy"/>
+  <!-- ========================================================================
+       TESTIMONIALS
+       ========================================================================= -->
+  <section class="section band-white" aria-labelledby="testimonials-heading">
+    <div class="container">
+      <div class="sh sh-center">
+        <span class="sh-eyebrow">نظرات بیماران</span>
+        <h2 id="testimonials-heading">تجربه بیماران قبلی</h2>
+      </div>
+      <div class="svc-grid" role="list">
+        <div class="testimonial-v2" role="listitem">
+          <p style="font-style:italic;color:var(--muted);line-height:1.8">[ظرفیت پذیرش نظرات بازبرد شده تا پایان بهار ۱۴۰۵ تکمیل شده است]</p>
+          <p style="font-size:.85rem;color:var(--muted);margin-top:1rem">بیمار [نام محافظت شده]</p>
+        </div>
+        <div class="testimonial-v2" role="listitem">
+          <p style="font-style:italic;color:var(--muted);line-height:1.8">[نظر واقعی در حال جمع‌آوری است]</p>
+          <p style="font-size:.85rem;color:var(--muted);margin-top:1rem">بیمار [نام محافظت شده]</p>
+        </div>
+        <div class="testimonial-v2" role="listitem">
+          <p style="font-style:italic;color:var(--muted);line-height:1.8">[نظر واقعی در حال جمع‌آوری است]</p>
+          <p style="font-size:.85rem;color:var(--muted);margin-top:1rem">بیمار [نام محافظت شده]</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       FAQ TEASER
+       ========================================================================= -->
+  <section class="section band-porcelain" aria-labelledby="faq-heading">
+    <div class="container">
+      <div class="sh sh-center">
+        <span class="sh-eyebrow">سوالات متداول</span>
+        <h2 id="faq-heading">رایج‌ترین پرسش‌ها</h2>
+      </div>
+      <div class="faq-v2" style="max-width:800px;margin-inline:auto">
+        <details class="faq-v2-item">
+          <summary>چه کسانی کاندید جراحی بینی هستند؟<svg class="faq-v2-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <div class="faq-v2-answer">افرادی که رشد استخوانی‌شان کامل شده (معمولاً بالای ۱۸ سال)، از فرم یا عملکرد بینی‌شان ناراضی هستند و انتظار واقع‌بینانه‌ای از نتیجه دارند.</div>
+        </details>
+        <details class="faq-v2-item">
+          <summary>دوره بهبودی جراحی بینی چقدر است؟<svg class="faq-v2-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <div class="faq-v2-answer">معمولاً ۷ تا ۱۰ روز پس از عمل آتل بینی برداشته می‌شود. شکل نهایی بینی پس از ۶ تا ۱۲ ماه قابل ارزیابی است.</div>
+        </details>
+        <details class="faq-v2-item">
+          <summary>هزینه جراحی بینی چقدر است؟<svg class="faq-v2-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></summary>
+          <div class="faq-v2-answer">هزینه به عوامل متعددی بستگی دارد و فقط پس از معاینه قابل اعلام است.</div>
+        </details>
+      </div>
+      <div class="text-center" style="margin-top:2rem">
+        <a href="faq.html" class="btn btn-outline">مشاهده همه سوالات</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       BLOG TEASERS
+       ========================================================================= -->
+  <section class="section band-white" aria-labelledby="blog-teaser-heading">
+    <div class="container">
+      <div class="sh sh-center">
+        <span class="sh-eyebrow">مقالات آموزشی</span>
+        <h2 id="blog-teaser-heading">آخرین مقالات</h2>
+        <p class="sh-sub">راهنمای کامل جراحی بینی — از آمادگی تا مراقبت‌های پس از عمل.</p>
+      </div>
+      <div class="blog-grid" role="list">
+        <a class="blog-card reveal" href="blog/rhinoplasty-revision.html" role="listitem">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-102.webp" alt="جراحی بینی ترمیمی چیست" width="600" height="338" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">جراحی بینی</div>
             <h3>جراحی بینی ترمیمی</h3>
@@ -308,11 +410,8 @@
             <span class="blog-card-link">ادامه مطلب <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
           </div>
         </a>
-
-        <a class="blog-card" href="blog/rhinoplasty-fleshy.html">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-103.webp"
-               alt="جراحی بینی گوشتی" width="600" height="338" loading="lazy"/>
+        <a class="blog-card reveal" href="blog/rhinoplasty-fleshy.html" role="listitem">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-103.webp" alt="جراحی بینی گوشتی" width="600" height="338" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">جراحی بینی</div>
             <h3>جراحی بینی گوشتی</h3>
@@ -320,11 +419,8 @@
             <span class="blog-card-link">ادامه مطلب <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
           </div>
         </a>
-
-        <a class="blog-card" href="blog/pre-op-steps.html">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-104.webp"
-               alt="اقدامات قبل از جراحی بینی" width="600" height="338" loading="lazy"/>
+        <a class="blog-card reveal" href="blog/pre-op-steps.html" role="listitem">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-104.webp" alt="اقدامات قبل از جراحی بینی" width="600" height="338" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">راهنمای بیمار</div>
             <h3>اقدامات قبل از جراحی بینی</h3>
@@ -332,7 +428,6 @@
             <span class="blog-card-link">ادامه مطلب <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
           </div>
         </a>
-
       </div>
       <div class="text-center" style="margin-top:2.5rem">
         <a href="blog.html" class="btn btn-outline">مشاهده همه مقالات</a>
@@ -340,8 +435,9 @@
     </div>
   </section>
 
-  <!-- ── Instagram grid ───────────────────────────────────────────────────────── -->
-  <!-- product owner: copy insta1–6 files to assets/images/ -->
+  <!-- ========================================================================
+       INSTAGRAM GRID
+       ========================================================================= -->
   <section class="section instagram-section" aria-labelledby="instagram-heading">
     <div class="container">
       <div class="instagram-header">
@@ -349,93 +445,66 @@
         <h2 id="instagram-heading" style="font-size:1rem;font-weight:700">اینستاگرام دکتر باستانی نژاد</h2>
         <a href="https://www.instagram.com/dr.bastaninejad" class="insta-handle" target="_blank" rel="noopener noreferrer" aria-label="مشاهده پروفایل اینستاگرام">@dr.bastaninejad</a>
       </div>
-      <!-- instagram grid: using doctor portrait photos until product owner supplies real Instagram exports -->
       <div class="instagram-grid" role="list">
         <div class="instagram-item" role="listitem">
-          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(5).webp"
-               alt="دکتر شاهین باستانی نژاد — جراح بینی"
-               width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
+          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(5).webp" alt="دکتر شاهین باستانی نژاد — جراح بینی" width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
           <div class="instagram-item-overlay" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
           </div>
         </div>
         <div class="instagram-item" role="listitem">
-          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(6).webp"
-               alt="دکتر شاهین باستانی نژاد"
-               width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
+          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(6).webp" alt="دکتر شاهین باستانی نژاد" width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
           <div class="instagram-item-overlay" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
         </div>
         <div class="instagram-item" role="listitem">
-          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(7).webp"
-               alt="دکتر شاهین باستانی نژاد"
-               width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
+          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(7).webp" alt="دکتر شاهین باستانی نژاد" width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
           <div class="instagram-item-overlay" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
         </div>
         <div class="instagram-item" role="listitem">
-          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(8).webp"
-               alt="دکتر شاهین باستانی نژاد"
-               width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
+          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(8).webp" alt="دکتر شاهین باستانی نژاد" width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
           <div class="instagram-item-overlay" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
         </div>
         <div class="instagram-item" role="listitem">
-          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(9).webp"
-               alt="دکتر شاهین باستانی نژاد"
-               width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
+          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(9).webp" alt="دکتر شاهین باستانی نژاد" width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
           <div class="instagram-item-overlay" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
         </div>
         <div class="instagram-item" role="listitem">
-          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(10).webp"
-               alt="دکتر شاهین باستانی نژاد"
-               width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
+          <img src="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(10).webp" alt="دکتر شاهین باستانی نژاد" width="600" height="800" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
           <div class="instagram-item-overlay" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── CTA banner ───────────────────────────────────────────────────────────── -->
-  <div class="cta-banner" role="region" aria-labelledby="cta-heading">
+  <!-- ========================================================================
+       FINAL CTA BAND
+       ========================================================================= -->
+  <section class="final-cta-band" aria-labelledby="final-cta-heading">
     <div class="container">
-      <h2 id="cta-heading">برای مشاوره و نوبت‌گیری آماده‌اید؟</h2>
+      <h2 id="final-cta-heading">آماده شروع سفر زیبایی خود هستید؟</h2>
       <p>فرم پرونده اولیه کمتر از ۲ دقیقه طول می‌کشد — بدون نیاز به حضور یا پیش‌پرداخت.</p>
-      <a href="https://app.drbastaninejad.com/" class="btn btn-primary" rel="noopener">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        تشکیل پرونده آنلاین
-      </a>
+      <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:1.5rem">
+        <a href="https://app.drbastaninejad.com/" class="btn btn-white btn-lg" rel="noopener">تشکیل پرونده آنلاین</a>
+        <a href="contact.html" class="btn btn-white-outline btn-lg">تماس با ما</a>
+      </div>
     </div>
-  </div>
-
-  <!-- ── Namad trust badge ─────────────────────────────────────────────────────── -->
-  <!--
-    TODO (product owner): Replace the <a> below with the live Enamad iframe/script
-    supplied by enamad.ir. Current placeholder shows the static logo image only.
-    Example replacement:
-      <a referrerpolicy="origin" target="_blank" href="https://trustseal.enamad.ir/?id=XXXXXX&Code=YYYYYY">
-        <img referrerpolicy="origin" src="https://trustseal.enamad.ir/logo.aspx?id=XXXXXX&Code=YYYYYY"
-             alt="نماد اعتماد الکترونیکی" style="cursor:pointer" code="YYYYYY"/>
-      </a>
-  -->
-  <!--
-    TODO (product owner): Replace the placeholder below with the live Enamad iframe/script
-    from enamad.ir. Current state: logo placeholder only (no external image dependency).
-    Example:
-      <a referrerpolicy="origin" target="_blank" href="https://trustseal.enamad.ir/?id=XXXXXX&Code=YYYYYY">
-        <img referrerpolicy="origin" src="https://trustseal.enamad.ir/logo.aspx?id=XXXXXX&Code=YYYYYY"
-             alt="نماد اعتماد الکترونیکی" style="cursor:pointer" code="YYYYYY"/>
-      </a>
-  -->
-  <div class="namad-wrap" role="region" aria-label="نماد اعتماد الکترونیکی">
-    <a href="contact.html" rel="noopener noreferrer" aria-label="نماد اعتماد الکترونیکی">
-      <img src="assets/images/logo.svg"
-           alt="نماد اعتماد الکترونیکی"
-           width="100" height="107" loading="lazy"
-           style="opacity:.5;filter:grayscale(1)"/>
-    </a>
-  </div>
+  </section>
 
 </main>
 
-<!-- ── Footer ───────────────────────────────────────────────────────────────── -->
+<!-- ── Namad trust badge ─────────────────────────────────────────────────────── -->
+<div class="namad-wrap" role="region" aria-label="نماد اعتماد الکترونیکی">
+  <a href="contact.html" rel="noopener noreferrer" aria-label="نماد اعتماد الکترونیکی">
+    <img src="assets/images/logo.svg"
+         alt="نماد اعتماد الکترونیکی"
+         width="100" height="107" loading="lazy"
+         style="opacity:.5;filter:grayscale(1)"/>
+  </a>
+</div>
+
+<!-- ========================================================================
+       FOOTER
+       ========================================================================= -->
 <footer class="site-footer" role="contentinfo">
   <div class="container">
     <!-- Social links -->
@@ -468,8 +537,10 @@
           <li><a href="index.html">خانه</a></li>
           <li><a href="about.html">درباره دکتر</a></li>
           <li><a href="services.html">خدمات</a></li>
+          <li><a href="services/rhinoplasty.html">همه خدمات بینی</a></li>
           <li><a href="gallery.html">نمونه کارها</a></li>
           <li><a href="blog.html">مقالات</a></li>
+          <li><a href="faq.html">سوالات متداول</a></li>
           <li><a href="booking.html">نوبت‌گیری</a></li>
         </ul>
       </nav>
@@ -479,6 +550,9 @@
           <li><a href="services/rhinoplasty-primary.html">جراحی بینی اولیه</a></li>
           <li><a href="services/rhinoplasty-revision.html">جراحی بینی ترمیمی</a></li>
           <li><a href="services/rhinoplasty-fleshy.html">جراحی بینی گوشتی</a></li>
+          <li><a href="services/rhinoplasty-bony.html">جراحی بینی استخوانی</a></li>
+          <li><a href="services/rhinoplasty-natural.html">جراحی بینی طبیعی</a></li>
+          <li><a href="services/rhinoplasty-fantasy.html">جراحی بینی فانتزی</a></li>
           <li><a href="services/hump-removal.html">رفع قوز بینی</a></li>
         </ul>
       </nav>
@@ -502,5 +576,6 @@
 </footer>
 
 <script src="assets/js/main.js"></script>
+<script src="assets/js/premium.js"></script>
 </body>
 </html>

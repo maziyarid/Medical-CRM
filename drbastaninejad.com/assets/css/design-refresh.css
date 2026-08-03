@@ -1,0 +1,331 @@
+/*
+ * ============================================================================
+ *  drbastaninejad.com — Design Refresh Initiative
+ *  Author  : Gemini Agent
+ *  Scope   : Overrides for a more professional and modern UI/UX.
+ * ============================================================================
+ */
+
+/* ── Global Enhancements ────────────────────────────────────────────────── */
+
+/* A more refined background color for alternating sections */
+.band-porcelain {
+  background-color: #F9FAFB; /* A very light, neutral gray */
+}
+
+/* ── Trust Strip V2 ─────────────────────────────────────────────────────── */
+
+.trust-badge-v2 .tb-icon i {
+  font-size: 20px; /* Match the previous SVG size */
+  color: var(--maz-accent);
+}
+
+/* ── Services Grid ──────────────────────────────────────────────────────── */
+
+.svc-card {
+  text-align: right;
+  border: 1px solid transparent;
+  transition: all var(--transition-slow);
+}
+
+.svc-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px -12px rgba(37, 39, 44, 0.25);
+  border-color: var(--evergreen-soft);
+  background: white;
+}
+
+.svc-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background: var(--evergreen-soft);
+  color: var(--evergreen);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+}
+
+.svc-card-icon i {
+  font-size: 28px;
+}
+
+.svc-card h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: var(--space-2);
+}
+
+.svc-card p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.7;
+  flex-grow: 1;
+}
+
+.svc-card-link {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--evergreen);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: var(--space-4);
+  transition: gap var(--transition);
+}
+
+.svc-card:hover .svc-card-link {
+  gap: 0.8rem;
+}
+
+.svc-card-link i {
+  transition: transform var(--transition);
+}
+
+.svc-card:hover .svc-card-link i {
+  transform: translateX(-4px);
+}
+
+/* ── Hero Section ───────────────────────────────────────────────────────── */
+.hero-v2 {
+    background: linear-gradient(145deg, #f0f7f0 0%, var(--evergreen-soft) 45%, var(--porcelain, #F7F8F6) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-v2::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%232f7d32' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+}
+
+.hero-v2-inner {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.hero-v2 h1 {
+    font-weight: 800;
+    text-shadow: 0 2px 20px rgba(255, 255, 255, 0.5);
+}
+
+.hero-v2 .lead {
+    font-size: 1.15rem;
+    line-height: 1.8;
+}
+
+.btn-primary {
+    border-radius: var(--radius-full);
+    padding: 0.9rem 2rem;
+    font-size: 1rem;
+    box-shadow: 0 8px 20px -8px var(--evergreen);
+}
+
+.btn-outline {
+    border-radius: var(--radius-full);
+    padding: 0.9rem 2rem;
+    font-size: 1rem;
+    border-width: 2px;
+}
+
+.hero-v2-photo {
+    position: relative;
+}
+
+.hero-v2-photo img {
+    border-radius: var(--radius-lg);
+    box-shadow: 0 25px 50px -12px rgba(37, 39, 44, 0.3);
+    border: 3px solid white;
+}
+
+.hero-chip {
+    box-shadow: 0 10px 20px -5px rgba(37, 39, 44, 0.15);
+    backdrop-filter: blur(16px);
+}
+/* ── Navigation Responsive Improvements ─────────────────────────────────── */
+
+.nav-toggle {
+  z-index: 101; /* Ensure it's above the nav bar's blur effect */
+}
+
+/* Animate hamburger to 'X' */
+.nav-toggle[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.nav-toggle[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Mobile navigation slide-in effect */
+.nav-mobile {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  max-width: 80vw;
+  background: white;
+  border-left: 1px solid var(--border);
+  border-top: none;
+  padding: var(--space-8) var(--space-6);
+  transform: translateX(100%);
+  transition: transform var(--transition);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.nav-mobile.open {
+  transform: translateX(0);
+  box-shadow: -10px 0 30px -15px rgba(0,0,0,0.2);
+}
+
+/* Overlay for when mobile nav is open */
+body.nav-open::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+body.nav-open::before {
+  opacity: 1;
+}
+
+/* Unified nav links styling */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.nav-links a {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+  text-decoration: none;
+}
+
+.nav-links a:hover {
+  color: var(--graphite);
+  background: var(--porcelain);
+  text-decoration: none;
+}
+
+.nav-links a.active {
+  color: var(--evergreen);
+  background: var(--evergreen-soft);
+}
+
+/* Dropdown styling */
+.has-dropdown {
+  position: relative;
+}
+
+.nav-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-3);
+  min-width: 240px;
+  z-index: 110;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.has-dropdown:hover .nav-dropdown {
+  display: flex;
+}
+
+.nav-dropdown-group-label {
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  padding: var(--space-3) var(--space-3) var(--space-1);
+}
+
+.nav-dropdown a {
+  padding: var(--space-2) var(--space-3);
+  font-size: .85rem;
+  white-space: nowrap;
+}
+
+/* Mobile specific styles */
+.nav-cta-mobile {
+  display: none; /* Hide on desktop */
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .nav-inner > .nav-links {
+    display: none; /* Hide the desktop nav links */
+  }
+
+  .nav-mobile .nav-links {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+    width: 100%;
+    display: flex; /* Ensure the links are displayed in the mobile nav */
+  }
+
+  .nav-mobile .nav-links a {
+    padding: var(--space-3);
+    font-size: 1rem;
+  }
+
+  .has-dropdown .nav-dropdown {
+    display: none; /* Mobile doesn't get hover dropdowns */
+    position: static;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    min-width: 0;
+    margin-top: var(--space-2);
+    padding-right: var(--space-4);
+  }
+
+  /* We need a click-to-open for mobile dropdowns, which requires JS.
+     For now, we can show them by default on mobile. */
+  .has-dropdown .nav-dropdown {
+      display: flex;
+  }
+  
+  .nav-dropdown a {
+      color: var(--muted);
+  }
+
+  .nav-cta {
+    display: none; /* Hide desktop CTA */
+  }
+
+  .nav-cta-mobile {
+    display: block; /* Show mobile CTA */
+  }
+}

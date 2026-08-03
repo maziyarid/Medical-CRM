@@ -9,14 +9,16 @@
 
   toggle.addEventListener('click', function () {
     var open = mobile.classList.toggle('open');
+    document.body.classList.toggle('nav-open', open);
     toggle.setAttribute('aria-expanded', String(open));
     toggle.setAttribute('aria-label', open ? 'بستن منو' : 'باز کردن منو');
   });
 
   /* Close on outside click */
   document.addEventListener('click', function (e) {
-    if (!toggle.contains(e.target) && !mobile.contains(e.target)) {
+    if (mobile.classList.contains('open') && !toggle.contains(e.target) && !mobile.contains(e.target)) {
       mobile.classList.remove('open');
+      document.body.classList.remove('nav-open');
       toggle.setAttribute('aria-expanded', 'false');
     }
   });
@@ -25,6 +27,7 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && mobile.classList.contains('open')) {
       mobile.classList.remove('open');
+      document.body.classList.remove('nav-open');
       toggle.setAttribute('aria-expanded', 'false');
       toggle.focus();
     }
@@ -376,3 +379,25 @@
 }());
 
 /* End of file — MAZ//ID · © 2026 Dr. Shahin Bastaninejad */
+
+/* ── HTML includes (components) ───────────────────────────────────────── */
+(function () {
+  var includes = document.querySelectorAll('[data-include]');
+  includes.forEach(function (el) {
+    var file = 'components/' + el.dataset.include + '.html';
+    fetch(file)
+      .then(function (res) {
+        if (!res.ok) {
+          console.error('Could not load component: ' + file);
+          return '';
+        }
+        return res.text();
+      })
+      .then(function (html) {
+        if (html) {
+          el.outerHTML = html;
+        }
+      });
+  });
+}());
+
