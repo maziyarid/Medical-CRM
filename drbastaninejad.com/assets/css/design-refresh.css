@@ -3771,3 +3771,525 @@ body {
 }
 
 /* ── END PREMIUM DESIGN QUALITY v3 ─────────────────────────────────────── */
+
+/* ============================================================================
+   PO-HARDENING CYCLE 1 — Critical fixes appended to design-refresh.css
+   Covers: A,B,C,D,F,G,H,I,J(CSS),K,M,N
+   ============================================================================ */
+
+/* ── H: Enforce primary CTA white text on green — global nuclear rule ──────── */
+.btn-primary,
+a.btn-primary,
+button.btn-primary {
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--evergreen, #2F7D32), var(--evergreen-dark, #246b28)) !important;
+}
+.btn-primary:hover:not(:disabled),
+a.btn-primary:hover {
+  color: #fff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(47, 125, 50, 0.38) !important;
+}
+.btn-primary:focus,
+a.btn-primary:focus,
+.btn-primary:active,
+a.btn-primary:active {
+  color: #fff !important;
+}
+
+/* ── N: Hero text centred on mobile ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hero-v2-text {
+    text-align: center !important;
+  }
+  .hero-v2-text .sh-eyebrow,
+  .hero-v2-text h1,
+  .hero-v2-text .lead {
+    text-align: center !important;
+  }
+  .hero-v2-text .hero-actions {
+    justify-content: center !important;
+  }
+  .hero-v2-text .hero-v2-stats {
+    justify-content: center !important;
+  }
+  .hero-v2-text .lead {
+    margin-inline: auto !important;
+  }
+}
+
+/* ── K: Mobile nav header — logo centred, close on right ───────────────────── */
+.nm-header {
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr !important;
+  align-items: center !important;
+  padding: 1rem 1.25rem !important;
+  border-bottom: 1px solid var(--border, #DDE2DD) !important;
+  flex-shrink: 0 !important;
+  min-height: 64px !important;
+}
+
+/* ── C: Steps grid — remove inner scrollbar ─────────────────────────────────── */
+.steps-grid {
+  overflow: visible !important;
+}
+/* Ensure the containing section doesn't produce a scrollbar */
+[aria-labelledby="steps-heading"] {
+  overflow: hidden !important;
+}
+
+/* ── M: Trust strip v2 sub-text ─────────────────────────────────────────────── */
+.trust-badge-v2 .tb-sub {
+  font-size: .68rem;
+  color: rgba(255, 255, 255, .45);
+  display: block;
+  margin-top: .15rem;
+}
+.trust-badge-v2 {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: .75rem !important;
+}
+.trust-badge-v2 .tb-icon {
+  flex-shrink: 0 !important;
+  margin-top: .1rem;
+}
+
+/* ── A: Service card unique accent colours ───────────────────────────────────── */
+/* Default svc-card icon colour is evergreen; overrides per type below */
+.svc-card--primary  .svc-card-icon { background: #e8f5e9; color: #2F7D32; }
+.svc-card--revision .svc-card-icon { background: #fce4ec; color: #c62828; }
+.svc-card--revision:hover            { border-color: rgba(198, 40, 40, .25) !important; }
+
+.svc-card--bony .svc-card-icon     { background: #e3f2fd; color: #1565c0; }
+.svc-card--bony:hover               { border-color: rgba(21, 101, 192, .25) !important; }
+
+.svc-card--fleshy .svc-card-icon   { background: #fff3e0; color: #e65100; }
+.svc-card--fleshy:hover             { border-color: rgba(230, 81, 0, .25) !important; }
+
+.svc-card--natural .svc-card-icon  { background: #f1f8e9; color: #33691e; }
+.svc-card--natural:hover            { border-color: rgba(51, 105, 30, .25) !important; }
+
+.svc-card--fantasy .svc-card-icon  { background: #ede7f6; color: #6a1b9a; }
+.svc-card--fantasy:hover            { border-color: rgba(106, 27, 154, .25) !important; }
+
+.svc-card--hump .svc-card-icon     { background: #fafafa; color: #37474f; }
+.svc-card--hump:hover               { border-color: rgba(55, 71, 79, .25) !important; }
+
+.svc-card--sept .svc-card-icon     { background: #e1f5fe; color: #0277bd; }
+.svc-card--sept:hover               { border-color: rgba(2, 119, 189, .25) !important; }
+
+.svc-card--turb .svc-card-icon     { background: #e0f7fa; color: #00838f; }
+.svc-card--turb:hover               { border-color: rgba(0, 131, 143, .25) !important; }
+
+.svc-card--sinus .svc-card-icon    { background: #fef9e7; color: #f57f17; }
+.svc-card--sinus:hover              { border-color: rgba(245, 127, 23, .25) !important; }
+
+/* ── I: Instagram honest fallback styles ─────────────────────────────────────── */
+.instagram-fallback {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.instagram-fallback-cta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #fff;
+  border: 1.5px solid #e1306c;
+  border-radius: var(--radius-md, 14px);
+  text-decoration: none;
+  color: var(--graphite, #25272C);
+  box-shadow: 0 2px 12px rgba(225, 48, 108, .1);
+  transition: box-shadow .2s ease, transform .2s ease;
+  max-width: 420px;
+  margin-inline: auto;
+}
+.instagram-fallback-cta:hover {
+  box-shadow: 0 8px 28px rgba(225, 48, 108, .2);
+  transform: translateY(-2px);
+  text-decoration: none;
+  color: var(--graphite, #25272C);
+}
+.instagram-fallback-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.instagram-fallback-text {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  flex: 1;
+}
+.instagram-handle {
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--graphite);
+}
+.instagram-sub {
+  font-size: .8rem;
+  color: var(--muted, #6A7078);
+}
+.instagram-fallback-arrow {
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.instagram-gallery-preview {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--space-3, .75rem);
+}
+@media (max-width: 768px) {
+  .instagram-gallery-preview {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .instagram-gallery-preview {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.instagram-gallery-preview .instagram-item {
+  border-radius: var(--radius-sm, 8px);
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 1;
+  display: block;
+}
+.instagram-gallery-preview .instagram-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.instagram-item-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.instagram-item:hover .instagram-item-overlay {
+  opacity: 1;
+}
+
+/* ── F: Certificate lightbox ─────────────────────────────────────────────────── */
+.cert-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(10, 10, 10, .92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+.cert-lightbox.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.cert-lightbox img {
+  max-width: 90vw;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.6);
+}
+.cert-lightbox-close {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease;
+}
+.cert-lightbox-close:hover {
+  background: rgba(255,255,255,.24);
+}
+.cert-lightbox-caption {
+  color: rgba(255,255,255,.7);
+  font-size: .88rem;
+  text-align: center;
+  max-width: 600px;
+}
+/* cert-card clickable hint */
+.cert-card {
+  cursor: zoom-in;
+}
+.cert-card:focus-visible {
+  outline: 3px solid var(--evergreen);
+  outline-offset: 2px;
+}
+
+/* ── G: Before/After slider component ───────────────────────────────────────── */
+.ba-slider-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  cursor: col-resize;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  border-radius: var(--radius-md, 14px);
+}
+.ba-before,
+.ba-after {
+  position: absolute;
+  inset: 0;
+}
+.ba-before img,
+.ba-after img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+.ba-after {
+  clip-path: inset(0 50% 0 0);
+  transition: clip-path 0ms; /* instant while dragging */
+}
+.ba-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #fff;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.15);
+  z-index: 2;
+  pointer-events: none;
+}
+.ba-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  pointer-events: none;
+}
+.ba-handle-arrows {
+  display: flex;
+  gap: .3rem;
+  color: var(--graphite, #25272C);
+  font-size: .85rem;
+}
+/* Arrow navigation buttons */
+.ba-nav-prev,
+.ba-nav-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .9rem;
+  color: var(--graphite);
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+  z-index: 4;
+  transition: background .15s ease, transform .15s ease;
+}
+.ba-nav-prev { right: .75rem; }
+.ba-nav-next { left: .75rem; }
+.ba-nav-prev:hover,
+.ba-nav-next:hover {
+  background: #fff;
+  transform: translateY(-50%) scale(1.08);
+}
+/* Label chips */
+.ba-chip {
+  position: absolute;
+  top: .75rem;
+  font-size: .68rem;
+  font-weight: 700;
+  padding: .25rem .65rem;
+  border-radius: 99px;
+  color: #fff;
+  pointer-events: none;
+  z-index: 3;
+}
+.ba-chip-before { right: .75rem; background: rgba(37,39,44,.65); }
+.ba-chip-after  { left: .75rem;  background: rgba(47,125,50,.75); }
+
+/* BA module card */
+.ba-module-card {
+  background: #fff;
+  border: 1px solid var(--border, #DDE2DD);
+  border-radius: var(--radius-lg, 16px);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.ba-module-label {
+  display: flex;
+  justify-content: space-between;
+  padding: .5rem 1rem;
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--porcelain, #F7F8F6);
+  border-top: 1px solid var(--border);
+}
+
+/* ── B: Section textures and patterns ────────────────────────────────────────── */
+/* Subtle dot pattern overlay for section backgrounds */
+.band-porcelain {
+  background-image: radial-gradient(circle at 1px 1px, rgba(47,125,50,.04) 1px, transparent 0);
+  background-size: 28px 28px;
+  background-color: #f9fafb;
+}
+.hero-v2::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, var(--surface, #fff));
+  pointer-events: none;
+}
+
+/* ── D: Chaty always-right on mobile ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .chaty-wrap {
+    right: .75rem !important;
+    left: auto !important;
+    bottom: calc(.75rem + env(safe-area-inset-bottom, 0)) !important;
+  }
+}
+
+/* ── O: Instant paint — prevent FOUC on hero ─────────────────────────────────── */
+.hero-v2 {
+  content-visibility: auto;
+  contain-intrinsic-size: 600px;
+}
+.hero-v2-photo img {
+  aspect-ratio: 3/4;
+  width: 100%;
+}
+/* Reserve space for steps grid to prevent CLS */
+.steps-grid {
+  min-height: 220px;
+}
+
+/* ── Particle canvas — behind everything ─────────────────────────────────────── */
+#particle-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ── Trust marquee band ──────────────────────────────────────────────────────── */
+.trust-marquee-wrap {
+  background: #111517;
+  padding-block: .6rem;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.trust-marquee-track {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  white-space: nowrap;
+  width: max-content;
+}
+.trust-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  color: rgba(255,255,255,.65);
+  font-size: .78rem;
+  font-weight: 600;
+  padding-inline: 1.25rem;
+}
+.trust-marquee-item i {
+  color: var(--maz-accent, #A8FF4D);
+  font-size: .72rem;
+}
+.trust-marquee-sep {
+  color: rgba(255,255,255,.2);
+  font-size: .5rem;
+  vertical-align: middle;
+}
+.trust-marquee-sep::before {
+  content: '◆';
+}
+
+/* ── Doctor spotlight — reduce duplication ───────────────────────────────────── */
+.doctor-portrait-frame {
+  position: relative;
+}
+.doctor-portrait-badge {
+  position: absolute;
+  bottom: -12px;
+  right: 20px;
+  background: var(--evergreen, #2F7D32);
+  color: #fff;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .45rem 1rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  box-shadow: 0 4px 16px rgba(47,125,50,.4);
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  .doctor-portrait-badge {
+    right: 50%;
+    transform: translateX(50%);
+    bottom: -14px;
+  }
+}
+
+/* ── Final CTA button nm-footer  ─────────────────────────────────────────────── */
+.nm-footer .btn-primary {
+  color: #fff !important;
+}
+
+/* End PO-Hardening Cycle 1 */
