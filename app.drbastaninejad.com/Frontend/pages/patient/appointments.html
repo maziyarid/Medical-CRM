@@ -1,22 +1,21 @@
-<!doctype html>
+﻿<!doctype html>
 <!--
   MΛZ Medical CRM — Patient Appointments (Production-wired)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
   API:  GET /patient/appointments  ✅ LIVE (Phase C, 2026-07-31)
-  Contract fields (items[]): appointment_id, date_jalali, time, reason,
+  Contract fields (items[]): appointment_id, scheduled_at, reason,
                               status, provider_name
   Status enum: confirmed | scheduled | cancelled | completed
-  Note: requireAuth() guard; date_jalali rendered exactly as returned.
+  Note: requireAuth() guard; scheduled_at passed through toJalaliDate().
         escHtml applied to all server strings written via innerHTML.
         onclick removed — addEventListener used throughout.
 -->
-<html dir="rtl" lang="fa">
+<html dir="rtl" lang="fa-IR">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>نوبت‌ها — داشبورد بیمار</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
   <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
@@ -248,6 +247,8 @@
       } catch (err) {
         if (err.httpStatus === 401) {
           window.location.replace('../auth/patient-login.html');
+        } else if (err.httpStatus === 403) {
+          window.location.replace('../errors/403.html');
         } else {
           document.getElementById('appts-error-msg').textContent =
             MAZCRM.escHtml(err.message || 'خطای سرور. لطفاً دوباره تلاش کنید.');

@@ -26,7 +26,7 @@ Do not create a second dashboard, second design system, or duplicate page tree. 
 
 - `dir="rtl"` is mandatory. Directional arrows/chevrons/progress must mirror; number/date cells may use `dir="ltr"` where readability requires it.
 - Product tokens are Evergreen `#2F7D32`, Graphite `#25272C`, Porcelain `#F7F8F6`, Soft Sage `#E4F0E4`, Brass `#B6905E`. Do not use M-Z personal blue/neon tokens for medical-product UI.
-- Primary UI font: Vazirmatn/Vazir; headings: Shabnam or Sahel; Latin fallback: Inter/system UI.
+- Primary UI font: Irancell (self-hosted, six weights); Latin fallback: Tahoma/Arial/system-ui.
 - All code files begin with `MAZ//ID` comment header. Public-page footer credit is `M•Z`, small and unobtrusive.
 - WCAG 2.2 AA: visible labels, keyboard path, 44px targets, visible focus, meaningful errors linked by `aria-describedby`, `aria-live="polite"` for status messages, and reduced-motion support.
 - Jalali is display-only. API timestamps remain UTC; use the existing Jalali utility rather than another conversion library.

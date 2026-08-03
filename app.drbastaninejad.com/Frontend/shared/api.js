@@ -237,9 +237,11 @@ export const Intake = {
 export const Patient = {
   /**
    * GET /api/v1/patient/overview  ✅ LIVE (Phase C, 2026-07-30)
-   * Confirmed response fields from docs/API_CONTRACT.md:
-   *   patient_name, next_appointment{date_jalali,time,reason,status},
+   * Confirmed response fields from docs/API_CONTRACT.md §GET /patient/overview:
+   *   patient_name,
+   *   next_appointment{ appointment_id, scheduled_at, duration_minutes, reason, status },
    *   total_intakes, total_documents, last_intake_date
+   * next_appointment is null when no upcoming appointment exists.
    */
   async getOverview() {
     return request('GET', '/patient/overview');
@@ -248,8 +250,11 @@ export const Patient = {
   /**
    * GET /api/v1/patient/profile  ✅ LIVE (Phase C, 2026-07-30)
    * Confirmed response fields from docs/API_CONTRACT.md §GET /patient/profile:
-   *   first_name, last_name, father_name, national_id, birth_date,
-   *   mobile, email, home_tel, home_address
+   *   id, uuid, first_name, last_name, mobile, national_id, birth_date,
+   *   home_address, insurance_status
+   * Note: email, home_tel, father_name are returned by the backend but not
+   * listed in the current contract. Backend team to confirm and update
+   * docs/API_CONTRACT.md. See PROGRESS_LOG.md 2026-08-01 discrepancy note.
    */
   async getProfile() {
     return request('GET', '/patient/profile');
@@ -257,9 +262,14 @@ export const Patient = {
 
   /**
    * PATCH /api/v1/patient/profile  ✅ LIVE (Phase C, 2026-07-31)
-   * Writable fields: email, home_tel, home_address (partial update).
-   * Returns full updated profile on success (200).
-   * Per docs/API_CONTRACT.md §PATCH /patient/profile (v1.2)
+   * ⚠ CONTRACT DISCREPANCY (2026-08-01):
+   *   docs/API_CONTRACT.md §PATCH /patient/profile lists writable fields as:
+   *     { first_name, last_name, home_address }
+   *   But profile.html sends: { email, home_tel, home_address }
+   *   Both are plausible — backend must confirm which fields are actually
+   *   accepted and update docs/API_CONTRACT.md before this discrepancy is resolved.
+   *   The UI (profile.html) currently sends email+home_tel+home_address.
+   *   Until confirmed, DO NOT change the fields sent — a backend fix may be needed.
    *
    * @param {{ email?: string, home_tel?: string, home_address?: string }} patch
    */
@@ -270,9 +280,9 @@ export const Patient = {
   /**
    * GET /api/v1/patient/appointments  ✅ LIVE (Phase C, 2026-07-30)
    * Confirmed response fields from docs/API_CONTRACT.md §GET /patient/appointments:
-   *   items[]: { appointment_id, date_jalali, time, reason, status, provider_name }
+   *   items[]: { appointment_id, scheduled_at, duration_minutes, reason, status, provider_name }
    *   pagination: { total, per_page, current_page, last_page }
-   * Status enum: confirmed | scheduled | cancelled | completed
+   * Status enum: scheduled | confirmed | cancelled | completed
    */
   async getAppointments() {
     return request('GET', '/patient/appointments');
@@ -593,8 +603,7 @@ export const PatientExtended = {
    * Per docs/API_CONTRACT.md §GET /patient/records
    *
    * Response data:
-   *   items[]: { id, visit_type, author_name, subjective, assessment, plan,
-   *              is_signed, signed_at, created_at }
+   *   items[]: { id, chief_complaint, diagnosis, plan, ai_accepted, created_at }
    *   pagination: { total, per_page, current_page, last_page }
    *
    * @param {{ page?: number, per_page?: number }} params
@@ -698,6 +707,28 @@ export function requireAuth(redirectTo = '/Frontend/pages/auth/patient-login.htm
     return false;
   }
   return true;
+}
+
+// ---------------------------------------------------------------------------
+// Mid-session 401 redirect.
+// Call as the FIRST LINE of every data-loading catch block on staff/patient
+// pages. If the error is a 401 the token is cleared and the user is sent to
+// the login page — nothing else runs. Returns true when a redirect happened
+// (so callers can early-return if they need to).
+//
+// Usage:
+//   } catch (err) {
+//     if (redirectOn401(err, '../auth/login.html')) return;
+//     renderError(el, err);
+//   }
+// ---------------------------------------------------------------------------
+export function redirectOn401(err, loginPath = '../auth/login.html') {
+  if (err && err.httpStatus === 401) {
+    clearToken();
+    window.location.replace(loginPath);
+    return true;
+  }
+  return false;
 }
 
 /*

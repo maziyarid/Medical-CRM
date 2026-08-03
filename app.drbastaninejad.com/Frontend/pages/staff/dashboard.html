@@ -1,23 +1,21 @@
-<!doctype html>
+﻿<!doctype html>
 <!--
   MΛZ Medical CRM — Staff Dashboard (Production-wired)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
   API:  GET /api/v1/dashboard/overview  ✅ LIVE (dashboard.drbastaninejad.com)
-        GET /api/v1/intakes             ✅ LIVE (staff intake queue)
-  Contract: dashboard.drbastaninejad.com/docs/API_CONTRACT.md §Phase D
+        Response shape: { metrics[4], timeline[] } — see docs/API_CONTRACT.md §GET /dashboard/overview
   Envelope: "ok" (not "success") — see shared/api.js Staff namespace
-  Note: Both endpoints require Bearer token. The deployment gate
+  Note: Requires Bearer token. The deployment gate
         (migrations 001-007 not run on live DB) means this page will show
         the "deployment gate" state until migrations run.
         The data-state host pattern is used; states.css drives visibility.
 -->
-<html dir="rtl" lang="fa">
+<html dir="rtl" lang="fa-IR">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>داشبورد — MΛZ Medical CRM</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
   <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
@@ -124,7 +122,7 @@
             <p id="kpi-error-msg">لطفاً صفحه را رفرش کنید.</p>
             <div class="state-actions">
               <button type="button" class="btn btn-secondary btn-sm"
-                      onclick="loadDashboard()">تلاش مجدد</button>
+                      id="kpi-retry-btn">تلاش مجدد</button>
             </div>
           </div>
         </div>
@@ -247,8 +245,10 @@
     });
 
     // ── Retry buttons ────────────────────────────────────────────────────────
+    document.getElementById('kpi-retry-btn')
+      .addEventListener('click', loadDashboard);
     document.getElementById('appt-retry-btn')
-      .addEventListener('click', () => loadAppointments());
+      .addEventListener('click', loadAppointments);
 
     // ── Jalali date for subtitle ─────────────────────────────────────────────
     (function () {
@@ -265,7 +265,9 @@
     }
 
     function isDeploymentGate(err) {
-      return err && (err.httpStatus === 401 || err.httpStatus === 404 || err.httpStatus === 503);
+      // 401 is NOT a deployment gate — it means the session expired and the user
+      // must be redirected to login. Only 404/503 indicate the endpoint is not yet live.
+      return err && (err.httpStatus === 404 || err.httpStatus === 503);
     }
 
     // ── KPI / overview loader ────────────────────────────────────────────────
@@ -302,7 +304,9 @@
 
         MAZCRM.states.set(kpisHost, 'ready');
       } catch (err) {
-        if (isDeploymentGate(err)) {
+        if (err.httpStatus === 401) {
+          window.location.replace('../auth/login.html');
+        } else if (isDeploymentGate(err)) {
           document.getElementById('deploy-gate').hidden = false;
           ['kpi-today', 'kpi-pending', 'kpi-revenue', 'kpi-tasks'].forEach(id => {
             document.getElementById(id).textContent = '—';
@@ -319,8 +323,7 @@
     }
 
     // ── Today's schedule loader ──────────────────────────────────────────────
-    // Reads data.today[] from the same overview response.
-    // Falls back to GET /intakes if today list is empty (pending appointments table).
+    // Reads data.today[] from the GET /dashboard/overview response.
     async function loadAppointments() {
       const host = document.getElementById('today-host');
       MAZCRM.states.set(host, 'loading');
@@ -358,7 +361,9 @@
         }
         MAZCRM.states.set(host, 'ready');
       } catch (err) {
-        if (isDeploymentGate(err)) {
+        if (err.httpStatus === 401) {
+          window.location.replace('../auth/login.html');
+        } else if (isDeploymentGate(err)) {
           document.getElementById('today-host').innerHTML =
             '<div class="state-panel state-empty" role="status">' +
               '<div class="state-icon" aria-hidden="true">⏳</div>' +

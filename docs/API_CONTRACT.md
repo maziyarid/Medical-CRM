@@ -186,8 +186,20 @@ Paginated read-only timeline of signed EMR records.
 ### GET /api/v1/patient/profile
 **Response 200 `data`:** `{ id, uuid, first_name, last_name, mobile, national_id, birth_date, home_address, insurance_status }`
 
+> ⚠ **Backend team note (2026-08-01):** The backend also returns `father_name`, `email`, and
+> `home_tel` in the profile response. These fields are used by `profile.html` but are not listed
+> in this contract. Please confirm they are stable and add them here, or remove them from the
+> backend response. Until confirmed, the frontend renders them but relies on them gracefully
+> returning empty strings if absent.
+
 ### PATCH /api/v1/patient/profile
 **Body (all optional):** `{ first_name, last_name, home_address }`
+
+> ⚠ **Contract discrepancy (2026-08-01):** `profile.html` currently sends
+> `{ email, home_tel, home_address }` — NOT `{ first_name, last_name, home_address }`.
+> Backend must clarify which writable fields the endpoint actually accepts and update this
+> contract. Frontend will not be changed until backend confirms the correct field list.
+> Tracked in `shared/api.js` JSDoc comment and `PROGRESS_LOG.md`.
 
 ---
 

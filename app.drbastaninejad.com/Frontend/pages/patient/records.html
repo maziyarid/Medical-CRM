@@ -1,17 +1,16 @@
-<!doctype html>
+﻿<!doctype html>
 <!--
   MΛZ Medical CRM — Patient Medical Records
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
   Data:  ✅ Wired to GET /api/v1/patient/records (app backend, Phase E)
   Auth:  Patient Bearer token required — requireAuth() guard.
 -->
-<html dir="rtl" lang="fa">
+<html dir="rtl" lang="fa-IR">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>پرونده پزشکی — داشبورد بیمار</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
   <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
@@ -83,8 +82,7 @@
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
-    import { requireAuth, renderError, showToast, escHtml } from '../../shared/api.js';
-    import { PatientExtended } from '../../shared/api.js';
+    import { requireAuth, renderError, showToast, escHtml, PatientExtended } from '../../shared/api.js';
 
     if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
 

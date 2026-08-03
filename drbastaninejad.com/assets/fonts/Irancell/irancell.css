@@ -1,0 +1,65 @@
+﻿/*
+ * Irancell Font — @font-face declarations
+ * Local font — no CDN. Used by Fasdent Theme.
+ * Weights: ExtraLight(200), Light(300), Regular(400), Medium(500), Bold(700), ExtraBold(800)
+ */
+
+@font-face {
+  font-family: 'Irancell';
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url('Irancell_ExtraLight.woff2') format('woff2'),
+       url('Irancell_ExtraLight.woff')  format('woff'),
+       url('Irancell_ExtraLight.eot')   format('embedded-opentype');
+}
+
+@font-face {
+  font-family: 'Irancell';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('Irancell_Light.woff2') format('woff2'),
+       url('Irancell_Light.woff')  format('woff'),
+       url('Irancell_Light.eot')   format('embedded-opentype');
+}
+
+@font-face {
+  font-family: 'Irancell';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('Irancell_Regular.woff2') format('woff2'),
+       url('Irancell_Regular.woff')  format('woff'),
+       url('Irancell_Regular.eot')   format('embedded-opentype');
+}
+
+@font-face {
+  font-family: 'Irancell';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('Irancell_Medium.woff2') format('woff2'),
+       url('Irancell_Medium.woff')  format('woff'),
+       url('Irancell_Medium.eot')   format('embedded-opentype');
+}
+
+@font-face {
+  font-family: 'Irancell';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('Irancell_Bold.woff2') format('woff2'),
+       url('Irancell_Bold.woff')  format('woff'),
+       url('Irancell_Bold.eot')   format('embedded-opentype');
+}
+
+@font-face {
+  font-family: 'Irancell';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('Irancell_Extrabold.woff2') format('woff2'),
+       url('Irancell_Extrabold.woff')  format('woff'),
+       url('Irancell_Extrabold.eot')   format('embedded-opentype');
+}

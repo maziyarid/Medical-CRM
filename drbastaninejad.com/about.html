@@ -30,8 +30,11 @@
     "description": "جراح و متخصص گوش، گلو و بینی و جراح پلاستیک بینی در تهران"
   }
   </script>
-  <link rel="icon" type="image/svg+xml" href="assets/images/placeholders/favicon.svg"/>
+  <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg"/>
+  <link rel="apple-touch-icon" href="assets/images/logo.svg"/>
+  <link rel="preload" href="assets/fonts/Irancell/Irancell_Bold.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="stylesheet" href="assets/css/tokens.css"/>
+  <link rel="stylesheet" href="assets/fonts/FontAwesome/css/all.css"/>
   <link rel="stylesheet" href="assets/css/main.css"/>
 </head>
 <body>
@@ -39,19 +42,20 @@
 <!-- Navigation -->
 <nav class="site-nav" role="navigation" aria-label="ناوبری اصلی">
   <div class="nav-inner">
-    <a href="index.html" class="nav-brand"><div class="mark" aria-hidden="true">MΛZ</div><div class="brand-text">دکتر شاهین باستانی نژاد<small>جراح و متخصص گوش، گلو و بینی</small></div></a>
+    <a href="index.html" class="nav-brand" aria-label="صفحه اصلی — دکتر شاهین باستانی نژاد"><img src="assets/images/logo.svg" class="nav-logo" alt="لوگوی کلینیک دکتر شاهین باستانی نژاد" width="120" height="48" loading="eager"/></a>
     <ul class="nav-links" role="list">
       <li><a href="index.html">خانه</a></li>
       <li><a href="about.html" class="active" aria-current="page">درباره دکتر</a></li>
       <li><a href="services.html">خدمات</a></li>
       <li><a href="gallery.html">نمونه کارها</a></li>
+      <li><a href="blog.html">مقالات</a></li>
       <li><a href="contact.html">تماس</a></li>
     </ul>
     <div class="nav-cta"><a href="booking.html" class="btn btn-primary btn-sm">نوبت‌گیری</a></div>
     <button class="nav-toggle" id="nav-toggle" aria-controls="nav-mobile" aria-expanded="false" aria-label="باز کردن منو"><span></span><span></span><span></span></button>
   </div>
   <div id="nav-mobile" class="nav-mobile">
-    <a href="index.html">خانه</a><a href="about.html">درباره دکتر</a><a href="services.html">خدمات</a><a href="gallery.html">نمونه کارها</a><a href="contact.html">تماس</a>
+    <a href="index.html">خانه</a><a href="about.html">درباره دکتر</a><a href="services.html">خدمات</a><a href="gallery.html">نمونه کارها</a><a href="blog.html">مقالات</a><a href="contact.html">تماس</a>
     <a href="booking.html" class="btn btn-primary" style="margin-top:.5rem;text-align:center">نوبت‌گیری</a>
   </div>
 </nav>
@@ -62,11 +66,13 @@
   <header class="about-hero" aria-labelledby="about-heading">
     <div class="container">
       <div class="about-grid" style="align-items:center">
-        <div class="about-photo-wrap" role="img" aria-label="تصویر دکتر شاهین باستانی‌نژاد">
-          <div style="text-align:center;padding:2rem">
-            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" style="margin:0 auto .75rem;opacity:.35"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            <span class="small">تصویر دکتر شاهین باستانی‌نژاد</span>
-          </div>
+        <div class="about-photo-wrap">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (1).webp"
+               alt="دکتر شاهین باستانی‌نژاد — جراح و متخصص گوش، گلو و بینی"
+               width="480" height="600"
+               loading="eager"
+               style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-lg)"
+               onerror="this.parentElement.innerHTML='<div style=&quot;padding:2rem;text-align:center;color:var(--muted)&quot;>تصویر دکتر شاهین باستانی‌نژاد</div>'"/>
         </div>
         <div>
           <div class="section-label">درباره ما</div>
@@ -158,6 +164,169 @@
     </div>
   </section>
 
+  <!-- Doctor photo gallery -->
+  <section class="section-sm" style="background:var(--porcelain)" aria-labelledby="photos-heading">
+    <div class="container">
+      <div class="section-label">تصاویر</div>
+      <h2 id="photos-heading" style="margin-bottom:2rem;margin-top:.5rem">دکتر شاهین باستانی‌نژاد</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem" role="list" aria-label="تصاویر دکتر">
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (1).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="eager"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (2).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (3).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (4).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (5).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (6).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (7).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (8).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (9).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (10).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (11).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (12).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+        <div role="listitem" style="border-radius:var(--radius-md);overflow:hidden;line-height:0">
+          <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (13).webp"
+               alt="دکتر شاهین باستانی‌نژاد" loading="lazy"
+               style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block"/>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Certificates grid -->
+  <section class="section-sm" aria-labelledby="certs-heading">
+    <div class="container">
+      <div class="section-label">گواهی‌نامه‌ها و تقدیرنامه‌ها</div>
+      <h2 id="certs-heading" style="margin-bottom:2rem;margin-top:.5rem">دوره‌های بین‌المللی و مدارک تخصصی</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem" role="list">
+
+        <div class="about-list-item" role="listitem" style="flex-direction:column;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem">
+          <img src="assets/images/Certificates/7th international rhinoplasty n facial plastic surgery congress.jpg"
+               alt="هفتمین کنگره بین‌المللی رینوپلاستی و جراحی پلاستیک صورت"
+               loading="lazy" style="width:100%;border-radius:var(--radius-sm);object-fit:contain;max-height:160px"/>
+          <p style="font-size:.82rem;color:var(--muted);margin:0">هفتمین کنگره بین‌المللی رینوپلاستی و جراحی پلاستیک صورت</p>
+        </div>
+
+        <div class="about-list-item" role="listitem" style="flex-direction:column;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem">
+          <img src="assets/images/Certificates/7Th Master Dissection Course Rhinology Reconstructive Plastic Surgery.jpg"
+               alt="دوره مستر دیسکشن رینولوژی و جراحی پلاستیک بازسازی"
+               loading="lazy" style="width:100%;border-radius:var(--radius-sm);object-fit:contain;max-height:160px"/>
+          <p style="font-size:.82rem;color:var(--muted);margin:0">دوره مستر دیسکشن رینولوژی و جراحی پلاستیک بازسازی</p>
+        </div>
+
+        <div class="about-list-item" role="listitem" style="flex-direction:column;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem">
+          <img src="assets/images/Certificates/8th Intl Congress IR Rhinology Society.jpg"
+               alt="هشتمین کنگره بین‌المللی انجمن رینولوژی ایران"
+               loading="lazy" style="width:100%;border-radius:var(--radius-sm);object-fit:contain;max-height:160px"/>
+          <p style="font-size:.82rem;color:var(--muted);margin:0">هشتمین کنگره بین‌المللی انجمن رینولوژی ایران</p>
+        </div>
+
+        <div class="about-list-item" role="listitem" style="flex-direction:column;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem">
+          <img src="assets/images/Certificates/3rd SRIC Shiraz Rhinology Intl Course Certificate.jpg"
+               alt="سومین دوره بین‌المللی رینولوژی شیراز"
+               loading="lazy" style="width:100%;border-radius:var(--radius-sm);object-fit:contain;max-height:160px"/>
+          <p style="font-size:.82rem;color:var(--muted);margin:0">سومین دوره بین‌المللی رینولوژی شیراز (SRIC)</p>
+        </div>
+
+        <div class="about-list-item" role="listitem" style="flex-direction:column;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem">
+          <img src="assets/images/Certificates/TUMS Nasal Valve Reconstruction Certificate.jpg"
+               alt="گواهی بازسازی دریچه بینی — دانشگاه علوم پزشکی تهران"
+               loading="lazy" style="width:100%;border-radius:var(--radius-sm);object-fit:contain;max-height:160px"/>
+          <p style="font-size:.82rem;color:var(--muted);margin:0">گواهی بازسازی دریچه بینی — دانشگاه علوم پزشکی تهران</p>
+        </div>
+
+        <div class="about-list-item" role="listitem" style="flex-direction:column;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem">
+          <img src="assets/images/Certificates/Tajikistan Certificate.jpg"
+               alt="گواهی‌نامه بین‌المللی تاجیکستان"
+               loading="lazy" style="width:100%;border-radius:var(--radius-sm);object-fit:contain;max-height:160px"/>
+          <p style="font-size:.82rem;color:var(--muted);margin:0">گواهی‌نامه بین‌المللی — تاجیکستان</p>
+        </div>
+
+        <div class="about-list-item" role="listitem" style="flex-direction:column;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem">
+          <img src="assets/images/Certificates/4th Intl Conference Iraqi Kurdistan Otorhinolaryngology Head-Neck Surgery.jpg"
+               alt="چهارمین کنفرانس بین‌المللی گوش، گلو و بینی کردستان عراق"
+               loading="lazy" style="width:100%;border-radius:var(--radius-sm);object-fit:contain;max-height:160px"/>
+          <p style="font-size:.82rem;color:var(--muted);margin:0">چهارمین کنفرانس بین‌المللی گوش، گلو و بینی — کردستان عراق</p>
+        </div>
+
+        <div class="about-list-item" role="listitem" style="flex-direction:column;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem">
+          <img src="assets/images/Certificates/5th Intl Conference Exhibition Iraqi Kurdistan Otorhinolaryngology Head-Neck Surgery.jpg"
+               alt="پنجمین کنفرانس و نمایشگاه بین‌المللی گوش، گلو و بینی کردستان عراق"
+               loading="lazy" style="width:100%;border-radius:var(--radius-sm);object-fit:contain;max-height:160px"/>
+          <p style="font-size:.82rem;color:var(--muted);margin:0">پنجمین کنفرانس و نمایشگاه بین‌المللی گوش، گلو و بینی — کردستان عراق</p>
+        </div>
+
+        <div class="about-list-item" role="listitem" style="flex-direction:column;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem">
+          <img src="assets/images/Certificates/4th Intl Conference Iraqi Kurdistan society of Otorhinolaryngology.jpg"
+               alt="چهارمین کنفرانس انجمن گوش، گلو و بینی کردستان عراق"
+               loading="lazy" style="width:100%;border-radius:var(--radius-sm);object-fit:contain;max-height:160px"/>
+          <p style="font-size:.82rem;color:var(--muted);margin:0">چهارمین کنفرانس انجمن گوش، گلو و بینی — کردستان عراق</p>
+        </div>
+
+        <div class="about-list-item" role="listitem" style="flex-direction:column;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem">
+          <img src="assets/images/Certificates/5th Intl Conference Iraqi Kurdistan Otorhinolaryngology Attendance Certificate.jpg"
+               alt="گواهی حضور در پنجمین کنفرانس گوش، گلو و بینی کردستان عراق"
+               loading="lazy" style="width:100%;border-radius:var(--radius-sm);object-fit:contain;max-height:160px"/>
+          <p style="font-size:.82rem;color:var(--muted);margin:0">گواهی حضور — پنجمین کنفرانس گوش، گلو و بینی کردستان عراق</p>
+        </div>
+
+        <div class="about-list-item" role="listitem" style="flex-direction:column;align-items:flex-start;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:1rem">
+          <img src="assets/images/Certificates/Beauty treatments n health centres.jpg"
+               alt="گواهی مراکز زیبایی و بهداشت"
+               loading="lazy" style="width:100%;border-radius:var(--radius-sm);object-fit:contain;max-height:160px"/>
+          <p style="font-size:.82rem;color:var(--muted);margin:0">مجوز مراکز درمانی و زیبایی</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="cta-banner" aria-labelledby="about-cta-heading">
     <div class="container">
@@ -171,6 +340,24 @@
 
 <footer class="site-footer" role="contentinfo">
   <div class="container">
+    <!-- Social links -->
+    <div style="display:flex;justify-content:center;gap:1.25rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:1.25rem" role="list" aria-label="شبکه‌های اجتماعی">
+      <a href="https://www.instagram.com/dr.bastaninejad" target="_blank" rel="noopener noreferrer"
+         role="listitem" aria-label="اینستاگرام دکتر باستانی‌نژاد"
+         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
+        <i class="fa-brands fa-instagram" aria-hidden="true"></i> اینستاگرام
+      </a>
+      <a href="https://www.youtube.com/@dr.bastaninejad" target="_blank" rel="noopener noreferrer"
+         role="listitem" aria-label="یوتیوب دکتر باستانی‌نژاد"
+         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
+        <i class="fa-brands fa-youtube" aria-hidden="true"></i> یوتیوب
+      </a>
+      <a href="https://www.aparat.com/dr.bastaninejad" target="_blank" rel="noopener noreferrer"
+         role="listitem" aria-label="آپارات دکتر باستانی‌نژاد"
+         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
+        <i class="fa-brands fa-youtube" aria-hidden="true"></i> آپارات
+      </a>
+    </div>
     <div class="footer-bottom" style="padding-top:0;border-top:none;justify-content:center;gap:2rem">
       <a href="index.html" style="color:rgba(255,255,255,.6)">خانه</a>
       <a href="services.html" style="color:rgba(255,255,255,.6)">خدمات</a>

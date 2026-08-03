@@ -82,7 +82,7 @@
             '<div class="avatar-md">' + initials + '</div>' +
             '<div class="who">' + name + '<small>' + role + '</small></div>' +
           '</div>' +
-          '<button class="logout-btn" type="button" onclick="location.href=\'../auth/login.html\'">' + ICON.logout + '<span>خروج از حساب</span></button>' +
+          '<button class="logout-btn" type="button" data-logout-href="../auth/login.html" aria-label="خروج از حساب">' + ICON.logout + '<span>خروج از حساب</span></button>' +
         '</div>' +
       '</nav>';
   }
@@ -115,6 +115,13 @@
     var shell = document.querySelector('.app-shell');
     if (shell) {
       shell.insertAdjacentHTML('afterbegin', renderSidebar(kind, active));
+      // Wire logout button — no inline onclick; delegate after insertion
+      var logoutBtn = shell.querySelector('.logout-btn[data-logout-href]');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function () {
+          window.location.href = logoutBtn.getAttribute('data-logout-href');
+        });
+      }
     }
     var main = document.querySelector('.main');
     if (main && !main.querySelector('.brand-footer')) {

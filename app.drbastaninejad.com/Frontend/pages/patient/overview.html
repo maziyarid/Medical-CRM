@@ -1,20 +1,19 @@
-<!doctype html>
+﻿<!doctype html>
 <!--
   MΛZ Medical CRM — Patient Overview
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
   API:  GET /api/v1/patient/overview  ✅ LIVE (2026-07-30, Blackbox AI Phase C)
   Response shape confirmed in docs/API_CONTRACT.md §GET /patient/overview:
-    patient_name, next_appointment{date_jalali,time,reason,status},
+    patient_name, next_appointment{scheduled_at,duration_minutes,reason,status},
     total_intakes, total_documents, last_intake_date
   Note: requireAuth() guard redirects to patient-login if no token.
 -->
-<html dir="rtl" lang="fa">
+<html dir="rtl" lang="fa-IR">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>نمای کلی — داشبورد بیمار</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
   <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
@@ -128,7 +127,7 @@
             <p id="ov-error-msg">لطفاً دوباره تلاش کنید.</p>
             <div class="state-actions">
               <button type="button" class="btn btn-secondary btn-sm"
-                      onclick="loadOverview()">تلاش مجدد</button>
+                      id="ov-retry-btn">تلاش مجدد</button>
             </div>
           </div>
         </div>
@@ -215,7 +214,7 @@
         document.getElementById('ov-records').textContent =
           d.total_intakes != null ? toFa(d.total_intakes) : '—';
         document.getElementById('ov-records-sub').textContent =
-          d.last_intake_date ? ('آخرین: ' + d.last_intake_date) : '—';
+          d.last_intake_date ? ('آخرین: ' + toJalaliDate(d.last_intake_date)) : '—';
 
         // KPI: total documents — field: total_documents (confirmed)
         document.getElementById('ov-docs').textContent =
@@ -257,6 +256,8 @@
       } catch (err) {
         if (err.httpStatus === 401) {
           window.location.replace('../auth/patient-login.html');
+        } else if (err.httpStatus === 403) {
+          window.location.replace('../errors/403.html');
         } else {
           document.getElementById('ov-error-msg').textContent =
             err.message || 'خطای سرور. لطفاً دوباره تلاش کنید.';
@@ -271,6 +272,9 @@
         .replace(/&/g,'&amp;').replace(/</g,'&lt;')
         .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
+
+    document.getElementById('ov-retry-btn')
+      .addEventListener('click', loadOverview);
 
     loadOverview();
   </script>

@@ -1,17 +1,16 @@
-<!doctype html>
+﻿<!doctype html>
 <!--
   MΛZ Medical CRM — Calendar / Scheduling
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
   Data:  ✅ LIVE — wired to GET/POST /api/v1/appointments (dashboard API)
   Auth:  Staff Bearer token required.
 -->
-<html dir="rtl" lang="fa">
+<html dir="rtl" lang="fa-IR">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>تقویم — MΛZ Medical CRM</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
   <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
@@ -139,7 +138,7 @@
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
-    import { Staff, escHtml, requireAuth } from '../../shared/api.js';
+    import { Staff, escHtml, requireAuth, redirectOn401 } from '../../shared/api.js';
     if (!requireAuth('../auth/login.html')) { /* redirecting */ }
 
     // ── State ──────────────────────────────────────────────────────
@@ -205,6 +204,7 @@
         const res = await Staff.listAppointments({ from: fromStr, to: toStr });
         events = res.data?.events ?? [];
       } catch (err) {
+        if (redirectOn401(err, '../auth/login.html')) return;
         loading.hidden = true;
         errorEl.hidden = false;
         errorEl.textContent = err.message || 'خطا در بارگذاری تقویم';

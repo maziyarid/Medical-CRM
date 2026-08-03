@@ -1,12 +1,29 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
+﻿<!DOCTYPE html>
+<html lang="fa-IR" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>نشست منقضی شده</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap">
   <style>
+    /* Irancell — self-hosted; standalone — no tokens.css dependency */
+    @font-face { font-family:'Irancell'; font-weight:200; font-style:normal; font-display:swap;
+      src: url('../../assets/fonts/Irancell/Irancell_ExtraLight.woff2') format('woff2'),
+           url('../../assets/fonts/Irancell/Irancell_ExtraLight.woff')  format('woff'); }
+    @font-face { font-family:'Irancell'; font-weight:300; font-style:normal; font-display:swap;
+      src: url('../../assets/fonts/Irancell/Irancell_Light.woff2') format('woff2'),
+           url('../../assets/fonts/Irancell/Irancell_Light.woff')  format('woff'); }
+    @font-face { font-family:'Irancell'; font-weight:400; font-style:normal; font-display:swap;
+      src: url('../../assets/fonts/Irancell/Irancell_Regular.woff2') format('woff2'),
+           url('../../assets/fonts/Irancell/Irancell_Regular.woff')  format('woff'); }
+    @font-face { font-family:'Irancell'; font-weight:500; font-style:normal; font-display:swap;
+      src: url('../../assets/fonts/Irancell/Irancell_Medium.woff2') format('woff2'),
+           url('../../assets/fonts/Irancell/Irancell_Medium.woff')  format('woff'); }
+    @font-face { font-family:'Irancell'; font-weight:700; font-style:normal; font-display:swap;
+      src: url('../../assets/fonts/Irancell/Irancell_Bold.woff2') format('woff2'),
+           url('../../assets/fonts/Irancell/Irancell_Bold.woff')  format('woff'); }
+    @font-face { font-family:'Irancell'; font-weight:800; font-style:normal; font-display:swap;
+      src: url('../../assets/fonts/Irancell/Irancell_Extrabold.woff2') format('woff2'),
+           url('../../assets/fonts/Irancell/Irancell_Extrabold.woff')  format('woff'); }
     :root {
       --evergreen: #2F7D32;
       --evergreen-soft: #E4F0E4;
@@ -17,7 +34,7 @@
       --surface: #FFFFFF;
       --warning: #D97706;
       --warning-soft: #FFF7ED;
-      --font-fa: 'Vazirmatn', 'Vazir', Tahoma, Arial, sans-serif;
+      --font-fa: 'Irancell', Tahoma, Arial, sans-serif;
       --radius: 1rem;
       --shadow: 0 20px 40px -12px rgba(37,39,44,.12);
     }
@@ -131,7 +148,7 @@
       لطفاً دوباره وارد شوید.
     </p>
     <div class="actions">
-      <a href="/pages/auth/patient-login.html" class="btn btn-primary" id="loginBtn">ورود مجدد</a>
+      <a href="/Frontend/pages/auth/patient-login.html" class="btn btn-primary" id="loginBtn">ورود مجدد</a>
       <a href="/"                               class="btn btn-ghost">بازگشت به خانه</a>
     </div>
 

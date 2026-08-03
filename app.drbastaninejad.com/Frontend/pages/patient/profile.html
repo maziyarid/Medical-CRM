@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <!--
   MΛZ Medical CRM — Patient Profile
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
@@ -10,13 +10,12 @@
   PATCH writable fields: email, home_tel, home_address
   Note: requireAuth() guard; 403 navigates to pages/errors/403.html.
 -->
-<html dir="rtl" lang="fa">
+<html dir="rtl" lang="fa-IR">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>پروفایل من — داشبورد بیمار</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
   <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
@@ -280,7 +279,7 @@
             <p id="profile-error-msg">لطفاً دوباره تلاش کنید.</p>
             <div class="state-actions">
               <button type="button" class="btn btn-secondary btn-sm"
-                      onclick="loadProfile()">تلاش مجدد</button>
+                      id="profile-retry-btn">تلاش مجدد</button>
             </div>
           </div>
         </div>
@@ -509,6 +508,9 @@
 
     // ── Cancel button wired without onclick attribute ─────────────────────────
     document.getElementById('btn-cancel-edit').addEventListener('click', cancelEdit);
+
+    document.getElementById('profile-retry-btn')
+      .addEventListener('click', loadProfile);
 
     loadProfile();
   </script>

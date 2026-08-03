@@ -125,19 +125,18 @@ p  { font-size: 1rem; line-height: 1.75; }
   padding-inline: clamp(1rem, 5vw, 2.5rem);
 }
 .nav-brand {
-  display: flex; align-items: center; gap: var(--space-3);
-  font-weight: 800; font-size: 1rem; color: var(--graphite);
+  display: flex; align-items: center;
   text-decoration: none;
+  flex-shrink: 0;
 }
-.nav-brand:hover { text-decoration: none; color: var(--graphite); }
-.nav-brand .mark {
-  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--evergreen), var(--evergreen-dark));
-  color: #fff; display: flex; align-items: center; justify-content: center;
-  font-size: 0.85rem; font-weight: 800; letter-spacing: 0.5px;
+.nav-brand:hover { text-decoration: none; }
+.nav-logo {
+  display: block;
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  max-width: 160px;
 }
-.nav-brand .brand-text { line-height: 1.25; }
-.nav-brand .brand-text small { display: block; font-size: 0.68rem; font-weight: 500; color: var(--muted); }
 
 .nav-links {
   display: flex; align-items: center; gap: var(--space-2);
@@ -298,13 +297,19 @@ p  { font-size: 1rem; line-height: 1.75; }
   display: grid; grid-template-columns: repeat(3, 1fr);
   gap: var(--space-5);
 }
-@media (max-width: 768px) { .ba-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1024px) { .ba-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px)  { .ba-grid { grid-template-columns: 1fr; } }
 
 /* ── Before/After comparison slider (shared component) ─────────────────────── */
 .ba-card {
   border-radius: var(--radius-lg); overflow: hidden;
   border: 1px solid var(--border); background: var(--surface);
   box-shadow: var(--shadow-sm);
+}
+/* Real paired image (left=before, right=after inside one webp) */
+.ba-img {
+  width: 100%; aspect-ratio: 2/1; object-fit: cover;
+  display: block;
 }
 .ba-slider-wrap {
   position: relative; width: 100%;
@@ -567,11 +572,13 @@ p  { font-size: 1rem; line-height: 1.75; }
 @media (max-width: 900px)  { .footer-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 600px)  { .footer-grid { grid-template-columns: 1fr; } }
 
-.footer-brand .mark {
-  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--evergreen), var(--evergreen-dark));
-  color: #fff; display: flex; align-items: center; justify-content: center;
-  font-size: 0.88rem; font-weight: 800; margin-bottom: var(--space-4);
+.footer-logo {
+  display: block;
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  max-width: 160px;
+  margin-bottom: var(--space-3);
 }
 .footer-brand p { font-size: 0.85rem; line-height: 1.7; color: rgba(255,255,255,0.6); }
 

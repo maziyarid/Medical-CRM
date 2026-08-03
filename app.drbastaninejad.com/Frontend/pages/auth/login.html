@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <!--
   MΛZ Medical CRM — Staff Login (Production-wired)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
@@ -8,13 +8,12 @@
   Note: Demo hint has been REMOVED. Password login is disabled with a clear
         "PENDING" notice in the UI. OTP flow uses shared/api.js exclusively.
 -->
-<html dir="rtl" lang="fa">
+<html dir="rtl" lang="fa-IR">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>ورود کارکنان — MΛZ Medical CRM</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
   <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
@@ -122,7 +121,7 @@
         </div>
         <div style="text-align:center;margin-top:1rem;">
           <button type="button" class="btn btn-ghost btn-sm"
-                  onclick="backToMobile()">← تغییر شماره</button>
+                  id="btn-back-to-mobile">← تغییر شماره</button>
         </div>
       </form>
 
@@ -236,12 +235,15 @@
     });
 
     // ── Back button ──────────────────────────────────────────────────────────
-    window.backToMobile = function () {
+    function backToMobile() {
       stepOtp.classList.remove('active');
       stepMobile.classList.add('active');
       otpInputs.forEach(i => { i.value = ''; });
       clearInterval(countdown);
-    };
+    }
+
+    document.getElementById('btn-back-to-mobile')
+      .addEventListener('click', backToMobile);
 
     // ── Countdown timer ──────────────────────────────────────────────────────
     function startCountdown(seconds) {

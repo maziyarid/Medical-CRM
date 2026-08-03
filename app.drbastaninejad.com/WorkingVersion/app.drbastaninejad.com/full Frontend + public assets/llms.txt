@@ -1,0 +1,26 @@
+# app.drbastaninejad.com
+
+> Official online patient intake (registration) form for Dr. Shahin Bastaninejad's clinic. Persian-language (fa-IR) medical practice based in Iran.
+
+## About
+Dr. Shahin Bastaninejad is a physician offering aesthetic/dermatologic and general medical consultation. This site hosts a secure online patient intake form used to collect identity information, medical history, and consent before an in-person visit.
+
+## Key pages
+- [Patient Intake Form](https://app.drbastaninejad.com/): Multi-step form for new patients to register (identity verification via SMS OTP, personal details, medical history, digital signature/consent).
+
+## Primary use case
+Patients fill out this form before their first appointment to save time at the clinic. The form requires:
+1. Full name and mobile phone number, verified via one-time SMS code.
+2. Personal details: father's name, national ID, birth date, occupation, address, insurance type.
+3. Medical history: pre-existing conditions, current medications, and any specific concerns.
+4. Digital signature confirming consent to treatment terms and contraindication disclosures.
+
+## Contraindications disclosed on this form
+Patients with the following conditions may face treatment restrictions requiring physician approval:
+high blood pressure and related medication, diabetes, autoimmune diseases (MS, rheumatism, Wegener's, Hashimoto's thyroiditis, Graves' disease, lupus), history of lip lift (central lift) surgery, age over 45, epilepsy, kidney disorders, tumors or chemotherapy history.
+
+## Data handling
+Submitted data is stored securely and used solely for the patient's medical record at Dr. Bastaninejad's clinic. No data is shared with third parties for marketing purposes.
+
+## Contact
+For questions about this form or the clinic, visit https://app.drbastaninejad.com/

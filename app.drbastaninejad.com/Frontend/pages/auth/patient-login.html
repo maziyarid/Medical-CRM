@@ -1,19 +1,14 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
+﻿<!DOCTYPE html>
+<html lang="fa-IR" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="ورود بیماران — پلتفرم پزشکی دکتر شاهین باستانی‌نژاد">
   <title>ورود بیماران | MΛZ Medical</title>
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
-
   <!-- Tokens & base -->
-  <link rel="stylesheet" href="/Frontend/assets/css/tokens.css">
-  <link rel="stylesheet" href="/Frontend/assets/css/base.css">
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
 
   <style>
     /* ── Page layout ── */
@@ -235,7 +230,7 @@
     normalizeMobile,
     showToast,
     getPersianError
-  } from '/Frontend/shared/api.js';
+  } from '../../shared/api.js';
 
   // ── State ──
   let currentMobile = '';
@@ -385,7 +380,7 @@
     try {
       await Auth.verifyOtp(currentMobile, code);
       showToast('ورود موفق — در حال انتقال...', 'success');
-      setTimeout(() => { window.location.href = '/Frontend/pages/patient/overview.html'; }, 800);
+      setTimeout(() => { window.location.href = '../patient/overview.html'; }, 800);
     } catch (err) {
       showFieldError(otpError, err.message || getPersianError(err.code));
       otpBoxes.forEach(b => { b.value = ''; b.classList.add('input-error'); });

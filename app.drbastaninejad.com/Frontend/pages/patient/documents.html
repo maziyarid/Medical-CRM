@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <!--
   MΛZ Medical CRM — Patient Documents (Production-wired)
   Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
@@ -8,13 +8,12 @@
         CDN_BASE_URL must be set in .env for signed_url to be non-null.
         requireAuth() guard protects the page.
 -->
-<html dir="rtl" lang="fa">
+<html dir="rtl" lang="fa-IR">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>مستندات — داشبورد بیمار</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
   <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
@@ -187,8 +186,8 @@
           container.innerHTML = docs.map(doc => {
             const expired = isExpired(doc);
             const icon    = iconFor(doc);
-            const sizeStr = doc.size_formatted || doc.size || '';
-            const dateStr = doc.created_jalali || doc.created_at || '';
+            const sizeStr = MAZCRM.escHtml(doc.size_formatted || doc.size || '');
+            const dateStr = MAZCRM.escHtml(doc.created_jalali || doc.created_at || '');
             const label   = sizeStr && dateStr
               ? sizeStr + ' · ' + dateStr
               : (sizeStr || dateStr || '');
@@ -202,13 +201,15 @@
 
             const downloadBtn = expired
               ? '<button class="btn btn-secondary btn-sm" disabled>لینک منقضی شده</button>'
-              : '<a class="btn btn-secondary btn-sm" href="' + (doc.url || '#') +
-                '" download target="_blank" rel="noopener">دانلود</a>';
+              : doc.url
+                ? '<a class="btn btn-secondary btn-sm" href="' + MAZCRM.escHtml(doc.url) +
+                  '" download target="_blank" rel="noopener">دانلود</a>'
+                : '<button class="btn btn-secondary btn-sm" disabled>لینک در دسترس نیست</button>';
 
             return '<div role="listitem" class="doc-card">' +
               expiredOverlay +
               '<div class="doc-icon" aria-hidden="true">' + icon + '</div>' +
-              '<h4>' + (doc.title || doc.name || 'سند پزشکی') + '</h4>' +
+              '<h4>' + MAZCRM.escHtml(doc.title || doc.name || 'سند پزشکی') + '</h4>' +
               '<small>' + label + '</small>' +
               downloadBtn +
             '</div>';

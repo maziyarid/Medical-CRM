@@ -1,0 +1,152 @@
+﻿{"time":"2026-07-25T09:21:53+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-25T09:31:58+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-25T09:39:45+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-25T09:39:48+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-25T09:48:36+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-25T09:53:02+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-25T09:53:09+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-25T09:53:49+00:00","event":"otp_send_error","context":{"error":"تعداد درخواست کد برای این شماره زیاد است. کمی بعد تلاش کنید."}}
+{"time":"2026-07-25T09:53:51+00:00","event":"otp_send_error","context":{"error":"تعداد درخواست کد برای این شماره زیاد است. کمی بعد تلاش کنید."}}
+{"time":"2026-07-25T10:11:57+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-25T10:19:38+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-25T10:30:32+00:00","event":"sheet_write_failed","context":{"uuid":"ee5197c2f325fbfe8aa57719caf840fe","error":"Web App شیت پاسخ HTTP 405 برگرداند."}}
+{"time":"2026-07-25T10:30:32+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: Web App شیت پاسخ HTTP 405 برگرداند."}}
+{"time":"2026-07-25T10:34:21+00:00","event":"sheet_write_failed","context":{"uuid":"39eaa2722f5b4e6089a61907965638a5","error":"Web App شیت پاسخ HTTP 405 برگرداند."}}
+{"time":"2026-07-25T10:34:21+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: Web App شیت پاسخ HTTP 405 برگرداند."}}
+{"time":"2026-07-25T10:35:12+00:00","event":"sheet_write_failed","context":{"uuid":"d5a34f0edecb348b58085c20ec460ab1","error":"Web App شیت پاسخ HTTP 405 برگرداند."}}
+{"time":"2026-07-25T10:35:12+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: Web App شیت پاسخ HTTP 405 برگرداند."}}
+{"time":"2026-07-25T10:49:55+00:00","event":"intake_submit_error","context":{"error":"کد منقضی شده است."}}
+{"time":"2026-07-25T11:01:30+00:00","event":"sheet_write_failed","context":{"uuid":"bd0de66b680e9517f55090f8c7a852cc","error":"Web App شیت پاسخ HTTP 405 برگرداند."}}
+{"time":"2026-07-25T11:01:30+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: Web App شیت پاسخ HTTP 405 برگرداند."}}
+{"time":"2026-07-25T11:29:42+00:00","event":"intake_submit_error","context":{"error":"تأیید شماره معتبر نیست؛ دوباره کد بگیرید."}}
+{"time":"2026-07-25T11:29:46+00:00","event":"intake_submit_error","context":{"error":"تأیید شماره معتبر نیست؛ دوباره کد بگیرید."}}
+{"time":"2026-07-25T11:45:22+00:00","event":"intake_submit_error","context":{"error":"تأیید شماره معتبر نیست؛ دوباره کد بگیرید."}}
+{"time":"2026-07-25T12:31:11+00:00","event":"intake_submit_error","context":{"error":"تأیید شماره معتبر نیست؛ دوباره کد بگیرید."}}
+{"time":"2026-07-25T12:42:06+00:00","event":"sheet_non_json","context":{"status":302,"body":"<HTML>\n<HEAD>\n<TITLE>Moved Temporarily</TITLE>\n</HEAD>\n<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\">\n<!-- GSE Default Error -->\n<H1>Moved Temporarily</H1>\nThe document has moved <A HREF=\"[REDACTED_APPS_SCRIPT_URL]\">here</A>.\n</BODY>\n</HTML>\n","url":"https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTaAdwVZCUnLfLQtm28BdLhMkkzQHWM1O31R6wsYa0E8aXul03RjXElD-QoiiwU2uAD131BiXaCZsrjzUMvOtzRk-1MZJqKTkVXmfxjYai5CIltl-sqKvr0sM-_lvMeUOG-jO_8KmbrTKKMqragW2Sw9bVWtfaQ6qK6gZiHHe5vJbtx3tF-vtKLQTlXZVCy-AoiWl5pg4OigyLaR1AjOh0REGeZEUJs8TP6a-Y9zJtrccBBGCwZIL_GlEh3Qrnco0-5yGHe1DmvYPezE2I8c9R0GU-gVw&lib=MWXChZuLM70grrFGxfs5cxWTfM1-faJBs"}}
+{"time":"2026-07-25T12:42:06+00:00","event":"sheet_write_failed","context":{"uuid":"3589f8dfa0c6375783e9586bcc7c0691","error":"پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-07-25T12:42:06+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-07-25T12:43:56+00:00","event":"intake_submit_error","context":{"error":"کد منقضی شده است."}}
+{"time":"2026-07-25T12:52:24+00:00","event":"intake_submit_error","context":{"error":"کد منقضی شده است."}}
+{"time":"2026-07-25T12:58:44+00:00","event":"intake_submit_error","context":{"error":"کد منقضی شده است."}}
+{"time":"2026-07-25T13:03:06+00:00","event":"intake_submit_error","context":{"error":"تأیید شماره معتبر نیست؛ دوباره کد بگیرید."}}
+{"time":"2026-07-25T13:18:45+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-25T13:20:04+00:00","event":"sheet_non_json","context":{"status":302,"body":"<HTML>\n<HEAD>\n<TITLE>Moved Temporarily</TITLE>\n</HEAD>\n<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\">\n<!-- GSE Default Error -->\n<H1>Moved Temporarily</H1>\nThe document has moved <A HREF=\"[REDACTED_APPS_SCRIPT_URL]\">here</A>.\n</BODY>\n</HTML>\n","url":"https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQgDprN4Q3QhhnGFvRGsv1TYbcqqqaxqRL2F7Jk_6c0H-xMwfpB3kGZWu0w2-wKgZtakw_pB3GXB0hi6BAOzrsfGRYRn0uTG3QKidtN53hLOWGT3iO_Dxe_-McFgQhoRia4KfEZcsIUqZSWcprUD2cYGmpYCTO6CTmZU7KWjRkyCtZQSGd6Tegabo78oAkXQ3cumXeRuGz3Yk9FtamMJ1XsLau4zQsZHM6kH7C6CKfQ4Q1UXsGvdNXpX6o28FkO7pMaFlft1w-lh3wTvri9h620FzA5iQ&lib=MWXChZuLM70grrFGxfs5cxWTfM1-faJBs"}}
+{"time":"2026-07-25T13:20:04+00:00","event":"sheet_write_failed","context":{"uuid":"69e9acdb225c5ffaf2ea2a5a8cda4cd6","error":"پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-07-25T13:20:04+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-07-28T09:12:55+00:00","event":"intake_submit_error","context":{"error":"یک فیلد ضروری ناقص است: Mobile2"}}
+{"time":"2026-07-28T09:13:11+00:00","event":"intake_submit_error","context":{"error":"یک فیلد ضروری ناقص است: Mobile2"}}
+{"time":"2026-07-28T09:13:35+00:00","event":"intake_submit_error","context":{"error":"کد منقضی شده است."}}
+{"time":"2026-07-28T09:13:37+00:00","event":"intake_submit_error","context":{"error":"کد منقضی شده است."}}
+{"time":"2026-07-28T09:44:43+00:00","event":"intake_submit_error","context":{"error":"یک فیلد ضروری ناقص است: Mobile2"}}
+{"time":"2026-07-28T09:45:05+00:00","event":"intake_submit_error","context":{"error":"یک فیلد ضروری ناقص است: Mobile2"}}
+{"time":"2026-07-28T09:45:29+00:00","event":"intake_submit_error","context":{"error":"کد منقضی شده است."}}
+{"time":"2026-07-28T09:47:26+00:00","event":"intake_submit_error","context":{"error":"کد منقضی شده است."}}
+{"time":"2026-07-28T09:48:02+00:00","event":"intake_submit_error","context":{"error":"کد منقضی شده است."}}
+{"time":"2026-07-28T10:13:00+00:00","event":"sheet_write_failed","context":{"uuid":"897385d7dbc4ee1b4c7e3bf257a1bb44","error":"Web App شیت پاسخ HTTP 404 برگرداند."}}
+{"time":"2026-07-28T10:13:00+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: Web App شیت پاسخ HTTP 404 برگرداند."}}
+{"time":"2026-07-28T10:13:42+00:00","event":"sheet_non_json","context":{"status":302,"body":"<HTML>\n<HEAD>\n<TITLE>Moved Temporarily</TITLE>\n</HEAD>\n<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\">\n<!-- GSE Default Error -->\n<H1>Moved Temporarily</H1>\nThe document has moved <A HREF=\"[REDACTED_APPS_SCRIPT_URL]\">here</A>.\n</BODY>\n</HTML>\n","url":"https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQKFClHxMn_fbkT8m2ly0lVrXcrzjuvN2-dBxRAPifnqdcBDjBuoNtXAv8b8l5AHLQLo5TsLi34jstwp04azwDZTHfXnD7QLHzDN6ADTkaUdTTkmwjMYDxB4sygUgew5Wgz9JXJ0SpmGJkQNaQVkzggreQMM0JWtswIN3wE3g0dD-Lg9G0bT5qGowe644yUFa2q9dzh44Bk-5wlEXisI17MU6srvmrlLxX-Eg501mx5tHxVo490CZhYHI0pnbC7aNII39k4HepzdHeO-4amF5LOji2oxg&lib=MWXChZuLM70grrFGxfs5cxWTfM1-faJBs"}}
+{"time":"2026-07-28T10:13:42+00:00","event":"sheet_write_failed","context":{"uuid":"4150cd312225c68565038e80130aacff","error":"پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-07-28T10:13:42+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-07-28T13:12:19+00:00","event":"intake_submit_error","context":{"error":"یک فیلد ضروری ناقص است: Mobile2"}}
+{"time":"2026-07-28T13:16:12+00:00","event":"intake_submit_error","context":{"error":"یک فیلد ضروری ناقص است: Mobile2"}}
+{"time":"2026-07-28T13:24:38+00:00","event":"intake_submit_error","context":{"error":"یک فیلد ضروری ناقص است: Mobile2"}}
+{"time":"2026-07-28T13:36:36+00:00","event":"intake_submit_error","context":{"error":"یک فیلد ضروری ناقص است: Mobile2"}}
+{"time":"2026-07-28T13:38:45+00:00","event":"sheet_write_failed","context":{"uuid":"684ede374e953428d4e09cda15348575","error":"شیت ثبت را رد کرد: Missing Mobile2"}}
+{"time":"2026-07-28T13:38:45+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: شیت ثبت را رد کرد: Missing Mobile2"}}
+{"time":"2026-07-28T13:38:59+00:00","event":"sheet_write_failed","context":{"uuid":"ed8d23b725adea52f9011dfd33b1673c","error":"شیت ثبت را رد کرد: Missing Mobile2"}}
+{"time":"2026-07-28T13:38:59+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: شیت ثبت را رد کرد: Missing Mobile2"}}
+{"time":"2026-07-28T13:40:40+00:00","event":"sheet_write_failed","context":{"uuid":"20c6ae4c9066253cfc4473d78cd26b8a","error":"شیت ثبت را رد کرد: Missing Mobile2"}}
+{"time":"2026-07-28T13:40:40+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: شیت ثبت را رد کرد: Missing Mobile2"}}
+{"time":"2026-07-28T13:41:20+00:00","event":"sheet_non_json","context":{"status":302,"body":"<HTML>\n<HEAD>\n<TITLE>Moved Temporarily</TITLE>\n</HEAD>\n<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\">\n<!-- GSE Default Error -->\n<H1>Moved Temporarily</H1>\nThe document has moved <A HREF=\"[REDACTED_APPS_SCRIPT_URL]\">here</A>.\n</BODY>\n</HTML>\n","url":"https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTmZz1_t_0fX8OFxMWe8aRdqPD1ot3UihjPYrUeG8deWCLVcHKdKuACf9Slq3mr1S0UHDyYTtzFFRT2Z_9mF1MTMdcEEZEhcy5k3QUAukMoukiS5ktSPmc59xcEkrXZ3ltoIq4TcEuSYBJ9Rv8bqmsnfdRn0-fcL5WWqQPL6Oat7Yzf8LICJLnxm86tW6RwpKvFaBpRTJL9d1ZxE3pLNp76WwlUipnGfD8Sz_7lYuYPHM9iSmiSD-TGfFQyFvTQBorSzzNQ96RmxKK6GmJCn3BMxokQuw&lib=MWXChZuLM70grrFGxfs5cxWTfM1-faJBs"}}
+{"time":"2026-07-28T13:41:20+00:00","event":"sheet_write_failed","context":{"uuid":"84d1b5a5bcac08049f788d38ba91bf8e","error":"پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-07-28T13:41:20+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-07-28T13:46:28+00:00","event":"sheet_non_json","context":{"status":302,"body":"<HTML>\n<HEAD>\n<TITLE>Moved Temporarily</TITLE>\n</HEAD>\n<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\">\n<!-- GSE Default Error -->\n<H1>Moved Temporarily</H1>\nThe document has moved <A HREF=\"[REDACTED_APPS_SCRIPT_URL]\">here</A>.\n</BODY>\n</HTML>\n","url":"https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQdGoiMx0Nh3zPehFceoRjDzR8PJOoASxqq9-2fRFXguAjk4dt_AZVKx6nW02VRIrWVHpXRLL9yn90OG8-lrsnA9kStw_Y8mYLE1I05Mw8C78-By6iFujVTT1iRrYQfJYQsKHTuMSYMY6BmW_pUAgZOntgghPRwB2N0_U6ATV0KqhDcGHEvfB9zR9kBnYoF9f73M8utYPwU6tz8S3YqK2xSb8S9-ubFLb8k28-or8TauCDoGAgwKA1j3F05NXI3Kuq1DAf-AxrA8p-WwJQ1jNgA9mWCYg&lib=MWXChZuLM70grrFGxfs5cxWTfM1-faJBs"}}
+{"time":"2026-07-28T13:46:28+00:00","event":"sheet_write_failed","context":{"uuid":"7cf87b6c3e40e4e0235fee026e90e6b5","error":"پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-07-28T13:46:28+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-07-28T14:01:56+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:02:07+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:02:43+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:03:49+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:03:58+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:04:08+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:04:10+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:04:31+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:04:52+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:06:13+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:06:48+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:07:35+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:07:40+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:07:42+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:07:42+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:07:56+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:09:33+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:09:35+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:09:38+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:09:39+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:09:39+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:09:40+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:10:13+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:12:23+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:12:40+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:03+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:39+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:41+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:42+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:43+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:44+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:44+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:45+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:46+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:47+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:47+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:48+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:49+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:49+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:50+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:51+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:51+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:52+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:53+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:54+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:55+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:13:56+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:08+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:09+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:10+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:11+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:11+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:12+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:13+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:13+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:14+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:31+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:32+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:14:33+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:15:34+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:15:54+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:17:03+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:20:33+00:00","event":"otp_send_error","context":{"error":"تعداد درخواست کد برای این شماره زیاد است. کمی بعد تلاش کنید."}}
+{"time":"2026-07-28T14:20:40+00:00","event":"otp_send_error","context":{"error":"تعداد درخواست کد برای این شماره زیاد است. کمی بعد تلاش کنید."}}
+{"time":"2026-07-28T14:20:43+00:00","event":"otp_send_error","context":{"error":"تعداد درخواست کد برای این شماره زیاد است. کمی بعد تلاش کنید."}}
+{"time":"2026-07-28T14:20:51+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:21:02+00:00","event":"otp_send_error","context":{"error":"محدودیت ارسال کد برای این اتصال فعال شده است."}}
+{"time":"2026-07-28T14:29:59+00:00","event":"otp_verify_error","context":{"error":"کد تأیید نادرست است."}}
+{"time":"2026-07-28T14:30:10+00:00","event":"otp_verify_error","context":{"error":"کد تأیید نادرست است."}}
+{"time":"2026-07-28T14:32:26+00:00","event":"sheet_write_failed","context":{"uuid":"7c2fe8add7c35dcae8da9f35acd79b2c","error":"Web App شیت پاسخ HTTP 404 برگرداند."}}
+{"time":"2026-07-28T14:32:26+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: Web App شیت پاسخ HTTP 404 برگرداند."}}
+{"time":"2026-07-28T14:32:52+00:00","event":"sheet_write_failed","context":{"uuid":"48b8c67fd41cba75514a5ccbeb7ca224","error":"Web App شیت پاسخ HTTP 404 برگرداند."}}
+{"time":"2026-07-28T14:32:52+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: Web App شیت پاسخ HTTP 404 برگرداند."}}
+{"time":"2026-07-28T15:23:52+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-28T15:25:08+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-28T15:25:17+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-29T14:34:04+00:00","event":"otp_send_error","context":{"error":"نام کاربری یا گذرواژه TSMS اشتباه است."}}
+{"time":"2026-07-29T17:25:18+00:00","event":"otp_send_error","context":{"error":"اعتبار پنل پیامک کافی نیست."}}
+{"time":"2026-08-01T09:59:02+00:00","event":"otp_verify_error","context":{"error":"کد تأیید نادرست است."}}
+{"time":"2026-08-01T09:59:11+00:00","event":"otp_verify_error","context":{"error":"کد تأیید نادرست است."}}
+{"time":"2026-08-01T10:17:38+00:00","event":"otp_verify_error","context":{"error":"کد تأیید نادرست است."}}
+{"time":"2026-08-01T10:31:22+00:00","event":"sheet_non_json","context":{"status":302,"body":"<HTML>\n<HEAD>\n<TITLE>Moved Temporarily</TITLE>\n</HEAD>\n<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\">\n<!-- GSE Default Error -->\n<H1>Moved Temporarily</H1>\nThe document has moved <A HREF=\"[REDACTED_APPS_SCRIPT_URL]\">here</A>.\n</BODY>\n</HTML>\n","url":"https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnQ7uMIVVIAfLHh1iJvSD4vKisx6J7ccwSwuzl7LXAs4Aqg46I46qxayuycou0DfYYjXHw5A3OO0wmiwaAcXUY4vZlBYbF3zWHTB3-25R5xzt5DyQvXLjo5YbXA0IJNXC9YC1Hu1yb_BQQ_mSANAaHh6xh0tkyZ8vCVuww_toUS4wjmZX2GENVV_h5OnKVgZVG8EB1aqDo9oLXFCEFo3_Ca-v8WhbrOfg1vrpRWcJULYNJdeU4zFosn2gb4NckhG3Qwrz6YT2Jf9LHRlXIXVwI52HPI82A&lib=MWXChZuLM70grrFGxfs5cxWTfM1-faJBs"}}
+{"time":"2026-08-01T10:31:22+00:00","event":"sheet_write_failed","context":{"uuid":"2ec970c9cbde3641d44c839cb55f7bf3","error":"پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-08-01T10:31:22+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-08-01T10:31:55+00:00","event":"sheet_non_json","context":{"status":302,"body":"<HTML>\n<HEAD>\n<TITLE>Moved Temporarily</TITLE>\n</HEAD>\n<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\">\n<!-- GSE Default Error -->\n<H1>Moved Temporarily</H1>\nThe document has moved <A HREF=\"[REDACTED_APPS_SCRIPT_URL]\">here</A>.\n</BODY>\n</HTML>\n","url":"https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnROj0YpUO5Ru0F5ZALUUn7SrMWMu1AJaPd_hEEZ-BYz3CqE1xR-lQmupQsIZfkim56zgPOTllFmjWsJkIT3VvZYFJO_pOmr1uEA1PMOhjuFkrQnRJk27i2sgbc6e1gIzOJhY7SsX5FRPN9US_7gxEYD9rWRGSe4BSj5x1cnjtGHgIU45qGFjI0bpaD2Pb8C45doeRpmJqkPTYze-efx6VDE4Wr_wwPg2FfxbRNez1jYk8jLW2VgCFxyG0kaLp0oELUjlQsaODRqOuSVfdJTju1wR6TNcQ&lib=MWXChZuLM70grrFGxfs5cxWTfM1-faJBs"}}
+{"time":"2026-08-01T10:31:55+00:00","event":"sheet_write_failed","context":{"uuid":"f67a4c4ae4becc5fd246bf2b01dc22af","error":"پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}
+{"time":"2026-08-01T10:31:55+00:00","event":"intake_submit_error","context":{"error":"اطلاعات پشتیبان‌گیری شد اما ثبت در Google Sheet ناموفق بود: پاسخ شیت JSON نیست؛ Web App را با دسترسی Anyone دوباره Deploy کنید."}}

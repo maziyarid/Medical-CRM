@@ -31,27 +31,31 @@
     "medicalSpecialty": "جراحی بینی، گوش، گلو و بینی"
   }
   </script>
-  <link rel="icon" type="image/svg+xml" href="assets/images/placeholders/favicon.svg"/>
+  <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg"/>
+  <link rel="apple-touch-icon" href="assets/images/logo.svg"/>
+  <link rel="preload" href="assets/fonts/Irancell/Irancell_Bold.woff2" as="font" type="font/woff2" crossorigin/>
   <link rel="stylesheet" href="assets/css/tokens.css"/>
+  <link rel="stylesheet" href="assets/fonts/FontAwesome/css/all.css"/>
   <link rel="stylesheet" href="assets/css/main.css"/>
 </head>
 <body>
 
 <nav class="site-nav" role="navigation" aria-label="ناوبری اصلی">
   <div class="nav-inner">
-    <a href="index.html" class="nav-brand"><div class="mark" aria-hidden="true">MΛZ</div><div class="brand-text">دکتر شاهین باستانی‌نژاد<small>جراح تخصصی</small></div></a>
+    <a href="index.html" class="nav-brand" aria-label="صفحه اصلی — دکتر شاهین باستانی نژاد"><img src="assets/images/logo.svg" class="nav-logo" alt="لوگوی کلینیک دکتر شاهین باستانی نژاد" width="120" height="48" loading="eager"/></a>
     <ul class="nav-links" role="list">
       <li><a href="index.html">خانه</a></li>
       <li><a href="about.html">درباره دکتر</a></li>
       <li><a href="services.html">خدمات</a></li>
       <li><a href="gallery.html">نمونه کارها</a></li>
+      <li><a href="blog.html">مقالات</a></li>
       <li><a href="contact.html" class="active" aria-current="page">تماس</a></li>
     </ul>
     <div class="nav-cta"><a href="booking.html" class="btn btn-primary btn-sm">نوبت‌گیری</a></div>
     <button class="nav-toggle" id="nav-toggle" aria-controls="nav-mobile" aria-expanded="false" aria-label="باز کردن منو"><span></span><span></span><span></span></button>
   </div>
   <div id="nav-mobile" class="nav-mobile">
-    <a href="index.html">خانه</a><a href="about.html">درباره دکتر</a><a href="services.html">خدمات</a><a href="gallery.html">نمونه کارها</a><a href="contact.html">تماس</a>
+    <a href="index.html">خانه</a><a href="about.html">درباره دکتر</a><a href="services.html">خدمات</a><a href="gallery.html">نمونه کارها</a><a href="blog.html">مقالات</a><a href="contact.html">تماس</a>
     <a href="booking.html" class="btn btn-primary" style="margin-top:.5rem;text-align:center">نوبت‌گیری</a>
   </div>
 </nav>
@@ -112,12 +116,48 @@
             </div>
           </div>
 
-          <!-- Map placeholder -->
-          <div class="map-placeholder" style="margin-top:1.5rem" role="img" aria-label="[CONTENT: embed نقشه Google Maps]">
-            <div style="text-align:center;padding:2.5rem">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" style="margin:0 auto .75rem;opacity:.4"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span>[CONTENT: embed نقشه Google Maps یا OpenStreetMap]</span>
-            </div>
+          <!-- Map navigation icons -->
+          <div style="margin-top:1.25rem;display:flex;flex-wrap:wrap;gap:.75rem;align-items:center" role="list" aria-label="باز کردن در نقشه">
+            <a href="https://maps.google.com/?q=تهران،+خیابان+نلسون+ماندلا،+خیابان+صانعی،+ساختمان+نور+پلاک+۱"
+               target="_blank" rel="noopener noreferrer" role="listitem"
+               aria-label="باز کردن در Google Maps"
+               style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;text-decoration:none;color:var(--graphite);background:var(--surface)">
+              <img src="assets/images/Icons/GoogleMap.webp" alt="" width="20" height="20" loading="lazy" style="width:20px;height:20px;object-fit:contain"/>
+              Google Maps
+            </a>
+            <a href="https://neshan.org/maps/places?lat=35.7637&lng=51.4215"
+               target="_blank" rel="noopener noreferrer" role="listitem"
+               aria-label="باز کردن در نشان"
+               style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;text-decoration:none;color:var(--graphite);background:var(--surface)">
+              <img src="assets/images/Icons/Neshan.webp" alt="" width="20" height="20" loading="lazy" style="width:20px;height:20px;object-fit:contain"/>
+              نشان
+            </a>
+            <a href="https://balad.ir/p/bastaninejad-clinic"
+               target="_blank" rel="noopener noreferrer" role="listitem"
+               aria-label="باز کردن در بلد"
+               style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;text-decoration:none;color:var(--graphite);background:var(--surface)">
+              <img src="assets/images/Icons/Balad.webp" alt="" width="20" height="20" loading="lazy" style="width:20px;height:20px;object-fit:contain"/>
+              بلد
+            </a>
+            <a href="https://waze.com/ul?ll=35.7637,51.4215&navigate=yes"
+               target="_blank" rel="noopener noreferrer" role="listitem"
+               aria-label="باز کردن در Waze"
+               style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:.82rem;text-decoration:none;color:var(--graphite);background:var(--surface)">
+              <img src="assets/images/Icons/Waze.webp" alt="" width="20" height="20" loading="lazy" style="width:20px;height:20px;object-fit:contain"/>
+              Waze
+            </a>
+          </div>
+
+          <!-- Google Maps embed — confirmed embed code from product owner -->
+          <div style="margin-top:1.5rem;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border)">
+            <iframe
+              title="موقعیت کلینیک دکتر شاهین باستانی‌نژاد روی نقشه"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3237.671371427505!2d51.4138246!3d35.758881300000006!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3f8e0694735f09b3%3A0x709924e86862fd86!2sDr%20Shahin%20Bastaninejad!5e0!3m2!1sen!2sus!4v1785689068011!5m2!1sen!2sus"
+              width="100%" height="350" style="border:0;display:block" loading="lazy"
+              allowfullscreen=""
+              referrerpolicy="strict-origin-when-cross-origin"
+              aria-label="نقشه موقعیت کلینیک دکتر شاهین باستانی‌نژاد، تهران، خیابان نلسون ماندلا">
+            </iframe>
           </div>
         </div>
 
@@ -229,6 +269,24 @@
 
 <footer class="site-footer" role="contentinfo">
   <div class="container">
+    <!-- Social links -->
+    <div style="display:flex;justify-content:center;gap:1.25rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:1.25rem" role="list" aria-label="شبکه‌های اجتماعی">
+      <a href="https://www.instagram.com/dr.bastaninejad" target="_blank" rel="noopener noreferrer"
+         role="listitem" aria-label="اینستاگرام دکتر باستانی‌نژاد"
+         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
+        <i class="fa-brands fa-instagram" aria-hidden="true"></i> اینستاگرام
+      </a>
+      <a href="https://www.youtube.com/@dr.bastaninejad" target="_blank" rel="noopener noreferrer"
+         role="listitem" aria-label="یوتیوب دکتر باستانی‌نژاد"
+         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
+        <i class="fa-brands fa-youtube" aria-hidden="true"></i> یوتیوب
+      </a>
+      <a href="https://www.aparat.com/dr.bastaninejad" target="_blank" rel="noopener noreferrer"
+         role="listitem" aria-label="آپارات دکتر باستانی‌نژاد"
+         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
+        <i class="fa-brands fa-youtube" aria-hidden="true"></i> آپارات
+      </a>
+    </div>
     <div class="footer-bottom">
       <span>© ۱۴۰۵ کلینیک دکتر شاهین باستانی‌نژاد</span>
       <span class="maz-sig">MΛ<span class="z">Z</span> // <a href="https://maziyarid.com" target="_blank" rel="noopener">Maziyar</a></span>

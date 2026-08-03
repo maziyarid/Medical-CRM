@@ -8,12 +8,66 @@
  *  Contact : maziyarid@gmail.com — https://maziyarid.com
  *  License : Proprietary — © 2026 Maziyar / Dr. Shahin Bastaninejad
  *  Brand   : MΛZ System · Evergreen palette (locked v1.0)
- *  Version : 1.0.0  ·  25 July 2026
+ *  Version : 1.1.0  ·  2026-08-01 — Irancell self-hosted; removed Vazirmatn
  * ============================================================================
  *  These tokens are the single source of truth. Never hardcode colors or
  *  spacing in a component file — always reference a --token defined here.
  * ============================================================================
  */
+
+/* ── Irancell — self-hosted, six weights ─────────────────────────────────────
+   Files: assets/fonts/Irancell/Irancell_*.{woff2,woff}
+   Weights: ExtraLight(200) Light(300) Regular(400) Medium(500) Bold(700) ExtraBold(800)
+   font-display:swap — text renders in system fallback immediately, swaps when ready.
+   ──────────────────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 200;
+  font-style:  normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_ExtraLight.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_ExtraLight.woff')  format('woff');
+}
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 300;
+  font-style:  normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_Light.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Light.woff')  format('woff');
+}
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 400;
+  font-style:  normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_Regular.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Regular.woff')  format('woff');
+}
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 500;
+  font-style:  normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_Medium.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Medium.woff')  format('woff');
+}
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 700;
+  font-style:  normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_Bold.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Bold.woff')  format('woff');
+}
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 800;
+  font-style:  normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_Extrabold.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Extrabold.woff')  format('woff');
+}
 
 :root {
   /* ---------- Primary palette (Evergreen system — clinical) --------- */
@@ -47,7 +101,7 @@
   --maz-accent:        #A8FF4D;
 
   /* ---------- Typography ---------- */
-  --font-fa: 'Vazirmatn', 'Vazir', 'IRANSans', Tahoma, Arial, system-ui, sans-serif;
+  --font-fa: 'Irancell', Tahoma, Arial, system-ui, sans-serif;
   --font-en: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
 

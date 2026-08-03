@@ -5,56 +5,61 @@
  *  Source of truth: app.drbastaninejad.com/Frontend/assets/css/tokens.css
  *  Keep in sync manually — do NOT add site-specific tokens here.
  *  Site-specific overrides and additions belong in main.css.
- *  Version: 1.1.0 · 2026-07-31 — YekanBakh self-hosted font added
+ *  Version: 1.2.0 · 2026-08-01 — Irancell font + FA7 Pro local; logo SVG
  * ============================================================================
  */
 
-/* ── YekanBakh — self-hosted, six weights ───────────────────────────────────
-   Product owner: copy these six woff2 files from the WordPress uploads folder
-   into drbastaninejad.com/assets/fonts/ before publishing.
-   All six weights are confirmed present in the 2026-07-09 WordPress export.
+/* ── Irancell — self-hosted, six weights ────────────────────────────────────
+   Files live in assets/fonts/Irancell/
+   Weights: ExtraLight(200) Light(300) Regular(400) Medium(500) Bold(700) ExtraBold(800)
    ─────────────────────────────────────────────────────────────────────────── */
 @font-face {
-  font-family: 'YekanBakh';
-  font-weight: 100;
+  font-family: 'Irancell';
+  font-weight: 200;
   font-style: normal;
   font-display: swap;
-  src: url('../fonts/YekanBakh-Thin.woff2') format('woff2');
+  src: url('../fonts/Irancell/Irancell_ExtraLight.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_ExtraLight.woff')  format('woff');
 }
 @font-face {
-  font-family: 'YekanBakh';
+  font-family: 'Irancell';
   font-weight: 300;
   font-style: normal;
   font-display: swap;
-  src: url('../fonts/YekanBakh-Light.woff2') format('woff2');
+  src: url('../fonts/Irancell/Irancell_Light.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Light.woff')  format('woff');
 }
 @font-face {
-  font-family: 'YekanBakh';
+  font-family: 'Irancell';
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-  src: url('../fonts/YekanBakh-Regular.woff2') format('woff2');
+  src: url('../fonts/Irancell/Irancell_Regular.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Regular.woff')  format('woff');
 }
 @font-face {
-  font-family: 'YekanBakh';
-  font-weight: 600;
+  font-family: 'Irancell';
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
-  src: url('../fonts/YekanBakh-SemiBold.woff2') format('woff2');
+  src: url('../fonts/Irancell/Irancell_Medium.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Medium.woff')  format('woff');
 }
 @font-face {
-  font-family: 'YekanBakh';
+  font-family: 'Irancell';
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-  src: url('../fonts/YekanBakh-Bold.woff2') format('woff2');
+  src: url('../fonts/Irancell/Irancell_Bold.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Bold.woff')  format('woff');
 }
 @font-face {
-  font-family: 'YekanBakh';
+  font-family: 'Irancell';
   font-weight: 800;
   font-style: normal;
   font-display: swap;
-  src: url('../fonts/YekanBakh-ExtraBold.woff2') format('woff2');
+  src: url('../fonts/Irancell/Irancell_Extrabold.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Extrabold.woff')  format('woff');
 }
 
 :root {
@@ -89,9 +94,9 @@
   --maz-accent:        #A8FF4D;
 
   /* ---------- Typography ---------- */
-  /* YekanBakh is the confirmed brand font for drbastaninejad.com (WordPress export 2026-07-09).
-     Vazirmatn kept as fallback for the app/dashboard subdomains where YekanBakh is not loaded. */
-  --font-fa: 'YekanBakh', 'Vazirmatn', Tahoma, Arial, system-ui, sans-serif;
+  /* Irancell is the primary brand font for drbastaninejad.com.
+     Vazirmatn kept as system fallback. */
+  --font-fa: 'Irancell', 'Vazirmatn', Tahoma, Arial, system-ui, sans-serif;
   --font-en: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
 
