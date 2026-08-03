@@ -107,8 +107,8 @@
 }
 
 .hero-v2-inner {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
+    padding-top: 1rem;
+    padding-bottom: 1.5rem;
 }
 
 .hero-v2 h1 {
@@ -1407,100 +1407,12 @@ details[open] .faq-question svg {
   z-index: 300;
 }
 
-/* ── MOBILE NAV: rewrite as slide-in panel (replaces earlier conflict) ────── */
-.nav-mobile {
-  /* Reset earlier fixed-position override — use document flow slide instead */
-  position: fixed !important;
-  top: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  left: auto !important;
-  width: min(320px, 85vw) !important;
-  background: var(--surface, #fff) !important;
-  border-left: 1px solid var(--border, #DDE2DD) !important;
-  border-top: none !important;
-  padding: 1.25rem 1.25rem 2rem !important;
-  transform: translateX(100%) !important;
-  transition: transform 220ms cubic-bezier(.4,.0,.2,1) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: .25rem !important;
-  z-index: 200 !important;
-  overflow-y: auto !important;
-  box-shadow: none;
-}
+/* ── MOBILE NAV: nav-footer.css is authoritative — do NOT re-define here ──── */
+/* All .nav-mobile, body.nav-open::before, .nav-mobile::before rules removed.
+   nav-footer.css loads after this file and its !important rules win.
+   Keeping only non-conflicting supplements below. */
 
-.nav-mobile.open {
-  transform: translateX(0) !important;
-  box-shadow: -8px 0 32px rgba(37,39,44,.15) !important;
-  display: flex !important;
-}
-
-/* Backdrop when mobile nav is open */
-body.nav-open::before {
-  content: '' !important;
-  position: fixed !important;
-  inset: 0 !important;
-  background: rgba(37,39,44,.45) !important;
-  z-index: 199 !important;
-  pointer-events: auto !important;
-}
-
-/* Close (×) button at top of mobile panel */
-.nav-mobile::before {
-  content: '×';
-  display: block;
-  font-size: 1.6rem;
-  line-height: 1;
-  text-align: left;
-  color: var(--muted, #57606a);
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border, #DDE2DD);
-  margin-bottom: .75rem;
-  font-weight: 300;
-  pointer-events: none; /* JS handles close via outside-click/Escape */
-}
-
-/* Mobile nav links */
-.nav-mobile a {
-  font-size: .95rem;
-  font-weight: 600;
-  color: var(--graphite, #25272C);
-  padding: .65rem .85rem;
-  border-radius: 8px;
-  text-decoration: none;
-  display: block;
-  transition: background 120ms ease, color 120ms ease;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-}
-
-.nav-mobile a:hover {
-  background: var(--porcelain, #F7F8F6);
-  text-decoration: none;
-}
-
-.nav-mobile a[aria-current="page"] {
-  color: var(--evergreen, #2F7D32);
-  background: var(--evergreen-soft, #E4F0E4);
-}
-
-.nav-mobile .btn-primary {
-  background: linear-gradient(135deg, var(--evergreen, #2F7D32), var(--evergreen-dark, #246b28));
-  color: #fff;
-  text-align: center;
-  justify-content: center;
-  margin-top: .5rem;
-  border-radius: 999px;
-  min-height: 48px;
-}
-
-/* Hamburger: animate to × when open */
-.nav-toggle {
-  z-index: 201;
-}
-
+/* Hamburger: animate to × when open — supplement (nav-footer.css also sets this) */
 .nav-toggle[aria-expanded="true"] span:nth-child(1) {
   transform: translateY(7px) rotate(45deg);
 }

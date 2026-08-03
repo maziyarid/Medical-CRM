@@ -550,7 +550,42 @@
   .nav-links { display: none !important; }
   .nav-cta .btn, .nav-cta .tel-link { display: none !important; }
   .nav-toggle { display: flex !important; }
-  .nav-inner { height: 64px !important; }
+
+  /* A3: Mobile header — logo CENTER, hamburger PHYSICAL RIGHT
+     Grid overrides flex+space-between regardless of RTL dir */
+  .nav-inner {
+    height: 64px !important;
+    display: grid !important;
+    grid-template-columns: 44px 1fr 44px !important;
+    align-items: center !important;
+    justify-items: center !important;
+    gap: 0 !important;
+    padding-inline: .75rem !important;
+  }
+  .nav-inner .nav-brand {
+    grid-column: 2 !important;
+    justify-self: center !important;
+  }
+  .nav-inner .nav-toggle {
+    grid-column: 3 !important;
+    justify-self: end !important;
+  }
+  .nav-inner .nav-links,
+  .nav-inner .nav-cta {
+    display: none !important;
+  }
+
+  /* A6: Chaty flush to physical right on mobile */
+  .chaty-wrap {
+    bottom: calc(.6rem + env(safe-area-inset-bottom, 0px)) !important;
+    right: .6rem !important;
+    left: auto !important;
+  }
+  .chaty-trigger {
+    width: 52px !important;
+    height: 52px !important;
+    font-size: 1.2rem !important;
+  }
 }
 
 @media (min-width: 769px) {
@@ -1559,15 +1594,110 @@ body.nav-open::before { display: none !important; content: none !important; }
   border-color: var(--evergreen, #2F7D32) !important;
 }
 
-/* ── Mobile: fix nav-inner height & spacing ──────────────────────────────── */
+/* ── Mobile: nav-inner grid is set in the primary @media block above ──────── */
+/* nav-brand flex:1 removed — grid handles centering explicitly */
+
+/* ── END BUG-FIXES + QUALITY v2 ─────────────────────────────────────────── */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   A1–A7 HARDENING FINALS  — appended, beats everything above
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* A1: Sticky nav — enforce position and z-index above any content */
+.site-nav {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 500 !important;
+}
+
+/* A2: Hero gap — ensure hero sits tight under sticky nav, no extra padding */
+.hero-v2 {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.hero-v2-inner {
+  padding-top: 1rem !important;
+  padding-bottom: 1.5rem !important;
+}
+/* Kill any trust-marquee or injected bar above hero from adding space */
+main { margin-top: 0 !important; padding-top: 0 !important; }
+
+/* A4: Prevent ANY section from producing an inner scrollbar */
+.section,
+.hero-v2,
+.trust-strip-v2,
+.steps-grid,
+[aria-labelledby="steps-heading"],
+[aria-labelledby="steps-heading"] > .container,
+.svc-grid,
+.ba-grid,
+.cta-banner {
+  overflow: visible !important;
+  max-height: none !important;
+}
+/* Exception: nm-body must scroll internally */
+.nm-body { overflow-y: auto !important; max-height: none !important; }
+/* Exception: footer social row can scroll horizontally (scrollbar hidden) */
+.footer-social { overflow-x: auto !important; overflow-y: visible !important; max-height: none !important; }
+
+/* A5: Only ONE credential block — trust-strip-v2 is canonical */
+.hero-chip, .hero-chip-1, .hero-chip-2,
+.doctor-cred-pills, .cred-pill {
+  display: none !important;
+}
+
+/* A6: Chaty — always physical right, RTL-safe */
+.chaty-wrap {
+  position: fixed !important;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+  right: 1.25rem !important;
+  left: auto !important;
+  direction: rtl !important;
+}
+
+/* A7: Hero text centered on mobile */
 @media (max-width: 768px) {
-  .nav-inner {
-    height: 64px !important;
-    padding-inline: 1rem !important;
+  .hero-v2-text {
+    text-align: center !important;
   }
-  .nav-brand {
-    flex: 1 !important;
+  .hero-v2-text .sh-eyebrow,
+  .hero-v2-text h1,
+  .hero-v2-text .lead,
+  .hero-v2-text p {
+    text-align: center !important;
+  }
+  .hero-v2-text .lead {
+    margin-inline: auto !important;
+    max-width: 100% !important;
+  }
+  .hero-actions {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+  }
+  .hero-v2-stats {
+    justify-content: center !important;
   }
 }
 
-/* ── END BUG-FIXES + QUALITY v2 ─────────────────────────────────────────── */
+/* B2: Primary CTA — evergreen bg + white text — final authority */
+.btn-primary,
+a.btn-primary,
+button.btn-primary {
+  background: linear-gradient(135deg, var(--evergreen, #2F7D32), var(--evergreen-dark, #246b28)) !important;
+  color: #fff !important;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active,
+a.btn-primary:hover, a.btn-primary:focus, a.btn-primary:active {
+  color: #fff !important;
+}
+/* cta-banner uses inverted button (white bg, green text) — intentional */
+.cta-banner .btn-primary,
+.cta-banner a.btn-primary {
+  background: #fff !important;
+  color: var(--evergreen, #2F7D32) !important;
+}
+.cta-banner .btn-primary:hover,
+.cta-banner a.btn-primary:hover {
+  background: var(--evergreen-soft, #e8f5e9) !important;
+  color: var(--evergreen, #2F7D32) !important;
+}
