@@ -131,9 +131,12 @@
   </div>
   <!-- Mobile panel -->
   <div id="nav-mobile" class="nav-mobile" role="dialog" aria-modal="true" aria-label="منوی ناوبری">
-    <div class="nm-header">
-      <img src="assets/images/logo.svg" class="nm-logo" alt="لوگو" loading="eager"/>
-      <button class="nm-close" id="nm-close" aria-label="بستن منو"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    <div class="nm-header" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;">
+      <span></span>
+      <a href="index.html" class="nav-brand nm-logo-wrap" style="justify-content:center;display:flex;" aria-label="صفحه اصلی">
+        <img src="assets/images/logo.svg" class="nm-logo" alt="لوگو" loading="eager" style="height:34px;width:auto;"/>
+      </a>
+        <button class="nm-close" id="nm-close" aria-label="بستن منو"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     </div>
     <div class="nm-body">
       <a href="index.html" class="nm-item"><span class="nm-icon"><i class="fa-solid fa-house" aria-hidden="true"></i></span>خانه</a>
@@ -324,7 +327,7 @@
       <a href="https://www.youtube.com/@dr.bastaninejad" target="_blank" rel="noopener noreferrer" class="footer-social-link yt" role="listitem" aria-label="یوتیوب دکتر باستانی‌نژاد">
         <span class="fs-icon"><i class="fa-brands fa-youtube" aria-hidden="true"></i></span>یوتیوب
       </a>
-      <a href="https://www.aparat.com/dr.bastaninejad" target="_blank" rel="noopener noreferrer" class="footer-social-link ap" role="listitem" aria-label="آپارات دکتر باستانی‌نژاد">
+      <a href="https://www.aparat.com/drbasataninejad" target="_blank" rel="noopener noreferrer" class="footer-social-link ap" role="listitem" aria-label="آپارات دکتر باستانی‌نژاد">
         <span class="fs-icon"><i class="fa-solid fa-play" aria-hidden="true"></i></span>آپارات
       </a>
       <a href="https://t.me/dr_bastaninejad" target="_blank" rel="noopener noreferrer" class="footer-social-link tg" role="listitem" aria-label="تلگرام دکتر باستانی‌نژاد">
@@ -333,6 +336,7 @@
     </div>
     <!-- Grid -->
     <div class="footer-grid">
+
       <!-- Brand col -->
       <div class="footer-brand">
         <img src="assets/images/logo-monochrome.svg" class="footer-logo" alt="لوگوی کلینیک دکتر شاهین باستانی نژاد" width="130" height="50" loading="lazy"/>
@@ -342,16 +346,9 @@
           <div class="footer-stat" role="listitem"><a href="gallery.html" class="footer-stat-link"><span class="fs-num" data-count="2000" data-suffix="+">+۲۰۰۰</span><span class="fs-lbl">عمل موفق</span></a></div>
           <div class="footer-stat" role="listitem"><a href="gallery.html" class="footer-stat-link"><span class="fs-num" data-count="178" data-suffix="+">+۱۷۸</span><span class="fs-lbl">نمونه گالری</span></a></div>
         </div>
-              <!-- Trust seals — directly under stats -->
-        <div class="footer-brand-seals" role="list" aria-label="نمادهای اعتماد">
-          <a href="https://trustseal.enamad.ir/?id=533172&Code=N0dO6V3ic509Xoj2zIAFDG27eDa4Inlv" target="_blank" rel="noopener noreferrer" class="footer-seal-link" role="listitem" aria-label="نماد اعتماد الکترونیکی">
-            <img src="assets/images/enamad.webp" alt="نماد اعتماد الکترونیکی" width="56" height="56" loading="lazy"/>
-          </a>
-          <a href="https://iranent.com/doctors/925/profile/" target="_blank" rel="noopener noreferrer" class="footer-seal-link" role="listitem" aria-label="عضو انجمن جراحان گوش، گلو و بینی ایران">
-            <img src="assets/images/namad-n1.webp" alt="عضو انجمن جراحان گوش، گلو و بینی ایران" width="56" height="56" loading="lazy"/>
-          </a>
-        
-      </div><!-- Quick links -->
+      </div><!-- /footer-brand -->
+
+      <!-- Quick links -->
       <nav class="footer-col" aria-label="لینک‌های سریع">
         <h4>لینک‌های سریع</h4>
         <ul role="list">
@@ -364,7 +361,8 @@
           <li><a href="contact.html"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>تماس و آدرس</a></li>
           <li><a href="booking.html"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i>نوبت‌گیری</a></li>
         </ul>
-      </nav>
+      </nav><!-- /quick links -->
+
       <!-- Services -->
       <nav class="footer-col" aria-label="خدمات">
         <h4>خدمات</h4>
@@ -378,13 +376,13 @@
           <li><a href="services/hump-removal.html"><i class="fa-solid fa-scissors" aria-hidden="true"></i>رفع قوز بینی</a></li>
           <li><a href="services/septoplasty.html"><i class="fa-solid fa-lungs" aria-hidden="true"></i>انحراف بینی</a></li>
         </ul>
-      </nav>
-      <!-- Contact -->
+      </nav><!-- /services -->
+
+      <!-- Contact col -->
       <div class="footer-col">
         <h4>تماس با ما</h4>
         <div class="footer-contact-item">
           <div class="footer-contact-icon"><i class="fa-solid fa-phone" aria-hidden="true"></i></div>
-      </div>
           <div class="footer-contact-text">
             <span class="fct-label">تلفن کلینیک</span>
             <a href="tel:02186087250" class="fct-value">۰۲۱۸۶۰۸۷۲۵۰</a>
@@ -395,7 +393,7 @@
           <div class="footer-contact-icon"><i class="fa-solid fa-clock" aria-hidden="true"></i></div>
           <div class="footer-contact-text">
             <span class="fct-label">ساعت پذیرش</span>
-            <span class="fct-value">شنبه و سه‌شنبه  ۱۵:۰۰–۱۹:۰۰</span>
+            <span class="fct-value">شنبه و سه‌شنبه — ۱۵:۰۰ تا ۱۹:۰۰</span>
           </div>
         </div>
         <div class="footer-contact-item">
@@ -403,45 +401,48 @@
           <div class="footer-contact-text">
             <span class="fct-label">آدرس</span>
             <span class="fct-value" style="font-size:.8rem;line-height:1.5">تهران، خ. نلسون ماندلا، خ. صانعی، ساختمان نور، پلاک ۱ واحد ۶</span>
-              <div class="footer-map-row" role="list" aria-label="مسیریابی">
-                <a href="https://maps.google.com/?q=تهران،+خیابان+نلسون+ماندلا،+خیابان+صانعی،+ساختمان+نور+پلاک+۱" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="Google Maps" aria-label="باز کردن در Google Maps" role="listitem" title="Google Maps">
-                  <img src="assets/images/Icons/GoogleMap.webp" alt="Google Maps" width="22" height="22" loading="lazy"/>
-                </a>
-                <a href="https://neshan.org/maps/places?lat=35.7637&lng=51.4215" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="نشان" aria-label="باز کردن در نشان" role="listitem" title="نشان">
-                  <img src="assets/images/Icons/Neshan.webp" alt="نشان" width="22" height="22" loading="lazy"/>
-                </a>
-                <a href="https://balad.ir/p/bastaninejad-clinic" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="بلد" aria-label="باز کردن در بلد" role="listitem" title="بلد">
-                  <img src="assets/images/Icons/Balad.webp" alt="بلد" width="22" height="22" loading="lazy"/>
-                </a>
-                <a href="https://waze.com/ul?ll=35.7637,51.4215&navigate=yes" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="Waze" aria-label="باز کردن در Waze" role="listitem" title="Waze">
-                  <img src="assets/images/Icons/Waze.webp" alt="Waze" width="22" height="22" loading="lazy"/>
-                </a>
-              </div>
+            <div class="footer-map-row" role="list" aria-label="مسیریابی">
+              <a href="https://maps.app.goo.gl/M9nRYbBiDwr5sTGe9" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="Google Maps" aria-label="باز کردن در Google Maps" role="listitem" title="Google Maps">
+                <img src="assets/images/Icons/GoogleMap.webp" alt="Google Maps" width="22" height="22" loading="lazy"/>
+              </a>
+              <a href="https://nshn.ir/ff_bv21qIxirpx" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="نشان" aria-label="باز کردن در نشان" role="listitem" title="نشان">
+                <img src="assets/images/Icons/Neshan.webp" alt="نشان" width="22" height="22" loading="lazy"/>
+              </a>
+              <a href="https://balad.ir/p/3cuwGGif58f8hT" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="بلد" aria-label="باز کردن در بلد" role="listitem" title="بلد">
+                <img src="assets/images/Icons/Balad.webp" alt="بلد" width="22" height="22" loading="lazy"/>
+              </a>
+              <a href="https://waze.com/ul/htnke3vwqs" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="Waze" aria-label="باز کردن در Waze" role="listitem" title="Waze">
+                <img src="assets/images/Icons/Waze.webp" alt="Waze" width="22" height="22" loading="lazy"/>
+              </a>
+            </div>
           </div>
         </div>
-      </div>
+      </div><!-- /contact -->
+
+    </div><!-- /footer-grid -->
+
+    <!-- Trust seals — single block, no duplicate -->
+    <div class="footer-trust-seals" role="list" aria-label="نمادهای اعتماد">
+      <a href="https://trustseal.enamad.ir/?id=533172&Code=N0dO6V3ic509Xoj2zIAFDG27eDa4Inlv"
+         target="_blank" rel="noopener noreferrer"
+         class="footer-seal-link" role="listitem"
+         aria-label="نماد اعتماد الکترونیکی">
+        <img src="assets/images/enamad.webp" alt="نماد اعتماد الکترونیکی" width="80" height="80" loading="lazy"/>
+      </a>
+      <a href="https://iranent.com/doctors/925/profile/"
+         target="_blank" rel="noopener noreferrer"
+         class="footer-seal-link" role="listitem"
+         aria-label="عضو انجمن جراحان گوش، گلو و بینی ایران">
+        <img src="assets/images/namad-n1.webp" alt="عضو انجمن جراحان گوش، گلو و بینی ایران" width="80" height="80" loading="lazy"/>
+      </a>
     </div>
 
-      <!-- Trust seals -->
-      <div class="footer-trust-seals" role="list" aria-label="نمادهای اعتماد">
-        <a href="https://trustseal.enamad.ir/?id=533172&Code=N0dO6V3ic509Xoj2zIAFDG27eDa4Inlv"
-           target="_blank" rel="noopener noreferrer"
-           class="footer-seal-link" role="listitem"
-           aria-label="نماد اعتماد الکترونیکی">
-          <img src="assets/images/enamad.webp" alt="نماد اعتماد الکترونیکی" width="80" height="80" loading="lazy"/>
-        </a>
-        <a href="https://iranent.com/doctors/925/profile/"
-           target="_blank" rel="noopener noreferrer"
-           class="footer-seal-link" role="listitem"
-           aria-label="عضو انجمن جراحان گوش، گلو و بینی ایران">
-          <img src="assets/images/namad-n1.webp" alt="عضو انجمن جراحان گوش، گلو و بینی ایران" width="80" height="80" loading="lazy"/>
-        </a>
-      </div>
     <!-- Bottom bar -->
     <div class="footer-bottom">
       <span>© ۱۴۰۵ کلینیک دکتر شاهین باستانی نژاد — تمامی حقوق محفوظ است.</span>
       <span class="maz-sig">طراحی توسط <a href="https://maziyarid.com" target="_blank" rel="noopener">MA<span class="z">Z</span></a></span>
     </div>
+
   </div>
 </footer>
 
