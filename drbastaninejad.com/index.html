@@ -38,8 +38,8 @@
     "openingHours": "Sa We 15:00-19:00",
     "medicalSpecialty": ["جراحی بینی", "گوش، گلو و بینی", "جراحی پلاستیک"],
     "sameAs": [
-      "https://www.instagram.com/dr.bastaninejad",
-      "https://www.youtube.com/@dr.bastaninejad",
+      "https://www.instagram.com/dr.shahin.bastaninejad/",
+      "https://www.youtube.com/@Drshahinbastaninejad",
       "https://www.aparat.com/drbasataninejad"
     ]
   }
@@ -50,12 +50,15 @@
 
   <!-- Irancell preload (Bold weight — used for headings above the fold) -->
   <link rel="preload" href="assets/fonts/Irancell/Irancell_Bold.woff2" as="font" type="font/woff2" crossorigin/>
-  <!-- Hero image preload (doctor portrait — confirmed present) -->
-  <link rel="preload" as="image" href="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(1).webp"/>
+  <!-- Hero image preload with high fetch priority for instant paint -->
+  <link rel="preload" as="image" href="assets/images/Doctor/Dr%20Shahin%20Bastani%20Nejad%20(1).webp" fetchpriority="high"/>
 
+  <!-- Critical styles first (tokens + main = above-fold layout), then rest -->
   <link rel="stylesheet" href="assets/css/tokens.css"/>
-  <link rel="stylesheet" href="assets/fonts/FontAwesome/css/all.css"/>
   <link rel="stylesheet" href="assets/css/main.css"/>
+  <!-- FontAwesome: preload as style, then apply — prevents render-blocking icons -->
+  <link rel="preload" href="assets/fonts/FontAwesome/css/all.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+  <noscript><link rel="stylesheet" href="assets/fonts/FontAwesome/css/all.css"/></noscript>
   <link rel="stylesheet" href="assets/css/premium.css"/>
   <link rel="stylesheet" href="assets/css/design-refresh.css"/>
   <link rel="stylesheet" href="assets/css/nav-footer.css"/>
@@ -206,8 +209,6 @@
       </div>
       <div class="hero-v2-photo">
         <img src="assets/images/Doctor/Dr Shahin Bastani Nejad (1).webp" alt="دکتر شاهین باستانی‌نژاد" width="420" height="560" loading="eager"/>
-        <div class="hero-chip hero-chip-1"><i class="fa-solid fa-graduation-cap" aria-hidden="true" style="color:var(--evergreen)"></i>عضو هیئت علمی دانشگاه تهران</div>
-        <div class="hero-chip hero-chip-2"><i class="fa-solid fa-award" aria-hidden="true" style="color:var(--evergreen)"></i>رتبه ۴ بورد تخصصی کشوری</div>
       </div>
     </div>
   </section>
@@ -352,11 +353,6 @@
         <div data-reveal="right">
           <span class="sh-eyebrow">درباره دکتر</span>
           <h2 id="doctor-heading">دکتر شاهین باستانی‌نژاد</h2>
-          <div class="doctor-cred-pills">
-            <span class="cred-pill">عضو هیئت علمی TUMS</span>
-            <span class="cred-pill">رتبه چهارم بورد تخصصی</span>
-            <span class="cred-pill">دبیر کمیته علمی رینولوژی</span>
-          </div>
           <p style="margin-top:1rem;line-height:1.8;color:var(--muted)">
             دکتر شاهین باستانی‌نژاد، متخصص گوش، گلو و بینی و عضو هیئت علمی دانشگاه علوم پزشکی تهران، فارغ‌التحصیل دانشگاه اصفهان (۱۳۷۵) و دستیار تخصصی دانشگاه تهران (۱۳۸۴–۱۳۸۸) است. ایشان در آزمون بورد تخصصی رتبه چهارم کشوری را کسب نموده و دبیر کمیته علمی رینولوژی انجمن جراحی پلاستیک بینی ایران می‌باشند.
           </p>
@@ -440,57 +436,6 @@
           <h3>دوره بهبودی</h3>
           <p>پیگیری‌های منظم پس از عمل، برداشتن آتل و مشاوره‌های لازم برای دستیابی به بهترین نتیجه.</p>
         </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========================================================================
-       TESTIMONIALS
-       ========================================================================= -->
-  <section class="section band-white" aria-labelledby="testimonials-heading">
-    <div class="container">
-      <div class="sh sh-center" data-reveal>
-        <span class="sh-eyebrow">نظرات بیماران</span>
-        <h2 id="testimonials-heading">تجربه بیماران قبلی</h2>
-      </div>
-      <div class="svc-grid" role="list">
-
-        <div class="testimonial-v2" role="listitem">
-          <div class="t-stars" aria-label="پنج ستاره">★★★★★</div>
-          <p class="t-body">«بعد از سال‌ها نارضایتی از شکل بینیم، بالاخره با دکتر باستانی‌نژاد مشورت کردم. نتیجه فراتر از انتظاراتم بود — طبیعی، متناسب و دقیقاً همان چیزی که می‌خواستم.»</p>
-          <div class="t-footer">
-            <div class="t-avatar" aria-hidden="true">ف</div>
-            <div>
-              <div class="t-name">فاطمه م.</div>
-              <div class="t-date">بیمار جراحی بینی طبیعی</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="testimonial-v2" role="listitem">
-          <div class="t-stars" aria-label="پنج ستاره">★★★★★</div>
-          <p class="t-body">«از مشاوره اولیه تا مراقبت‌های بعد از عمل، تیم دکتر باستانی‌نژاد در تمام مراحل همراهم بودند. احساس می‌کنم دکتر واقعاً به جزئیات اهمیت می‌دهد.»</p>
-          <div class="t-footer">
-            <div class="t-avatar" aria-hidden="true">م</div>
-            <div>
-              <div class="t-name">محمد ر.</div>
-              <div class="t-date">بیمار جراحی بینی استخوانی</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="testimonial-v2" role="listitem">
-          <div class="t-stars" aria-label="پنج ستاره">★★★★★</div>
-          <p class="t-body">«جراحی ترمیمی بینی پس از عمل ناموفق قبلی انجام دادم. دکتر صبور بودند، توضیحات کامل دادند و نتیجه واقعاً خوب بود. ممنون از تیم حرفه‌ای‌شون.»</p>
-          <div class="t-footer">
-            <div class="t-avatar" aria-hidden="true">ز</div>
-            <div>
-              <div class="t-name">زهرا ک.</div>
-              <div class="t-date">بیمار جراحی بینی ترمیمی</div>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   </section>
@@ -783,7 +728,7 @@
 <!-- Floating contact (Chaty) -->
 <div class="chaty-wrap" id="chaty-wrap" aria-label="ارتباط سریع">
   <div class="chaty-channels" id="chaty-channels" aria-label="کانال‌های ارتباطی">
-    <a href="https://wa.me/989123456789" target="_blank" rel="noopener noreferrer" class="chaty-channel" aria-label="واتس‌اپ">
+    <a href="https://wa.me/989124966590" target="_blank" rel="noopener noreferrer" class="chaty-channel" aria-label="واتس‌اپ">
       <span class="chaty-ch-icon wa"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></span>واتس‌اپ
     </a>
     <a href="https://t.me/dr_bastaninejad" target="_blank" rel="noopener noreferrer" class="chaty-channel" aria-label="تلگرام">

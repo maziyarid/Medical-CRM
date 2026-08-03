@@ -1285,15 +1285,19 @@ details[open] .faq-question svg {
   line-height: 1.75;
 }
 
-.cta-banner .btn-primary {
-  background: #fff;
-  color: var(--evergreen, #2f7d32);
+/* cta-banner uses inverted button: white bg + green text (overrides nuclear rule) */
+.cta-banner .btn-primary,
+.cta-banner a.btn-primary {
+  background: #fff !important;
+  color: var(--evergreen, #2f7d32) !important;
   margin-top: 1.75rem;
   box-shadow: 0 6px 20px rgba(0,0,0,.2);
 }
 
-.cta-banner .btn-primary:hover {
-  background: var(--evergreen-soft, #e8f5e9);
+.cta-banner .btn-primary:hover,
+.cta-banner a.btn-primary:hover {
+  background: var(--evergreen-soft, #e8f5e9) !important;
+  color: var(--evergreen, #2f7d32) !important;
 }
 
 /* ── Steps section ───────────────────────────────────────────────────────── */
@@ -3480,7 +3484,7 @@ body {
   transform: translateY(-6px) !important;
 }
 .svc-card-icon {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
   border: 1px solid rgba(47,125,50,.2) !important;
   box-shadow: 0 2px 8px rgba(47,125,50,.12) !important;
 }
@@ -3856,33 +3860,33 @@ a.btn-primary:active {
 }
 
 /* ── A: Service card unique accent colours ───────────────────────────────────── */
-/* Default svc-card icon colour is evergreen; overrides per type below */
-.svc-card--primary  .svc-card-icon { background: #e8f5e9; color: #2F7D32; }
-.svc-card--revision .svc-card-icon { background: #fce4ec; color: #c62828; }
+/* !important needed to beat the generic .svc-card-icon base rule in this file */
+.svc-card--primary  .svc-card-icon { background: #e8f5e9 !important; color: #2F7D32 !important; }
+.svc-card--revision .svc-card-icon { background: #fce4ec !important; color: #c62828 !important; }
 .svc-card--revision:hover            { border-color: rgba(198, 40, 40, .25) !important; }
 
-.svc-card--bony .svc-card-icon     { background: #e3f2fd; color: #1565c0; }
+.svc-card--bony .svc-card-icon     { background: #e3f2fd !important; color: #1565c0 !important; }
 .svc-card--bony:hover               { border-color: rgba(21, 101, 192, .25) !important; }
 
-.svc-card--fleshy .svc-card-icon   { background: #fff3e0; color: #e65100; }
+.svc-card--fleshy .svc-card-icon   { background: #fff3e0 !important; color: #e65100 !important; }
 .svc-card--fleshy:hover             { border-color: rgba(230, 81, 0, .25) !important; }
 
-.svc-card--natural .svc-card-icon  { background: #f1f8e9; color: #33691e; }
+.svc-card--natural .svc-card-icon  { background: #f1f8e9 !important; color: #33691e !important; }
 .svc-card--natural:hover            { border-color: rgba(51, 105, 30, .25) !important; }
 
-.svc-card--fantasy .svc-card-icon  { background: #ede7f6; color: #6a1b9a; }
+.svc-card--fantasy .svc-card-icon  { background: #ede7f6 !important; color: #6a1b9a !important; }
 .svc-card--fantasy:hover            { border-color: rgba(106, 27, 154, .25) !important; }
 
-.svc-card--hump .svc-card-icon     { background: #fafafa; color: #37474f; }
+.svc-card--hump .svc-card-icon     { background: #fafafa !important; color: #37474f !important; }
 .svc-card--hump:hover               { border-color: rgba(55, 71, 79, .25) !important; }
 
-.svc-card--sept .svc-card-icon     { background: #e1f5fe; color: #0277bd; }
+.svc-card--sept .svc-card-icon     { background: #e1f5fe !important; color: #0277bd !important; }
 .svc-card--sept:hover               { border-color: rgba(2, 119, 189, .25) !important; }
 
-.svc-card--turb .svc-card-icon     { background: #e0f7fa; color: #00838f; }
+.svc-card--turb .svc-card-icon     { background: #e0f7fa !important; color: #00838f !important; }
 .svc-card--turb:hover               { border-color: rgba(0, 131, 143, .25) !important; }
 
-.svc-card--sinus .svc-card-icon    { background: #fef9e7; color: #f57f17; }
+.svc-card--sinus .svc-card-icon    { background: #fef9e7 !important; color: #f57f17 !important; }
 .svc-card--sinus:hover              { border-color: rgba(245, 127, 23, .25) !important; }
 
 /* ── I: Instagram honest fallback styles ─────────────────────────────────────── */

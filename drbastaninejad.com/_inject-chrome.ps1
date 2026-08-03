@@ -1,4 +1,4 @@
-##############################################################################
+﻿##############################################################################
 #  inject-chrome.ps1  ·  drbastaninejad.com
 #  Injects:  new mega-menu nav  +  premium footer  +  chaty floater
 #            + nav-footer.css link  + site-chrome.js script
@@ -148,10 +148,10 @@ $FOOTER_ROOT = @'
   <div class="container">
     <!-- Social bar -->
     <div class="footer-social" role="list" aria-label="شبکه‌های اجتماعی">
-      <a href="https://www.instagram.com/dr.bastaninejad" target="_blank" rel="noopener noreferrer" class="footer-social-link ig" role="listitem" aria-label="اینستاگرام دکتر باستانی‌نژاد">
+      <a href="https://www.instagram.com/dr.shahin.bastaninejad/" target="_blank" rel="noopener noreferrer" class="footer-social-link ig" role="listitem" aria-label="اینستاگرام دکتر باستانی‌نژاد">
         <span class="fs-icon"><i class="fa-brands fa-instagram" aria-hidden="true"></i></span>اینستاگرام
       </a>
-      <a href="https://www.youtube.com/@dr.bastaninejad" target="_blank" rel="noopener noreferrer" class="footer-social-link yt" role="listitem" aria-label="یوتیوب دکتر باستانی‌نژاد">
+      <a href="https://www.youtube.com/@Drshahinbastaninejad" target="_blank" rel="noopener noreferrer" class="footer-social-link yt" role="listitem" aria-label="یوتیوب دکتر باستانی‌نژاد">
         <span class="fs-icon"><i class="fa-brands fa-youtube" aria-hidden="true"></i></span>یوتیوب
       </a>
       <a href="https://www.aparat.com/dr.bastaninejad" target="_blank" rel="noopener noreferrer" class="footer-social-link ap" role="listitem" aria-label="آپارات دکتر باستانی‌نژاد">
@@ -258,7 +258,7 @@ $CHATY = @'
 <!-- Floating contact (Chaty) -->
 <div class="chaty-wrap" id="chaty-wrap" aria-label="ارتباط سریع">
   <div class="chaty-channels" id="chaty-channels" aria-label="کانال‌های ارتباطی">
-    <a href="https://wa.me/989123456789" target="_blank" rel="noopener noreferrer" class="chaty-channel" aria-label="واتس‌اپ">
+    <a href="https://wa.me/989124966590" target="_blank" rel="noopener noreferrer" class="chaty-channel" aria-label="واتس‌اپ">
       <span class="chaty-ch-icon wa"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></span>واتس‌اپ
     </a>
     <a href="https://t.me/dr_bastaninejad" target="_blank" rel="noopener noreferrer" class="chaty-channel" aria-label="تلگرام">
