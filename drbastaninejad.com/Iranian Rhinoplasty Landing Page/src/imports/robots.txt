@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Disallow non-public asset paths
+Disallow: /assets/js/
+Disallow: /assets/css/
+Disallow: /data/
+
+Sitemap: https://drbastaninejad.com/sitemap.xml

@@ -1,0 +1,143 @@
+/*
+ * ============================================================================
+ *  MΛZ — drbastaninejad.com Design Tokens
+ * ----------------------------------------------------------------------------
+ *  Source of truth: app.drbastaninejad.com/Frontend/assets/css/tokens.css
+ *  Keep in sync manually — do NOT add site-specific tokens here.
+ *  Site-specific overrides and additions belong in main.css.
+ *  Version: 1.2.0 · 2026-08-01 — Irancell font + FA7 Pro local; logo SVG
+ * ============================================================================
+ */
+
+/* ── Irancell — self-hosted, six weights ────────────────────────────────────
+   Files live in assets/fonts/Irancell/
+   Weights: ExtraLight(200) Light(300) Regular(400) Medium(500) Bold(700) ExtraBold(800)
+   ─────────────────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_ExtraLight.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_ExtraLight.woff')  format('woff');
+}
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_Light.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Light.woff')  format('woff');
+}
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_Regular.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Regular.woff')  format('woff');
+}
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_Medium.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Medium.woff')  format('woff');
+}
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_Bold.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Bold.woff')  format('woff');
+}
+@font-face {
+  font-family: 'Irancell';
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url('../fonts/Irancell/Irancell_Extrabold.woff2') format('woff2'),
+       url('../fonts/Irancell/Irancell_Extrabold.woff')  format('woff');
+}
+
+:root {
+  /* ---------- Primary palette (Evergreen system — clinical) ---------- */
+  --evergreen:        #2F7D32;
+  --evergreen-dark:   #246b28;
+  --evergreen-soft:   #E4F0E4;
+
+  /* ---------- Neutrals ---------- */
+  --graphite:         #25272C;
+  --muted:            #6A7078;
+  --border:           #DDE2DD;
+  --porcelain:        #F7F8F6;
+  --surface:          #FFFFFF;
+
+  /* ---------- Accent ---------- */
+  --brass:            #B6905E;
+
+  /* ---------- Semantic ---------- */
+  --error:            #DC2626;
+  --error-soft:       #FEF2F2;
+  --success:          #16A34A;
+  --success-soft:     #DCFCE7;
+  --warning:          #D97706;
+  --warning-soft:     #FFF7ED;
+  --info:             #2563EB;
+  --info-soft:        #EEF2FF;
+
+  /* ---------- MAZ//ID signature accents ---------- */
+  --maz-primary:       #0EA5FF;
+  --maz-primary-dark:  #0B6FAF;
+  --maz-accent:        #A8FF4D;
+
+  /* ---------- Typography ---------- */
+  /* Irancell is the primary brand font for drbastaninejad.com.
+     Vazirmatn kept as system fallback. */
+  --font-fa: 'Irancell', 'Vazirmatn', Tahoma, Arial, system-ui, sans-serif;
+  --font-en: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  /* ---------- Spacing (4px grid) ---------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* ---------- Radius ---------- */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.65rem;
+  --radius:    1rem;
+  --radius-lg: 1.5rem;
+  --radius-full: 999px;
+
+  /* ---------- Elevation ---------- */
+  --shadow-sm: 0 1px 3px rgba(37, 39, 44, 0.06);
+  --shadow:    0 20px 40px -12px rgba(37, 39, 44, 0.12);
+  --shadow-lg: 0 25px 50px -12px rgba(37, 39, 44, 0.18);
+
+  /* ---------- Motion ---------- */
+  --transition-fast: 120ms cubic-bezier(.4,.0,.2,1);
+  --transition:      200ms cubic-bezier(.4,.0,.2,1);
+  --transition-slow: 320ms cubic-bezier(.4,.0,.2,1);
+
+  /* ---------- Layout ---------- */
+  --page-max: 1200px;
+  --section-gap: clamp(4rem, 8vw, 7rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* End of file — MAZ//ID */

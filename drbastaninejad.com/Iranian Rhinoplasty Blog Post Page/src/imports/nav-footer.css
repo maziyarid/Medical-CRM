@@ -1,0 +1,1703 @@
+/*
+ * ============================================================================
+ *  drbastaninejad.com — NAV + FOOTER + FLOATING CTA  ·  nav-footer.css
+ *  Depends: tokens.css, main.css
+ *  Replaces previous piecemeal nav/footer styles in design-refresh.css
+ * ============================================================================
+ */
+
+/* ── RESET CONFLICTS from earlier sessions ─────────────────────────────────
+   premium.css and design-refresh.css each defined .nav-mobile / .nav-dropdown
+   in incompatible ways. This file wins with higher specificity or !important
+   where absolutely required, then removed from those files conceptually.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. SITE NAV  — sticky bar
+   ═══════════════════════════════════════════════════════════════════════════ */
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid var(--border, #DDE2DD);
+  transition: box-shadow 200ms ease;
+}
+
+.site-nav.scrolled {
+  box-shadow: 0 2px 20px rgba(37, 39, 44, 0.1);
+}
+
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+  max-width: var(--page-max, 1200px);
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 5vw, 2.5rem);
+  gap: 1rem;
+}
+
+/* Brand */
+.nav-brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+.nav-brand:hover { text-decoration: none; }
+.nav-logo {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  max-width: 170px;
+  display: block;
+}
+
+/* ── Desktop nav links ─────────────────────────────────────────────────────── */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-links > li {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Top-level link */
+.nav-links > li > a {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--muted, #6A7078);
+  padding: .48rem .78rem;
+  border-radius: 7px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 120ms ease, background 120ms ease;
+  line-height: 1;
+}
+
+.nav-links > li > a .nav-icon {
+  font-size: .78rem;
+  opacity: .7;
+  flex-shrink: 0;
+}
+
+.nav-links > li > a .nav-chevron {
+  font-size: .6rem;
+  opacity: .5;
+  transition: transform 200ms ease;
+  margin-right: .1rem;
+}
+
+.nav-links > li:hover > a,
+.nav-links > li > a:hover {
+  color: var(--graphite, #25272C);
+  background: var(--porcelain, #F7F8F6);
+  text-decoration: none;
+}
+
+.nav-links > li > a:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--evergreen, #2F7D32);
+  border-radius: var(--radius-sm, 6px);
+}
+
+.nav-links > li > a.active,
+.nav-links > li > a[aria-current="page"] {
+  color: var(--evergreen, #2F7D32);
+  background: var(--evergreen-soft, #E4F0E4);
+}
+
+/* Rotate chevron when dropdown is open */
+.nav-links > li:hover > a .nav-chevron,
+.nav-links > li:focus-within > a .nav-chevron {
+  transform: rotate(180deg);
+}
+
+/* ── MEGA-MENU dropdown ────────────────────────────────────────────────────── */
+.nav-mega {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 480px;
+  background: #fff;
+  border: 1px solid var(--border, #DDE2DD);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(37, 39, 44, 0.14);
+  padding: 1.25rem;
+  /* Use visibility+opacity so transition works AND hover delay works */
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px) scale(.98);
+  transition:
+    opacity 200ms ease,
+    transform 200ms cubic-bezier(.25,.46,.45,.94),
+    visibility 0ms linear 200ms;  /* delay hide */
+  z-index: 600;
+}
+
+/* Invisible hover-bridge — fills gap between link and menu */
+.nav-mega::before {
+  content: '';
+  position: absolute;
+  top: -12px; left: 0; right: 0;
+  height: 12px;
+}
+
+.nav-links > li:hover .nav-mega,
+.nav-links > li:focus-within .nav-mega {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  /* Show instantly, hide with delay */
+  transition:
+    opacity 200ms ease,
+    transform 200ms cubic-bezier(.25,.46,.45,.94),
+    visibility 0ms linear 0ms;
+}
+
+/* Grid columns inside mega */
+.nav-mega-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 .75rem;
+}
+
+.nav-mega-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* Group label inside mega */
+.nav-mega-label {
+  font-size: .65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted, #6A7078);
+  padding: .65rem .6rem .2rem;
+  display: block;
+}
+
+/* Mega item row — icon + title only (no subtitle) */
+.nav-mega-item {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .55rem .6rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--graphite, #25272C);
+  font-size: .83rem;
+  font-weight: 600;
+  transition: background 120ms ease, color 120ms ease;
+  outline: none;               /* remove focus box — handled below */
+}
+.nav-mega-item:focus-visible {
+  box-shadow: 0 0 0 2px var(--evergreen, #2F7D32);
+}
+.nav-mega-item:hover {
+  background: var(--evergreen-soft, #E4F0E4);
+  color: var(--evergreen, #2F7D32);
+  text-decoration: none;
+}
+
+.nav-mega-item .mi-icon {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  border-radius: 7px;
+  background: var(--evergreen-soft, #E4F0E4);
+  color: var(--evergreen, #2F7D32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .78rem;
+  flex-shrink: 0;
+  transition: background 120ms ease;
+}
+.nav-mega-item:hover .mi-icon {
+  background: rgba(47,125,50,.18);
+}
+
+.nav-mega-item .mi-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.nav-mega-item .mi-title {
+  font-weight: 600;
+  font-size: .83rem;
+  line-height: 1.3;
+}
+/* Hide subtitle text in mega menu — only the title/name is shown */
+.nav-mega-item .mi-sub {
+  display: none;
+}
+
+/* Mega footer bar */
+.nav-mega-footer {
+  border-top: 1px solid var(--border, #DDE2DD);
+  margin-top: .75rem;
+  padding-top: .75rem;
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.nav-mega-footer-link {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--evergreen, #2F7D32);
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .35rem .65rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 120ms ease;
+}
+.nav-mega-footer-link:hover {
+  background: var(--evergreen-soft, #E4F0E4);
+  text-decoration: none;
+}
+
+/* ── Standard small dropdown (non-mega pages) ─────────────────────────────── */
+.nav-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 230px;
+  background: #fff;
+  border: 1px solid var(--border, #DDE2DD);
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(37,39,44,.12);
+  padding: .5rem;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 600;
+}
+
+.nav-links > li:hover .nav-dropdown,
+.nav-links > li:focus-within .nav-dropdown {
+  display: flex;
+}
+
+.nav-dropdown-group-label {
+  font-size: .68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted, #6A7078);
+  padding: .65rem .75rem .25rem;
+  display: block;
+}
+
+.nav-dropdown a {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .48rem .75rem;
+  border-radius: 7px;
+  font-size: .84rem;
+  font-weight: 500;
+  color: var(--graphite, #25272C);
+  text-decoration: none;
+  transition: background 120ms ease, color 120ms ease;
+}
+.nav-dropdown a:hover {
+  background: var(--evergreen-soft, #E4F0E4);
+  color: var(--evergreen, #2F7D32);
+  text-decoration: none;
+}
+
+/* ── Nav CTA ───────────────────────────────────────────────────────────────── */
+.nav-cta {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  flex-shrink: 0;
+}
+
+.nav-cta .tel-link {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--muted, #6A7078);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  white-space: nowrap;
+}
+.nav-cta .tel-link:hover { color: var(--evergreen, #2F7D32); text-decoration: none; }
+
+/* ── Hamburger button ──────────────────────────────────────────────────────── */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: 1.5px solid var(--border, #DDE2DD);
+  border-radius: 8px;
+  cursor: pointer;
+  padding: .45rem .55rem;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  flex-shrink: 0;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+.nav-toggle:hover { border-color: var(--evergreen, #2F7D32); background: var(--evergreen-soft, #E4F0E4); }
+.nav-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--graphite, #25272C);
+  border-radius: 2px;
+  transition: transform 220ms cubic-bezier(.4,0,.2,1), opacity 220ms ease, width 220ms ease;
+  transform-origin: center;
+}
+/* Animate to × */
+.nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; width: 0; }
+.nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Mobile slide-in panel ─────────────────────────────────────────────────── */
+.nav-mobile {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+  width: min(340px, 88vw) !important;
+  background: #fff !important;
+  border-left: 1px solid var(--border, #DDE2DD) !important;
+  border-top: none !important;
+  padding: 0 !important;
+  /* ALWAYS display:flex — translateX hides/shows it, never display:none */
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-y: hidden !important;  /* nm-body scrolls internally */
+  transform: translateX(100%) !important;
+  transition: transform 240ms cubic-bezier(.4,0,.2,1),
+              box-shadow 240ms ease !important;
+  z-index: 510 !important;
+  box-shadow: none !important;
+  /* Safe-area on iOS notch devices */
+  padding-bottom: env(safe-area-inset-bottom, 0) !important;
+}
+
+.nav-mobile.open {
+  transform: translateX(0) !important;
+  box-shadow: -12px 0 48px rgba(37,39,44,.18) !important;
+}
+
+/* Panel header */
+.nm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border, #DDE2DD);
+  flex-shrink: 0;
+}
+.nm-header .nm-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+.nm-close {
+  width: 36px; height: 36px;
+  border: 1.5px solid var(--border, #DDE2DD);
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: var(--muted, #6A7078);
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+.nm-close:hover {
+  border-color: var(--evergreen, #2F7D32);
+  background: var(--evergreen-soft, #E4F0E4);
+  color: var(--evergreen, #2F7D32);
+}
+
+/* Scrollable body */
+.nm-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: .75rem .75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Mobile nav item */
+.nm-item {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .65rem .85rem;
+  border-radius: 9px;
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--graphite, #25272C);
+  text-decoration: none;
+  min-height: 44px;
+  transition: background 120ms ease, color 120ms ease;
+}
+.nm-item:hover, .nm-item:focus {
+  background: var(--porcelain, #F7F8F6);
+  text-decoration: none;
+  color: var(--graphite, #25272C);
+}
+.nm-item.active,
+.nm-item[aria-current="page"] {
+  background: var(--evergreen-soft, #E4F0E4);
+  color: var(--evergreen, #2F7D32);
+}
+
+.nm-item .nm-icon {
+  width: 30px; height: 30px;
+  min-width: 30px;
+  border-radius: 7px;
+  background: var(--porcelain, #F7F8F6);
+  color: var(--evergreen, #2F7D32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .8rem;
+  flex-shrink: 0;
+}
+.nm-item.active .nm-icon,
+.nm-item[aria-current="page"] .nm-icon {
+  background: rgba(47,125,50,.15);
+}
+
+/* Mobile sub-section (services accordion) */
+.nm-group-label {
+  font-size: .68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted, #6A7078);
+  padding: .8rem .85rem .25rem;
+}
+
+/* Mobile CTA footer */
+.nm-footer {
+  padding: .75rem .75rem 0;
+  border-top: 1px solid var(--border, #DDE2DD);
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  flex-shrink: 0;
+  margin-top: auto;
+}
+.nm-footer .btn {
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  border-radius: 999px;
+  min-height: 48px;
+}
+
+/* Backdrop overlay */
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(37, 39, 44, 0.5);
+  z-index: 509;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms ease;
+  /* Must NOT be display:none — opacity+pointer-events controls it */
+}
+.nav-backdrop.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Media queries ─────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .nav-mega { min-width: 400px; }
+}
+
+@media (max-width: 768px) {
+  .nav-links { display: none !important; }
+  .nav-cta .btn, .nav-cta .tel-link { display: none !important; }
+  .nav-toggle { display: flex !important; }
+
+  /* A3: Mobile header — logo CENTER, hamburger PHYSICAL RIGHT
+     Grid overrides flex+space-between regardless of RTL dir */
+  .nav-inner {
+    height: 64px !important;
+    display: grid !important;
+    grid-template-columns: 44px 1fr 44px !important;
+    align-items: center !important;
+    justify-items: center !important;
+    gap: 0 !important;
+    padding-inline: .75rem !important;
+  }
+  .nav-inner .nav-brand {
+    grid-column: 2 !important;
+    justify-self: center !important;
+  }
+  .nav-inner .nav-toggle {
+    grid-column: 3 !important;
+    justify-self: end !important;
+  }
+  .nav-inner .nav-links,
+  .nav-inner .nav-cta {
+    display: none !important;
+  }
+
+  /* A6: Chaty flush to physical right on mobile */
+  .chaty-wrap {
+    bottom: calc(.6rem + env(safe-area-inset-bottom, 0px)) !important;
+    right: .6rem !important;
+    left: auto !important;
+  }
+  .chaty-trigger {
+    width: 52px !important;
+    height: 52px !important;
+    font-size: 1.2rem !important;
+  }
+}
+
+@media (min-width: 769px) {
+  /* Panel stays flex always — translateX controls visibility */
+  .nav-mobile { transform: translateX(100%) !important; }
+  .nav-mobile.open { transform: translateX(0) !important; }
+  /* backdrop: keep it in DOM but invisible on desktop */
+  #nav-backdrop { opacity: 0 !important; pointer-events: none !important; }
+  .nav-toggle { display: none !important; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. PREMIUM FOOTER
+   ═══════════════════════════════════════════════════════════════════════════ */
+.site-footer {
+  background: #1a1e22;
+  color: rgba(255, 255, 255, 0.7);
+  padding-block: clamp(3.5rem, 7vw, 5.5rem) 0;
+}
+
+/* Social bar — single row, no wrapping, scrollable on very narrow screens */
+.footer-social {
+  display: flex;
+  flex-wrap: nowrap;           /* force single row always */
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  margin-bottom: 2.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;       /* Firefox */
+}
+.footer-social::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .45rem .85rem .45rem .55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  font-size: .8rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.75);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+.footer-social-link:hover {
+  border-color: rgba(255,255,255,.35);
+  background: rgba(255,255,255,.07);
+  color: #fff;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+.footer-social-link .fs-icon {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .78rem;
+  flex-shrink: 0;
+}
+.footer-social-link.ig  .fs-icon { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: #fff; }
+.footer-social-link.yt  .fs-icon { background: #ff0000; color: #fff; }
+.footer-social-link.ap  .fs-icon { background: #e84040; color: #fff; }
+.footer-social-link.tg  .fs-icon { background: #26a5e4; color: #fff; }
+
+/* Footer grid */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1.2fr 1.2fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  padding-bottom: 2.5rem;
+  /* No border-bottom here — .footer-trust-seals has its own border-top */
+  align-items: start;
+}
+
+@media (max-width: 1024px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px)  {
+  .footer-grid { grid-template-columns: 1fr; }
+  /* Centre-align everything in mobile footer */
+  .footer-brand,
+  .footer-col,
+  .footer-brand .footer-stats,
+  .footer-contact-item,
+  .footer-contact-text { align-items: center; text-align: center; }
+  .footer-col ul { align-items: center; }
+  .footer-col li { justify-content: center; }
+  .footer-map-row { justify-content: center; }
+  .footer-trust-seals { justify-content: center; }
+  .footer-bottom { flex-direction: column; align-items: center; text-align: center; }
+}
+
+/* Brand col */
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+.footer-logo {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  /* white version: use logo-white.svg — no opacity dim needed */
+}
+.footer-brand-tagline {
+  font-size: .85rem;
+  line-height: 1.7;
+  color: rgba(255,255,255,.6);
+}
+
+/* Footer stats row */
+.footer-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: .5rem;
+}
+.footer-stat {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+}
+.footer-stat .fs-num {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--evergreen, #2F7D32);
+  line-height: 1;
+}
+.footer-stat .fs-lbl {
+  font-size: .7rem;
+  color: rgba(255,255,255,.45);
+}
+
+/* Footer columns */
+.footer-col h4 {
+  font-size: .7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: rgba(255,255,255,.35);
+  margin-bottom: 1rem;
+}
+.footer-col ul {
+  list-style: none;
+  padding: 0; margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+.footer-col li {
+  display: flex;
+  align-items: flex-start;
+}
+.footer-col li a,
+.footer-col li span {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .84rem;
+  color: rgba(255,255,255,.62);
+  text-decoration: none;
+  padding: .25rem .35rem;
+  border-radius: 5px;
+  transition: color 120ms ease, background 120ms ease;
+  line-height: 1.4;
+}
+.footer-col li a:hover {
+  color: #fff;
+  background: rgba(255,255,255,.06);
+  text-decoration: none;
+}
+.footer-col li a i,
+.footer-col li span i {
+  font-size: .7rem;
+  opacity: .55;
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Map navigation icons row — below address in footer */
+.footer-map-row {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin-top: .6rem;
+  flex-wrap: wrap;
+}
+.footer-map-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  overflow: hidden;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+  text-decoration: none;
+  flex-shrink: 0;
+  /* tooltip via title attribute on mobile — no JS needed */
+  cursor: pointer;
+  position: relative;
+}
+.footer-map-btn:hover,
+.footer-map-btn:focus-visible {
+  background: rgba(255,255,255,.18);
+  border-color: rgba(255,255,255,.35);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+.footer-map-btn img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: block;
+  /* Kill any inherited border-radius / background */
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+/* Tooltip via CSS — shown on hover only (desktop) */
+.footer-map-btn::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(37,39,44,.92);
+  color: #fff;
+  font-size: .65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: .25rem .5rem;
+  border-radius: 5px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+.footer-map-btn:hover::after,
+.footer-map-btn:focus-visible::after {
+  opacity: 1;
+}
+@media (max-width: 768px) {
+  /* On mobile, tooltip doesn't work — enlarge tap target instead */
+  .footer-map-btn {
+    width: 40px;
+    height: 40px;
+  }
+  .footer-map-btn img {
+    width: 26px;
+    height: 26px;
+  }
+  .footer-map-btn::after { display: none; }
+}
+
+/* Contact items with icon boxes */
+.footer-contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .7rem;
+  padding: .5rem 0;
+}
+.footer-contact-icon {
+  width: 32px; height: 32px;
+  min-width: 32px;
+  border-radius: 8px;
+  background: rgba(47,125,50,.2);
+  color: var(--evergreen, #2F7D32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .75rem;
+  flex-shrink: 0;
+}
+.footer-contact-text {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+}
+.footer-contact-text .fct-label {
+  font-size: .68rem;
+  color: rgba(255,255,255,.35);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-weight: 700;
+}
+.footer-contact-text .fct-value {
+  font-size: .85rem;
+  color: rgba(255,255,255,.75);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+.footer-contact-text .fct-value:hover { color: #fff; }
+
+/* Footer bottom */
+.footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0 1.5rem;
+  gap: .75rem;
+  font-size: .77rem;
+  color: rgba(255,255,255,.32);
+  /* No border-top here — .footer-trust-seals separator handles the visual break */
+}
+.footer-bottom a { color: rgba(255,255,255,.45); text-decoration: none; }
+.footer-bottom a:hover { color: rgba(255,255,255,.75); }
+.maz-sig { font-weight: 700; }
+.maz-sig .z { color: var(--maz-accent, #A8FF4D); }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. FLOATING CONTACT BUTTON (Chaty)  — bottom-RIGHT, trigger anchored to
+      very bottom, channels expand UPWARD (column-reverse) or LEFT if needed
+   ═══════════════════════════════════════════════════════════════════════════ */
+.chaty-wrap {
+  position: fixed;
+  /* Anchor to bottom-right corner with safe-area support */
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  right: 1.25rem;
+  left: auto;
+  z-index: 800;
+  /* Stack: trigger at bottom, channels grow upward */
+  display: flex;
+  flex-direction: column;       /* trigger = last child → sits at bottom */
+  align-items: flex-end;
+  gap: .55rem;
+}
+
+/* Main trigger button */
+.chaty-trigger {
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--evergreen, #2F7D32), #1b5e20);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  box-shadow: 0 6px 24px rgba(47,125,50,.45);
+  transition: transform 220ms cubic-bezier(.34,1.56,.64,1), box-shadow 220ms ease;
+  position: relative;
+  flex-shrink: 0;
+}
+.chaty-trigger:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 32px rgba(47,125,50,.55);
+}
+.chaty-trigger.open {
+  transform: rotate(360deg) scale(1.05);
+}
+
+/* Pulse ring */
+.chaty-trigger::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid rgba(47,125,50,.4);
+  animation: chaty-pulse 2.2s ease-out infinite;
+}
+@keyframes chaty-pulse {
+  0%   { opacity: .8; transform: scale(1); }
+  70%  { opacity: 0;  transform: scale(1.4); }
+  100% { opacity: 0;  transform: scale(1.4); }
+}
+
+/* Unread badge */
+.chaty-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: .65rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  animation: chaty-badge-pop .4s cubic-bezier(.34,1.56,.64,1) .8s both;
+}
+@keyframes chaty-badge-pop {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
+/* Tooltip */
+.chaty-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  background: var(--graphite, #25272C);
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: .4rem .75rem;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease, transform 150ms ease;
+  margin-bottom: .5rem;
+}
+.chaty-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--graphite, #25272C);
+}
+.chaty-trigger:hover .chaty-tooltip,
+.chaty-trigger:focus .chaty-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+/* On mobile the tooltip clips — hide it */
+@media (max-width: 768px) {
+  .chaty-tooltip { display: none; }
+}
+
+/* Contact channel list — expands UPWARD above the trigger */
+.chaty-channels {
+  display: flex;
+  flex-direction: column;       /* top item = first child, bottom = last */
+  align-items: flex-end;        /* right-align all pills in RTL */
+  gap: .45rem;
+  /* Hidden state */
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(16px) scale(.97);
+  transform-origin: bottom right;
+  transition: opacity 220ms ease, transform 220ms cubic-bezier(.34,1.56,.64,1);
+  /* Max height guard so it doesn't overflow viewport top */
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+.chaty-channels.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+/* Individual channel pill — RTL layout: icon on RIGHT, label on LEFT */
+.chaty-channel {
+  display: flex;
+  flex-direction: row-reverse;  /* icon (first in DOM) goes to the right */
+  align-items: center;
+  gap: .55rem;
+  text-decoration: none;
+  color: var(--graphite, #25272C);
+  background: #fff;
+  border-radius: 999px;
+  /* icon side = right edge, label side = left; padding accordingly */
+  padding: .45rem .55rem .45rem 1rem;
+  box-shadow: 0 4px 20px rgba(37,39,44,.14);
+  border: 1px solid rgba(37,39,44,.08);
+  font-size: .82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  /* staggered entrance */
+  opacity: 0;
+  transform: translateX(12px) scale(.95);
+  transition: opacity 200ms ease,
+              transform 200ms cubic-bezier(.34,1.56,.64,1),
+              box-shadow 180ms ease;
+}
+.chaty-channels.open .chaty-channel {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+/* Stagger: items appear from bottom up */
+.chaty-channels.open .chaty-channel:nth-child(5) { transition-delay: .04s; }
+.chaty-channels.open .chaty-channel:nth-child(4) { transition-delay: .08s; }
+.chaty-channels.open .chaty-channel:nth-child(3) { transition-delay: .12s; }
+.chaty-channels.open .chaty-channel:nth-child(2) { transition-delay: .16s; }
+.chaty-channels.open .chaty-channel:nth-child(1) { transition-delay: .20s; }
+
+.chaty-channel:hover,
+.chaty-channel:focus-visible {
+  transform: translateX(-3px) scale(1.02);
+  box-shadow: 0 8px 28px rgba(37,39,44,.2);
+  text-decoration: none;
+  color: var(--graphite, #25272C);
+}
+
+/* Channel icon circle */
+.chaty-ch-icon {
+  width: 32px; height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem;
+  flex-shrink: 0;
+  color: #fff;
+}
+.chaty-ch-icon.wa  { background: #25d366; }
+.chaty-ch-icon.tg  { background: #26a5e4; }
+.chaty-ch-icon.ph  { background: var(--evergreen, #2F7D32); }
+.chaty-ch-icon.ph2 { background: #3b82f6; }
+.chaty-ch-icon.bk  { background: linear-gradient(135deg, var(--evergreen, #2F7D32), #1b5e20); }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. SCROLL-REVEAL ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 500ms ease, transform 500ms cubic-bezier(.25,.46,.45,.94);
+}
+[data-reveal].revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+[data-reveal="left"] { transform: translateX(-28px); }
+[data-reveal="right"] { transform: translateX(28px); }
+[data-reveal="scale"] { transform: scale(.94); }
+[data-reveal="left"].revealed,
+[data-reveal="right"].revealed,
+[data-reveal="scale"].revealed { transform: none; }
+
+/* Stagger delay helpers */
+[data-delay="1"] { transition-delay: .08s !important; }
+[data-delay="2"] { transition-delay: .16s !important; }
+[data-delay="3"] { transition-delay: .24s !important; }
+[data-delay="4"] { transition-delay: .32s !important; }
+[data-delay="5"] { transition-delay: .40s !important; }
+[data-delay="6"] { transition-delay: .48s !important; }
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .chaty-trigger::before { animation: none; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. CONFLICT OVERRIDE — nav-footer.css is the SINGLE SOURCE OF TRUTH
+      Kills all conflicting rules from main.css, design-refresh.css.
+      This section MUST remain at the very end of this file.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Kill main.css desktop rule that hides mobile panel ─────────────────── */
+@media (min-width: 769px) {
+  /* main.css writes `display:none !important` at 769px+; we must beat it.
+     The panel always exists in DOM; translateX controls visibility. */
+  .nav-mobile {
+    display: flex !important;
+    transform: translateX(100%) !important;
+  }
+  .nav-mobile.open {
+    transform: translateX(0) !important;
+  }
+  /* Backdrop: invisible + no pointer events on desktop — NOT display:none
+     so toggling .visible class still works if window is resized */
+  #nav-backdrop {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  /* Hamburger hidden on desktop */
+  .nav-toggle { display: none !important; }
+}
+
+/* ── Overwrite design-refresh.css duplicate .nav-mobile blocks ───────────── */
+/* design-refresh.css:168 and :1403 have conflicting position/z-index/padding.
+   Stamp them out with canonical values here. */
+.nav-mobile {
+  /* Layout — fixed slide-in panel from right edge */
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: auto !important;
+  width: min(340px, 88vw) !important;
+
+  /* Visual */
+  background: #ffffff !important;
+  border-left: 1px solid var(--border, #DDE2DD) !important;
+  border-top: none !important;
+
+  /* Layout mode */
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 0 !important;           /* nm-header / nm-body / nm-footer handle own padding */
+  gap: 0 !important;
+  overflow-y: hidden !important;   /* children scroll internally */
+
+  /* Animation */
+  transform: translateX(100%) !important;
+  transition: transform 240ms cubic-bezier(.4,0,.2,1),
+              box-shadow 240ms ease !important;
+
+  /* Stacking */
+  z-index: 510 !important;
+  box-shadow: none !important;
+}
+
+.nav-mobile.open {
+  transform: translateX(0) !important;
+  box-shadow: -12px 0 48px rgba(37,39,44,.18) !important;
+}
+
+/* Kill design-refresh.css pseudo-element × that overlaps the real header */
+.nav-mobile::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Kill design-refresh.css raw `a` overrides inside mobile panel —
+   our .nm-item handles links correctly */
+.nav-mobile > a,
+.nav-mobile a.btn-primary {
+  /* These are leftover selectors from the old flat-list nav.
+     Disable them so .nm-item styles win. */
+  all: unset;
+}
+
+/* ── nm-body: the scrollable link list ───────────────────────────────────── */
+.nm-body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding: .75rem .75rem 1.5rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  overscroll-behavior: contain;
+}
+
+/* ── nm-header: logo centred, close on right (RTL-aware 3-col grid) ──────── */
+.nm-header {
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr !important;
+  align-items: center !important;
+  justify-content: unset !important;
+  padding: 1rem 1.25rem !important;
+  border-bottom: 1px solid var(--border, #DDE2DD) !important;
+  flex-shrink: 0 !important;
+  min-height: 64px !important;
+}
+
+/* ── nm-footer: CTA buttons at bottom ────────────────────────────────────── */
+.nm-footer {
+  flex-shrink: 0 !important;
+  padding: .75rem .75rem calc(.75rem + env(safe-area-inset-bottom, 0)) !important;
+  border-top: 1px solid var(--border, #DDE2DD) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: .5rem !important;
+}
+
+/* ── Backdrop: ensure it's above content but below panel ─────────────────── */
+#nav-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(37,39,44,.52) !important;
+  z-index: 509 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 240ms ease !important;
+  /* Kill design-refresh body.nav-open::before approach */
+}
+#nav-backdrop.visible {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Kill design-refresh.css body.nav-open::before (competing backdrop) */
+body.nav-open::before { display: none !important; content: none !important; }
+
+/* ── Mobile: show toggle, hide desktop links ──────────────────────────────── */
+@media (max-width: 768px) {
+  .nav-links { display: none !important; }
+  .nav-cta .btn,
+  .nav-cta .tel-link { display: none !important; }
+  .nav-toggle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: column !important;
+  }
+  .nav-inner { height: 64px !important; }
+
+  /* Chaty: flush to right edge on mobile */
+  .chaty-wrap {
+    bottom: calc(.6rem + env(safe-area-inset-bottom, 0px)) !important;
+    right: .6rem !important;
+  }
+  .chaty-trigger {
+    width: 52px !important;
+    height: 52px !important;
+    font-size: 1.2rem !important;
+  }
+}
+
+/* ── Touch targets: ensure all interactive elements ≥44px ───────────────── */
+.nm-item {
+  min-height: 44px !important;
+  touch-action: manipulation !important;
+}
+.nm-close {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  width: 44px !important;
+  height: 44px !important;
+  touch-action: manipulation !important;
+}
+.nav-toggle {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  touch-action: manipulation !important;
+}
+.chaty-trigger {
+  touch-action: manipulation !important;
+}
+.chaty-channel {
+  min-height: 44px !important;
+  touch-action: manipulation !important;
+}
+
+/* ── iOS momentum scroll + rubber-band fix ───────────────────────────────── */
+.nm-body {
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* ── Fix: nm-item active state must not bleed outside rounded corners ──────── */
+.nm-body {
+  border-radius: 0;
+}
+
+/* ── Fix: nm-footer buttons full-width pill ───────────────────────────────── */
+.nm-footer .btn {
+  display: flex !important;
+  width: 100% !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  border-radius: 999px !important;
+  min-height: 48px !important;
+  gap: .5rem !important;
+  font-size: .88rem !important;
+}
+
+/* ── Fix: mega-menu should never show on mobile ──────────────────────────── */
+@media (max-width: 768px) {
+  .nav-mega,
+  .nav-dropdown { display: none !important; }
+}
+
+/* ── Chaty: trigger always sits at bottom of .chaty-wrap ─────────────────── */
+.chaty-trigger {
+  order: 2;   /* trigger = second → below channels in column flow */
+  flex-shrink: 0 !important;
+}
+.chaty-channels {
+  order: 1;   /* channels = first → above trigger in column flow */
+  align-items: flex-end !important;
+}
+
+/* ── Nav logo: transparent background — SVG renders on any surface ────────── */
+.nav-logo {
+  background: transparent !important;
+  /* Remove any accidental box from parent */
+}
+.nav-brand {
+  background: transparent !important;
+}
+
+/* ── TRUST SEALS (Enamad + Namad) ────────────────────────────────────────── */
+/* The seals sit BETWEEN the footer-grid and the footer-bottom.
+   They get ONE separator above them only. The footer-grid no longer
+   has its own border-bottom to avoid the double separator line. */
+.footer-trust-seals {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .75rem;
+  flex-wrap: wrap;
+  padding-block: 1.25rem;
+  border-top: 1px solid rgba(255,255,255,.08);
+  /* No border-bottom — footer-bottom has its own top padding as gap */
+  margin-top: 0;
+  /* Ensure clickability — never covered by overlapping elements */
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.footer-seal-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  flex-shrink: 0;
+  /* Subtle glow on hover */
+  box-shadow: 0 2px 10px rgba(0,0,0,.25);
+}
+.footer-seal-link:hover,
+.footer-seal-link:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.4);
+  text-decoration: none;
+}
+.footer-seal-link img {
+  display: block;
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: transparent !important;
+}
+@media (max-width: 480px) {
+  .footer-seal-link img { width: 60px; height: 60px; }
+}
+
+/* ── FOOTER STAT LINKS ────────────────────────────────────────────────────── */
+.footer-stat-link {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 150ms ease;
+}
+.footer-stat-link:hover,
+.footer-stat-link:focus-visible {
+  opacity: .75;
+  text-decoration: none;
+}
+.footer-stat-link .fs-num {
+  color: var(--evergreen, #2F7D32);
+}
+.footer-stat-link:hover .fs-num {
+  color: #4caf50;
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6. BUG-FIXES + QUALITY IMPROVEMENTS — appended
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Mega-menu: keyboard focus class (JS adds .mega-focus) ──────────────── */
+.nav-links > li.mega-focus .nav-mega {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) scale(1) !important;
+  transition: opacity 200ms ease, transform 200ms ease, visibility 0ms linear 0ms !important;
+}
+
+/* ── Footer brand seals — inside footer-brand column ────────────────────── */
+/* Seals sit directly under the stats, same column as tagline/logo/stats */
+.footer-brand-seals {
+  display: flex !important;
+  align-items: center !important;
+  gap: .65rem !important;
+  flex-wrap: wrap !important;
+  margin-top: .85rem !important;
+  padding-top: .85rem !important;
+  border-top: 1px solid rgba(255,255,255,.1) !important;
+}
+.footer-brand-seals .footer-seal-link img {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 8px !important;
+  object-fit: contain !important;
+  background: rgba(255,255,255,.07) !important;
+  padding: 4px !important;
+  transition: transform 150ms ease, box-shadow 150ms ease !important;
+}
+.footer-brand-seals .footer-seal-link:hover img {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.4) !important;
+}
+
+/* ── Trust seals separator band (old position) — hide when brand-seals exist ── */
+.has-brand-seals .footer-trust-seals {
+  display: none !important;
+}
+
+/* ── Footer brand: ensure flex column so seals stay in same column ──────── */
+.footer-brand {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: .65rem !important;
+}
+
+/* ── Stronger nav items — bigger tap targets ─────────────────────────────── */
+.nav-links > li > a {
+  padding: .55rem .88rem !important;
+  min-height: 44px !important;
+}
+
+/* ── Mobile nav toggle — must be visible, larger target ─────────────────── */
+@media (max-width: 768px) {
+  .nav-toggle {
+    display: flex !important;
+    width: 44px !important;
+    height: 44px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    z-index: 502 !important;
+    position: relative !important;
+  }
+  .nav-toggle span {
+    display: block !important;
+    width: 22px !important;
+    height: 2px !important;
+    background: var(--graphite, #25272C) !important;
+    border-radius: 2px !important;
+    transition: transform 220ms ease, opacity 220ms ease !important;
+    pointer-events: none !important;
+  }
+  /* Animate to X when open */
+  body.nav-open .nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg) !important; }
+  body.nav-open .nav-toggle span:nth-child(2) { opacity: 0 !important; }
+  body.nav-open .nav-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg) !important; }
+}
+
+/* ── nav-inner: ensure toggle is never clipped ───────────────────────────── */
+.nav-inner {
+  overflow: visible !important;
+}
+
+/* ── Footer columns: richer link styling ─────────────────────────────────── */
+.footer-col li a {
+  padding: .28rem .4rem !important;
+  border-radius: 5px !important;
+  font-size: .84rem !important;
+  transition: color 120ms ease, background 120ms ease, padding-right 120ms ease !important;
+}
+.footer-col li a:hover {
+  color: #fff !important;
+  background: rgba(255,255,255,.06) !important;
+  padding-right: .7rem !important;
+}
+.footer-col li a i {
+  transition: transform 150ms ease !important;
+}
+.footer-col li a:hover i {
+  transform: scale(1.2) !important;
+}
+
+/* ── Footer stat numbers — green glow ───────────────────────────────────── */
+.footer-stat .fs-num,
+.footer-stat-link .fs-num {
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: var(--evergreen, #2F7D32) !important;
+  line-height: 1 !important;
+  text-shadow: 0 0 20px rgba(47,125,50,.35) !important;
+}
+
+/* ── Footer brand tagline ───────────────────────────────────────────────── */
+.footer-brand-tagline {
+  font-size: .88rem !important;
+  line-height: 1.75 !important;
+  color: rgba(255,255,255,.65) !important;
+}
+
+/* ── Footer logo — monochrome SVG brightness ─────────────────────────────── */
+.footer-logo {
+  filter: brightness(0) invert(1) !important;
+  opacity: .88 !important;
+  height: 40px !important;
+}
+
+/* ── Social links — more visible ─────────────────────────────────────────── */
+.footer-social-link {
+  font-size: .82rem !important;
+  padding: .48rem .92rem .48rem .6rem !important;
+  border-color: rgba(255,255,255,.15) !important;
+}
+.footer-social-link:hover {
+  transform: translateY(-2px) scale(1.04) !important;
+}
+
+/* ── Chaty trigger pulse ring — brighter ────────────────────────────────── */
+.chaty-trigger::before {
+  border-color: var(--evergreen, #2F7D32) !important;
+}
+
+/* ── Mobile: nav-inner grid is set in the primary @media block above ──────── */
+/* nav-brand flex:1 removed — grid handles centering explicitly */
+
+/* ── END BUG-FIXES + QUALITY v2 ─────────────────────────────────────────── */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   A1–A7 HARDENING FINALS  — appended, beats everything above
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* A1: Sticky nav — enforce position and z-index above any content */
+.site-nav {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 500 !important;
+}
+
+/* A2: Hero gap — ensure hero sits tight under sticky nav, no extra padding */
+.hero-v2 {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.hero-v2-inner {
+  padding-top: 1rem !important;
+  padding-bottom: 1.5rem !important;
+}
+/* Kill any trust-marquee or injected bar above hero from adding space */
+main { margin-top: 0 !important; padding-top: 0 !important; }
+
+/* A4: Prevent ANY section from producing an inner scrollbar */
+.section,
+.hero-v2,
+.trust-strip-v2,
+.steps-grid,
+[aria-labelledby="steps-heading"],
+[aria-labelledby="steps-heading"] > .container,
+.svc-grid,
+.ba-grid,
+.cta-banner {
+  overflow: visible !important;
+  max-height: none !important;
+}
+/* Exception: nm-body must scroll internally */
+.nm-body { overflow-y: auto !important; max-height: none !important; }
+/* Exception: footer social row can scroll horizontally (scrollbar hidden) */
+.footer-social { overflow-x: auto !important; overflow-y: visible !important; max-height: none !important; }
+
+/* A5: Only ONE credential block — trust-strip-v2 is canonical */
+.hero-chip, .hero-chip-1, .hero-chip-2,
+.doctor-cred-pills, .cred-pill {
+  display: none !important;
+}
+
+/* A6: Chaty — always physical right, RTL-safe */
+.chaty-wrap {
+  position: fixed !important;
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+  right: 1.25rem !important;
+  left: auto !important;
+  direction: rtl !important;
+}
+
+/* A7: Hero text centered on mobile */
+@media (max-width: 768px) {
+  .hero-v2-text {
+    text-align: center !important;
+  }
+  .hero-v2-text .sh-eyebrow,
+  .hero-v2-text h1,
+  .hero-v2-text .lead,
+  .hero-v2-text p {
+    text-align: center !important;
+  }
+  .hero-v2-text .lead {
+    margin-inline: auto !important;
+    max-width: 100% !important;
+  }
+  .hero-actions {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+  }
+  .hero-v2-stats {
+    justify-content: center !important;
+  }
+}
+
+/* B2: Primary CTA — evergreen bg + white text — final authority */
+.btn-primary,
+a.btn-primary,
+button.btn-primary {
+  background: linear-gradient(135deg, var(--evergreen, #2F7D32), var(--evergreen-dark, #246b28)) !important;
+  color: #fff !important;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active,
+a.btn-primary:hover, a.btn-primary:focus, a.btn-primary:active {
+  color: #fff !important;
+}
+/* cta-banner uses inverted button (white bg, green text) — intentional */
+.cta-banner .btn-primary,
+.cta-banner a.btn-primary {
+  background: #fff !important;
+  color: var(--evergreen, #2F7D32) !important;
+}
+.cta-banner .btn-primary:hover,
+.cta-banner a.btn-primary:hover {
+  background: var(--evergreen-soft, #e8f5e9) !important;
+  color: var(--evergreen, #2F7D32) !important;
+}

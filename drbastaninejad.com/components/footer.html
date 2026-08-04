@@ -1,72 +1,160 @@
-﻿<!-- ========================================================================
-       FOOTER
-       ========================================================================= -->
+<!-- MAZ//ID · drbastaninejad.com — Shared Footer Component v2 (Premium) -->
+<!-- NOTE: img src paths are root-relative (/assets/...) — works from any page depth -->
 <footer class="site-footer" role="contentinfo">
   <div class="container">
-    <!-- Social links -->
-    <div style="display:flex;justify-content:center;gap:1.25rem;padding-bottom:1.5rem;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:1.25rem" role="list" aria-label="شبکه‌های اجتماعی">
-      <a href="https://www.instagram.com/dr.shahin.bastaninejad/" target="_blank" rel="noopener noreferrer"
-         role="listitem" aria-label="اینستاگرام دکتر باستانی‌نژاد"
-         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
-        <i class="fa-brands fa-instagram" aria-hidden="true"></i> اینستاگرام
+    <!-- Social bar -->
+    <div class="footer-social" role="list" aria-label="شبکه‌های اجتماعی">
+      <a href="https://www.instagram.com/dr.shahin.bastaninejad/" target="_blank" rel="noopener noreferrer" class="footer-social-link ig" role="listitem" aria-label="اینستاگرام دکتر باستانی‌نژاد">
+        <span class="fs-icon"><i class="fa-brands fa-instagram" aria-hidden="true"></i></span>اینستاگرام
       </a>
-      <a href="https://www.youtube.com/@Drshahinbastaninejad" target="_blank" rel="noopener noreferrer"
-         role="listitem" aria-label="یوتیوب دکتر باستانی‌نژاد"
-         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
-        <i class="fa-brands fa-youtube" aria-hidden="true"></i> یوتیوب
+      <a href="https://www.youtube.com/@Drshahinbastaninejad" target="_blank" rel="noopener noreferrer" class="footer-social-link yt" role="listitem" aria-label="یوتیوب دکتر باستانی‌نژاد">
+        <span class="fs-icon"><i class="fa-brands fa-youtube" aria-hidden="true"></i></span>یوتیوب
       </a>
-      <a href="https://www.aparat.com/drbasataninejad" target="_blank" rel="noopener noreferrer"
-         role="listitem" aria-label="آپارات دکتر باستانی‌نژاد"
-         style="color:rgba(255,255,255,.75);font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none">
-        <i class="fa-brands fa-youtube" aria-hidden="true"></i> آپارات
+      <a href="https://www.aparat.com/drbasataninejad" target="_blank" rel="noopener noreferrer" class="footer-social-link ap" role="listitem" aria-label="آپارات دکتر باستانی‌نژاد">
+        <span class="fs-icon"><i class="fa-solid fa-play" aria-hidden="true"></i></span>آپارات
+      </a>
+      <a href="https://t.me/dr_bastaninejad" target="_blank" rel="noopener noreferrer" class="footer-social-link tg" role="listitem" aria-label="تلگرام دکتر باستانی‌نژاد">
+        <span class="fs-icon"><i class="fa-brands fa-telegram" aria-hidden="true"></i></span>تلگرام
       </a>
     </div>
+
+    <!-- Footer grid — 4 columns -->
     <div class="footer-grid">
+      <!-- Brand col -->
       <div class="footer-brand">
-        <img src="assets/images/logo-monochrome.svg" class="footer-logo" alt="لوگوی کلینیک دکتر شاهین باستانی نژاد" width="120" height="48" loading="lazy"/>
-        <p style="margin-top:.75rem">جراح و متخصص گوش، گلو و بینی | جراح پلاستیک بینی</p>
-        <p style="margin-top:.5rem">با بیش از یک دهه تجربه در جراحی زیبایی بینی، هدف ما دستیابی به نتایجی طبیعی، متناسب با چهره و پایدار است.</p>
+        <img src="/assets/images/logo-monochrome.svg" class="footer-logo" alt="لوگوی کلینیک دکتر شاهین باستانی نژاد" width="130" height="50" loading="lazy"/>
+        <p class="footer-brand-tagline">جراح و متخصص گوش، گلو و بینی<br/>جراح پلاستیک بینی — تهران</p>
+        <div class="footer-stats" role="list" aria-label="آمار کلینیک">
+          <div class="footer-stat" role="listitem"><a href="/about" class="footer-stat-link"><span class="fs-num" data-count="15" data-suffix="+">+۱۵</span><span class="fs-lbl">سال تجربه</span></a></div>
+          <div class="footer-stat" role="listitem"><a href="/gallery" class="footer-stat-link"><span class="fs-num" data-count="2000" data-suffix="+">+۲۰۰۰</span><span class="fs-lbl">عمل موفق</span></a></div>
+          <div class="footer-stat" role="listitem"><a href="/gallery" class="footer-stat-link"><span class="fs-num" data-count="178" data-suffix="+">+۱۷۸</span><span class="fs-lbl">نمونه گالری</span></a></div>
+        </div>
+        <!-- Trust seals inline (brand column) -->
+        <div class="footer-brand-seals" role="list" aria-label="نمادهای اعتماد" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem;">
+          <a href="https://trustseal.enamad.ir/?id=533172&Code=N0dO6V3ic509Xoj2zIAFDG27eDa4Inlv" target="_blank" rel="noopener noreferrer" class="footer-seal-link" role="listitem" aria-label="نماد اعتماد الکترونیکی">
+            <img src="/assets/images/enamad.webp" alt="نماد اعتماد الکترونیکی" width="56" height="56" loading="lazy"/>
+          </a>
+          <a href="https://iranent.com/doctors/925/profile/" target="_blank" rel="noopener noreferrer" class="footer-seal-link" role="listitem" aria-label="عضو انجمن جراحان گوش، گلو و بینی ایران">
+            <img src="/assets/images/namad-n1.webp" alt="عضو انجمن جراحان گوش، گلو و بینی ایران" width="56" height="56" loading="lazy"/>
+          </a>
+        </div>
       </div>
+
+      <!-- Quick links -->
       <nav class="footer-col" aria-label="لینک‌های سریع">
         <h4>لینک‌های سریع</h4>
         <ul role="list">
-          <li><a href="/">خانه</a></li>
-          <li><a href="/about">درباره دکتر</a></li>
-          <li><a href="/services">خدمات</a></li>
-          <li><a href="/services/rhinoplasty">همه خدمات بینی</a></li>
-          <li><a href="/gallery">نمونه کارها</a></li>
-          <li><a href="/blog">مقالات</a></li>
-          <li><a href="/faq">سوالات متداول</a></li>
-          <li><a href="/booking">نوبت‌گیری</a></li>
+          <li><a href="/"><i class="fa-solid fa-house" aria-hidden="true"></i>خانه</a></li>
+          <li><a href="/about"><i class="fa-solid fa-user-doctor" aria-hidden="true"></i>درباره دکتر</a></li>
+          <li><a href="/services"><i class="fa-solid fa-grid-2" aria-hidden="true"></i>همه خدمات</a></li>
+          <li><a href="/gallery"><i class="fa-solid fa-images" aria-hidden="true"></i>نمونه کارها</a></li>
+          <li><a href="/blog"><i class="fa-solid fa-newspaper" aria-hidden="true"></i>مقالات</a></li>
+          <li><a href="/faq"><i class="fa-solid fa-circle-question" aria-hidden="true"></i>سوالات متداول</a></li>
+          <li><a href="/contact"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>تماس و آدرس</a></li>
+          <li><a href="/booking"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i>نوبت‌گیری</a></li>
         </ul>
       </nav>
+
+      <!-- Services -->
       <nav class="footer-col" aria-label="خدمات">
         <h4>خدمات</h4>
         <ul role="list">
-          <li><a href="/services/rhinoplasty-primary">جراحی بینی اولیه</a></li>
-          <li><a href="/services/rhinoplasty-revision">جراحی بینی ترمیمی</a></li>
-          <li><a href="/services/rhinoplasty-fleshy">جراحی بینی گوشتی</a></li>
-          <li><a href="/services/rhinoplasty-bony">جراحی بینی استخوانی</a></li>
-          <li><a href="/services/rhinoplasty-natural">جراحی بینی طبیعی</a></li>
-          <li><a href="/services/rhinoplasty-fantasy">جراحی بینی فانتزی</a></li>
-          <li><a href="/services/hump-removal">رفع قوز بینی</a></li>
+          <li><a href="/services/rhinoplasty-primary"><i class="fa-solid fa-notes-medical" aria-hidden="true"></i>جراحی بینی اولیه</a></li>
+          <li><a href="/services/rhinoplasty-revision"><i class="fa-solid fa-rotate" aria-hidden="true"></i>جراحی ترمیمی</a></li>
+          <li><a href="/services/rhinoplasty-fleshy"><i class="fa-solid fa-droplet" aria-hidden="true"></i>بینی گوشتی</a></li>
+          <li><a href="/services/rhinoplasty-bony"><i class="fa-solid fa-bone" aria-hidden="true"></i>بینی استخوانی</a></li>
+          <li><a href="/services/rhinoplasty-natural"><i class="fa-solid fa-leaf" aria-hidden="true"></i>بینی طبیعی</a></li>
+          <li><a href="/services/rhinoplasty-fantasy"><i class="fa-solid fa-star" aria-hidden="true"></i>بینی فانتزی</a></li>
+          <li><a href="/services/hump-removal"><i class="fa-solid fa-scissors" aria-hidden="true"></i>رفع قوز بینی</a></li>
+          <li><a href="/services/septoplasty"><i class="fa-solid fa-lungs" aria-hidden="true"></i>انحراف بینی</a></li>
         </ul>
       </nav>
+
+      <!-- Contact -->
       <div class="footer-col">
         <h4>تماس با ما</h4>
-        <ul role="list">
-          <li><a href="tel:02186087250">۰۲۱۸۶۰۸۷۲۵۰</a></li>
-          <li><a href="tel:02188205606">۰۲۱۸۸۲۰۵۶۰۶</a></li>
-          <li style="color:rgba(255,255,255,0.6);font-size:.85rem">تهران، خ. نلسون ماندلا، خ. صانعی، ساختمان نور، پلاک ۱ واحد ۶</li>
-          <li><a href="/contact">نقشه و راهنمای مسیر</a></li>
-        </ul>
+        <div class="footer-contact-item">
+          <div class="footer-contact-icon"><i class="fa-solid fa-phone" aria-hidden="true"></i></div>
+          <div class="footer-contact-text">
+            <span class="fct-label">تلفن کلینیک</span>
+            <a href="tel:02186087250" class="fct-value">۰۲۱۸۶۰۸۷۲۵۰</a>
+            <a href="tel:02188205606" class="fct-value">۰۲۱۸۸۲۰۵۶۰۶</a>
+          </div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-icon"><i class="fa-solid fa-clock" aria-hidden="true"></i></div>
+          <div class="footer-contact-text">
+            <span class="fct-label">ساعت پذیرش</span>
+            <span class="fct-value">شنبه و سه‌شنبه — ۱۵:۰۰ تا ۱۹:۰۰</span>
+          </div>
+        </div>
+        <div class="footer-contact-item">
+          <div class="footer-contact-icon"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></div>
+          <div class="footer-contact-text">
+            <span class="fct-label">آدرس</span>
+            <span class="fct-value" style="font-size:.8rem;line-height:1.5">تهران، خ. نلسون ماندلا، خ. صانعی، ساختمان نور، پلاک ۱ واحد ۶</span>
+            <div class="footer-map-row" role="list" aria-label="مسیریابی">
+              <a href="https://maps.app.goo.gl/M9nRYbBiDwr5sTGe9" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="Google Maps" aria-label="Google Maps" role="listitem" title="Google Maps">
+                <img src="/assets/images/Icons/GoogleMap.webp" alt="Google Maps" width="22" height="22" loading="lazy"/>
+              </a>
+              <a href="https://nshn.ir/ff_bv21qIxirpx" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="نشان" aria-label="نشان" role="listitem" title="نشان">
+                <img src="/assets/images/Icons/Neshan.webp" alt="نشان" width="22" height="22" loading="lazy"/>
+              </a>
+              <a href="https://balad.ir/p/3cuwGGif58f8hT" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="بلد" aria-label="بلد" role="listitem" title="بلد">
+                <img src="/assets/images/Icons/Balad.webp" alt="بلد" width="22" height="22" loading="lazy"/>
+              </a>
+              <a href="https://waze.com/ul/htnke3vwqs" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="Waze" aria-label="Waze" role="listitem" title="Waze">
+                <img src="/assets/images/Icons/Waze.webp" alt="Waze" width="22" height="22" loading="lazy"/>
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Trust seals strip -->
+    <div class="footer-trust-seals" role="list" aria-label="نمادهای اعتماد">
+      <a href="https://trustseal.enamad.ir/?id=533172&Code=N0dO6V3ic509Xoj2zIAFDG27eDa4Inlv" target="_blank" rel="noopener noreferrer" class="footer-seal-link" role="listitem" aria-label="نماد اعتماد الکترونیکی">
+        <img src="/assets/images/enamad.webp" alt="نماد اعتماد الکترونیکی" width="80" height="80" loading="lazy"/>
+      </a>
+      <a href="https://iranent.com/doctors/925/profile/" target="_blank" rel="noopener noreferrer" class="footer-seal-link" role="listitem" aria-label="عضو انجمن جراحان گوش، گلو و بینی ایران">
+        <img src="/assets/images/namad-n1.webp" alt="عضو انجمن جراحان گوش، گلو و بینی ایران" width="80" height="80" loading="lazy"/>
+      </a>
+    </div>
+
+    <!-- Bottom bar -->
     <div class="footer-bottom">
       <span>© ۱۴۰۵ کلینیک دکتر شاهین باستانی نژاد — تمامی حقوق محفوظ است.</span>
-      <span class="maz-sig">
-        طراحی و توسعه توسط <a href="https://maziyarid.com" target="_blank" rel="noopener">Maziyar</a>
-      </span>
+      <span class="maz-sig">طراحی توسط <a href="https://maziyarid.com" target="_blank" rel="noopener">MA<span class="z">Z</span></a></span>
     </div>
   </div>
 </footer>
+
+<!-- Backdrop -->
+<div id="nav-backdrop" class="nav-backdrop" aria-hidden="true"></div>
+
+<!-- Floating contact (Chaty) -->
+<div class="chaty-wrap" id="chaty-wrap" aria-label="ارتباط سریع">
+  <div class="chaty-channels" id="chaty-channels" aria-label="کانال‌های ارتباطی">
+    <a href="https://wa.me/989124966590" target="_blank" rel="noopener noreferrer" class="chaty-channel" aria-label="واتس‌اپ">
+      <span class="chaty-ch-icon wa"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></span>واتس‌اپ
+    </a>
+    <a href="https://t.me/dr_bastaninejad" target="_blank" rel="noopener noreferrer" class="chaty-channel" aria-label="تلگرام">
+      <span class="chaty-ch-icon tg"><i class="fa-brands fa-telegram" aria-hidden="true"></i></span>تلگرام
+    </a>
+    <a href="tel:02186087250" class="chaty-channel" aria-label="تماس تلفنی ۱">
+      <span class="chaty-ch-icon ph"><i class="fa-solid fa-phone" aria-hidden="true"></i></span>۰۲۱۸۶۰۸۷۲۵۰
+    </a>
+    <a href="tel:02188205606" class="chaty-channel" aria-label="تماس تلفنی ۲">
+      <span class="chaty-ch-icon ph2"><i class="fa-solid fa-phone" aria-hidden="true"></i></span>۰۲۱۸۸۲۰۵۶۰۶
+    </a>
+    <a href="https://app.drbastaninejad.com/" target="_blank" rel="noopener noreferrer" class="chaty-channel" aria-label="نوبت‌گیری آنلاین">
+      <span class="chaty-ch-icon bk"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i></span>نوبت‌گیری آنلاین
+    </a>
+  </div>
+  <button class="chaty-trigger" id="chaty-trigger" aria-expanded="false" aria-controls="chaty-channels" aria-label="باز کردن گزینه‌های تماس">
+    <i class="fa-solid fa-comment-dots" aria-hidden="true"></i>
+    <span class="chaty-badge" aria-label="۱ پیام جدید">۱</span>
+    <span class="chaty-tooltip">سوالی داشتین در خدمتیم</span>
+  </button>
+</div>

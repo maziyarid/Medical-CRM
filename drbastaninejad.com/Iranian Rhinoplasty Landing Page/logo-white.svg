@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="lw-title lw-desc">
+  <title id="lw-title">Dr. Bastaninejad white logo</title>
+  <desc id="lw-desc">White version of the facial profile emblem for dark backgrounds.</desc>
+  <defs>
+    <clipPath id="lw-naturalSide"><path d="M205 10 C242 58 260 91 249 134 C239 174 223 207 238 242 C248 266 277 279 273 300 C270 316 244 318 246 334 C248 349 266 350 263 367 C260 384 237 390 231 409 C225 429 226 451 203 484 C119 469 57 384 57 256 C57 128 119 43 205 10 Z"/></clipPath>
+    <mask id="lw-cut">
+      <rect width="512" height="512" fill="white"/>
+      <path d="M205 10 C242 58 260 91 249 134 C239 174 223 207 238 242 C248 266 277 279 273 300 C270 316 244 318 246 334 C248 349 266 350 263 367 C260 384 237 390 231 409 C225 429 226 451 203 484" fill="none" stroke="black" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M266 35 C299 87 303 126 291 166 C279 205 274 234 294 256 C307 271 331 278 329 296 C327 312 302 316 303 333 C304 348 323 350 320 366 C317 386 294 394 286 415 C280 433 280 451 263 470" fill="none" stroke="black" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M283 61 C347 75 397 116 418 173 C426 195 430 219 427 239 C425 252 420 259 414 258 C406 257 408 239 407 227 C404 192 389 164 364 143 C344 126 324 117 303 111" fill="none" stroke="black" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <g fill="#ffffff" mask="url(#lw-cut)">
+    <g clip-path="url(#lw-naturalSide)">
+      <rect x="112" y="35" width="150" height="31" rx="15.5"/>
+      <rect x="86" y="81" width="182" height="35" rx="17.5"/>
+      <rect x="69" y="130" width="202" height="38" rx="19"/>
+      <rect x="59" y="181" width="214" height="40" rx="20"/>
+      <rect x="56" y="235" width="219" height="41" rx="20.5"/>
+      <rect x="61" y="290" width="213" height="40" rx="20"/>
+      <rect x="73" y="344" width="197" height="38" rx="19"/>
+      <rect x="94" y="394" width="171" height="35" rx="17.5"/>
+      <rect x="126" y="440" width="129" height="31" rx="15.5"/>
+    </g>
+    <path d="M211 18 C310 0 394 44 430 126 C446 163 449 204 440 242 C452 232 463 237 462 251 C461 270 446 284 435 295 C435 321 438 353 429 384 C418 423 389 456 352 478 C319 497 276 506 228 493 C251 482 268 467 280 449 C294 428 303 405 301 382 C299 359 282 345 286 326 C290 306 313 299 313 281 C313 261 287 249 276 231 C258 201 262 168 269 136 C277 102 259 69 211 18 Z"/>
+  </g>
+</svg>

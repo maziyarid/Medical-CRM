@@ -384,7 +384,7 @@
 (function () {
   var includes = document.querySelectorAll('[data-include]');
   includes.forEach(function (el) {
-    var file = 'components/' + el.dataset.include + '.html';
+    var file = '/components/' + el.dataset.include + '.html';
     fetch(file)
       .then(function (res) {
         if (!res.ok) {

@@ -1,0 +1,148 @@
+/* ============================================================================
+   PREMIUM.CSS — additive Premium Section System for drbastaninejad.com
+   Load order: tokens.css → main.css → premium.css
+   ============================================================================ */
+
+/* Alternating bands (Gestalt: continuity) */
+.band            { padding-block: var(--section-gap); }
+.band-white      { background: var(--surface); }
+.band-porcelain  { background: var(--porcelain); }
+.band-green      { background: var(--evergreen-soft); }
+.band-gradient   { background: linear-gradient(160deg, var(--evergreen-soft) 0%, var(--porcelain) 100%); }
+
+/* Section header pattern (Gestalt: closure) */
+.sh { margin-bottom: var(--space-10); }
+.sh.sh-center { text-align: center; }
+.sh-eyebrow {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-size: .72rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+  color: var(--evergreen); background: var(--evergreen-soft);
+  padding: .3rem .85rem; border-radius: var(--radius-full); margin-bottom: var(--space-4);
+}
+.sh h2 { font-size: clamp(1.5rem, 3.5vw, 2.2rem); font-weight: 800; margin-bottom: var(--space-3); }
+.sh-sub { color: var(--muted); line-height: 1.75; max-width: 560px; }
+.sh.sh-center .sh-sub { margin-inline: auto; }
+
+/* Premium hero */
+.hero-v2 { position: relative; overflow: hidden; padding-block: clamp(5rem,12vw,9rem) clamp(4rem,8vw,7rem);
+  background: linear-gradient(145deg,#f0f7f0 0%, var(--evergreen-soft) 45%, var(--porcelain) 100%); }
+.hero-v2-inner { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 420px;
+  gap: clamp(2.5rem,6vw,5rem); align-items: center; }
+@media (max-width: 900px) { .hero-v2-inner { grid-template-columns: 1fr; } }
+.hero-v2-photo img { width: 100%; aspect-ratio: 3/4; object-fit: cover; object-position: top center;
+  border-radius: var(--radius-lg); box-shadow: 0 32px 64px -16px rgba(37,39,44,.22); }
+.hero-chip { position: absolute; background: rgba(255,255,255,.96); backdrop-filter: blur(12px);
+  border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow); font-size: .78rem; font-weight: 700; display: flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
+.hero-chip-1 { top: 1.5rem; right: -1.5rem; }
+.hero-chip-2 { bottom: 4rem; left: -1.5rem; }
+@media (max-width: 900px) { .hero-chip-1{top:1rem;right:1rem;} .hero-chip-2{bottom:1rem;left:1rem;} }
+.hero-v2-stats { display: flex; flex-wrap: wrap; gap: var(--space-6); margin-top: var(--space-8);
+  padding-top: var(--space-6); border-top: 1px solid var(--border); }
+.hero-stat .val { font-size: 1.7rem; font-weight: 800; color: var(--graphite); line-height: 1; }
+.hero-stat .lbl { font-size: .75rem; color: var(--muted); margin-top: .25rem; }
+
+/* Trust strip v2 */
+.trust-strip-v2 { background: var(--graphite); padding-block: var(--space-6); border-top: 4px solid var(--evergreen); }
+.trust-strip-v2-inner { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: var(--space-5) var(--space-10); justify-content: center; align-items: center; padding-inline: 1rem; scrollbar-width: none; }
+.trust-strip-v2-inner::-webkit-scrollbar { display: none; }
+.trust-badge-v2 { display: flex; align-items: center; gap: var(--space-3); }
+.trust-badge-v2 .tb-icon { width: 38px; height: 38px; border-radius: var(--radius-sm); background: rgba(255,255,255,.08);
+  display: flex; align-items: center; justify-content: center; }
+.trust-badge-v2 .tb-icon svg { width: 20px; height: 20px; color: var(--maz-accent); }
+.trust-badge-v2 .tb-text { font-size: .83rem; font-weight: 700; color: rgba(255,255,255,.9); }
+.trust-badge-v2 .tb-sub { font-size: .72rem; color: rgba(255,255,255,.5); }
+
+/* Service cards, doctor spotlight, steps, FAQ accordion, testimonials, gallery mosaic — same anatomy for Gestalt similarity */
+.svc-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap: var(--space-5); }
+.svc-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: var(--space-7) var(--space-6); display: flex; flex-direction: column; gap: var(--space-4);
+  text-decoration: none; color: var(--graphite); transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition); }
+.svc-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); border-color: rgba(47,125,50,.3); text-decoration: none; }
+.svc-card-icon { width: 56px; height: 56px; border-radius: var(--radius-md); background: var(--evergreen-soft);
+  display: flex; align-items: center; justify-content: center; }
+.svc-card-icon i, .svc-card-icon svg { color: var(--evergreen); font-size: 1.4rem; }
+.svc-card-link { display: inline-flex; align-items: center; gap: .3rem; font-size: .82rem; font-weight: 700; color: var(--evergreen); margin-top: auto; }
+
+.doctor-spotlight { display: grid; grid-template-columns: 340px 1fr; gap: clamp(2.5rem,6vw,5rem); align-items: center; }
+@media (max-width: 900px) { .doctor-spotlight { grid-template-columns: 1fr; } }
+.doctor-cred-pills { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-5); }
+.cred-pill { font-size: .75rem; font-weight: 700; padding: .3rem .8rem; border-radius: var(--radius-full);
+  background: var(--evergreen-soft); border: 1px solid rgba(47,125,50,.2); color: var(--evergreen); }
+.doctor-quote { border-right: 4px solid var(--evergreen); padding-right: var(--space-5); color: var(--muted); font-style: italic; }
+
+.steps-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: var(--space-5); }
+.step-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: var(--space-7) var(--space-5); text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--space-3); }
+.step-num-badge { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, var(--evergreen), var(--evergreen-dark));
+  color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(47,125,50,.3); }
+
+.faq-v2 { display: flex; flex-direction: column; gap: var(--space-3); }
+.faq-v2-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+.faq-v2-item[open] { border-color: rgba(47,125,50,.35); }
+.faq-v2-item summary { padding: var(--space-5) var(--space-6); font-weight: 700; cursor: pointer;
+  display: flex; justify-content: space-between; gap: var(--space-4); list-style: none; }
+.faq-v2-item summary::-webkit-details-marker { display: none; }
+.faq-v2-item[open] summary { background: var(--evergreen-soft); color: var(--evergreen); }
+.faq-v2-chevron { width: 20px; height: 20px; transition: transform var(--transition); }
+.faq-v2-item[open] .faq-v2-chevron { transform: rotate(180deg); }
+.faq-v2-answer { padding: 0 var(--space-6) var(--space-5); color: var(--muted); line-height: 1.8; }
+
+.faq-page-layout { display: grid; grid-template-columns: 220px 1fr; gap: var(--space-10); align-items: start; }
+@media (max-width: 900px) { .faq-page-layout { grid-template-columns: 1fr; } }
+.faq-category-nav { position: sticky; top: 84px; display: flex; flex-direction: column; gap: var(--space-2); }
+.faq-cat-link { font-size: .88rem; font-weight: 700; color: var(--muted); text-decoration: none;
+  padding: var(--space-3) var(--space-4); border-radius: var(--radius-sm); border: 1px solid transparent; }
+.faq-cat-link:hover, .faq-cat-link.active { color: var(--evergreen); background: var(--evergreen-soft);
+  border-color: rgba(47,125,50,.2); text-decoration: none; }
+
+.testimonial-v2 { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: var(--space-7) var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
+.testimonial-placeholder { background: var(--porcelain); border: 1.5px dashed var(--border); border-radius: var(--radius-md);
+  padding: var(--space-5); font-size: .82rem; color: var(--muted); text-align: center; font-style: italic; }
+
+.gallery-mosaic { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--space-3); }
+.gallery-mosaic-item { border-radius: var(--radius-md); overflow: hidden; position: relative; line-height: 0; aspect-ratio: 1; }
+.gallery-mosaic-item:first-child { grid-column: 1/3; grid-row: 1/3; aspect-ratio: auto; }
+.gallery-mosaic-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-mosaic-more img { filter: brightness(.4); }
+.gallery-mosaic-more-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; color: #fff; gap: var(--space-2); text-align: center; }
+
+/* Medical disclaimer + taxonomy hub + sub-taxonomy list (reused across FAQ + hub pages) */
+.medical-disclaimer-v2 { background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-6); color: #78350f; margin-block: var(--space-8); font-size: .88rem; line-height: 1.75; }
+.taxonomy-hub-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: var(--space-6); }
+.taxonomy-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; text-decoration: none; color: var(--graphite); transition: transform var(--transition), box-shadow var(--transition); }
+.taxonomy-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); text-decoration: none; }
+.taxonomy-card-img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+.taxonomy-card-body { padding: var(--space-6); }
+.sub-taxonomy-list { display: flex; flex-direction: column; gap: var(--space-3); }
+.sub-taxonomy-item { display: flex; align-items: center; gap: var(--space-4); background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5);
+  text-decoration: none; color: var(--graphite); transition: border-color var(--transition-fast), box-shadow var(--transition-fast); }
+.sub-taxonomy-item:hover { border-color: var(--evergreen); box-shadow: var(--shadow-sm); text-decoration: none; }
+.sub-taxonomy-item .sti-icon { width: 44px; height: 44px; border-radius: var(--radius-sm); flex-shrink: 0;
+  background: var(--evergreen-soft); display: flex; align-items: center; justify-content: center; }
+.sub-taxonomy-item .sti-arrow { margin-inline-start: auto; color: var(--muted); flex-shrink: 0; }
+
+/* Final CTA + premium footer (extends, does not replace, .site-footer) */
+.final-cta-band { background: linear-gradient(135deg, var(--evergreen), var(--evergreen-dark));
+  padding-block: clamp(4rem,8vw,6rem); text-align: center; }
+.final-cta-band h2 { color: #fff; margin-bottom: var(--space-3); }
+.final-cta-band p { color: rgba(255,255,255,.85); margin-bottom: var(--space-8); }
+.btn-white { background: #fff; color: var(--evergreen); font-weight: 800; box-shadow: 0 4px 18px rgba(0,0,0,.18); }
+.btn-white-outline { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.55); }
+
+/* Premium nav dropdown — ADDS to existing .site-nav / .nav-links, no removals */
+.nav-links > li { position: relative; }
+.nav-dropdown { position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow); padding: var(--space-2);
+  display: none; flex-direction: column; gap: 2px; z-index: 300; }
+.nav-links > li:hover .nav-dropdown, .nav-links > li:focus-within .nav-dropdown { display: flex; }
+.nav-dropdown a { font-size: .84rem; font-weight: 600; color: var(--muted); padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm); text-decoration: none; display: block; }
+.nav-dropdown a:hover { background: var(--porcelain); color: var(--graphite); }
+.nav-dropdown-group-label { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); padding: var(--space-2) var(--space-4) var(--space-1); display: block; }
+@media (max-width: 1024px) { .nav-dropdown { display: none !important; } }

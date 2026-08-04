@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <!-- MAZ//ID · © 2026 Maziyar / Dr. Shahin Bastaninejad -->
 <html dir="rtl" lang="fa-IR" class="has-brand-seals">
 <head>
@@ -21,12 +21,12 @@
     "@context": "https://schema.org",
     "@type": "Blog",
     "name": "مقالات آموزشی جراحی بینی",
-    "url": "https://drbastaninejad.com/blog.html",
+    "url": "https://drbastaninejad.com/blog",
     "description": "مقالات تخصصی جراحی بینی توسط دکتر شاهین باستانی نژاد",
     "author": {
       "@type": "Physician",
       "name": "دکتر شاهین باستانی نژاد",
-      "url": "https://drbastaninejad.com/about.html"
+      "url": "https://drbastaninejad.com/about"
     }
   }
   </script>
@@ -112,7 +112,7 @@
         </div>
       </li>
       <li><a href="/gallery"><i class="fa-solid fa-images nav-icon" aria-hidden="true"></i>نمونه کارها</a></li>
-      <li><a href="/blog"><i class="fa-solid fa-newspaper nav-icon" aria-hidden="true"></i>مقالات</a></li>
+      <li><a href="/blog" aria-current="page"><i class="fa-solid fa-newspaper nav-icon" aria-hidden="true"></i>مقالات</a></li>
       <li><a href="/faq"><i class="fa-solid fa-circle-question nav-icon" aria-hidden="true"></i>سوالات</a></li>
       <li><a href="/contact"><i class="fa-solid fa-phone nav-icon" aria-hidden="true"></i>تماس</a></li>
     </ul>
@@ -147,7 +147,7 @@
       <a href="/services/sinus-endoscopy" class="nm-item"><span class="nm-icon"><i class="fa-solid fa-microscope" aria-hidden="true"></i></span>آندوسکوپی سینوس</a>
       <span class="nm-group-label">صفحات</span>
       <a href="/gallery" class="nm-item"><span class="nm-icon"><i class="fa-solid fa-images" aria-hidden="true"></i></span>نمونه کارها</a>
-      <a href="/blog" class="nm-item"><span class="nm-icon"><i class="fa-solid fa-newspaper" aria-hidden="true"></i></span>مقالات</a>
+      <a href="/blog" class="nm-item" aria-current="page"><span class="nm-icon"><i class="fa-solid fa-newspaper" aria-hidden="true"></i></span>مقالات</a>
       <a href="/faq" class="nm-item"><span class="nm-icon"><i class="fa-solid fa-circle-question" aria-hidden="true"></i></span>سوالات متداول</a>
       <a href="/contact" class="nm-item"><span class="nm-icon"><i class="fa-solid fa-phone" aria-hidden="true"></i></span>تماس با ما</a>
     </div>
@@ -178,21 +178,17 @@
 
       <!-- Featured article -->
       <a class="blog-featured" href="/blog/rhinoplasty" aria-label="مقاله ویژه: جراحی بینی چیست؟">
-        <img class="blog-featured-img"
-             src="assets/images/Blog/Blog-106.webp"
-             alt="جراحی بینی — راهنمای جامع"
-             width="600" height="450" loading="eager"/>
+        <img class="blog-featured-img" src="assets/images/Blog/Blog-106.webp" alt="جراحی بینی — راهنمای جامع" width="600" height="450" loading="eager"/>
         <div class="blog-featured-body">
           <span class="blog-tag">مقاله ویژه</span>
           <h2>جراحی بینی چیست و چه کسانی کاندید هستند؟</h2>
           <p>جراحی بینی یا رینوپلاستی یکی از رایج‌ترین جراحی‌های زیبایی در ایران است. در این راهنمای جامع، همه چیز را درباره انواع جراحی، کاندیداتوری، دوره بهبودی و نتایج واقعی توضیح می‌دهیم.</p>
-          <span class="blog-featured-link">خواندن مقاله
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </span>
+          <span class="blog-featured-link">خواندن مقاله <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
         </div>
       </a>
 
       <!-- Category filters -->
+      <!-- BACKEND: Filter functionality — connect to dynamic post filtering API -->
       <div class="blog-filter-row" role="group" aria-label="فیلتر دسته‌بندی مقالات">
         <button class="blog-filter-btn active" data-filter="all" type="button">همه مقالات</button>
         <button class="blog-filter-btn" data-filter="surgery" type="button">جراحی بینی</button>
@@ -200,15 +196,11 @@
         <button class="blog-filter-btn" data-filter="care" type="button">مراقبت‌ها</button>
       </div>
 
+      <!-- BACKEND: Blog grid — replace static cards with dynamic post list from API -->
       <div class="blog-grid">
 
-        <!-- Article 1: rhinoplasty-revision -->
-        <a class="blog-card" href="/blog/rhinoplasty-revision"
-           aria-label="جراحی بینی ترمیمی چیست؟">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-102.webp"
-               alt="جراحی بینی ترمیمی"
-               width="400" height="240" loading="lazy"/>
+        <a class="blog-card" href="/blog/rhinoplasty-revision" aria-label="جراحی بینی ترمیمی چیست؟">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-102.webp" alt="جراحی بینی ترمیمی" width="400" height="240" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">جراحی بینی</div>
             <h3>جراحی بینی ترمیمی چیست؟</h3>
@@ -217,13 +209,8 @@
           </div>
         </a>
 
-        <!-- Article 2: rhinoplasty-fleshy -->
-        <a class="blog-card" href="/blog/rhinoplasty-fleshy"
-           aria-label="جراحی بینی گوشتی — همه چیز در یک نگاه">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-103.webp"
-               alt="جراحی بینی گوشتی"
-               width="400" height="240" loading="lazy"/>
+        <a class="blog-card" href="/blog/rhinoplasty-fleshy" aria-label="جراحی بینی گوشتی — همه چیز در یک نگاه">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-103.webp" alt="جراحی بینی گوشتی" width="400" height="240" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">جراحی بینی</div>
             <h3>جراحی بینی گوشتی چیست؟</h3>
@@ -232,13 +219,8 @@
           </div>
         </a>
 
-        <!-- Article 3: pre-op-steps -->
-        <a class="blog-card" href="/blog/pre-op-steps"
-           aria-label="اقدامات ضروری قبل از جراحی بینی">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-104.webp"
-               alt="اقدامات قبل از جراحی بینی"
-               width="400" height="240" loading="lazy"/>
+        <a class="blog-card" href="/blog/pre-op-steps" aria-label="اقدامات ضروری قبل از جراحی بینی">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-104.webp" alt="اقدامات قبل از جراحی بینی" width="400" height="240" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">راهنمای بیمار</div>
             <h3>اقدامات ضروری قبل از جراحی بینی</h3>
@@ -247,13 +229,8 @@
           </div>
         </a>
 
-        <!-- Article 4: post-op-care -->
-        <a class="blog-card" href="/blog/post-op-care"
-           aria-label="مراقبت‌های بعد از جراحی بینی">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-105.webp"
-               alt="مراقبت‌های پس از جراحی بینی"
-               width="400" height="240" loading="lazy"/>
+        <a class="blog-card" href="/blog/post-op-care" aria-label="مراقبت‌های بعد از جراحی بینی">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-105.webp" alt="مراقبت‌های پس از جراحی بینی" width="400" height="240" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">راهنمای بیمار</div>
             <h3>مراقبت‌های بعد از جراحی بینی</h3>
@@ -262,13 +239,8 @@
           </div>
         </a>
 
-        <!-- Article 5: rhinoplasty (what is) -->
-        <a class="blog-card" href="/blog/rhinoplasty"
-           aria-label="جراحی بینی چیست و چه کسانی کاندید هستند؟">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-101.webp"
-               alt="جراحی بینی راینوپلاستی"
-               width="400" height="240" loading="lazy"/>
+        <a class="blog-card" href="/blog/rhinoplasty" aria-label="جراحی بینی چیست؟">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-101.webp" alt="جراحی بینی راینوپلاستی" width="400" height="240" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">جراحی بینی</div>
             <h3>جراحی بینی چیست؟</h3>
@@ -277,13 +249,8 @@
           </div>
         </a>
 
-        <!-- Article 6: atl-removal -->
-        <a class="blog-card" href="/blog/atl-removal"
-           aria-label="نکات مهم پس از برداشتن آتل بینی">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-101.webp"
-               alt="نکات پس از برداشتن آتل بینی"
-               width="400" height="240" loading="lazy"/>
+        <a class="blog-card" href="/blog/atl-removal" aria-label="نکات مهم پس از برداشتن آتل بینی">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-101.webp" alt="نکات پس از برداشتن آتل بینی" width="400" height="240" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">راهنمای بیمار</div>
             <h3>نکات مهم پس از برداشتن آتل بینی</h3>
@@ -292,13 +259,8 @@
           </div>
         </a>
 
-        <!-- Article 7: nutrition-rhinoplasty -->
-        <a class="blog-card" href="/blog/nutrition-rhinoplasty"
-           aria-label="تاثیر تغذیه بر بهبودی بعد از جراحی بینی">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-102.webp"
-               alt="تغذیه بعد از جراحی بینی"
-               width="400" height="240" loading="lazy"/>
+        <a class="blog-card" href="/blog/nutrition-rhinoplasty" aria-label="تاثیر تغذیه بر بهبودی بعد از جراحی بینی">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-102.webp" alt="تغذیه بعد از جراحی بینی" width="400" height="240" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">مراقبت‌ها</div>
             <h3>تاثیر تغذیه بر بهبودی بعد از جراحی بینی</h3>
@@ -307,13 +269,8 @@
           </div>
         </a>
 
-        <!-- Article 8: choose-surgeon -->
-        <a class="blog-card" href="/blog/choose-surgeon"
-           aria-label="۱۰ نکته در انتخاب جراح بینی">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-103.webp"
-               alt="انتخاب جراح بینی"
-               width="400" height="240" loading="lazy"/>
+        <a class="blog-card" href="/blog/choose-surgeon" aria-label="۱۰ نکته در انتخاب جراح بینی">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-103.webp" alt="انتخاب جراح بینی" width="400" height="240" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">راهنمای بیمار</div>
             <h3>۱۰ نکته در انتخاب جراح بینی</h3>
@@ -322,13 +279,8 @@
           </div>
         </a>
 
-        <!-- Article 9: revision-rhinoplasty -->
-        <a class="blog-card" href="/blog/revision-rhinoplasty"
-           aria-label="جراحی بینی ترمیمی در تهران">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-104.webp"
-               alt="جراحی بینی ترمیمی در تهران"
-               width="400" height="240" loading="lazy"/>
+        <a class="blog-card" href="/blog/revision-rhinoplasty" aria-label="جراحی بینی ترمیمی در تهران">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-104.webp" alt="جراحی بینی ترمیمی در تهران" width="400" height="240" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">جراحی بینی</div>
             <h3>جراحی بینی ترمیمی در تهران</h3>
@@ -337,13 +289,8 @@
           </div>
         </a>
 
-        <!-- Article 10: male-rhinoplasty -->
-        <a class="blog-card" href="/blog/male-rhinoplasty"
-           aria-label="جراحی بینی مردانه در تهران">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-105.webp"
-               alt="جراحی بینی مردانه"
-               width="400" height="240" loading="lazy"/>
+        <a class="blog-card" href="/blog/male-rhinoplasty" aria-label="جراحی بینی مردانه در تهران">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-105.webp" alt="جراحی بینی مردانه" width="400" height="240" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">جراحی بینی</div>
             <h3>جراحی بینی مردانه در تهران</h3>
@@ -352,13 +299,8 @@
           </div>
         </a>
 
-        <!-- Article 11: rhinoplasty-complications -->
-        <a class="blog-card" href="/blog/rhinoplasty-complications"
-           aria-label="عوارض جراحی بینی و راه‌های پیشگیری">
-          <img class="blog-card-img"
-               src="assets/images/Blog/Blog-106.webp"
-               alt="عوارض جراحی بینی"
-               width="400" height="240" loading="lazy"/>
+        <a class="blog-card" href="/blog/rhinoplasty-complications" aria-label="عوارض جراحی بینی و راه‌های پیشگیری">
+          <img class="blog-card-img" src="assets/images/Blog/Blog-106.webp" alt="عوارض جراحی بینی" width="400" height="240" loading="lazy"/>
           <div class="blog-card-body">
             <div class="blog-card-meta">اطلاعات پزشکی</div>
             <h3>عوارض جراحی بینی و راه‌های پیشگیری</h3>
@@ -467,16 +409,16 @@
             <span class="fct-label">آدرس</span>
             <span class="fct-value" style="font-size:.8rem;line-height:1.5">تهران، خ. نلسون ماندلا، خ. صانعی، ساختمان نور، پلاک ۱ واحد ۶</span>
             <div class="footer-map-row" role="list" aria-label="مسیریابی">
-              <a href="https://maps.app.goo.gl/M9nRYbBiDwr5sTGe9" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="Google Maps" aria-label="باز کردن در Google Maps" role="listitem" title="Google Maps">
+              <a href="https://maps.app.goo.gl/M9nRYbBiDwr5sTGe9" target="_blank" rel="noopener noreferrer" class="footer-map-btn" aria-label="باز کردن در Google Maps" role="listitem" title="Google Maps">
                 <img src="assets/images/Icons/GoogleMap.webp" alt="Google Maps" width="22" height="22" loading="lazy"/>
               </a>
-              <a href="https://nshn.ir/ff_bv21qIxirpx" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="نشان" aria-label="باز کردن در نشان" role="listitem" title="نشان">
+              <a href="https://nshn.ir/ff_bv21qIxirpx" target="_blank" rel="noopener noreferrer" class="footer-map-btn" aria-label="باز کردن در نشان" role="listitem" title="نشان">
                 <img src="assets/images/Icons/Neshan.webp" alt="نشان" width="22" height="22" loading="lazy"/>
               </a>
-              <a href="https://balad.ir/p/3cuwGGif58f8hT" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="بلد" aria-label="باز کردن در بلد" role="listitem" title="بلد">
+              <a href="https://balad.ir/p/3cuwGGif58f8hT" target="_blank" rel="noopener noreferrer" class="footer-map-btn" aria-label="باز کردن در بلد" role="listitem" title="بلد">
                 <img src="assets/images/Icons/Balad.webp" alt="بلد" width="22" height="22" loading="lazy"/>
               </a>
-              <a href="https://waze.com/ul/htnke3vwqs" target="_blank" rel="noopener noreferrer" class="footer-map-btn" data-tip="Waze" aria-label="باز کردن در Waze" role="listitem" title="Waze">
+              <a href="https://waze.com/ul/htnke3vwqs" target="_blank" rel="noopener noreferrer" class="footer-map-btn" aria-label="باز کردن در Waze" role="listitem" title="Waze">
                 <img src="assets/images/Icons/Waze.webp" alt="Waze" width="22" height="22" loading="lazy"/>
               </a>
             </div>
@@ -510,12 +452,7 @@
 
   </div>
 </footer>
-
-
-<!-- Backdrop -->
 <div id="nav-backdrop" class="nav-backdrop" aria-hidden="true"></div>
-
-<!-- Floating contact (Chaty) -->
 <div class="chaty-wrap" id="chaty-wrap" aria-label="ارتباط سریع">
   <div class="chaty-channels" id="chaty-channels" aria-label="کانال‌های ارتباطی">
     <a href="https://wa.me/989124966590" target="_blank" rel="noopener noreferrer" class="chaty-channel" aria-label="واتس‌اپ">
@@ -540,7 +477,6 @@
     <span class="chaty-tooltip">سوالی داشتین در خدمتیم</span>
   </button>
 </div>
-
 <script src="assets/js/main.js"></script>
 <script src="assets/js/premium.js"></script>
 <script src="assets/js/site-chrome.js"></script>
