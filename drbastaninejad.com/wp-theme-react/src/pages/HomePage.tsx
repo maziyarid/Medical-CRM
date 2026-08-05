@@ -10,15 +10,17 @@ import { Link } from "react-router";
 import {
   Phone, MapPin, Clock, ChevronDown, ChevronLeft, ChevronRight,
   Instagram, Star, Award, CheckCircle, Stethoscope, Scissors, Heart,
-  ArrowLeft, ArrowRight, MessageCircle, Calendar, ExternalLink, BookOpen,
+  ArrowLeft, ArrowRight, MessageCircle, Calendar, BookOpen,
   Shield, Users, TrendingUp, Eye,
 } from "lucide-react";
 import {
-  DOCTOR_NAME, BOOKING_URL, PHONES, INSTAGRAM as IG_URL, ADDRESS,
+  DOCTOR_NAME, PHONES, INSTAGRAM as IG_URL, ADDRESS,
   TRUST_BADGES, COSMETIC_SERVICES, FUNCTIONAL_SERVICES, TIMELINE,
   CERTIFICATES, PROCESS_STEPS, HOME_FAQS, BLOG_POSTS, GALLERY_ITEMS,
   STATS,
 } from "@/data/site";
+import JsonLd, { LOCAL_BUSINESS_SCHEMA, DOCTOR_SCHEMA } from "@/components/JsonLd";
+import ServiceIcon from "@/components/ServiceIcon";
 
 /* ── Hero ── */
 const HERO_IMG   = "/images/Doctor/Dr Shahin Bastani Nejad (1).webp";
@@ -28,7 +30,7 @@ const ABOUT_BG   = "/images/Doctor/Dr Shahin Bastani Nejad (5).webp";
 /* ─── Hero Section ─── */
 function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
+    <section className="relative min-h-[80vh] flex items-center overflow-hidden">
       <div className="absolute inset-0">
         <img src={HERO_IMG} alt="کلینیک جراحی بینی" className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-black/60 to-black/30" />
@@ -50,10 +52,10 @@ function HeroSection() {
               {DOCTOR_NAME} — دانشیار دانشگاه علوم پزشکی تهران، با بیش از ۱۵ سال تجربه تخصصی و ۲۰۰۰+ عمل موفق
             </p>
             <div className="flex flex-wrap gap-4">
-              <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer"
+              <Link to="/booking"
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold px-8 py-4 rounded-2xl transition-all shadow-xl shadow-primary/30 hover:scale-105 text-lg">
                 <Calendar className="w-5 h-5" /> رزرو مشاوره رایگان
-              </a>
+              </Link>
               <Link to="/gallery"
                 className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 text-white font-bold px-8 py-4 rounded-2xl transition-all text-lg">
                 <Eye className="w-5 h-5" /> مشاهده گالری
@@ -69,35 +71,35 @@ function HeroSection() {
             </div>
           </div>
           <div className="hidden lg:flex justify-center">
-            <div className="relative">
-              <div className="w-80 h-[420px] rounded-3xl overflow-hidden border-4 border-white/20 shadow-2xl">
+            <div className="flex flex-col items-center gap-4">
+              {/* Doctor card */}
+              <div className="relative w-80 h-[400px] rounded-3xl overflow-hidden border-4 border-white/20 shadow-2xl">
                 <img src={DOCTOR_IMG} alt={DOCTOR_NAME} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <div className="absolute bottom-0 inset-x-0 p-6 text-white">
-                  <p className="font-bold text-lg">{DOCTOR_NAME}</p>
-                  <p className="text-white/75 text-sm">متخصص گوش، حلق و بینی</p>
-                  <p className="text-white/75 text-sm">دانشیار دانشگاه علوم پزشکی تهران</p>
+                <div className="absolute bottom-0 inset-x-0 p-5 text-white">
+                  <p className="font-bold text-base">{DOCTOR_NAME}</p>
+                  <p className="text-white/75 text-xs">متخصص گوش، حلق و بینی</p>
+                  <p className="text-white/75 text-xs">دانشیار دانشگاه علوم پزشکی تهران</p>
                 </div>
               </div>
-              <div className="absolute -right-8 top-12 bg-white rounded-2xl p-4 shadow-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                    <Award className="w-5 h-5 text-primary" />
+              {/* Stats chips — below the image, not overlapping */}
+              <div className="flex gap-3">
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-4 py-2.5 flex items-center gap-2.5">
+                  <div className="w-8 h-8 bg-primary/20 rounded-lg flex items-center justify-center">
+                    <Award className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">رتبه بورد</p>
-                    <p className="font-bold text-sm">رتبه ۴ کشوری</p>
+                    <p className="text-[10px] text-white/60">رتبه بورد</p>
+                    <p className="font-bold text-sm text-white">رتبه ۴ کشوری</p>
                   </div>
                 </div>
-              </div>
-              <div className="absolute -left-8 bottom-24 bg-white rounded-2xl p-4 shadow-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-accent/10 rounded-xl flex items-center justify-center">
-                    <Star className="w-5 h-5 text-accent" />
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-4 py-2.5 flex items-center gap-2.5">
+                  <div className="w-8 h-8 bg-accent/20 rounded-lg flex items-center justify-center">
+                    <Star className="w-4 h-4 text-accent" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">رضایت بیمار</p>
-                    <p className="font-bold text-sm">۹۸٪ موفقیت</p>
+                    <p className="text-[10px] text-white/60">رضایت بیمار</p>
+                    <p className="font-bold text-sm text-white">۹۸٪ موفقیت</p>
                   </div>
                 </div>
               </div>
@@ -164,28 +166,28 @@ function ServicesSection() {
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="flex flex-col gap-2">
             {services.map(s => {
-              const Icon = s.icon;
-              const on = s.id === activeId;
-              return (
-                <button key={s.id} onClick={() => setActiveId(s.id)}
-                  className={`flex items-center gap-4 p-4 rounded-2xl text-right transition-all ${on ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-white hover:bg-secondary border border-border text-foreground"}`}>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${on ? "bg-white/20" : "bg-primary/10"}`}>
-                    <Icon className={`w-5 h-5 ${on ? "text-white" : "text-primary"}`} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-sm">{s.title}</p>
-                    <p className={`text-xs mt-0.5 ${on ? "text-white/70" : "text-muted-foreground"}`}>{s.subtitle}</p>
-                  </div>
-                  {on && <ChevronLeft className="w-4 h-4 flex-shrink-0" />}
-                </button>
-              );
-            })}
+                const on = s.id === activeId;
+                return (
+                  <button key={s.id} onClick={() => setActiveId(s.id)}
+                    className={`flex items-center gap-4 p-4 rounded-2xl text-right transition-all ${on ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-white hover:bg-secondary border border-border text-foreground"}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 [&>span>span>svg]:w-5 [&>span>span>svg]:h-5 [&>span>svg]:w-5 [&>span>svg]:h-5 ${on ? "bg-white/20" : "bg-primary/10"}`}>
+                      <ServiceIcon slug={s.slug} FallbackIcon={s.icon} size={20}
+                        className={on ? "text-white" : "text-primary"} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm">{s.title}</p>
+                      <p className={`text-xs mt-0.5 ${on ? "text-white/70" : "text-muted-foreground"}`}>{s.subtitle}</p>
+                    </div>
+                    {on && <ChevronLeft className="w-4 h-4 flex-shrink-0" />}
+                  </button>
+                );
+              })}
           </div>
           <div className="lg:col-span-2">
             <div className="bg-white rounded-3xl border border-border p-8 h-full">
               <div className="flex items-start gap-6 mb-6">
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0">
-                  <active.icon className="w-8 h-8 text-primary" />
+                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0 [&>span>span>svg]:w-8 [&>span>span>svg]:h-8 [&>span>svg]:w-8 [&>span>svg]:h-8">
+                  <ServiceIcon slug={active.slug} FallbackIcon={active.icon} size={32} />
                 </div>
                 <div>
                   <h3 className="text-2xl font-black text-foreground">{active.title}</h3>
@@ -202,12 +204,12 @@ function ServicesSection() {
                 ))}
               </div>
               <div className="flex flex-wrap gap-3">
-                <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer"
+                <Link to="/booking"
                   className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold px-6 py-3 rounded-2xl transition-all shadow-lg hover:shadow-primary/30">
                   <Calendar className="w-5 h-5" /> رزرو مشاوره
-                </a>
+                </Link>
                 <Link to={`/services/${active.slug}`}
-                  className="inline-flex items-center gap-2 border border-primary text-primary font-bold px-6 py-3 rounded-2xl hover:bg-primary/5 transition-all">
+                  className="inline-flex items-center gap-2 border border-primary text-primary font-bold px-6 py-3 rounded-2xl hover:bg-primary hover:text-white transition-all">
                   اطلاعات بیشتر <ArrowLeft className="w-4 h-4" />
                 </Link>
               </div>
@@ -339,6 +341,7 @@ function BeforeAfterSlider({ before, after, fallback }: { before: string; after:
   const [dragging, setDragging] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
+  // Works for both mouse (RTL: right edge is 100%) and touch
   const updatePos = useCallback((clientX: number) => {
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
@@ -347,25 +350,33 @@ function BeforeAfterSlider({ before, after, fallback }: { before: string; after:
   }, []);
 
   useEffect(() => {
-    const onMove = (e: MouseEvent) => { if (dragging) updatePos(e.clientX); };
-    const onUp = () => setDragging(false);
+    const onMove = (e: MouseEvent)      => { if (dragging) updatePos(e.clientX); };
+    const onUp   = ()                   => setDragging(false);
     window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-    return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+    window.addEventListener("mouseup",   onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup",   onUp);
+    };
   }, [dragging, updatePos]);
 
   const fallbackSrc = (e: React.SyntheticEvent<HTMLImageElement>) => { (e.target as HTMLImageElement).src = fallback; };
 
   return (
     <div ref={ref}
-      className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden cursor-col-resize select-none"
-      onMouseDown={e => { setDragging(true); updatePos(e.clientX); }}>
+      className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden cursor-col-resize select-none touch-none"
+      onMouseDown={e => { setDragging(true); updatePos(e.clientX); }}
+      onTouchStart={e => { setDragging(true); updatePos(e.touches[0].clientX); }}
+      onTouchMove={e  => { if (dragging) updatePos(e.touches[0].clientX); }}
+      onTouchEnd={()  => setDragging(false)}
+    >
       <img src={after}  alt="بعد" className="absolute inset-0 w-full h-full object-cover" onError={fallbackSrc} />
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 0 0 ${100 - pos}%)` }}>
         <img src={before} alt="قبل" className="absolute inset-0 w-full h-full object-cover" onError={fallbackSrc} />
       </div>
-      <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg" style={{ right: `${pos}%` }}>
-        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 bg-white rounded-full shadow-xl flex items-center justify-center">
+      {/* Drag line + handle */}
+      <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg pointer-events-none" style={{ right: `${pos}%` }}>
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 bg-white rounded-full shadow-xl flex items-center justify-center ring-2 ring-primary/30">
           <ArrowRight className="w-3 h-3 text-primary" />
           <ArrowLeft  className="w-3 h-3 text-primary" />
         </div>
@@ -424,7 +435,7 @@ function GallerySection() {
           تمام تصاویر با رضایت بیماران و رعایت کامل حریم خصوصی منتشر شده‌اند. نتایج ممکن است از فردی به فرد دیگر متفاوت باشد.
         </p>
         <div className="text-center mt-8">
-          <Link to="/gallery" className="inline-flex items-center gap-2 border-2 border-primary text-primary font-bold px-8 py-3 rounded-2xl hover:bg-primary hover:text-white transition-all">
+          <Link to="/gallery" className="inline-flex items-center gap-2 border-2 border-primary text-[#28722C] font-bold px-8 py-3 rounded-2xl hover:bg-primary hover:text-white transition-all">
             مشاهده همه نمونه‌ها <ArrowLeft className="w-4 h-4" />
           </Link>
         </div>
@@ -449,9 +460,12 @@ function ProcessSection() {
             const Icon = icons[i];
             return (
               <div key={i} className="group bg-gradient-to-br from-white to-secondary/30 border border-border rounded-3xl p-6 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/30 transition-all">
-                <div className="text-5xl font-black text-primary/10 mb-4">{s.num}</div>
-                <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform">
-                  <Icon className="w-6 h-6 text-white" />
+                {/* Step header: number + icon in one horizontal row */}
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-3xl font-black text-primary/15 leading-none">{s.num}</span>
+                  <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                    <Icon className="w-5 h-5 text-white" />
+                  </div>
                 </div>
                 <h3 className="text-xl font-black text-foreground mb-3">{s.title}</h3>
                 <p className="text-muted-foreground text-sm leading-loose">{s.desc}</p>
@@ -460,10 +474,10 @@ function ProcessSection() {
           })}
         </div>
         <div className="text-center mt-12">
-          <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer"
+          <Link to="/booking"
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold px-10 py-4 rounded-2xl transition-all shadow-xl hover:shadow-primary/30 text-lg">
             <Calendar className="w-5 h-5" /> شروع مسیر درمان — رزرو مشاوره
-          </a>
+          </Link>
         </div>
       </div>
     </section>
@@ -485,10 +499,10 @@ function HomeFAQSection() {
           <h2 className="text-4xl font-black text-foreground mt-2 mb-4">سؤالات متداول</h2>
           <p className="text-muted-foreground text-lg">پاسخ جامع به رایج‌ترین سؤالات درباره جراحی بینی</p>
         </div>
-        <div className="flex flex-wrap justify-center gap-2 mb-10">
+        <div className="flex gap-2 mb-10 overflow-x-auto pb-1 flex-nowrap justify-start sm:justify-center" aria-label="فیلتر سوالات">
           {cats.map(c => (
             <button key={c} onClick={() => { setCat(c); setOpenIdx(null); }}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${cat === c ? "bg-primary text-white" : "bg-white border border-border text-foreground hover:border-primary/30 hover:text-primary"}`}>
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 ${cat === c ? "bg-primary text-white" : "bg-white border border-border text-foreground hover:border-primary/30 hover:text-primary"}`}>
               {c}
             </button>
           ))}
@@ -646,10 +660,10 @@ function BookingSection() {
           ))}
         </div>
         <div className="text-center">
-          <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer"
+          <Link to="/booking"
             className="inline-flex items-center gap-3 bg-white text-primary font-black px-10 py-5 rounded-2xl text-xl hover:bg-white/90 transition-all shadow-2xl">
-            <Calendar className="w-6 h-6" /> رزرو نوبت آنلاین <ExternalLink className="w-5 h-5" />
-          </a>
+            <Calendar className="w-6 h-6" /> رزرو نوبت آنلاین
+          </Link>
         </div>
       </div>
     </section>
@@ -772,6 +786,7 @@ function ContactSection() {
 export default function HomePage() {
   return (
     <>
+      <JsonLd id="jsonld-home" data={[LOCAL_BUSINESS_SCHEMA, DOCTOR_SCHEMA]} />
       <HeroSection />
       <TrustStrip />
       <ServicesSection />

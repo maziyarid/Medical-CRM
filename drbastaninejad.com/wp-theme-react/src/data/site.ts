@@ -11,15 +11,16 @@
  */
 
 import {
-  Scissors, Heart, Eye, Shield, CheckCircle, Star,
-  TrendingUp, Stethoscope, BookOpen, Award, Users,
-  FileText, Layers, Zap, Search,
+  Scissors, Heart, Activity, Shield, Leaf, Sparkles,
+  Minus, AlignJustify, Wind, ScanSearch,
+  BookOpen, Award, Users,
+  Zap, Layers, Search, TrendingUp, CheckCircle, FileText, Star,
 } from "lucide-react";
 
 /* ── Clinic / Doctor identity — ACF Options Page ── */
 export const DOCTOR_NAME     = "دکتر شاهین باستانی‌نژاد";
 export const BOOKING_URL     = "https://app.drbastaninejad.com/";
-export const PHONES          = ["۰۲۱–۸۶۰۸۷۲۵۰", "۰۲۱–۸۸۲۰۵۶۰۶", "۰۹۹۱–۲۴۹۶۶۵۹"];
+export const PHONES          = ["۰۲۱۸۶۰۸۷۲۵۰", "۰۲۱۸۸۲۰۵۶۰۶", "۰۹۹۱۲۴۹۶۶۵۹"];
 export const INSTAGRAM       = "https://www.instagram.com/dr.shahin.bastaninejad/";
 export const YOUTUBE         = "https://www.youtube.com/@Drshahinbastaninejad";
 export const TELEGRAM        = "https://t.me/dr_bastaninejad";
@@ -50,20 +51,20 @@ export const TRUST_BADGES = [
 
 /* ── Cosmetic Services — WP CPT: service ── */
 export const COSMETIC_SERVICES = [
-  { id: 1, slug: "rhinoplasty-primary",  title: "جراحی بینی اولیه",   subtitle: "راینوپلاستی اولیه",         icon: Scissors,    desc: "جراحی بینی اولیه یا راینوپلاستی، هنر تراشیدن بینی متناسب با چهره است. دکتر باستانی‌نژاد با بهره‌گیری از تکنیک‌های روز دنیا، نتیجه‌ای طبیعی و هماهنگ با سیمای شما ایجاد می‌کند." },
-  { id: 2, slug: "rhinoplasty-revision", title: "جراحی بینی ترمیمی",  subtitle: "رینوپلاستی ثانویه",         icon: Heart,       desc: "جراحی ترمیمی برای اصلاح نتایج ناخواسته جراحی‌های قبلی طراحی شده است. این عمل به دقت و تجربه بسیار بالایی نیاز دارد که دکتر باستانی‌نژاد با سال‌ها سابقه در این حوزه آماده انجام آن است." },
-  { id: 3, slug: "rhinoplasty-fleshy",   title: "جراحی بینی گوشتی",   subtitle: "بینی پهن و گوشتی",          icon: Eye,         desc: "بینی‌های گوشتی به دلیل ضخامت پوست و بافت نرم، جراحی متفاوتی نیاز دارند. دکتر باستانی‌نژاد با روش‌های تخصصی، ظرافت ایده‌آل را برای این نوع بینی ایجاد می‌کند." },
-  { id: 4, slug: "rhinoplasty-bony",     title: "جراحی بینی استخوانی", subtitle: "بینی سخت و استخوانی",      icon: Shield,      desc: "بینی‌های استخوانی ساختار محکم‌تری دارند و تکنیک‌های خاصی برای ایجاد فرم دلخواه نیاز دارند. نتیجه نهایی ظاهری طبیعی و متناسب با ساختار چهره خواهد بود." },
-  { id: 5, slug: "rhinoplasty-natural",  title: "بینی طبیعی",          subtitle: "نتیجه کاملاً طبیعی",       icon: CheckCircle, desc: "سبک جراحی بینی طبیعی، تغییراتی ظریف ایجاد می‌کند که حس می‌شود شما همیشه این بینی را داشته‌اید. هماهنگی کامل با چهره، اولویت اصلی این رویکرد است." },
-  { id: 6, slug: "rhinoplasty-fantasy",  title: "بینی فانتزی",          subtitle: "سبک متفاوت و برجسته",      icon: Star,        desc: "برای افرادی که به دنبال ظاهری خاص‌تر هستند، سبک فانتزی با پروفایل برجسته‌تر و نوک سربالا انتخاب می‌شود. این تغییرات در محدوده طبیعی چهره طراحی می‌شوند." },
-  { id: 7, slug: "hump-removal",         title: "رفع قوز بینی",         subtitle: "اصلاح برآمدگی پشت بینی",  icon: TrendingUp,  desc: "قوز بینی یکی از شایع‌ترین دلایل مراجعه به جراح است. دکتر باستانی‌نژاد با تکنیک‌های دقیق، قوز را حذف و پروفایل صاف و زیبایی ایجاد می‌کند." },
+  { id: 1, slug: "rhinoplasty-primary",  title: "جراحی بینی اولیه",   subtitle: "راینوپلاستی اولیه",         icon: Scissors,   desc: "جراحی بینی اولیه یا راینوپلاستی، هنر تراشیدن بینی متناسب با چهره است. دکتر باستانی‌نژاد با بهره‌گیری از تکنیک‌های روز دنیا، نتیجه‌ای طبیعی و هماهنگ با سیمای شما ایجاد می‌کند." },
+  { id: 2, slug: "rhinoplasty-revision", title: "جراحی بینی ترمیمی",  subtitle: "رینوپلاستی ثانویه",         icon: Activity,   desc: "جراحی ترمیمی برای اصلاح نتایج ناخواسته جراحی‌های قبلی طراحی شده است. این عمل به دقت و تجربه بسیار بالایی نیاز دارد که دکتر باستانی‌نژاد با سال‌ها سابقه در این حوزه آماده انجام آن است." },
+  { id: 3, slug: "rhinoplasty-fleshy",   title: "جراحی بینی گوشتی",   subtitle: "بینی پهن و گوشتی",          icon: Layers,     desc: "بینی‌های گوشتی به دلیل ضخامت پوست و بافت نرم، جراحی متفاوتی نیاز دارند. دکتر باستانی‌نژاد با روش‌های تخصصی، ظرافت ایده‌آل را برای این نوع بینی ایجاد می‌کند." },
+  { id: 4, slug: "rhinoplasty-bony",     title: "جراحی بینی استخوانی", subtitle: "بینی سخت و استخوانی",      icon: AlignJustify, desc: "بینی‌های استخوانی ساختار محکم‌تری دارند و تکنیک‌های خاصی برای ایجاد فرم دلخواه نیاز دارند. نتیجه نهایی ظاهری طبیعی و متناسب با ساختار چهره خواهد بود." },
+  { id: 5, slug: "rhinoplasty-natural",  title: "بینی طبیعی",          subtitle: "نتیجه کاملاً طبیعی",       icon: Leaf,       desc: "سبک جراحی بینی طبیعی، تغییراتی ظریف ایجاد می‌کند که حس می‌شود شما همیشه این بینی را داشته‌اید. هماهنگی کامل با چهره، اولویت اصلی این رویکرد است." },
+  { id: 6, slug: "rhinoplasty-fantasy",  title: "بینی فانتزی",          subtitle: "سبک متفاوت و برجسته",      icon: Sparkles,   desc: "برای افرادی که به دنبال ظاهری خاص‌تر هستند، سبک فانتزی با پروفایل برجسته‌تر و نوک سربالا انتخاب می‌شود. این تغییرات در محدوده طبیعی چهره طراحی می‌شوند." },
+  { id: 7, slug: "hump-removal",         title: "رفع قوز بینی",         subtitle: "اصلاح برآمدگی پشت بینی",  icon: Minus,      desc: "قوز بینی یکی از شایع‌ترین دلایل مراجعه به جراح است. دکتر باستانی‌نژاد با تکنیک‌های دقیق، قوز را حذف و پروفایل صاف و زیبایی ایجاد می‌کند." },
 ];
 
 /* ── Functional Services — WP CPT: service ── */
 export const FUNCTIONAL_SERVICES = [
-  { id: 8, slug: "septoplasty",     title: "سپتوپلاستی",             subtitle: "اصلاح انحراف تیغه بینی",    icon: Stethoscope, desc: "انحراف تیغه بینی (سپتوم) می‌تواند باعث مشکلات تنفسی جدی شود. سپتوپلاستی این انحراف را اصلاح کرده و تنفس را به‌طور قابل توجهی بهبود می‌بخشد." },
-  { id: 9, slug: "turbinoplasty",   title: "توربینوپلاستی",           subtitle: "کاهش حجم شاخک‌های بینی",   icon: Heart,       desc: "بزرگ شدن شاخک‌های بینی (توربینیت‌ها) یکی از علل شایع گرفتگی مزمن بینی است. توربینوپلاستی این بافت‌ها را کوچک کرده و جریان هوا را بهینه می‌کند." },
-  { id: 10, slug: "sinus-endoscopy", title: "آندوسکوپی سینوس (FESS)", subtitle: "درمان سینوزیت مزمن",       icon: Shield,      desc: "جراحی آندوسکوپیک سینوس (FESS) برای درمان سینوزیت مزمن، پولیپ‌های بینی و دیگر بیماری‌های سینوس انجام می‌شود. این روش با حداقل تهاجم، نتایج ماندگار ایجاد می‌کند." },
+  { id: 8,  slug: "septoplasty",      title: "سپتوپلاستی",             subtitle: "اصلاح انحراف تیغه بینی",    icon: Zap,        desc: "انحراف تیغه بینی (سپتوم) می‌تواند باعث مشکلات تنفسی جدی شود. سپتوپلاستی این انحراف را اصلاح کرده و تنفس را به‌طور قابل توجهی بهبود می‌بخشد." },
+  { id: 9,  slug: "turbinoplasty",    title: "توربینوپلاستی",           subtitle: "کاهش حجم شاخک‌های بینی",   icon: Wind,       desc: "بزرگ شدن شاخک‌های بینی (توربینیت‌ها) یکی از علل شایع گرفتگی مزمن بینی است. توربینوپلاستی این بافت‌ها را کوچک کرده و جریان هوا را بهینه می‌کند." },
+  { id: 10, slug: "sinus-endoscopy",  title: "آندوسکوپی سینوس (FESS)", subtitle: "درمان سینوزیت مزمن",        icon: ScanSearch,  desc: "جراحی آندوسکوپیک سینوس (FESS) برای درمان سینوزیت مزمن، پولیپ‌های بینی و دیگر بیماری‌های سینوس انجام می‌شود. این روش با حداقل تهاجم، نتایج ماندگار ایجاد می‌کند." },
 ];
 
 /* ── Nav mega-menu items — WP: wp_nav_menu() ── */
@@ -71,25 +72,25 @@ export const NAV_MEGA_ITEMS = [
   {
     group: "بر اساس بافت",
     items: [
-      { label: "جراحی بینی اولیه", sub: "راینوپلاستی برای اولین بار",     href: "/services/rhinoplasty-primary",  icon: FileText },
-      { label: "بینی استخوانی",     sub: "اصلاح قوز و ساختار سخت",         href: "/services/rhinoplasty-bony",     icon: Layers },
-      { label: "بینی گوشتی",        sub: "پوست ضخیم — چالش‌برانگیزترین", href: "/services/rhinoplasty-fleshy",   icon: Heart },
+      { label: "جراحی بینی اولیه", sub: "راینوپلاستی برای اولین بار",     href: "/services/rhinoplasty-primary",  icon: Scissors },
+      { label: "بینی استخوانی",     sub: "اصلاح قوز و ساختار سخت",         href: "/services/rhinoplasty-bony",     icon: AlignJustify },
+      { label: "بینی گوشتی",        sub: "پوست ضخیم — چالش‌برانگیزترین", href: "/services/rhinoplasty-fleshy",   icon: Layers },
     ],
   },
   {
     group: "بر اساس سبک",
     items: [
-      { label: "بینی طبیعی",    sub: "نتیجه هماهنگ با چهره",         href: "/services/rhinoplasty-natural",  icon: CheckCircle },
-      { label: "بینی فانتزی",   sub: "طرح‌های خاص شخصی‌سازی‌شده",  href: "/services/rhinoplasty-fantasy",  icon: Star },
-      { label: "جراحی ترمیمی", sub: "اصلاح نتایج عمل قبلی",         href: "/services/rhinoplasty-revision", icon: TrendingUp },
+      { label: "بینی طبیعی",    sub: "نتیجه هماهنگ با چهره",         href: "/services/rhinoplasty-natural",  icon: Leaf },
+      { label: "بینی فانتزی",   sub: "طرح‌های خاص شخصی‌سازی‌شده",  href: "/services/rhinoplasty-fantasy",  icon: Sparkles },
+      { label: "جراحی ترمیمی", sub: "اصلاح نتایج عمل قبلی",         href: "/services/rhinoplasty-revision", icon: Activity },
     ],
   },
   {
     group: "درمانی",
     items: [
       { label: "انحراف بینی (سپتوپلاستی)", sub: "بهبود تنفس و اصلاح انحراف",    href: "/services/septoplasty",      icon: Zap },
-      { label: "شاخک‌های بینی",            sub: "توربینوپلاستی برای تنفس بهتر", href: "/services/turbinoplasty",    icon: TrendingUp },
-      { label: "آندوسکوپی سینوس",          sub: "درمان سینوزیت مزمن",           href: "/services/sinus-endoscopy",  icon: Search },
+      { label: "شاخک‌های بینی",            sub: "توربینوپلاستی برای تنفس بهتر", href: "/services/turbinoplasty",    icon: Wind },
+      { label: "آندوسکوپی سینوس",          sub: "درمان سینوزیت مزمن",           href: "/services/sinus-endoscopy",  icon: ScanSearch },
     ],
   },
 ];
@@ -99,11 +100,11 @@ export const FOOTER_QUICK = [
   { label: "خانه",         href: "/" },
   { label: "درباره دکتر", href: "/about" },
   { label: "همه خدمات",   href: "/services" },
-  { label: "نمونه کارها", href: "/gallery" },
+  { label: "گالری",       href: "/gallery" },
   { label: "مقالات",      href: "/blog" },
   { label: "سوالات متداول", href: "/faq" },
   { label: "تماس و آدرس", href: "/contact" },
-  { label: "نوبت‌گیری",  href: "/booking" },
+  { label: "رزرو نوبت",  href: "/booking" },
 ];
 
 /* ── Footer service links — WP: wp_nav_menu('footer-services') ── */
@@ -164,6 +165,7 @@ export const HOME_FAQS = [
 ];
 
 /* ── Blog articles — WP: WP_Query post_type='post' ── */
+/* WP/Theme: blog post featured images — PHP: get_the_post_thumbnail_url() */
 export const BLOG_IMGS = [
   "/images/Blog/Blog-101.webp",
   "/images/Blog/Blog-102.webp",
@@ -188,13 +190,23 @@ export const BLOG_POSTS = [
 ];
 
 /* ── Gallery items — WP: ACF gallery field or CPT: case-study ── */
-// Pairs from the 178 real before/after images — every 14th image is a new patient pair
-export const GALLERY_ITEMS = Array.from({ length: 12 }, (_, i) => ({
+// Consecutive-number pairs from confirmed real images (both > 20 KB).
+// WP/Theme: gallery_items (repeater) — PHP: get_theme_mod('gallery_items')
+//   Fields: before_image (image), after_image (image), label (text)
+const BA_PAIRS: [number, number][] = [
+  [1, 2], [3, 4], [5, 6], [7, 8],
+  [14, 15], [16, 17], [18, 19], [20, 21],
+  [27, 28], [39, 40], [44, 45], [46, 47],
+  [56, 57], [60, 61], [65, 66], [72, 74],
+  [78, 79], [81, 82], [84, 85], [86, 87],
+  [90, 91], [96, 98], [100, 101], [103, 104],
+];
+
+export const GALLERY_ITEMS = BA_PAIRS.map(([b, a], i) => ({
   id: i + 1,
-  before: `/images/Before-After/Before-n-After (${i * 14 + 1}).webp`,
-  after:  `/images/Before-After/Before-n-After (${i * 14 + 2}).webp`,
-  // fallback to a blog image if the before/after pair is missing
-  fallback: `/images/Blog/Blog-10${(i % 6) + 1}.webp`,
+  before: `/images/Before-After/Before-n-After (${b}).webp`,
+  after:  `/images/Before-After/Before-n-After (${a}).webp`,
+  fallback: `/images/Doctor/DrShahinBastaninejadPortrait1.png`,
 }));
 
 /* ── Shared Author — WP: get_the_author_meta() + ACF user fields ── */
@@ -206,5 +218,6 @@ export const AUTHOR = {
   bio:              "دکتر شاهین باستانی‌نژاد با بیش از ۱۸ سال تجربه تخصصی در جراحی پلاستیک بینی، از پیشگامان استفاده از روش‌های نوین رینوپلاستی در ایران است. هدف ایشان دستیابی به نتایجی طبیعی، پایدار و کاملاً هماهنگ با ساختار چهره هر بیمار است.",
   stats:            [{ label: "سال تجربه", value: "+۱۸" }, { label: "عمل موفق", value: "+۲۰۰۰" }, { label: "رضایت بیمار", value: "۴.۹" }],
   certifications:   ["بورد تخصصی گوش، گلو و بینی ایران", "عضو ISAPS (انجمن بین‌المللی جراحی پلاستیک)", "فلوشیپ تخصصی جراحی پلاستیک صورت", "عضو انجمن جراحان گوش، گلو و بینی ایران"],
+  avatarImg:        "/images/Doctor/Dr Shahin Bastani Nejad (3).webp",
   avatarInitials:   "دب",
 };

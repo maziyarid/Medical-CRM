@@ -1,0 +1,102 @@
+// =============================================================
+//  Mixins — drbastaninejad.com
+// =============================================================
+@use 'sass:math';
+@use 'variables' as *;
+
+// ── Responsive helpers ───────────────────────────────────────
+@mixin sm { @media (min-width: #{$bp-sm}) { @content; } }
+@mixin md { @media (min-width: #{$bp-md}) { @content; } }
+@mixin lg { @media (min-width: #{$bp-lg}) { @content; } }
+@mixin xl { @media (min-width: #{$bp-xl}) { @content; } }
+@mixin rtl { [dir="rtl"] & { @content; } }
+
+// ── Motion ───────────────────────────────────────────────────
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) { @content; }
+}
+
+// ── Focus visible ────────────────────────────────────────────
+@mixin focus-ring($color: $color-primary) {
+  &:focus-visible {
+    outline: 2px solid $color;
+    outline-offset: 2px;
+  }
+}
+
+// ── Container ────────────────────────────────────────────────
+@mixin container {
+  max-width: $container-max;
+  margin-inline: auto;
+  padding-inline: $space-md;
+  @include sm { padding-inline: $space-lg; }
+}
+
+// ── Card ─────────────────────────────────────────────────────
+@mixin card($radius: $radius-2xl) {
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius;
+}
+
+// ── Button base ──────────────────────────────────────────────
+@mixin btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-xs;
+  padding: $space-sm $space-md;
+  font-family: $font-primary;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: $radius-xl;
+  cursor: pointer;
+  transition: background-color $transition-base, color $transition-base, transform $transition-fast;
+  border: none;
+  @include focus-ring;
+  
+  &:active { transform: scale(0.97); }
+
+  @include reduced-motion {
+    transition: none;
+    &:active { transform: none; }
+  }
+}
+
+@mixin btn-primary {
+  @include btn-base;
+  background-color: $color-primary;
+  color: $color-surface;
+  &:hover { background-color: $color-primary-darker; }
+}
+
+@mixin btn-outline {
+  @include btn-base;
+  background-color: transparent;
+  color: $color-primary;
+  border: 2px solid $color-primary;
+  &:hover { background-color: $color-primary-tint; }
+}
+
+// ── Truncate ─────────────────────────────────────────────────
+@mixin line-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  overflow: hidden;
+}
+
+// ── Green badge ──────────────────────────────────────────────
+@mixin green-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-xs;
+  padding: 0.25rem 0.625rem;
+  border-radius: $radius-full;
+  background: $color-primary-tint;
+  color: $color-primary-dark;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba($color-primary, 0.2);
+}

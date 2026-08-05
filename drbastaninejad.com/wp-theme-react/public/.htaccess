@@ -1,0 +1,13 @@
+# Apache SPA routing — copy this file to public_html/.htaccess on cPanel
+# Serves index.html for all routes so React Router handles navigation client-side.
+# Required when deploying the Vite dist/ folder to a cPanel public_html.
+
+Options -MultiViews
+RewriteEngine On
+
+# Serve existing files/directories directly (assets, images, fonts, etc.)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# All other requests → index.html
+RewriteRule ^ index.html [L]

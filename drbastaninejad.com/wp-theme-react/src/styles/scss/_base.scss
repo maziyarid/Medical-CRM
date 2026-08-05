@@ -1,0 +1,93 @@
+// =============================================================
+//  Base / Reset extras — drbastaninejad.com
+// =============================================================
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// ── Scroll behaviour ─────────────────────────────────────────
+// font-size is owned by theme.css (--font-size var) — do not set it here
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+  @include reduced-motion {
+    scroll-behavior: auto;
+  }
+}
+
+// ── Body defaults ────────────────────────────────────────────
+// NOTE: direction/font are set via RootLayout dir="rtl" + theme.css @layer base
+// Only add non-conflicting baseline rules here.
+body {
+  line-height: $line-height-base;
+}
+
+// ── Links ────────────────────────────────────────────────────
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+// ── Buttons — must never inherit dark text from parent ───────
+// Tailwind Preflight resets button to color: inherit which breaks
+// buttons inside dark-bg containers. Explicit reset here.
+button {
+  color: inherit;  // still inherit by default (neutral)
+}
+
+// bg-[#28722C] and bg-primary buttons get explicit white text
+// via Tailwind's text-white utility or the SCSS .chaty__trigger below.
+// For buttons NOT using Tailwind utilities, force white via attribute:
+[class*="bg-[#28722C]"]:is(button, a),
+[class*="bg-primary"]:is(button, a) {
+  color: $color-surface;
+}
+
+// ── Focus visible (global) ───────────────────────────────────
+:focus-visible {
+  outline: 2px solid $color-primary;
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+// ── Selections ───────────────────────────────────────────────
+::selection {
+  background: $color-primary-tint;
+  color: $color-primary-dark;
+}
+
+// ── Headings: NO font-size overrides here — each page/component owns its sizes
+// Only set line-height on elements that don't already have it via Tailwind
+// (theme.css @layer base sets h1-h4 font sizes via CSS vars)
+
+// ── Body prose paragraphs ─────────────────────────────────────
+// RTL justified text for readable medical content
+p {
+  text-align: justify;
+}
+
+// Override justify for UI text (nav, buttons, labels, etc.)
+nav p, button p, [role="button"] p,
+.no-justify p { text-align: inherit; }
+
+// ── Images ───────────────────────────────────────────────────
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+// ── Reduced-motion global ────────────────────────────────────
+@include reduced-motion {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

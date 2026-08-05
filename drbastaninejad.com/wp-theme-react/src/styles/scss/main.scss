@@ -1,0 +1,10 @@
+// =============================================================
+//  main.scss — SCSS entry point
+//  Import order: variables → mixins → base → rtl → components
+//  Compiled by Vite (sass). Tailwind remains a utility companion.
+// =============================================================
+@use 'variables';
+@use 'mixins';
+@use 'base';
+@use 'rtl';
+@use 'components';

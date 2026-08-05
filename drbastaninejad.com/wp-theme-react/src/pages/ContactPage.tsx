@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ContactPage — page-contact.php equivalent
  * WP: ACF Options for address/phones/hours + Contact Form 7 / Gravity Forms
  */
@@ -48,7 +48,7 @@ export default function ContactPage() {
               <h3 className="font-bold text-[#25272C] mb-3 flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-[#28722C]" /> آدرس
               </h3>
-              <p className="text-[#6A7078] text-sm leading-loose">{ADDRESS}</p>
+              <p className="text-[#545B64] text-sm leading-loose">{ADDRESS}</p>
               <div className="flex flex-wrap gap-2 mt-4">
                 {[
                   { name: "Google Maps", href: "https://maps.google.com/?q=35.758881,51.413824" },
@@ -57,7 +57,7 @@ export default function ContactPage() {
                   { name: "Waze",        href: "https://waze.com" },
                 ].map(l => (
                   <a key={l.name} href={l.href} target="_blank" rel="noopener noreferrer"
-                    className="text-xs bg-[#F7F8F6] hover:bg-[#E4F0E4] hover:text-[#28722C] text-[#6A7078] rounded-lg px-3 py-1.5 font-medium transition-colors border border-[#DDE2DD]">
+                    className="text-xs bg-[#F7F8F6] hover:bg-[#E4F0E4] hover:text-[#28722C] text-[#545B64] rounded-lg px-3 py-1.5 font-medium transition-colors border border-[#DDE2DD]">
                     {l.name}
                   </a>
                 ))}
@@ -72,7 +72,7 @@ export default function ContactPage() {
                 <span className="text-sm font-medium text-[#25272C]">شنبه و سه‌شنبه</span>
                 <span className="text-sm font-bold text-[#28722C]">۱۵:۰۰ – ۱۹:۰۰</span>
               </div>
-              <p className="text-xs text-[#6A7078] mt-3">برای رزرو نوبت آنلاین ۲۴ ساعته در دسترس هستیم.</p>
+              <p className="text-xs text-[#545B64] mt-3">برای رزرو نوبت آنلاین ۲۴ ساعته در دسترس هستیم.</p>
               <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer"
                 className="mt-3 flex items-center justify-center gap-2 w-full py-3 bg-[#28722C] text-white rounded-xl text-sm font-bold hover:bg-[#246b28] transition-colors">
                 رزرو نوبت آنلاین
@@ -89,7 +89,7 @@ export default function ContactPage() {
                     <CheckCircle className="w-10 h-10 text-[#28722C]" />
                   </div>
                   <h3 className="text-2xl font-black text-[#25272C]">پیام شما ارسال شد!</h3>
-                  <p className="text-[#6A7078] max-w-sm">همکاران ما به‌زودی با شما تماس خواهند گرفت. ممنون از اعتماد شما.</p>
+                  <p className="text-[#545B64] max-w-sm">همکاران ما به‌زودی با شما تماس خواهند گرفت. ممنون از اعتماد شما.</p>
                   <button onClick={() => { setSubmitted(false); setForm({ name: "", phone: "", subject: "", message: "" }); }}
                     className="text-[#28722C] font-bold text-sm underline">ارسال پیام جدید</button>
                 </div>
@@ -103,13 +103,13 @@ export default function ContactPage() {
                         <label className="block text-sm font-bold text-[#25272C] mb-2">نام و نام خانوادگی <span className="text-red-500">*</span></label>
                         <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
                           placeholder="نام خود را وارد کنید"
-                          className="w-full bg-[#F7F8F6] border border-[#DDE2DD] rounded-xl px-4 py-3 text-[#25272C] placeholder:text-[#6A7078] focus:outline-none focus:ring-2 focus:ring-[#28722C]/30 focus:border-[#28722C] transition-all" />
+                          className="w-full bg-[#F7F8F6] border border-[#DDE2DD] rounded-xl px-4 py-3 text-[#25272C] placeholder:text-[#545B64] focus:outline-none focus:ring-2 focus:ring-[#28722C]/30 focus:border-[#28722C] transition-all" />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-[#25272C] mb-2">شماره تلفن <span className="text-red-500">*</span></label>
                         <input required value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
                           placeholder="۰۹۱۲ *** ****"
-                          className="w-full bg-[#F7F8F6] border border-[#DDE2DD] rounded-xl px-4 py-3 text-[#25272C] placeholder:text-[#6A7078] focus:outline-none focus:ring-2 focus:ring-[#28722C]/30 focus:border-[#28722C] transition-all" dir="ltr" />
+                          className="w-full bg-[#F7F8F6] border border-[#DDE2DD] rounded-xl px-4 py-3 text-[#25272C] placeholder:text-[#545B64] focus:outline-none focus:ring-2 focus:ring-[#28722C]/30 focus:border-[#28722C] transition-all" dir="ltr" />
                       </div>
                     </div>
                     <div>
@@ -128,13 +128,13 @@ export default function ContactPage() {
                       <label className="block text-sm font-bold text-[#25272C] mb-2">پیام شما <span className="text-red-500">*</span></label>
                       <textarea required value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
                         placeholder="سؤال یا درخواست خود را بنویسید..." rows={5}
-                        className="w-full bg-[#F7F8F6] border border-[#DDE2DD] rounded-xl px-4 py-3 text-[#25272C] placeholder:text-[#6A7078] focus:outline-none focus:ring-2 focus:ring-[#28722C]/30 focus:border-[#28722C] transition-all resize-none" />
+                        className="w-full bg-[#F7F8F6] border border-[#DDE2DD] rounded-xl px-4 py-3 text-[#25272C] placeholder:text-[#545B64] focus:outline-none focus:ring-2 focus:ring-[#28722C]/30 focus:border-[#28722C] transition-all resize-none" />
                     </div>
                     <button type="submit"
                       className="w-full bg-[#28722C] hover:bg-[#246b28] text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2">
                       <Send size={16} /> ارسال پیام
                     </button>
-                    <p className="text-xs text-[#6A7078] text-center flex items-center justify-center gap-1">
+                    <p className="text-xs text-[#545B64] text-center flex items-center justify-center gap-1">
                       <Shield size={11} />اطلاعات شما محرمانه و امن است
                     </p>
                   </form>

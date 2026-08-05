@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Blog Posts: Pre-Op Steps, Post-Op Care, Fleshy Rhinoplasty, Choose Surgeon,
  *             Revision Guide, Complications, Male Rhinoplasty, Nutrition, ATL Removal
  * PHP: single-post.php | { BACKEND } ACF calls
@@ -318,7 +318,7 @@ export function BlogMaleRhinoplasty() {
                 <tr key={i} className={`border-t border-[#DDE2DD] ${i % 2 === 0 ? "bg-white" : "bg-[#F7F8F6]"}`}>
                   <td className="py-3 px-4 font-semibold text-[#28722C]">{f}</td>
                   <td className="py-3 px-4 text-[#25272C]">{m}</td>
-                  <td className="py-3 px-4 text-[#6A7078]">{w}</td>
+                  <td className="py-3 px-4 text-[#545B64]">{w}</td>
                 </tr>
               ))}
             </tbody>

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * BlogPostTemplate — single-post.php equivalent
  * Used by ALL 11 blog post pages. Each page passes its own PostMeta + content.
  *
@@ -95,48 +95,51 @@ export default function BlogPostTemplate({
 
               {/* ── POST HEADER — WP: get_the_title(), get_the_date(), ACF meta fields ── */}
               <header className="mb-6">
-                <div className="flex flex-wrap items-center gap-2 mb-4">
+                {/* Badges — wrap gracefully on narrow screens */}
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3">
                   <Badge variant="primary"><Tag size={10} />{meta.category}</Badge>
                   <DifficultyBadge level={meta.difficultyLevel} />
-                  <Badge variant="info"><Shield size={10} />تأیید پزشک متخصص</Badge>
-                  <Badge variant="accent"><Info size={10} />مبتنی بر شواهد</Badge>
+                  <Badge variant="info"><Shield size={10} className="hidden sm:block" />تأیید پزشک</Badge>
+                  <Badge variant="accent" ><Info size={10} className="hidden sm:block" />مبتنی بر شواهد</Badge>
                 </div>
                 {/* { BACKEND } WP: the_title() */}
-                <h1 className="text-2xl sm:text-3xl lg:text-[2rem] font-bold text-[#25272C] leading-snug mb-3">{meta.title}</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-[1.9rem] font-bold text-[#25272C] leading-snug mb-2">{meta.title}</h1>
                 {/* { BACKEND } ACF: post_subtitle */}
-                <p className="text-lg text-[#6A7078] leading-relaxed mb-5">{meta.subtitle}</p>
+                <p className="text-sm sm:text-base text-[#545B64] leading-relaxed mb-4">{meta.subtitle}</p>
 
-                {/* Meta row — { BACKEND } WP: get_the_date(), get_post_meta views */}
-                <div className="flex flex-wrap items-center gap-4 text-sm text-[#6A7078] pb-5 border-b border-[#DDE2DD]">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#28722C] flex items-center justify-center text-white text-xs font-bold">{meta.author.avatarInitials}</div>
-                    <span>
-                      <span className="font-semibold text-[#25272C]">{meta.author.name}</span>
-                      <span className="text-[#6A7078]"> — {meta.author.title}</span>
-                    </span>
+                {/* Author row */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-full bg-[#28722C] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{meta.author.avatarInitials}</div>
+                  <div className="min-w-0">
+                    <span className="font-semibold text-[#25272C] text-xs sm:text-sm">{meta.author.name}</span>
+                    <span className="text-[#545B64] text-xs"> — {meta.author.title}</span>
                   </div>
-                  <div className="flex items-center gap-1"><Calendar size={12} />{meta.publishDate}</div>
-                  <div className="flex items-center gap-1"><Clock size={12} />{meta.readTimeMin} دقیقه مطالعه</div>
-                  <div className="flex items-center gap-1"><Eye size={12} />{meta.viewCount.toLocaleString("fa-IR")} بازدید</div>
+                </div>
+
+                {/* Meta chips row — { BACKEND } WP: get_the_date(), get_post_meta views */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-[#545B64] pb-4 border-b border-[#DDE2DD]">
+                  <span className="flex items-center gap-1"><Calendar size={11} />{meta.publishDate}</span>
+                  <span className="flex items-center gap-1"><Clock size={11} />{meta.readTimeMin} دقیقه</span>
+                  <span className="flex items-center gap-1"><Eye size={11} />{meta.viewCount.toLocaleString("fa-IR")} بازدید</span>
                   {/* { BACKEND } ACF: last_medical_review_date — critical for YMYL/E-E-A-T */}
-                  <div className="flex items-center gap-1 text-[#28722C] font-medium mr-auto">
-                    <CheckCircle size={12} />بازبینی پزشکی: {meta.lastReviewed}
-                  </div>
+                  <span className="flex items-center gap-1 text-[#28722C] font-medium">
+                    <CheckCircle size={11} />بازبینی: {meta.lastReviewed}
+                  </span>
                 </div>
 
                 {/* Action buttons */}
                 <div className="flex flex-wrap items-center gap-2 pt-4">
                   <button
                     onClick={() => { setLiked(!liked); setLikeCount(c => liked ? c - 1 : c + 1); }}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all ${liked ? "bg-[#28722C] text-white border-[#28722C]" : "bg-white text-[#6A7078] border-[#DDE2DD] hover:border-[#28722C] hover:text-[#28722C]"}`}>
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all ${liked ? "bg-[#28722C] text-white border-[#28722C]" : "bg-white text-[#545B64] border-[#DDE2DD] hover:border-[#28722C] hover:text-[#28722C]"}`}>
                     <ThumbsUp size={13} />{likeCount.toLocaleString("fa-IR")}
                   </button>
                   <button
                     onClick={() => setBookmarked(!bookmarked)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all ${bookmarked ? "bg-amber-50 text-amber-700 border-amber-300" : "bg-white text-[#6A7078] border-[#DDE2DD] hover:border-amber-300 hover:text-amber-700"}`}>
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-all ${bookmarked ? "bg-amber-50 text-amber-700 border-amber-300" : "bg-white text-[#545B64] border-[#DDE2DD] hover:border-amber-300 hover:text-amber-700"}`}>
                     <Bookmark size={13} />ذخیره
                   </button>
-                  <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-[#DDE2DD] bg-white text-[#6A7078] hover:border-[#28722C] hover:text-[#28722C] transition-all">
+                  <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-[#DDE2DD] bg-white text-[#545B64] hover:border-[#28722C] hover:text-[#28722C] transition-all">
                     <Share2 size={13} />اشتراک‌گذاری
                   </button>
                 </div>
@@ -171,7 +174,7 @@ export default function BlogPostTemplate({
                 <div className="bg-[#E4F0E4] border border-[#28722C]/20 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-4">
                   <div className="flex-1">
                     <p className="font-bold text-[#25272C] mb-1">می‌خواهید بدانید این روش برای شما مناسب است؟</p>
-                    <p className="text-sm text-[#6A7078]">پرونده اولیه خود را تکمیل کنید تا دکتر باستانی‌نژاد وضعیت بینی شما را بررسی کنند.</p>
+                    <p className="text-sm text-[#545B64]">پرونده اولیه خود را تکمیل کنید تا دکتر باستانی‌نژاد وضعیت بینی شما را بررسی کنند.</p>
                   </div>
                   <a href="https://app.drbastaninejad.com/" rel="noopener"
                     className="flex-shrink-0 flex items-center gap-2 px-5 py-3 bg-[#28722C] text-white rounded-xl text-sm font-bold hover:bg-[#246b28] transition-colors">

@@ -1,0 +1,154 @@
+// =============================================================
+//  Component-level SCSS — supplement to Tailwind utilities
+//  Only rules that Tailwind cannot express cleanly.
+// =============================================================
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// ── Site Nav ─────────────────────────────────────────────────
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: $z-nav;
+  height: $nav-height;
+  transition: background-color $transition-base, box-shadow $transition-base;
+
+  @include reduced-motion {
+    transition: none;
+  }
+}
+
+// ── Read progress bar ────────────────────────────────────────
+.read-progress {
+  position: fixed;
+  top: calc(#{$nav-height} + 1px);
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: $color-border;
+  z-index: $z-progress;
+
+  &__fill {
+    height: 100%;
+    background: $color-primary;
+    transition: width 0.1s linear;
+
+    @include reduced-motion {
+      transition: none;
+    }
+  }
+}
+
+// ── Chaty Widget ─────────────────────────────────────────────
+// RIGHT side — physical properties; logical props flip in RTL.
+.chaty {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: $z-overlay;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: $space-sm;
+
+  &__panel {
+    background: $color-surface;
+    border: 1px solid $color-border;
+    border-radius: $radius-2xl;
+    width: 15rem;
+    overflow: hidden;
+    box-shadow: $shadow-xl;
+    // margin-bottom instead of margin-block-end (logical prop flips in RTL)
+    margin-bottom: $space-xs;
+  }
+
+  &__trigger {
+    @include btn-primary;
+    // Override btn-base padding with fixed square size
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0;
+    border-radius: $radius-xl;
+    box-shadow: $shadow-lg;
+    position: relative;
+    // Use spring on hover only
+    transition: transform $transition-spring;
+
+    @include reduced-motion {
+      transition: none;
+    }
+
+    &:hover { transform: scale(1.05); }
+    &:active { transform: scale(0.95); }
+  }
+}
+
+// ── Service icon ─────────────────────────────────────────────
+.service-icon {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-xl;
+  background: $color-primary-tint;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  &--dark {
+    background: $color-primary;
+    color: $color-surface;
+  }
+
+  canvas,
+  svg:not(.lucide) {
+    width: 2rem;
+    height: 2rem;
+    object-fit: contain;
+  }
+}
+
+// ── Key Takeaways block ──────────────────────────────────────
+.key-takeaways {
+  background: $color-primary-tint;
+  border: 1px solid rgba($color-primary, 0.2);
+  border-radius: $radius-2xl;
+  padding: $space-lg;
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+    color: $color-primary;
+    font-weight: 700;
+    margin-bottom: $space-md;
+  }
+
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $space-sm;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: $space-sm;
+      font-size: 0.875rem;
+      color: $color-text;
+    }
+  }
+}
+
+// ── Category / Tag archive hero ───────────────────────────────
+// (pages now use Tailwind classes directly, keeping this only as SCSS utility)
+.archive {
+  &__hero {
+    background: linear-gradient(135deg, $color-dark 0%, #0f140e 100%);
+    color: $color-surface;
+    padding-top: $space-2xl;
+    padding-bottom: $space-2xl;
+  }
+}

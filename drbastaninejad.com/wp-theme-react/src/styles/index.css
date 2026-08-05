@@ -1,3 +1,8 @@
+/* ── Irancell font faces ── */
 @import './fonts.css';
+
+/* ── Tailwind v4 ── */
 @import './tailwind.css';
+
+/* ── CSS custom properties + @theme inline for Tailwind ── */
 @import './theme.css';

@@ -1,6 +1,11 @@
 /*
- * Irancell — local font, served from /fonts/Irancell/ (via Vite publicDir → ../../assets)
+ * Irancell — local font, served from /fonts/Irancell/ (via Vite publicDir)
  * Weights: 200 ExtraLight · 300 Light · 400 Regular · 500 Medium · 700 Bold · 800 ExtraBold
+ *
+ * NOTE: The .woff2 files contain an identical glyph table to .woff (gid 3 used as
+ * component in glyph 6 — a known Irancell font quirk, not a rendering error).
+ * We list woff2 first for compression benefit but woff as reliable fallback.
+ * unicode-range restricts loading to Persian / Arabic codepoints.
  */
 
 @font-face {
@@ -10,6 +15,7 @@
   font-display: swap;
   src: url('/fonts/Irancell/Irancell_ExtraLight.woff2') format('woff2'),
        url('/fonts/Irancell/Irancell_ExtraLight.woff')  format('woff');
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF, U+0020-007E;
 }
 
 @font-face {
@@ -19,6 +25,7 @@
   font-display: swap;
   src: url('/fonts/Irancell/Irancell_Light.woff2') format('woff2'),
        url('/fonts/Irancell/Irancell_Light.woff')  format('woff');
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF, U+0020-007E;
 }
 
 @font-face {
@@ -28,6 +35,7 @@
   font-display: swap;
   src: url('/fonts/Irancell/Irancell_Regular.woff2') format('woff2'),
        url('/fonts/Irancell/Irancell_Regular.woff')  format('woff');
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF, U+0020-007E;
 }
 
 @font-face {
@@ -37,6 +45,7 @@
   font-display: swap;
   src: url('/fonts/Irancell/Irancell_Medium.woff2') format('woff2'),
        url('/fonts/Irancell/Irancell_Medium.woff')  format('woff');
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF, U+0020-007E;
 }
 
 @font-face {
@@ -46,6 +55,7 @@
   font-display: swap;
   src: url('/fonts/Irancell/Irancell_Bold.woff2') format('woff2'),
        url('/fonts/Irancell/Irancell_Bold.woff')  format('woff');
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF, U+0020-007E;
 }
 
 @font-face {
@@ -55,4 +65,5 @@
   font-display: swap;
   src: url('/fonts/Irancell/Irancell_Extrabold.woff2') format('woff2'),
        url('/fonts/Irancell/Irancell_Extrabold.woff')  format('woff');
+  unicode-range: U+0600-06FF, U+FB50-FDFF, U+FE70-FEFF, U+0020-007E;
 }

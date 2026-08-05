@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ServiceDetailTemplate — single-service.php equivalent
  * Used by ALL 11 service detail pages.
  *
@@ -18,7 +18,7 @@ import { Phone, CheckCircle, ChevronLeft } from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
 import { FAQSection, AuthorBio, Testimonials, ContactCTA, MedicalDisclaimer, type FAQItem } from "@/components/ArticleAtoms";
 import { SHARED_TESTIMONIALS } from "@/components/BlogPostTemplate";
-import { FOOTER_SERVICES, BOOKING_URL } from "@/data/site";
+import { FOOTER_SERVICES } from "@/data/site";
 import { Link } from "react-router";
 
 interface QuickFact  { label: string; val: string; }
@@ -58,10 +58,10 @@ export default function ServiceDetailTemplate({
           {/* { BACKEND } ACF: hero_lead */}
           <p className="text-white/75 text-lg leading-relaxed max-w-xl">{lead}</p>
           <div className="flex flex-wrap gap-3 mt-6">
-            <a href={BOOKING_URL} rel="noopener"
+            <Link to="/booking"
               className="flex items-center gap-2 px-5 py-3 bg-[#28722C] text-white rounded-xl text-sm font-bold hover:bg-[#246b28] transition-colors">
               <Phone size={14} />تشکیل پرونده اولیه
-            </a>
+            </Link>
             <a href="#faq"
               className="flex items-center gap-2 px-5 py-3 border border-white/30 text-white rounded-xl text-sm font-semibold hover:bg-white/10 transition-colors">
               سوالات متداول
@@ -82,7 +82,7 @@ export default function ServiceDetailTemplate({
                     {h.icon}
                   </div>
                   <p className="text-sm font-bold text-[#25272C] mb-1">{h.title}</p>
-                  <p className="text-xs text-[#6A7078] leading-relaxed">{h.body}</p>
+                  <p className="text-xs text-[#545B64] leading-relaxed">{h.body}</p>
                 </div>
               ))}
             </div>
@@ -112,10 +112,10 @@ export default function ServiceDetailTemplate({
                   <p className="font-bold text-sm mb-1">آیا این روش برای شما مناسب است؟</p>
                   <p className="text-white/70 text-xs">پرونده اولیه خود را تکمیل کنید تا دکتر وضعیت بینی شما را بررسی کند.</p>
                 </div>
-                <a href={BOOKING_URL} rel="noopener"
+                <Link to="/booking"
                   className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 bg-[#28722C] text-white rounded-xl text-sm font-bold hover:bg-[#246b28] transition-colors">
                   تشکیل پرونده
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -142,11 +142,11 @@ export default function ServiceDetailTemplate({
             {/* Booking card */}
             <div className="bg-white rounded-2xl border border-[#DDE2DD] p-5 sticky top-20">
               <h4 className="font-bold text-[#25272C] mb-2">مشاوره رایگان</h4>
-              <p className="text-xs text-[#6A7078] mb-4 leading-relaxed">برای اطلاعات بیشتر و بررسی وضعیت بینی خود، پرونده اولیه تکمیل کنید.</p>
-              <a href={BOOKING_URL} rel="noopener"
+              <p className="text-xs text-[#545B64] mb-4 leading-relaxed">برای اطلاعات بیشتر و بررسی وضعیت بینی خود، پرونده اولیه تکمیل کنید.</p>
+              <Link to="/booking"
                 className="flex items-center justify-center gap-2 w-full py-3 bg-[#28722C] text-white rounded-xl text-sm font-bold hover:bg-[#246b28] transition-colors">
                 <Phone size={14} />تشکیل پرونده اولیه
-              </a>
+              </Link>
               <a href="tel:02186087250"
                 className="flex items-center justify-center gap-2 w-full py-2.5 mt-2 border border-[#DDE2DD] text-[#25272C] rounded-xl text-sm font-medium hover:border-[#28722C] hover:text-[#28722C] transition-colors">
                 ۰۲۱۸۶۰۸۷۲۵۰
@@ -172,7 +172,7 @@ export default function ServiceDetailTemplate({
               <h4 className="font-bold text-[#28722C] mb-4">اطلاعات سریع</h4>
               {quickFacts.map(({ label, val }) => (
                 <div key={label} className="flex justify-between items-center py-2 border-b border-[#28722C]/10 last:border-0 text-sm">
-                  <span className="text-[#6A7078]">{label}</span>
+                  <span className="text-[#545B64]">{label}</span>
                   <span className="font-semibold text-[#25272C]">{val}</span>
                 </div>
               ))}

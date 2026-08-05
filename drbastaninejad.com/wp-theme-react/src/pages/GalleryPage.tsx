@@ -7,6 +7,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { ArrowRight, ArrowLeft, ChevronRight, ChevronLeft } from "lucide-react";
 import { GALLERY_ITEMS, STATS } from "@/data/site";
 import Breadcrumb from "@/components/Breadcrumb";
+import JsonLd, { buildBreadcrumbSchema } from "@/components/JsonLd";
 
 function BeforeAfterSlider({ before, after, fallback }: { before: string; after: string; fallback: string }) {
   const [pos, setPos] = useState(50);
@@ -22,24 +23,31 @@ function BeforeAfterSlider({ before, after, fallback }: { before: string; after:
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => { if (dragging) updatePos(e.clientX); };
-    const onUp = () => setDragging(false);
+    const onUp   = () => setDragging(false);
     window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-    return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+    window.addEventListener("mouseup",   onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup",   onUp);
+    };
   }, [dragging, updatePos]);
 
   const onError = (e: React.SyntheticEvent<HTMLImageElement>) => { (e.target as HTMLImageElement).src = fallback; };
 
   return (
     <div ref={ref}
-      className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden cursor-col-resize select-none"
-      onMouseDown={e => { setDragging(true); updatePos(e.clientX); }}>
+      className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden cursor-col-resize select-none touch-none"
+      onMouseDown={e  => { setDragging(true); updatePos(e.clientX); }}
+      onTouchStart={e => { setDragging(true); updatePos(e.touches[0].clientX); }}
+      onTouchMove={e  => { if (dragging) updatePos(e.touches[0].clientX); }}
+      onTouchEnd={()  => setDragging(false)}
+    >
       <img src={after}  alt="بعد" className="absolute inset-0 w-full h-full object-cover" onError={onError} />
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 0 0 ${100 - pos}%)` }}>
         <img src={before} alt="قبل" className="absolute inset-0 w-full h-full object-cover" onError={onError} />
       </div>
-      <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg" style={{ right: `${pos}%` }}>
-        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 bg-white rounded-full shadow-xl flex items-center justify-center">
+      <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg pointer-events-none" style={{ right: `${pos}%` }}>
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 bg-white rounded-full shadow-xl flex items-center justify-center ring-2 ring-[#28722C]/30">
           <ArrowRight className="w-3 h-3 text-[#28722C]" />
           <ArrowLeft  className="w-3 h-3 text-[#28722C]" />
         </div>
@@ -56,9 +64,12 @@ export default function GalleryPage() {
   const total = Math.ceil(GALLERY_ITEMS.length / PER);
   const visible = GALLERY_ITEMS.slice(page * PER, page * PER + PER);
 
+  const crumbs = [{ label: "خانه", href: "/" }, { label: "گالری قبل و بعد" }];
+
   return (
     <>
-      <Breadcrumb items={[{ label: "خانه", href: "/" }, { label: "گالری قبل و بعد" }]} />
+      <JsonLd id="jsonld-gallery" data={buildBreadcrumbSchema(crumbs)} />
+      <Breadcrumb items={crumbs} />
 
       {/* Header */}
       <section className="bg-gradient-to-br from-[#25272C] to-[#1a2318] text-white py-16 px-4 sm:px-6">
@@ -109,7 +120,7 @@ export default function GalleryPage() {
           </button>
         </div>
 
-        <p className="text-center text-xs text-[#6A7078] mt-6 max-w-xl mx-auto">
+        <p className="text-center text-xs text-[#545B64] mt-6 max-w-xl mx-auto">
           تمام تصاویر با رضایت کامل بیماران و رعایت حریم خصوصی منتشر شده‌اند. نتایج ممکن است متفاوت باشد.
         </p>
       </div>

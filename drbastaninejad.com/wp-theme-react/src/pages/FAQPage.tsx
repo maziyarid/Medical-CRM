@@ -7,6 +7,7 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { HOME_FAQS } from "@/data/site";
 import Breadcrumb from "@/components/Breadcrumb";
+import JsonLd, { buildFaqSchema, buildBreadcrumbSchema } from "@/components/JsonLd";
 
 export default function FAQPage() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
@@ -14,9 +15,15 @@ export default function FAQPage() {
   const cats = ["همه", ...Array.from(new Set(HOME_FAQS.map(f => f.cat)))];
   const filtered = cat === "همه" ? HOME_FAQS : HOME_FAQS.filter(f => f.cat === cat);
 
+  const crumbs = [{ label: "خانه", href: "/" }, { label: "سوالات متداول" }];
+
   return (
     <>
-      <Breadcrumb items={[{ label: "خانه", href: "/" }, { label: "سوالات متداول" }]} />
+      <JsonLd id="jsonld-faq" data={[
+        buildBreadcrumbSchema(crumbs),
+        buildFaqSchema(HOME_FAQS.map(f => ({ question: f.q, answer: f.a }))),
+      ]} />
+      <Breadcrumb items={crumbs} />
 
       {/* Header */}
       <section className="bg-gradient-to-br from-[#25272C] to-[#1a2318] text-white py-16 px-4 sm:px-6">
@@ -29,13 +36,15 @@ export default function FAQPage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
         {/* Category filter — WP: custom taxonomy: faq_category */}
-        <div className="flex flex-wrap justify-center gap-2 mb-10">
-          {cats.map(c => (
-            <button key={c} onClick={() => { setCat(c); setOpenIdx(null); }}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${cat === c ? "bg-[#28722C] text-white" : "bg-white border border-[#DDE2DD] text-[#6A7078] hover:border-[#28722C]/30 hover:text-[#28722C]"}`}>
-              {c}
-            </button>
-          ))}
+        <div className="overflow-x-auto pb-2 mb-10 -mx-1">
+          <div className="flex flex-nowrap justify-start gap-2 px-1 min-w-max mx-auto">
+            {cats.map(c => (
+              <button key={c} onClick={() => { setCat(c); setOpenIdx(null); }}
+                className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${cat === c ? "bg-[#28722C] text-white" : "bg-white border border-[#DDE2DD] text-[#545B64] hover:border-[#28722C]/30 hover:text-[#28722C]"}`}>
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* FAQs — PHP: foreach (get_field('faq_items') as $item) */}
@@ -58,7 +67,7 @@ export default function FAQPage() {
               {openIdx === i && (
                 <div className="px-5 pb-5 border-t border-[#DDE2DD] pt-4">
                   {/* PHP: echo wp_kses_post($item['faq_answer']); */}
-                  <p className="text-sm text-[#6A7078] leading-[2]">{faq.a}</p>
+                  <p className="text-sm text-[#545B64] leading-[2]">{faq.a}</p>
                 </div>
               )}
             </div>

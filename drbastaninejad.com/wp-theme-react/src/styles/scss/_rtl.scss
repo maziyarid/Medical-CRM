@@ -1,0 +1,23 @@
+// =============================================================
+//  RTL — Persian medical site physical property overrides
+//  Use only physical CSS properties here (not logical) to avoid
+//  RTL flip surprises. Logical properties are fine in non-RTL contexts
+//  but when dir="rtl" is on the root div, inline-start/end flip.
+// =============================================================
+@use 'variables' as *;
+
+// ── Custom scrollbar (WebKit) ────────────────────────────────
+// Applied on :root — not inside [dir="rtl"] (that selector would not match
+// the html element since dir is on the wrapper div)
+:root {
+  scrollbar-width: thin;
+  scrollbar-color: rgba($color-primary, 0.35) $color-bg;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: $color-bg; }
+::-webkit-scrollbar-thumb {
+  background: rgba($color-primary, 0.3);
+  border-radius: $radius-full;
+}
+::-webkit-scrollbar-thumb:hover { background: $color-primary; }

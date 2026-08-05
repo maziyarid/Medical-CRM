@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Blog Post: رینوپلاستی — راهنمای کامل جراحی بینی
  * PHP template: single-post.php
  * { BACKEND } Replace all static data with WP/ACF calls
@@ -104,8 +104,8 @@ export default function BlogRhinoplasty() {
                 <tr key={i} className={`border-t border-[#DDE2DD] ${i % 2 === 0 ? "bg-white" : "bg-[#F7F8F6]"}`}>
                   <td className="py-3 px-4 font-semibold text-[#28722C]">{method}</td>
                   <td className="py-3 px-4 text-[#25272C]">{feat}</td>
-                  <td className="py-3 px-4 text-[#6A7078]">{suitable}</td>
-                  <td className="py-3 px-4 text-[#6A7078]">{scar}</td>
+                  <td className="py-3 px-4 text-[#545B64]">{suitable}</td>
+                  <td className="py-3 px-4 text-[#545B64]">{scar}</td>
                 </tr>
               ))}
             </tbody>
@@ -162,7 +162,7 @@ export default function BlogRhinoplasty() {
               <div className="bg-white rounded-xl border border-[#DDE2DD] p-4 flex-1 flex items-center justify-between gap-3 mb-0">
                 <div>
                   <p className="font-semibold text-[#25272C] text-sm">{s.step}</p>
-                  <p className="text-sm text-[#6A7078]">{s.desc}</p>
+                  <p className="text-sm text-[#545B64]">{s.desc}</p>
                 </div>
                 <span className="text-xs bg-gray-100 text-gray-600 border border-gray-200 px-2.5 py-1 rounded-full font-semibold whitespace-nowrap">{s.time}</span>
               </div>
@@ -197,7 +197,7 @@ export default function BlogRhinoplasty() {
                 <tr key={i} className={`border-t border-[#DDE2DD] ${i % 2 === 0 ? "bg-white" : "bg-[#F7F8F6]"}`}>
                   <td className="py-3 px-4 font-semibold text-[#28722C]">{t}</td>
                   <td className="py-3 px-4 text-[#25272C]">{s}</td>
-                  <td className="py-3 px-4 text-[#6A7078]">{a}</td>
+                  <td className="py-3 px-4 text-[#545B64]">{a}</td>
                 </tr>
               ))}
             </tbody>

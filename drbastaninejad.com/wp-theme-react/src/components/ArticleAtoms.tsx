@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Shared article-level UI atoms — used across blog posts and service pages.
  *
  * WP mapping:
@@ -20,7 +20,7 @@ import {
   Award, GraduationCap, Star, Clock, Phone, MapPin, Send,
   ArrowLeft, BarChart2, Stethoscope,
 } from "lucide-react";
-import { AUTHOR as DEFAULT_AUTHOR, BOOKING_URL } from "@/data/site";
+import { AUTHOR as DEFAULT_AUTHOR } from "@/data/site";
 
 /* ── Types — mirror as ACF field groups in WordPress ── */
 export interface FAQItem {
@@ -57,6 +57,7 @@ export interface AuthorData {
   stats:           { label: string; value: string }[];
   certifications:  string[];
   avatarInitials:  string;
+  avatarImg?:      string;  // WP/Theme: author_avatar (image) — PHP: get_avatar_url()
 }
 
 export interface PostMeta {
@@ -140,7 +141,7 @@ export function FAQSection({ faqs, heading = "پرسش‌های متداول" }:
             {open === i && (
               <div className="px-4 pb-4 border-t border-[#DDE2DD] pt-3">
                 {/* PHP: echo wp_kses_post($item['faq_answer']); */}
-                <p className="text-sm text-[#6A7078] leading-[2]">{faq.answer}</p>
+                <p className="text-sm text-[#545B64] leading-[2]">{faq.answer}</p>
               </div>
             )}
           </div>
@@ -154,24 +155,25 @@ export function FAQSection({ faqs, heading = "پرسش‌های متداول" }:
 export function AuthorBio({ author = DEFAULT_AUTHOR }: { author?: AuthorData }) {
   return (
     <aside className="bg-white rounded-2xl border border-[#DDE2DD] p-5 sm:p-6" aria-label="درباره نویسنده">
-      <p className="text-xs font-bold text-[#6A7078] uppercase tracking-widest mb-4">نوشته و بازبینی‌شده توسط</p>
+      <p className="text-xs font-bold text-[#545B64] uppercase tracking-widest mb-4">نوشته و بازبینی‌شده توسط</p>
       <div className="flex items-start gap-4 mb-4">
-        {/* Production: <img src="<?= get_avatar_url($author_id) ?>" ... /> */}
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#28722C] to-[#1a4e1d] flex items-center justify-center text-white text-lg font-bold flex-shrink-0">
-          {author.avatarInitials}
-        </div>
+        {/* WP/Theme: avatar (image) — PHP: get_avatar_url($author_id) */}
+        {author.avatarImg
+          ? <img src={author.avatarImg} alt={author.name} className="w-16 h-16 rounded-2xl object-cover flex-shrink-0" />
+          : <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#28722C] to-[#1a4e1d] flex items-center justify-center text-white text-lg font-bold flex-shrink-0">{author.avatarInitials}</div>
+        }
         <div>
           <p className="font-bold text-[#25272C] text-base">{author.name}</p>
           <p className="text-sm text-[#28722C] font-medium">{author.title}</p>
-          <p className="text-xs text-[#6A7078]">{author.hospital}</p>
+          <p className="text-xs text-[#545B64]">{author.hospital}</p>
         </div>
       </div>
-      <p className="text-sm text-[#6A7078] leading-relaxed mb-5">{author.bio}</p>
+      <p className="text-sm text-[#545B64] leading-relaxed mb-5">{author.bio}</p>
       <div className="grid grid-cols-3 gap-2 mb-5 p-3 bg-[#F7F8F6] rounded-xl">
         {author.stats.map(s => (
           <div key={s.label} className="text-center">
             <p className="text-base font-bold text-[#28722C]">{s.value}</p>
-            <p className="text-[10px] text-[#6A7078]">{s.label}</p>
+            <p className="text-[10px] text-[#545B64]">{s.label}</p>
           </div>
         ))}
       </div>
@@ -206,15 +208,15 @@ export function Testimonials({ items }: { items: TestimonialItem[] }) {
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-semibold text-[#25272C] text-sm">{t.name}</p>
-                <p className="text-xs text-[#6A7078]">{t.age} · {t.procedure}</p>
+                <p className="text-xs text-[#545B64]">{t.age} · {t.procedure}</p>
               </div>
               {t.verified && (
                 <Badge variant="primary"><CheckCircle size={10} />تأیید شده</Badge>
               )}
             </div>
             <StarRating rating={t.rating} />
-            <p className="text-sm text-[#6A7078] leading-relaxed flex-1">"{t.text}"</p>
-            <p className="text-xs text-[#6A7078] border-t border-[#DDE2DD] pt-2">{t.date}</p>
+            <p className="text-sm text-[#545B64] leading-relaxed flex-1">"{t.text}"</p>
+            <p className="text-xs text-[#545B64] border-t border-[#DDE2DD] pt-2">{t.date}</p>
           </div>
         ))}
       </div>
@@ -247,11 +249,11 @@ export function RelatedPosts({ posts }: { posts: RelatedPostItem[] }) {
             <div className="p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="primary">{p.category}</Badge>
-                <span className="text-xs text-[#6A7078] flex items-center gap-1"><Clock size={10} />{p.readTime}</span>
+                <span className="text-xs text-[#545B64] flex items-center gap-1"><Clock size={10} />{p.readTime}</span>
               </div>
               <h3 className="font-semibold text-[#25272C] text-sm leading-relaxed mb-1 group-hover:text-[#28722C] transition-colors">{p.title}</h3>
-              <p className="text-xs text-[#6A7078] line-clamp-2 mb-2">{p.excerpt}</p>
-              <p className="text-xs text-[#6A7078]">{p.date}</p>
+              <p className="text-xs text-[#545B64] line-clamp-2 mb-2">{p.excerpt}</p>
+              <p className="text-xs text-[#545B64]">{p.date}</p>
             </div>
           </article>
         ))}
@@ -305,7 +307,7 @@ export function ContactCTA() {
                   <CheckCircle size={28} className="text-[#28722C]" />
                 </div>
                 <p className="text-lg font-bold text-[#25272C]">پیام دریافت شد!</p>
-                <p className="text-sm text-[#6A7078]">تیم ما در اسرع وقت با شما تماس می‌گیرد.</p>
+                <p className="text-sm text-[#545B64]">تیم ما در اسرع وقت با شما تماس می‌گیرد.</p>
               </div>
             ) : (
               <>
@@ -315,19 +317,19 @@ export function ContactCTA() {
                   <div className="grid grid-cols-2 gap-3">
                     {["نام", "نام خانوادگی"].map(label => (
                       <div key={label}>
-                        <label className="text-xs text-[#6A7078] mb-1 block">{label}</label>
+                        <label className="text-xs text-[#545B64] mb-1 block">{label}</label>
                         <input type="text" placeholder={label} required
                           className="w-full px-3 py-2.5 text-sm rounded-lg border border-[#DDE2DD] bg-[#F7F8F6] focus:outline-none focus:border-[#28722C] focus:ring-2 focus:ring-[#28722C]/10 transition-all" />
                       </div>
                     ))}
                   </div>
                   <div>
-                    <label className="text-xs text-[#6A7078] mb-1 block">شماره تماس</label>
+                    <label className="text-xs text-[#545B64] mb-1 block">شماره تماس</label>
                     <input type="tel" placeholder="۰۹۱۲..." dir="ltr" required
                       className="w-full px-3 py-2.5 text-sm rounded-lg border border-[#DDE2DD] bg-[#F7F8F6] focus:outline-none focus:border-[#28722C] transition-all text-right" />
                   </div>
                   <div>
-                    <label className="text-xs text-[#6A7078] mb-1 block">موضوع مشاوره</label>
+                    <label className="text-xs text-[#545B64] mb-1 block">موضوع مشاوره</label>
                     <select className="w-full px-3 py-2.5 text-sm rounded-lg border border-[#DDE2DD] bg-[#F7F8F6] focus:outline-none focus:border-[#28722C] transition-all text-[#25272C]">
                       <option>رینوپلاستی (جراحی بینی اولیه)</option>
                       <option>جراحی بینی ترمیمی</option>
@@ -337,7 +339,7 @@ export function ContactCTA() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-[#6A7078] mb-1 block">توضیحات</label>
+                    <label className="text-xs text-[#545B64] mb-1 block">توضیحات</label>
                     <textarea rows={3} placeholder="سوال یا توضیح..."
                       className="w-full px-3 py-2.5 text-sm rounded-lg border border-[#DDE2DD] bg-[#F7F8F6] focus:outline-none focus:border-[#28722C] focus:ring-2 focus:ring-[#28722C]/10 transition-all resize-none" />
                   </div>
@@ -345,7 +347,7 @@ export function ContactCTA() {
                     className="w-full py-3 bg-[#28722C] text-white text-sm font-bold rounded-xl hover:bg-[#246b28] transition-colors flex items-center justify-center gap-2">
                     <Send size={15} />ارسال درخواست مشاوره
                   </button>
-                  <p className="text-xs text-[#6A7078] text-center flex items-center justify-center gap-1">
+                  <p className="text-xs text-[#545B64] text-center flex items-center justify-center gap-1">
                     <Shield size={11} />اطلاعات شما محرمانه و امن است
                   </p>
                 </form>
@@ -372,7 +374,7 @@ export function ArticleSidebar({ meta, tocItems }: { meta: PostMeta; tocItems: s
             {tocItems.map((item, i) => (
               <li key={i}>
                 <a href={`#section-${i}`}
-                  className="flex items-center gap-2 py-1 text-xs text-[#6A7078] hover:text-[#28722C] transition-colors group">
+                  className="flex items-center gap-2 py-1 text-xs text-[#545B64] hover:text-[#28722C] transition-colors group">
                   <span className="w-5 h-5 rounded-full bg-[#E4F0E4] text-[#28722C] text-[10px] font-bold flex items-center justify-center flex-shrink-0 group-hover:bg-[#28722C] group-hover:text-white transition-colors">
                     {(i + 1).toLocaleString("fa-IR")}
                   </span>
@@ -388,10 +390,10 @@ export function ArticleSidebar({ meta, tocItems }: { meta: PostMeta; tocItems: s
       <div className="bg-gradient-to-br from-[#28722C] to-[#1a4e1d] rounded-2xl p-5 text-white">
         <p className="font-bold mb-1.5">مشاوره رایگان</p>
         <p className="text-sm text-white/80 leading-relaxed mb-4">پرونده اولیه خود را تکمیل کنید — تیم ما با شما تماس می‌گیرد.</p>
-        <a href={BOOKING_URL} rel="noopener"
+        <Link to="/booking"
           className="flex items-center justify-center gap-2 w-full py-2.5 bg-white text-[#28722C] rounded-xl text-sm font-bold hover:bg-[#E4F0E4] transition-colors">
           <Phone size={13} />تشکیل پرونده
-        </a>
+        </Link>
         <div className="flex items-center justify-center gap-1.5 mt-3 text-xs text-white/70">
           <Shield size={11} />بدون تعهد · رایگان
         </div>
@@ -399,14 +401,14 @@ export function ArticleSidebar({ meta, tocItems }: { meta: PostMeta; tocItems: s
 
       {/* Author mini */}
       <div className="bg-white rounded-2xl border border-[#DDE2DD] p-4">
-        <p className="text-xs font-bold text-[#6A7078] mb-3 uppercase tracking-widest">نویسنده</p>
+        <p className="text-xs font-bold text-[#545B64] mb-3 uppercase tracking-widest">نویسنده</p>
         <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#28722C] to-[#1a4e1d] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
             {meta.author.avatarInitials}
           </div>
           <div>
             <p className="font-semibold text-[#25272C] text-xs">{meta.author.name}</p>
-            <p className="text-[10px] text-[#6A7078]">{meta.author.title}</p>
+            <p className="text-[10px] text-[#545B64]">{meta.author.title}</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-[#28722C] font-medium">
@@ -417,7 +419,7 @@ export function ArticleSidebar({ meta, tocItems }: { meta: PostMeta; tocItems: s
 
       {/* Trust signals */}
       <div className="bg-white rounded-2xl border border-[#DDE2DD] p-4">
-        <p className="text-xs font-bold text-[#6A7078] mb-3 uppercase tracking-widest">اعتبار و مجوزها</p>
+        <p className="text-xs font-bold text-[#545B64] mb-3 uppercase tracking-widest">اعتبار و مجوزها</p>
         <div className="space-y-2">
           {[
             { Icon: Shield,      label: "مجوز وزارت بهداشت ایران" },
@@ -437,11 +439,11 @@ export function ArticleSidebar({ meta, tocItems }: { meta: PostMeta; tocItems: s
 
       {/* Tags */}
       <div className="bg-white rounded-2xl border border-[#DDE2DD] p-4">
-        <p className="text-xs font-bold text-[#6A7078] mb-3 uppercase tracking-widest">برچسب‌ها</p>
+        <p className="text-xs font-bold text-[#545B64] mb-3 uppercase tracking-widest">برچسب‌ها</p>
         <div className="flex flex-wrap gap-1.5">
           {meta.tags.map(tag => (
             <a key={tag} href={`/tag/${tag}`}
-              className="text-xs px-2.5 py-1 bg-[#F7F8F6] border border-[#DDE2DD] rounded-full text-[#6A7078] hover:bg-[#E4F0E4] hover:text-[#28722C] hover:border-[#28722C]/30 transition-all">
+              className="text-xs px-2.5 py-1 bg-[#F7F8F6] border border-[#DDE2DD] rounded-full text-[#545B64] hover:bg-[#E4F0E4] hover:text-[#28722C] hover:border-[#28722C]/30 transition-all">
               #{tag}
             </a>
           ))}

@@ -12,8 +12,9 @@
   --primary-foreground: #FFFFFF;
   --secondary: #EBF3EC;
   --secondary-foreground: #1C1C1C;
+  /* muted-foreground: darkened to #5A5248 for 4.6:1 on #F0EDE7 and 5.1:1 on #EBF3EC — WCAG AA */
   --muted: #F0EDE7;
-  --muted-foreground: #7A7060;
+  --muted-foreground: #4A4740;
   --accent: #B8860B;
   --accent-foreground: #FFFFFF;
   --destructive: #d4183d;
@@ -56,8 +57,11 @@
 }
 
 @layer base {
+  /* Removed wildcard outline-ring/50 — it triggers a CSP file:// resolution
+     in some browser+extension combinations at non-root routes (/404, etc.).
+     Focus styles are handled by _base.scss :focus-visible. */
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
 
   body {

@@ -2,16 +2,24 @@
  * App Router — React Router v7 client-side routing
  *
  * WP equivalent: WordPress template hierarchy routing
- *   /                    → front-page.php (HomePage)
- *   /about               → page-about.php (AboutPage)
- *   /services            → page-services.php (ServicesPage)
- *   /services/:slug      → single-service.php (ServiceDetailTemplate)
- *   /blog                → archive.php (BlogListPage)
- *   /blog/:slug          → single-post.php (BlogPostTemplate)
- *   /gallery             → page-gallery.php (GalleryPage)
- *   /faq                 → page-faq.php (FAQPage)
- *   /contact             → page-contact.php (ContactPage)
- *   /booking             → page-booking.php (BookingPage)
+ *   /                        → front-page.php (HomePage)
+ *   /about                   → page-about.php (AboutPage)
+ *   /services                → page-services.php (ServicesPage)
+ *   /services/:slug          → single-service.php (ServiceDetailTemplate)
+ *   /blog                    → archive.php (BlogListPage)
+ *   /blog/:slug              → single-post.php (BlogPostTemplate)
+ *   /gallery                 → page-gallery.php (GalleryPage)
+ *   /faq                     → page-faq.php (FAQPage)
+ *   /contact                 → page-contact.php (ContactPage)
+ *   /booking                 → page-booking.php (BookingPage)
+ *   /category/:slug          → category.php (CategoryArchivePage)
+ *   /tag/:slug               → tag.php (TagArchivePage)
+ *   /tag                     → Tag Hub (TagArchivePage)
+ *   /sitemap                 → page-sitemap.php (SitemapPage)
+ *   /legal/privacy           → page-privacy.php (PrivacyPage)
+ *   /legal/terms             → page-terms.php (TermsPage)
+ *   /legal/cancellation      → page-cancellation.php (CancellationPage)
+ *   *                        → 404.php (NotFoundPage)
  */
 import { BrowserRouter, Routes, Route } from "react-router";
 import RootLayout from "@/components/RootLayout";
@@ -23,6 +31,13 @@ import BlogListPage from "@/pages/BlogListPage";
 import FAQPage from "@/pages/FAQPage";
 import ContactPage from "@/pages/ContactPage";
 import BookingPage from "@/pages/BookingPage";
+import NotFoundPage from "@/pages/NotFoundPage";
+import CategoryArchivePage from "@/pages/CategoryArchivePage";
+import TagArchivePage from "@/pages/TagArchivePage";
+import SitemapPage from "@/pages/SitemapPage";
+import PrivacyPage from "@/pages/legal/PrivacyPage";
+import TermsPage from "@/pages/legal/TermsPage";
+import CancellationPage from "@/pages/legal/CancellationPage";
 
 /* ── Blog post pages ── */
 import BlogRhinoplasty from "@/pages/blog/BlogRhinoplasty";
@@ -48,15 +63,16 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<RootLayout />}>
-          {/* Core pages */}
+          {/* ── Core pages ── */}
           <Route index element={<HomePage />} />
           <Route path="about"   element={<AboutPage />} />
           <Route path="gallery" element={<GalleryPage />} />
           <Route path="faq"     element={<FAQPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="booking" element={<BookingPage />} />
+          <Route path="sitemap" element={<SitemapPage />} />
 
-          {/* Services */}
+          {/* ── Services ── */}
           <Route path="services" element={<ServicesPage />} />
           <Route path="services/rhinoplasty"          element={<ServiceRhinoplastyOverview />} />
           <Route path="services/rhinoplasty-primary"  element={<ServiceRhinoplastyPrimary />} />
@@ -70,7 +86,7 @@ export default function App() {
           <Route path="services/turbinoplasty"        element={<ServiceTurbinoplasty />} />
           <Route path="services/sinus-endoscopy"      element={<ServiceSinusEndoscopy />} />
 
-          {/* Blog */}
+          {/* ── Blog ── */}
           <Route path="blog" element={<BlogListPage />} />
           <Route path="blog/rhinoplasty"            element={<BlogRhinoplasty />} />
           <Route path="blog/rhinoplasty-revision"   element={<BlogRhinoplastyRevision />} />
@@ -84,8 +100,18 @@ export default function App() {
           <Route path="blog/nutrition-rhinoplasty"  element={<BlogNutrition />} />
           <Route path="blog/atl-removal"            element={<BlogATLRemoval />} />
 
-          {/* Catch-all → home */}
-          <Route path="*" element={<HomePage />} />
+          {/* ── Taxonomy archives ── */}
+          <Route path="category/:slug" element={<CategoryArchivePage />} />
+          <Route path="tag"            element={<TagArchivePage />} />
+          <Route path="tag/:slug"      element={<TagArchivePage />} />
+
+          {/* ── Legal ── */}
+          <Route path="legal/privacy"      element={<PrivacyPage />} />
+          <Route path="legal/terms"        element={<TermsPage />} />
+          <Route path="legal/cancellation" element={<CancellationPage />} />
+
+          {/* ── Catch-all → 404 (NOT Home) ── */}
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

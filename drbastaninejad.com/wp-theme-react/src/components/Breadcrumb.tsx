@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Breadcrumb — site-wide breadcrumb nav
  * PHP: include get_template_part('components/breadcrumb');
  *      or yoast_breadcrumb()
@@ -13,10 +13,10 @@ export default function Breadcrumb({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav className="bg-white border-b border-[#DDE2DD] px-4 sm:px-6 py-2.5" aria-label="مسیر صفحه">
       <div className="max-w-[1200px] mx-auto">
-        <ol className="flex flex-wrap items-center gap-1.5 text-xs text-[#6A7078]">
+        <ol className="flex flex-wrap items-center gap-1.5 text-xs text-[#545B64]">
           {items.map((b, i) => (
             <li key={b.label} className="flex items-center gap-1.5">
-              {i > 0 && <ChevronLeft size={11} className="text-[#DDE2DD]" />}
+              {i > 0 && <ChevronLeft size={11} className="text-[#9CA3AF]" />}
               {b.href && i < items.length - 1
                 ? <Link to={b.href} className="hover:text-[#28722C] transition-colors">{b.label}</Link>
                 : <span className="text-[#28722C] font-semibold" aria-current={i === items.length - 1 ? "page" : undefined}>{b.label}</span>

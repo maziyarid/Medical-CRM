@@ -1,0 +1,88 @@
+// =============================================================
+//  Brand Design Tokens — drbastaninejad.com
+//  All CSS custom properties are derived from these SCSS variables.
+//  In production these map to WordPress theme.json / get_theme_mod().
+// =============================================================
+
+// ── Palette ──────────────────────────────────────────────────
+$color-primary:         #28722C;
+$color-primary-dark:    #1a4e1d;
+$color-primary-darker:  #246b28;
+$color-primary-tint:    #E4F0E4;
+$color-primary-light:   #EBF3EC;
+
+$color-bg:              #F9F6F1;
+$color-bg-alt:          #F7F8F6;
+$color-surface:         #FFFFFF;
+$color-dark:            #1a2318;
+
+$color-text:            #25272C;
+$color-text-muted:      #4A4740;  // darkened from #6A7078 for WCAG AA 4.5:1 on #F9F6F1
+$color-text-subtle:     #57524E;  // darkened from #7A7060 for WCAG AA on light surfaces
+
+$color-border:          #DDE2DD;
+$color-border-green:    rgba(40, 114, 44, 0.15);
+
+$color-accent:          #B8860B;
+$color-accent-tint:     #FFF8E7;
+
+$color-danger:          #d4183d;
+$color-info:            #1e6fce;
+
+// ── Typography ───────────────────────────────────────────────
+$font-primary:          'Irancell', 'Tahoma', Arial, system-ui, sans-serif;
+$font-size-base:        16px;
+$line-height-base:      1.6;
+$line-height-reading:   2;
+
+// ── Spacing scale ────────────────────────────────────────────
+$space-xs:   0.25rem;   // 4px
+$space-sm:   0.5rem;    // 8px
+$space-md:   1rem;      // 16px
+$space-lg:   1.5rem;    // 24px
+$space-xl:   2rem;      // 32px
+$space-2xl:  3rem;      // 48px
+$space-3xl:  4rem;      // 64px
+
+// ── Radii ────────────────────────────────────────────────────
+$radius-sm:  0.375rem;  // 6px
+$radius-md:  0.5rem;    // 8px
+$radius-lg:  0.625rem;  // 10px
+$radius-xl:  0.75rem;   // 12px
+$radius-2xl: 1rem;      // 16px
+$radius-full: 9999px;
+
+// ── Shadows ──────────────────────────────────────────────────
+$shadow-sm:  0 1px 2px rgba(0,0,0,.05);
+$shadow-md:  0 4px 12px rgba(0,0,0,.08);
+$shadow-lg:  0 8px 32px rgba(0,0,0,.10);
+$shadow-xl:  0 16px 48px rgba(0,0,0,.12);
+
+// ── Z-index scale ────────────────────────────────────────────
+$z-base:     0;
+$z-raised:   10;
+$z-dropdown: 30;
+$z-sticky:   40;
+$z-nav:      50;
+$z-overlay:  60;
+$z-modal:    70;
+$z-progress: 45;
+
+// ── Transitions ──────────────────────────────────────────────
+$transition-fast:   150ms ease;
+$transition-base:   200ms ease;
+$transition-slow:   300ms ease;
+$transition-spring: 400ms cubic-bezier(.34,1.56,.64,1);
+
+// ── Breakpoints ──────────────────────────────────────────────
+$bp-sm:   640px;
+$bp-md:   768px;
+$bp-lg:   1024px;
+$bp-xl:   1200px;
+$bp-2xl:  1400px;
+
+// ── Layout ───────────────────────────────────────────────────
+$container-max:    1200px;
+$nav-height:       64px;
+$sidebar-width:    320px;
+$service-sidebar:  280px;
