@@ -1,0 +1,443 @@
+{
+  "lang": "ar",
+  "dir": "rtl",
+  "chrome": {
+    "site_name": "الدكتور شاهين باستاني‌نژاد",
+    "site_tagline": "جرّاح أنف وأخصائي أنف وأذن وحنجرة في إيران",
+    "nav_home": "الرئيسية",
+    "nav_about": "عن الطبيب",
+    "nav_services": "الخدمات",
+    "nav_gallery": "معرض الصور",
+    "nav_faq": "الأسئلة الشائعة",
+    "nav_blog": "المدونة",
+    "nav_contact": "اتصل بنا",
+    "nav_booking": "حجز موعد",
+    "nav_patient_login": "دخول المريض",
+    "cta_book": "احجز عبر الإنترنت",
+    "cta_contact": "تواصل مع العيادة",
+    "footer_rights": "جميع الحقوق محفوظة",
+    "footer_address": "طهران، إيران",
+    "form_name": "الاسم الكامل",
+    "form_mobile": "رقم الجوال",
+    "form_email": "البريد الإلكتروني",
+    "form_procedure": "نوع الإجراء",
+    "form_message": "رسالة أو ملاحظات",
+    "form_submit": "إرسال الطلب",
+    "form_success": "تم إرسال طلبك بنجاح. سيصلك رسالة نصية للتأكيد.",
+    "form_cooldown": "يوجد طلب حديث لهذا الرقم بالفعل. يرجى تسجيل الدخول إلى بوابة المرضى.",
+    "form_login_cta": "دخول بوابة المرضى",
+    "booking_title": "حجز موعد استشارة",
+    "booking_subtitle": "أكمل النموذج أدناه وسيتواصل معك فريق الاستقبال.",
+    "eligibility_age": "العمر بين 18 و45 عامًا",
+    "eligibility_revision": "مرور 24 شهرًا على الأقل منذ أي عملية سابقة",
+    "lang_switcher_label": "اللغة",
+    "privacy": "سياسة الخصوصية",
+    "404_title": "الصفحة غير موجودة",
+    "404_body": "عذرًا، الصفحة التي تبحث عنها غير موجودة.",
+    "seo_home_title": "الدكتور شاهين باستاني‌نژاد | جرّاح تجميل الأنف في إيران",
+    "seo_home_desc": "عيادة متخصصة في جراحة تجميل الأنف والأنف والأذن والحنجرة في إيران بإشراف الدكتور شاهين باستاني‌نژاد في طهران."
+  },
+  "forms": {
+    "نشست فرم منقضی شده است. صفحه را تازه‌سازی کنید.": "Your form session has expired. Please refresh the page.",
+    "سامانه نوبت‌دهی موقتاً در دسترس نیست.": "The booking system is temporarily unavailable.",
+    "درخواست این شماره به‌تازگی ثبت شده است. برای جلوگیری از ثبت تکراری کمی بعد دوباره تلاش کنید.": "A request for this number was submitted recently. To avoid duplicates, please try again later.",
+    "ثبت درخواست نوبت انجام نشد. لطفاً دوباره تلاش کنید.": "The appointment request could not be saved. Please try again.",
+    "ثبت درخواست نوبت انجام نشد.": "The appointment request could not be saved.",
+    "درخواست نوبت شما با موفقیت ثبت شد.": "Your appointment request was submitted successfully.",
+    "درخواست نوبت شما ثبت شد. همکاران کلینیک برای هماهنگی تماس می‌گیرند. پنل بیمار: {login_url}": "Your appointment request was received. The clinic team will contact you to coordinate. Patient portal: {login_url}",
+    "ایمیل معتبر نیست.": "ایمیل معتبر نیست.",
+    "برای رزرو بین‌المللی وارد کردن ایمیل معتبر الزامی است.": "برای رزرو بین‌المللی وارد کردن ایمیل معتبر الزامی است.",
+    "بررسی جراحی ترمیمی فقط پس از گذشت کامل ۲۴ ماه از جراحی قبلی انجام می‌شود.": "بررسی جراحی ترمیمی فقط پس از گذشت کامل ۲۴ ماه از جراحی قبلی انجام می‌شود.",
+    "تأیید شرایط پذیرش الزامی است.": "تأیید شرایط پذیرش الزامی است.",
+    "ترمیمی": "ترمیمی",
+    "تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.": "تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.",
+    "ثبت پیام انجام نشد.": "ثبت پیام انجام نشد.",
+    "درخواست نامعتبر است.": "درخواست نامعتبر است.",
+    "دریافت آمار از داشبورد انجام نشد.": "دریافت آمار از داشبورد انجام نشد.",
+    "نام و شماره موبایل معتبر الزامی است.": "نام و شماره موبایل معتبر الزامی است.",
+    "٠": "٠",
+    "١": "١",
+    "٢": "٢",
+    "٣": "٣",
+    "٤": "٤",
+    "٥": "٥",
+    "٦": "٦",
+    "٧": "٧",
+    "٨": "٨",
+    "٩": "٩",
+    "پذیرش جراحی فقط برای بازه سنی ۱۸ تا ۴۵ سال انجام می‌شود.": "پذیرش جراحی فقط برای بازه سنی ۱۸ تا ۴۵ سال انجام می‌شود.",
+    "پل داشبورد تنظیم نشده است.": "پل داشبورد تنظیم نشده است.",
+    "پیام تماس جدید: ": "پیام تماس جدید: ",
+    "پیام تماس — ": "پیام تماس — ",
+    "پیام شما با موفقیت ثبت شد.": "پیام شما با موفقیت ثبت شد.",
+    "۰": "۰",
+    "۱": "۱",
+    "۲": "۲",
+    "۳": "۳",
+    "۴": "۴",
+    "۵": "۵",
+    "۶": "۶",
+    "۷": "۷",
+    "۸": "۸",
+    "۹": "۹",
+    "نام و نام خانوادگی": "Full name",
+    "شماره موبایل": "Mobile number",
+    "ایمیل": "Email",
+    "نوع خدمت": "Procedure type",
+    "پیام یا توضیحات": "Message or notes",
+    "ارسال درخواست": "Submit request"
+  },
+  "pages": [
+    {
+      "source_slug_fa": "صفحه-اصلی",
+      "slug": "home",
+      "title": "الرئيسية",
+      "seo_title": "الدكتور شاهين باستاني نجاد | جراح تجميل الأنف في إيران",
+      "seo_description": "رعاية متخصصة لتجميل الأنف والأنف والأذن والحنجرة في إيران مع الدكتور شاهين باستاني نجاد في طهران.",
+      "content_html": "<h2>الرئيسية</h2><p>رعاية متخصصة لتجميل الأنف والأنف والأذن والحنجرة في إيران مع الدكتور شاهين باستاني نجاد في طهران.</p><p>للاستشارة في طهران، إيران، استخدم نموذج الحجز أو صفحة الاتصال.</p>"
+    },
+    {
+      "source_slug_fa": "درباره-دکتر-شاهین-باستانی-نژاد",
+      "slug": "about",
+      "title": "عن الدكتور شاهين باستاني نجاد",
+      "seo_title": "عن الدكتور شاهين باستاني نجاد | جراح أنف وأذن وحنجرة في إيران",
+      "seo_description": "السيرة والخلفية الأكاديمية للدكتور شاهين باستاني نجاد في طهران، إيران.",
+      "content_html": "<h2>عن الدكتور شاهين باستاني نجاد</h2><p>السيرة والخلفية الأكاديمية للدكتور شاهين باستاني نجاد في طهران، إيران.</p><p>للاستشارة في طهران، إيران، استخدم نموذج الحجز أو صفحة الاتصال.</p>"
+    },
+    {
+      "source_slug_fa": "تماس-با-ما",
+      "slug": "contact",
+      "title": "اتصل بنا",
+      "seo_title": "اتصل بعيادة الدكتور باستاني نجاد في إيران",
+      "seo_description": "بيانات التواصل وطلب الاستشارة في طهران، إيران.",
+      "content_html": "<h2>اتصل بنا</h2><p>بيانات التواصل وطلب الاستشارة في طهران، إيران.</p><p>للاستشارة في طهران، إيران، استخدم نموذج الحجز أو صفحة الاتصال.</p>"
+    },
+    {
+      "source_slug_fa": "دریافت-نوبت",
+      "slug": "booking",
+      "title": "حجز استشارة",
+      "seo_title": "احجز استشارة تجميل أنف في إيران",
+      "seo_description": "طلب استشارة عبر الإنترنت مع الدكتور شاهين باستاني نجاد في إيران.",
+      "content_html": "<h2>حجز استشارة</h2><p>طلب استشارة عبر الإنترنت مع الدكتور شاهين باستاني نجاد في إيران.</p><p>للاستشارة في طهران، إيران، استخدم نموذج الحجز أو صفحة الاتصال.</p>"
+    },
+    {
+      "source_slug_fa": "سوالات-متداول",
+      "slug": "faq",
+      "title": "الأسئلة الشائعة",
+      "seo_title": "الأسئلة الشائعة | عيادة الدكتور باستاني نجاد في إيران",
+      "seo_description": "إجابات حول مواعيد القبول والرعاية بعد العملية.",
+      "content_html": "<h2>الأسئلة الشائعة</h2><p>إجابات حول مواعيد القبول والرعاية بعد العملية.</p><p>للاستشارة في طهران، إيران، استخدم نموذج الحجز أو صفحة الاتصال.</p>"
+    },
+    {
+      "source_slug_fa": "گالری",
+      "slug": "gallery",
+      "title": "المعرض",
+      "seo_title": "معرض قبل وبعد | الدكتور باستاني نجاد في إيران",
+      "seo_description": "نماذج مختارة من حالات تجميل الأنف. النتائج تختلف.",
+      "content_html": "<h2>المعرض</h2><p>نماذج مختارة من حالات تجميل الأنف. النتائج تختلف.</p><p>للاستشارة في طهران، إيران، استخدم نموذج الحجز أو صفحة الاتصال.</p>"
+    },
+    {
+      "source_slug_fa": "آتل-بینی",
+      "slug": "after-splint-care",
+      "title": "نقاط مهمة بعد إزالة الجبيرة",
+      "seo_title": "بعد إزالة جبيرة الأنف | إيران",
+      "seo_description": "إرشادات عملية بعد إزالة الجبيرة. اتبع خطة الجراح.",
+      "content_html": "<h2>نقاط مهمة بعد إزالة الجبيرة</h2><p>إرشادات عملية بعد إزالة الجبيرة. اتبع خطة الجراح.</p><p>للاستشارة في طهران، إيران، استخدم نموذج الحجز أو صفحة الاتصال.</p>"
+    },
+    {
+      "source_slug_fa": "سیاست-حفظ-حریم-خصوصی",
+      "slug": "privacy",
+      "title": "سياسة الخصوصية",
+      "seo_title": "سياسة الخصوصية | عيادة الدكتور باستاني نجاد",
+      "seo_description": "كيف يتعامل الموقع مع البيانات الشخصية لطلبات المواعيد.",
+      "content_html": "<h2>سياسة الخصوصية</h2><p>كيف يتعامل الموقع مع البيانات الشخصية لطلبات المواعيد.</p><p>للاستشارة في طهران، إيران، استخدم نموذج الحجز أو صفحة الاتصال.</p>"
+    },
+    {
+      "source_slug_fa": "مقالات",
+      "slug": "articles",
+      "title": "مقالات",
+      "seo_title": "مقالات | عيادة الدكتور باستاني نجاد في إيران",
+      "seo_description": "مقالات تثقيفية للمرضى.",
+      "content_html": "<h2>مقالات</h2><p>مقالات تثقيفية للمرضى.</p><p>للاستشارة في طهران، إيران، استخدم نموذج الحجز أو صفحة الاتصال.</p>"
+    },
+    {
+      "source_slug_fa": "دکتر-شاهین-باستانی-نژاد",
+      "slug": "dr-shahin-bastaninejad",
+      "title": "الدكتور شاهين باستاني نجاد",
+      "seo_title": "الدكتور شاهين باستاني نجاد | تجميل الأنف في إيران",
+      "seo_description": "الصفحة التعريفية للطبيب في إيران.",
+      "content_html": "<h2>الدكتور شاهين باستاني نجاد</h2><p>الصفحة التعريفية للطبيب في إيران.</p><p>للاستشارة في طهران، إيران، استخدم نموذج الحجز أو صفحة الاتصال.</p>"
+    }
+  ],
+  "services": [
+    {
+      "slug": "rhinoplasty-primary",
+      "title": "جراحة تجميل الأنف الأولية",
+      "subtitle": "رأب الأنف لأول مرة",
+      "description": "تُعنى جراحة تجميل الأنف الأولية بتشكيل الأنف بما يتناسب مع ملامح الوجه. يستخدم الدكتور باستاني نجاد تقنيات حديثة لنتائج طبيعية."
+    },
+    {
+      "slug": "rhinoplasty-revision",
+      "title": "جراحة تجميل الأنف التصحيحية",
+      "subtitle": "رأب الأنف الثانوي",
+      "description": "تُجرى الجراحة التصحيحية لمعالجة نتائج غير مرغوبة بعد عملية سابقة، وتتطلب خبرة ودقة عالية."
+    },
+    {
+      "slug": "rhinoplasty-bony",
+      "title": "جراحة الأنف العظمي",
+      "subtitle": "بنية أنفية صلبة",
+      "description": "تتطلب الأنوف العظمية تقنيات خاصة للحصول على شكل متناسق ومظهر طبيعي."
+    },
+    {
+      "slug": "rhinoplasty-natural",
+      "title": "أنف بمظهر طبيعي",
+      "subtitle": "نتائج دقيقة وطبيعية",
+      "description": "تهدف الجراحة ذات المظهر الطبيعي إلى تغييرات دقيقة تجعل الأنف يبدو منسجماً مع الوجه."
+    },
+    {
+      "slug": "hump-removal",
+      "title": "إزالة حدبة الأنف",
+      "subtitle": "تنعيم جسر الأنف",
+      "description": "تُعد حدبة الأنف من أكثر أسباب مراجعة الجراح شيوعاً، ويُعالجها بدقة لتحسين المظهر الجانبي."
+    },
+    {
+      "slug": "septoplasty",
+      "title": "رأب الحاجز الأنفي",
+      "subtitle": "تصحيح انحراف الحاجز",
+      "description": "قد يسبب انحراف الحاجز الأنفي صعوبة في التنفس؛ يعمل رأب الحاجز على تحسين تدفق الهواء."
+    },
+    {
+      "slug": "turbinoplasty",
+      "title": "جراحة القرينات",
+      "subtitle": "تصغير القرينات المتضخمة",
+      "description": "تضخم القرينات سبب شائع لانسداد الأنف المزمن؛ تساعد هذه الجراحة على تحسين التهوية."
+    },
+    {
+      "slug": "sinus-endoscopy",
+      "title": "تنظير الجيوب (FESS)",
+      "subtitle": "علاج التهاب الجيوب المزمن",
+      "description": "تُستخدم جراحة الجيوب بالمنظار لعلاج الالتهاب المزمن والسلائل بحد أدنى من التدخل."
+    }
+  ],
+  "faqs": [
+    {
+      "source_id": "policy-hours",
+      "category": "Reception",
+      "question": "What are clinic hours and the last admission time?",
+      "answer_html": "<p>Saturday to Tuesday, 15:00–18:00. Patients who arrive after 18:00 will not be admitted under any circumstances.</p>"
+    },
+    {
+      "source_id": "policy-age",
+      "category": "Reception",
+      "question": "What is the acceptable age range for surgery?",
+      "answer_html": "<p>Eligible age is 18–45 years. Cases outside this range are reviewed only with the surgeon’s explicit approval.</p>"
+    },
+    {
+      "source_id": "policy-revision-wait",
+      "category": "Reception",
+      "question": "How long after a previous surgery can revision be considered?",
+      "answer_html": "<p>At least 24 months should have passed since the prior operation, unless the surgical team defines a different plan for your case.</p>"
+    },
+    {
+      "source_id": "policy-booking",
+      "category": "Reception",
+      "question": "How do I book a consultation?",
+      "answer_html": "<p>Use the online booking form on the website or contact the clinic by phone. After submission, the reception team coordinates the appointment.</p>"
+    },
+    {
+      "source_id": "policy-documents",
+      "category": "Reception",
+      "question": "What should I bring to the visit?",
+      "answer_html": "<p>Bring identification, prior imaging or operative notes if any, a list of medications, and any previous before/after photos requested by the team.</p>"
+    },
+    {
+      "source_id": "preop-meds",
+      "category": "Before surgery",
+      "question": "Which medicines should be stopped before surgery?",
+      "answer_html": "<p>Follow only the written instructions from your surgical team. Do not start or stop any drug, supplement, or herbal product on your own.</p>"
+    },
+    {
+      "source_id": "preop-smoking",
+      "category": "Before surgery",
+      "question": "Is smoking or vaping allowed before surgery?",
+      "answer_html": "<p>Smoking and nicotine products impair healing. Stop them for the period your surgeon specifies before and after surgery.</p>"
+    },
+    {
+      "source_id": "preop-fasting",
+      "category": "Before surgery",
+      "question": "How should I fast before surgery?",
+      "answer_html": "<p>Follow the exact fasting instructions given for your admission time. Do not eat or drink outside that plan.</p>"
+    },
+    {
+      "source_id": "postop-care",
+      "category": "After surgery",
+      "question": "What general care is needed in the first days?",
+      "answer_html": "<p>Follow the care plan from your team: reduce salt, drink enough water, avoid heavy bending and strenuous activity, and take medications exactly as prescribed.</p>"
+    },
+    {
+      "source_id": "postop-sutures",
+      "category": "After surgery",
+      "question": "How should sutures be cared for?",
+      "answer_html": "<p>Keep sutures clean, do not manipulate them, and avoid pressure, trauma, or excessive upper-lip stretching. Use repair creams only if approved by the care team.</p>"
+    },
+    {
+      "source_id": "postop-bath",
+      "category": "After surgery",
+      "question": "When can I shower after surgery?",
+      "answer_html": "<p>Usually after 72 hours, with a short shower as directed. The cast and tapes must not get wet or shift, and water should not be very hot.</p>"
+    },
+    {
+      "source_id": "postop-diet",
+      "category": "After surgery",
+      "question": "What should I eat in the first days?",
+      "answer_html": "<p>Choose light, soft, low-salt foods. Avoid hard, spicy, or salty items that need heavy chewing. See the clinic’s anti-inflammatory diet article for nutrition guidance.</p>"
+    },
+    {
+      "source_id": "diet-dairy",
+      "category": "Nutrition",
+      "question": "Are milk, yogurt, and other dairy allowed on the anti-inflammatory diet?",
+      "answer_html": "<p>No. All dairy is restricted; cottage cheese is the only approved exception within the planned amount because of its protein content.</p>"
+    },
+    {
+      "source_id": "diet-potato",
+      "category": "Nutrition",
+      "question": "Are mashed potatoes or tomatoes recommended after surgery?",
+      "answer_html": "<p>No. Potato, mashed potato, and tomato are considered inflammatory in this protocol and are not allowed.</p>"
+    },
+    {
+      "source_id": "diet-rice",
+      "category": "Nutrition",
+      "question": "Is rice or rice pudding allowed on the anti-inflammatory diet?",
+      "answer_html": "<p>No. Rice, rice pudding, and rice-based products are not allowed in this protocol.</p>"
+    },
+    {
+      "source_id": "diet-duration",
+      "category": "Nutrition",
+      "question": "How long does the anti-inflammatory diet continue?",
+      "answer_html": "<p>At least one month after surgery, unless your care team sets a different plan for your case.</p>"
+    },
+    {
+      "source_id": "postop-meds-start",
+      "category": "After surgery",
+      "question": "When should post-op medications start?",
+      "answer_html": "<p>Start medications after discharge exactly as prescribed. Do not change, stop, or add sprays, rinses, or ointments on your own.</p>"
+    },
+    {
+      "source_id": "postop-splint",
+      "category": "After surgery",
+      "question": "How long does the splint stay on the nose?",
+      "answer_html": "<p>Usually about one week; exact timing depends on your nose and the surgeon’s judgment. The splint must not get wet, loosen, or shift.</p>"
+    },
+    {
+      "source_id": "postop-bleeding",
+      "category": "After surgery",
+      "question": "Is blood-tinged discharge or congestion normal?",
+      "answer_html": "<p>Light blood-tinged discharge in the first 24–72 hours and mild congestion can be normal. Report heavy or ongoing bleeding, fever, uncontrolled pain, or significant breathing difficulty to the care team immediately.</p>"
+    },
+    {
+      "source_id": "postop-sleep",
+      "category": "After surgery",
+      "question": "How should I sleep and rest after surgery?",
+      "answer_html": "<p>Follow only the instructions given for your case. Do not rely on generic internet advice or outdated posts.</p>"
+    },
+    {
+      "source_id": "postop-packing",
+      "category": "After surgery",
+      "question": "Is internal nasal packing used?",
+      "answer_html": "<p>Under the clinic’s current approach, internal mesh or packing is usually not used; the final decision depends on the operative findings.</p>"
+    },
+    {
+      "source_id": "postop-stay",
+      "category": "After surgery",
+      "question": "How many days will I stay in hospital after surgery?",
+      "answer_html": "<p>Discharge timing depends on your condition and the care team’s assessment; you will be reviewed before leaving.</p>"
+    }
+  ],
+  "gallery_labels": [
+    {
+      "key": "case-01",
+      "label": "نمونه ۰۱",
+      "procedure": "رینوپلاستی ترمیمی",
+      "interval": "۱ سال پس از جراحی"
+    },
+    {
+      "key": "case-02",
+      "label": "نمونه ۰۲",
+      "procedure": "رینوپلاستی",
+      "interval": "۵ ماه پس از جراحی"
+    },
+    {
+      "key": "case-03",
+      "label": "نمونه ۰۳",
+      "procedure": "رینوپلاستی ترمیمی",
+      "interval": "۵۰ روز پس از جراحی"
+    },
+    {
+      "key": "case-04",
+      "label": "نمونه ۰۴",
+      "procedure": "رینوپلاستی",
+      "interval": "۱ سال پس از جراحی"
+    },
+    {
+      "key": "case-05",
+      "label": "نمونه ۰۵",
+      "procedure": "رینوپلاستی ترمیمی",
+      "interval": "۳ ماه پس از جراحی"
+    },
+    {
+      "key": "case-06",
+      "label": "نمونه ۰۶",
+      "procedure": "رینوپلاستی",
+      "interval": "۶ ماه پس از جراحی"
+    },
+    {
+      "key": "case-07",
+      "label": "نمونه ۰۷",
+      "procedure": "رینوپلاستی",
+      "interval": "۳ ماه پس از جراحی"
+    },
+    {
+      "key": "case-08",
+      "label": "نمونه ۰۸",
+      "procedure": "رینوپلاستی ترمیمی",
+      "interval": "۱ ماه پس از جراحی"
+    },
+    {
+      "key": "case-09",
+      "label": "نمونه ۰۹",
+      "procedure": "نوع جراحی ثبت نشده",
+      "interval": "زمان ثبت نشده"
+    },
+    {
+      "key": "case-10",
+      "label": "نمونه ۱۰",
+      "procedure": "رینوپلاستی",
+      "interval": "۶ سال پس از جراحی"
+    },
+    {
+      "key": "case-11",
+      "label": "نمونه ۱۱",
+      "procedure": "رینوپلاستی ترمیمی",
+      "interval": "۴ ماه پس از جراحی"
+    },
+    {
+      "key": "case-12",
+      "label": "نمونه ۱۲",
+      "procedure": "رینوپلاستی",
+      "interval": "۱ سال پس از جراحی"
+    },
+    {
+      "key": "case-13",
+      "label": "نمونه ۱۳",
+      "procedure": "رینوپلاستی ترمیمی",
+      "interval": "۴ ماه پس از جراحی"
+    },
+    {
+      "key": "case-14",
+      "label": "نمونه ۱۴",
+      "procedure": "نوع جراحی نیازمند تأیید",
+      "interval": "۳ ماه پس از جراحی"
+    }
+  ],
+  "_note": "FAQs currently English medical text for consistency; chrome/services/pages SEO localized. Replace faqs with native language in a follow-up pass if needed."
+}
