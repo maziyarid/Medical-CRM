@@ -1,0 +1,394 @@
+[
+  {
+    "key": "case-01",
+    "label": "نمونه ۰۱",
+    "procedure": "رینوپلاستی ترمیمی",
+    "interval": "۱ سال پس از جراحی",
+    "images": [
+      {
+        "file": "case-01/view-01.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-01/view-02.webp",
+        "label": "نمای قاعده بینی"
+      },
+      {
+        "file": "case-01/view-03.webp",
+        "label": "نمای نیم‌رخ ۱"
+      },
+      {
+        "file": "case-01/view-04.webp",
+        "label": "نمای سه‌رخ ۱"
+      }
+    ]
+  },
+  {
+    "key": "case-02",
+    "label": "نمونه ۰۲",
+    "procedure": "رینوپلاستی",
+    "interval": "۵ ماه پس از جراحی",
+    "images": [
+      {
+        "file": "case-02/view-01.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-02/view-02.webp",
+        "label": "نمای سه‌رخ ۱"
+      },
+      {
+        "file": "case-02/view-03.webp",
+        "label": "نمای تیغه بینی"
+      },
+      {
+        "file": "case-02/view-04.webp",
+        "label": "نمای قاعده بینی"
+      },
+      {
+        "file": "case-02/view-05.webp",
+        "label": "نمای سه‌رخ ۲"
+      }
+    ]
+  },
+  {
+    "key": "case-03",
+    "label": "نمونه ۰۳",
+    "procedure": "رینوپلاستی ترمیمی",
+    "interval": "۵۰ روز پس از جراحی",
+    "images": [
+      {
+        "file": "case-03/view-01.webp",
+        "label": "نمای سه‌رخ ۲"
+      },
+      {
+        "file": "case-03/view-02.webp",
+        "label": "نمای سه‌رخ ۱"
+      },
+      {
+        "file": "case-03/view-03.webp",
+        "label": "نمای نیم‌رخ ۱"
+      },
+      {
+        "file": "case-03/view-04.webp",
+        "label": "نمای نیم‌رخ ۲"
+      },
+      {
+        "file": "case-03/view-05.webp",
+        "label": "نمای روبه‌رو"
+      }
+    ]
+  },
+  {
+    "key": "case-04",
+    "label": "نمونه ۰۴",
+    "procedure": "رینوپلاستی",
+    "interval": "۱ سال پس از جراحی",
+    "images": [
+      {
+        "file": "case-04/view-01.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-04/view-02.webp",
+        "label": "نمای سه‌رخ ۱"
+      },
+      {
+        "file": "case-04/view-03.webp",
+        "label": "نمای سه‌رخ ۲"
+      },
+      {
+        "file": "case-04/view-04.webp",
+        "label": "نمای نیم‌رخ ۱"
+      },
+      {
+        "file": "case-04/view-05.webp",
+        "label": "نمای نیم‌رخ ۲"
+      }
+    ]
+  },
+  {
+    "key": "case-05",
+    "label": "نمونه ۰۵",
+    "procedure": "رینوپلاستی ترمیمی",
+    "interval": "۳ ماه پس از جراحی",
+    "images": [
+      {
+        "file": "case-05/view-01.webp",
+        "label": "نمای قاعده بینی"
+      },
+      {
+        "file": "case-05/view-02.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-05/view-03.webp",
+        "label": "نمای سه‌رخ ۲"
+      },
+      {
+        "file": "case-05/view-04.webp",
+        "label": "نمای سه‌رخ ۱"
+      },
+      {
+        "file": "case-05/view-05.webp",
+        "label": "نمای نیم‌رخ ۱"
+      },
+      {
+        "file": "case-05/view-06.webp",
+        "label": "نمای نیم‌رخ ۲"
+      }
+    ]
+  },
+  {
+    "key": "case-06",
+    "label": "نمونه ۰۶",
+    "procedure": "رینوپلاستی",
+    "interval": "۶ ماه پس از جراحی",
+    "images": [
+      {
+        "file": "case-06/view-01.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-06/view-02.webp",
+        "label": "نمای سه‌رخ ۱"
+      },
+      {
+        "file": "case-06/view-03.webp",
+        "label": "نمای سه‌رخ ۲"
+      },
+      {
+        "file": "case-06/view-04.webp",
+        "label": "نمای نیم‌رخ ۱"
+      },
+      {
+        "file": "case-06/view-05.webp",
+        "label": "نمای نیم‌رخ ۲"
+      }
+    ]
+  },
+  {
+    "key": "case-07",
+    "label": "نمونه ۰۷",
+    "procedure": "رینوپلاستی",
+    "interval": "۳ ماه پس از جراحی",
+    "images": [
+      {
+        "file": "case-07/view-01.webp",
+        "label": "نمای تیغه بینی"
+      },
+      {
+        "file": "case-07/view-02.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-07/view-03.webp",
+        "label": "نمای سه‌رخ ۱"
+      },
+      {
+        "file": "case-07/view-04.webp",
+        "label": "نمای نیم‌رخ ۲"
+      }
+    ]
+  },
+  {
+    "key": "case-08",
+    "label": "نمونه ۰۸",
+    "procedure": "رینوپلاستی ترمیمی",
+    "interval": "۱ ماه پس از جراحی",
+    "images": [
+      {
+        "file": "case-08/view-01.webp",
+        "label": "نمای تیغه بینی"
+      },
+      {
+        "file": "case-08/view-02.webp",
+        "label": "نمای سه‌رخ"
+      },
+      {
+        "file": "case-08/view-03.webp",
+        "label": "نمای قاعده بینی"
+      },
+      {
+        "file": "case-08/view-04.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-08/view-05.webp",
+        "label": "نمای نیم‌رخ ۱"
+      },
+      {
+        "file": "case-08/view-06.webp",
+        "label": "نمای نیم‌رخ ۲"
+      }
+    ]
+  },
+  {
+    "key": "case-09",
+    "label": "نمونه ۰۹",
+    "procedure": "نوع جراحی ثبت نشده",
+    "interval": "زمان ثبت نشده",
+    "images": [
+      {
+        "file": "case-09/view-01.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-09/view-02.webp",
+        "label": "نمای سه‌رخ"
+      },
+      {
+        "file": "case-09/view-03.webp",
+        "label": "نمای قاعده بینی"
+      },
+      {
+        "file": "case-09/view-04.webp",
+        "label": "نمای نیم‌رخ"
+      }
+    ]
+  },
+  {
+    "key": "case-10",
+    "label": "نمونه ۱۰",
+    "procedure": "رینوپلاستی",
+    "interval": "۶ سال پس از جراحی",
+    "images": [
+      {
+        "file": "case-10/view-01.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-10/view-02.webp",
+        "label": "نمای سه‌رخ ۱"
+      },
+      {
+        "file": "case-10/view-03.webp",
+        "label": "نمای سه‌رخ ۲"
+      },
+      {
+        "file": "case-10/view-04.webp",
+        "label": "نمای نیم‌رخ ۱"
+      }
+    ]
+  },
+  {
+    "key": "case-11",
+    "label": "نمونه ۱۱",
+    "procedure": "رینوپلاستی ترمیمی",
+    "interval": "۴ ماه پس از جراحی",
+    "images": [
+      {
+        "file": "case-11/view-01.webp",
+        "label": "نمای تیغه بینی"
+      },
+      {
+        "file": "case-11/view-02.webp",
+        "label": "نمای سه‌رخ ۱"
+      },
+      {
+        "file": "case-11/view-03.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-11/view-04.webp",
+        "label": "نمای سه‌رخ ۲"
+      },
+      {
+        "file": "case-11/view-05.webp",
+        "label": "نمای نیم‌رخ"
+      }
+    ]
+  },
+  {
+    "key": "case-12",
+    "label": "نمونه ۱۲",
+    "procedure": "رینوپلاستی",
+    "interval": "۱ سال پس از جراحی",
+    "images": [
+      {
+        "file": "case-12/view-01.webp",
+        "label": "نمای سه‌رخ ۲"
+      },
+      {
+        "file": "case-12/view-02.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-12/view-03.webp",
+        "label": "نمای سه‌رخ ۱"
+      },
+      {
+        "file": "case-12/view-04.webp",
+        "label": "نمای نیم‌رخ ۱"
+      },
+      {
+        "file": "case-12/view-05.webp",
+        "label": "نمای نیم‌رخ ۲"
+      },
+      {
+        "file": "case-12/view-06.webp",
+        "label": "نمای قاعده بینی"
+      }
+    ]
+  },
+  {
+    "key": "case-13",
+    "label": "نمونه ۱۳",
+    "procedure": "رینوپلاستی ترمیمی",
+    "interval": "۴ ماه پس از جراحی",
+    "images": [
+      {
+        "file": "case-13/view-01.webp",
+        "label": "نمای سه‌رخ ۱"
+      },
+      {
+        "file": "case-13/view-02.webp",
+        "label": "نمای قاعده بینی"
+      },
+      {
+        "file": "case-13/view-03.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-13/view-04.webp",
+        "label": "نمای نیم‌رخ ۲"
+      },
+      {
+        "file": "case-13/view-05.webp",
+        "label": "نمای نیم‌رخ ۱"
+      }
+    ]
+  },
+  {
+    "key": "case-14",
+    "label": "نمونه ۱۴",
+    "procedure": "نوع جراحی نیازمند تأیید",
+    "interval": "۳ ماه پس از جراحی",
+    "images": [
+      {
+        "file": "case-14/view-01.webp",
+        "label": "نمای روبه‌رو"
+      },
+      {
+        "file": "case-14/view-02.webp",
+        "label": "نمای سه‌رخ ۲"
+      },
+      {
+        "file": "case-14/view-03.webp",
+        "label": "نمای سه‌رخ ۱"
+      },
+      {
+        "file": "case-14/view-04.webp",
+        "label": "نمای قاعده بینی"
+      },
+      {
+        "file": "case-14/view-05.webp",
+        "label": "نمای نیم‌رخ ۱"
+      },
+      {
+        "file": "case-14/view-06.webp",
+        "label": "نمای نیم‌رخ ۲"
+      }
+    ]
+  }
+]

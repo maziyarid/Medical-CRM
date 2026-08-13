@@ -1,0 +1,264 @@
+{
+  "pack_key_counts": {
+    "ar": 36,
+    "de": 36,
+    "en": 36,
+    "es": 36,
+    "fa": 34,
+    "fr": 36,
+    "ru": 36,
+    "tr": 36
+  },
+  "pack_keys_union": [
+    "404_body",
+    "404_title",
+    "booking_subtitle",
+    "booking_title",
+    "cta_book",
+    "cta_contact",
+    "eligibility_age",
+    "eligibility_revision",
+    "footer_address",
+    "footer_rights",
+    "form_cooldown",
+    "form_country",
+    "form_dial_code",
+    "form_email",
+    "form_login_cta",
+    "form_message",
+    "form_mobile",
+    "form_name",
+    "form_procedure",
+    "form_submit",
+    "form_success",
+    "lang_switcher_label",
+    "nav_about",
+    "nav_blog",
+    "nav_booking",
+    "nav_contact",
+    "nav_faq",
+    "nav_gallery",
+    "nav_home",
+    "nav_patient_login",
+    "nav_services",
+    "privacy",
+    "seo_home_desc",
+    "seo_home_title",
+    "site_name",
+    "site_tagline"
+  ],
+  "pages_sample": [
+    {
+      "type": "page",
+      "slug": "سیاست-حفظ-حریم-خصوصی",
+      "title": "سیاست حفظ حریم خصوصی",
+      "status": "draft",
+      "id": ""
+    },
+    {
+      "type": "page",
+      "slug": "مقالات",
+      "title": "مقالات",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "page",
+      "slug": "درباره-دکتر-شاهین-باستانی-نژاد",
+      "title": "درباره دکتر",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "page",
+      "slug": "تماس-با-ما",
+      "title": "تماس با ما",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "page",
+      "slug": "دکتر-شاهین-باستانی-نژاد",
+      "title": "دکتر شاهین باستانی نژاد",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "page",
+      "slug": "سوالات-متداول",
+      "title": "سؤالات متداول",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "مراقبت-های-بعد-از-جراحی-بینی",
+      "title": "پرسش‌های مهم و کاربردی بعد از عمل بینی",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "اقدامات-قبل-از-جراحی-بینی",
+      "title": "چک‌لیست اقدامات قبل از جراحی بینی",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "page",
+      "slug": "دریافت-نوبت",
+      "title": "دریافت نوبت",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "page",
+      "slug": "گالری",
+      "title": "گالری",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "تاثیر-خندیدن-بعد-از-جراحی-بینی",
+      "title": "۴ تاثیر مهم خندیدن بعد از جراحی بینی",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "آمبولی-چیست-و-چگونه-تشکیل-میشود",
+      "title": "آمبولی چیست و چگونه میتوان از بروز آن جلوگیری کرد ؟؟",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "جراحی-بینی",
+      "title": "جراحی بینی یا رینوپلاستی چیست؟",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "جراحی-بینی-ترمیمی",
+      "title": "جراحی بینی ترمیمی چیست؟",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "ترس-از-بیهوشی-کامل",
+      "title": "ترس از بیهوشی کامل",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "تفاوت-غضروف-گوش-و-دنده-در-جراحی-بینی",
+      "title": "7 تفاوت غضروف گوش و دنده در جراحی بینی",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "بینی-آسیایی-asian-nose",
+      "title": "بینی آسیایی (asian nose)",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "پروتز-بینی-چیست-؟",
+      "title": "پروتز بینی چیست ؟",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "تفاوت-رینوپلاستی-باز-و-بسته-کدام-روش-ب",
+      "title": "تفاوت رینوپلاستی باز و بسته | کدام روش برای جراحی بینی بهتر است؟",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "بهترین-جراح-بینی-در-تهران-کیست-؟",
+      "title": "بهترین جراح بینی در تهران کیست ؟",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "هزینه-عمل-بینی",
+      "title": "هزینه عمل بینی تهران و شهرستان‌ها",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "page",
+      "slug": "آتل-بینی",
+      "title": "نکات مهم پس از برداشتن آتل بینی",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "page",
+      "slug": "صفحه-اصلی",
+      "title": "صفحه اصلی",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "جراحی-بینی-استخوانی",
+      "title": "جراحی‌بینی استخوانی",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "مقایسه-جراحی-بینی-با-لیزر",
+      "title": "مقایسه جراحی بینی با لیزر و روش‌های دیگر",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "عوارض-جراحی-بینی-و-راههای-پیشگیری",
+      "title": "عوارض جراحی بینی و راه‌های پیشگیری",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "جراحی-بینی-مردانه",
+      "title": "جراحی بینی مردانه در تهران",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "جراحی-بینی-ترمیمی-در-تهران",
+      "title": "جراحی بینی ترمیمی در تهران",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "۱۰-نکته-در-انتخاب-جراح-بینی",
+      "title": "۱۰ نکته در انتخاب جراح بینی",
+      "status": "publish",
+      "id": ""
+    },
+    {
+      "type": "post",
+      "slug": "تاثیر-تغذیه-بعد-از-جراحی-بینی",
+      "title": "رژیم ضد التهابی",
+      "status": "publish",
+      "id": ""
+    }
+  ],
+  "pages_count": 31,
+  "services_count": 8
+}
