@@ -1,0 +1,54 @@
+[
+  {
+    "file": "00_MANIFEST.json",
+    "bytes": 615
+  },
+  {
+    "file": "00_README_START_HERE.md",
+    "bytes": 794
+  },
+  {
+    "file": "00_TECHNICAL_SPEC_AND_ROADMAP.md",
+    "bytes": 8968
+  },
+  {
+    "file": "01_pages_fa_SOURCE.json",
+    "bytes": 93556
+  },
+  {
+    "file": "01_posts_INDEX_only.json",
+    "bytes": 4737
+  },
+  {
+    "file": "02_services_fa_SOURCE.json",
+    "bytes": 3668
+  },
+  {
+    "file": "03_faqs_fa_SOURCE.json",
+    "bytes": 8653
+  },
+  {
+    "file": "04_chrome_en_existing.php",
+    "bytes": 1827
+  },
+  {
+    "file": "04_chrome_fa.php",
+    "bytes": 2333
+  },
+  {
+    "file": "04_chrome_ui_keys_fa.json",
+    "bytes": 2053
+  },
+  {
+    "file": "05_case_galleries_fa_SOURCE.json",
+    "bytes": 9658
+  },
+  {
+    "file": "06_forms_booking_strings_fa.json",
+    "bytes": 1851
+  },
+  {
+    "file": "07_PROMPT_FOR_TRANSLATING_AI.md",
+    "bytes": 2825
+  }
+]

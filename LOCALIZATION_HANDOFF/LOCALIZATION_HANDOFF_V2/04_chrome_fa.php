@@ -1,0 +1,41 @@
+<?php
+/**
+ * Persian (fa) — primary / default language pack
+ * Keys are stable English identifiers; values are natural Persian.
+ */
+return [
+    'site_name' => 'دکتر شاهین باستانی‌نژاد',
+    'site_tagline' => 'جراح بینی و متخصص گوش، حلق و بینی',
+    'nav_home' => 'خانه',
+    'nav_about' => 'درباره دکتر',
+    'nav_services' => 'خدمات',
+    'nav_gallery' => 'گالری',
+    'nav_faq' => 'سوالات متداول',
+    'nav_blog' => 'بلاگ',
+    'nav_contact' => 'تماس',
+    'nav_booking' => 'رزرو نوبت',
+    'nav_patient_login' => 'ورود بیمار',
+    'cta_book' => 'رزرو نوبت آنلاین',
+    'cta_contact' => 'تماس با کلینیک',
+    'footer_rights' => 'تمامی حقوق محفوظ است',
+    'footer_address' => 'تهران، ایران',
+    'form_name' => 'نام و نام خانوادگی',
+    'form_mobile' => 'شماره موبایل',
+    'form_email' => 'ایمیل',
+    'form_procedure' => 'نوع خدمت',
+    'form_message' => 'پیام یا توضیحات',
+    'form_submit' => 'ارسال درخواست',
+    'form_success' => 'درخواست شما با موفقیت ثبت شد. پیامک تأیید ارسال می‌شود.',
+    'form_cooldown' => 'برای این شماره اخیراً درخواست ثبت شده است. لطفاً از پنل بیمار وارد شوید.',
+    'form_login_cta' => 'ورود به پنل بیمار',
+    'booking_title' => 'رزرو نوبت مشاوره',
+    'booking_subtitle' => 'فرم زیر را تکمیل کنید تا تیم پذیرش با شما هماهنگ کند.',
+    'eligibility_age' => 'سن بین ۱۸ تا ۴۵ سال',
+    'eligibility_revision' => 'حداقل ۲۴ ماه از جراحی قبلی گذشته باشد',
+    'lang_switcher_label' => 'زبان',
+    'privacy' => 'حریم خصوصی',
+    '404_title' => 'صفحه یافت نشد',
+    '404_body' => 'متأسفانه صفحه مورد نظر وجود ندارد.',
+    'seo_home_title' => 'دکتر شاهین باستانی‌نژاد | جراح بینی',
+    'seo_home_desc' => 'کلینیک تخصصی جراحی بینی و درمان بیماری‌های گوش، حلق و بینی تحت نظر دکتر شاهین باستانی‌نژاد.',
+];
