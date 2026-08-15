@@ -1,0 +1,10 @@
+{
+  "booking_received": {
+    "fa": { "subject": "دریافت درخواست نوبت", "body": "سلام {name}،\nدرخواست نوبت شما ثبت شد. همکاران کلینیک برای هماهنگی تماس می‌گیرند.\nورود به پنل: {login_url}\n" },
+    "en": { "subject": "Appointment request received", "body": "Hello {name},\nYour appointment request was received. Our team will contact you.\nPatient panel: {login_url}\n" }
+  },
+  "account_created": {
+    "fa": { "subject": "پرونده شما ایجاد شد", "body": "سلام {name}،\nپرونده شما ثبت شد.\nورود: {login_url}\n" },
+    "en": { "subject": "Your profile was created", "body": "Hello {name},\nYour profile is ready.\nLogin: {login_url}\n" }
+  }
+}

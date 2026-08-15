@@ -1,0 +1,9 @@
+4.5.3 booking-only hotfix
+- No localization/content changes.
+- Hardened dashboard booking transport.
+- Kept TLS verification enabled.
+- Increased bridge timeout to 25 seconds (configurable).
+- Classified TLS/DNS/connect/timeout errors.
+- Prevented immediate duplicate retry after ambiguous timeout.
+- Added admin-only booking bridge diagnostics.
+- Preserved server-side TSMS architecture and secrets.
