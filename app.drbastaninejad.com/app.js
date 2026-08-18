@@ -439,6 +439,13 @@
     const conditionRadio = document.querySelector('input[name="specific-condition"]:checked');
     const condition = conditionRadio ? conditionRadio.value : undefined;
     if (condition === 'دارم' && !$('specific-condition-explanation').value.trim()) { invalid($('specific-condition-explanation'),'توضیح ناراحتی را وارد کنید.'); ok=false; }
+    const doctorRequest = $('doctor-request');
+if (Array.from(doctorRequest.value.trim()).length < 2) {
+  invalid(doctorRequest, 'لطفاً درخواست خود از دکتر را وارد کنید.');
+  ok = false;
+} else {
+  valid(doctorRequest);
+}
     return ok;
   }
 
