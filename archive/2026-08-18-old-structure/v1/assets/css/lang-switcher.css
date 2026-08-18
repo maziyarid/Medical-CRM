@@ -1,0 +1,229 @@
+/* ============================================================
+   Dr. Bastaninejad — Language switcher
+   In-nav placement + slow-motion disclosure animations.
+   ============================================================ */
+
+/* --- Native header: hidden ONLY once the React .site-nav exists AND the
+   language dropdown has been cloned into it (lang-switcher.js adds
+   html.drb-react-nav-ready). We do NOT pre-hide, because if the React bundle
+   fails to mount (e.g. a CORS block) the native header must remain as the
+   page's navigation fallback. --- */
+html.drb-react-nav-ready .drb-native-header {
+  display: none !important;
+}
+
+/* --- Language switcher base (a clean nav item, not a boxed widget) --- */
+.drb-langdd {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.drb-langdd__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  transition:
+    background .28s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color .28s cubic-bezier(0.16, 1, 0.3, 1),
+    color .22s ease,
+    transform .2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow .28s ease;
+}
+.drb-langdd__btn:hover {
+  transform: translateY(-1px);
+  background: rgba(47, 125, 50, 0.32);
+  border-color: rgba(47, 125, 50, 0.6);
+  box-shadow: none;
+}
+.drb-langdd__btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(47, 125, 50, 0.28);
+}
+.drb-langdd__btn:active {
+  transform: translateY(0) scale(0.985);
+  transition-duration: .08s;
+}
+.drb-langdd.is-open .drb-langdd__btn {
+  background: #2F7D32;
+  border-color: #2F7D32;
+  color: #fff;
+}
+
+.drb-langdd__flag { font-size: 1.05rem; line-height: 1; }
+.drb-langdd__code {
+  font-size: 0.72rem;
+  opacity: 0.8;
+  letter-spacing: 0.04em;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+.drb-langdd__name {
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.drb-langdd__chev {
+  display: inline-flex;
+  transition: transform .34s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.85;
+}
+.drb-langdd.is-open .drb-langdd__chev { transform: rotate(180deg); }
+
+/* --- Disclosure menu: smooth open AND close via transition
+   (the JS toggles .is-open + aria-hidden instead of [hidden]) --- */
+.drb-langdd__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  min-width: 220px;
+  margin: 0;
+  padding: 0.45rem;
+  list-style: none;
+  background: #fff;
+  color: #1a2318;
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  z-index: 10060;
+  transform-origin: top right;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.97);
+  pointer-events: none;
+  transition:
+    opacity .26s cubic-bezier(0.16, 1, 0.3, 1),
+    transform .3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[dir="ltr"] .drb-langdd__menu { transform-origin: top left; }
+.drb-langdd.is-open .drb-langdd__menu {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* --- Language items: staggered fade-in on open.
+   IMPORTANT: resting opacity is 1 (visible). The entrance animation uses
+   `backwards` fill mode so it shows the opacity:0 `from` state only during
+   the stagger delay, then resolves to visible. If the animation ever fails to
+   fire (older browser, race), items still show — never an empty dropdown. --- */
+.drb-langdd__item { opacity: 1; }
+.drb-langdd.is-open .drb-langdd__item {
+  animation: drbLangItem .42s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+[dir="ltr"] .drb-langdd.is-open .drb-langdd__item { --drb-stagger: -6px; }
+.drb-langdd.is-open .drb-langdd__item:nth-child(1) { animation-delay: .035s; }
+.drb-langdd.is-open .drb-langdd__item:nth-child(2) { animation-delay: .07s; }
+.drb-langdd.is-open .drb-langdd__item:nth-child(3) { animation-delay: .105s; }
+.drb-langdd.is-open .drb-langdd__item:nth-child(4) { animation-delay: .14s; }
+.drb-langdd.is-open .drb-langdd__item:nth-child(5) { animation-delay: .175s; }
+.drb-langdd.is-open .drb-langdd__item:nth-child(6) { animation-delay: .21s; }
+.drb-langdd.is-open .drb-langdd__item:nth-child(7) { animation-delay: .245s; }
+.drb-langdd.is-open .drb-langdd__item:nth-child(8) { animation-delay: .28s; }
+@keyframes drbLangItem {
+  from { opacity: 0; transform: translateX(var(--drb-stagger, 6px)); }
+  to   { opacity: 1; transform: none; }
+}
+
+.drb-langdd__item a {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: background .18s ease, transform .18s ease, color .18s ease;
+}
+.drb-langdd__item a:hover,
+.drb-langdd__item a:focus-visible {
+  background: #E8F3E9;
+  transform: translateX(var(--drb-hover, 2px));
+  outline: none;
+}
+[dir="ltr"] .drb-langdd__item a:hover { --drb-hover: -2px; }
+.drb-langdd__item a:active { transform: translateX(0) scale(0.99); }
+.drb-langdd__item.is-active a {
+  background: #E4F0E4;
+  font-weight: 700;
+  color: #1f5f24;
+}
+.drb-langdd__check {
+  margin-inline-start: auto;
+  color: #2F7D32;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .drb-langdd__name { display: none; }
+  .drb-langdd__menu { min-width: 200px; }
+}
+
+/* --- Native light-header surface adaptation (header.php nav) --- */
+.drb-native-header__lang .drb-langdd__btn {
+  border-color: #dde2dd;
+  background: #f3f6f1;
+  color: #25272c;
+}
+.drb-native-header__lang .drb-langdd__btn:hover {
+  background: #e4f0e4;
+  border-color: #2F7D32;
+  color: #28722c;
+}
+.drb-native-header__lang .drb-langdd.is-open .drb-langdd__btn {
+  background: #2F7D32;
+  border-color: #2F7D32;
+  color: #fff;
+}
+.drb-native-header__lang { flex: 0 0 auto; }
+
+/* --- Hero specialty badge only (NOT global menu items).
+   Do NOT use [class*="backdrop-blur"] — that paints text-shadow on the
+   entire React .site-nav and other Tailwind glass utilities. --- */
+.hero-specialty-badge,
+[data-drb-hero-badge] {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drb-langdd__btn,
+  .drb-langdd__btn *,
+  .drb-langdd__menu,
+  .drb-langdd__chev,
+  .drb-langdd__item a {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* --- React SPA nav switcher (.drb-langdd--react inside .site-nav) --- */
+.site-nav .drb-langdd--react { margin-inline-start: 0.4rem; }
+.site-nav .drb-langdd--react .drb-langdd__btn {
+  border-color: rgba(47, 125, 50, 0.35);
+  background: rgba(47, 125, 50, 0.08);
+  color: #28722c;
+}
+.site-nav .drb-langdd--react .drb-langdd__btn:hover {
+  background: #e4f0e4;
+  border-color: #2F7D32;
+  color: #1f5f24;
+}
+.site-nav .drb-langdd--react.is-open .drb-langdd__btn {
+  background: #2F7D32;
+  border-color: #2F7D32;
+  color: #fff;
+}

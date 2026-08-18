@@ -1,0 +1,103 @@
+<?php
+/**
+ * English language pack — complete mirror of fa.php keys.
+ * "In Iran" / Tehran phrasing used where natural for SEO and trust.
+ */
+declare(strict_types=1);
+
+return [
+    'site_name'           => 'Dr. Shahin Bastaninejad',
+    'site_tagline'        => 'Rhinoplasty Surgeon & ENT Specialist in Iran',
+    'footer_rights'       => 'All rights reserved',
+    'footer_address'      => 'Tehran, Iran',
+    'footer_designed'     => 'Designed by',
+
+    'nav_home'            => 'Home',
+    'nav_about'           => 'About',
+    'nav_services'        => 'Services',
+    'nav_gallery'         => 'Gallery',
+    'nav_faq'             => 'FAQ',
+    'nav_blog'            => 'Blog',
+    'nav_contact'         => 'Contact',
+    'nav_booking'         => 'Book Appointment',
+    'nav_patient_login'   => 'Patient Login',
+    'nav_primary_label'   => 'Primary navigation',
+    'lang_switcher_label' => 'Language',
+
+    'cta_book'            => 'Book Online',
+    'cta_contact'         => 'Contact the Clinic',
+    'cta_learn_more'      => 'Learn more',
+    'cta_view_all'        => 'View all',
+    'cta_back_home'       => 'Back to home',
+
+    'form_name'           => 'Full Name',
+    'form_mobile'         => 'Mobile Number',
+    'form_email'          => 'Email',
+    'form_procedure'      => 'Procedure Type',
+    'form_message'        => 'Message or Notes',
+    'form_submit'         => 'Send Request',
+    'form_success'        => 'Your request was submitted successfully. A confirmation SMS will be sent.',
+    'form_cooldown'       => 'A recent request already exists for this phone. Please sign in to the patient portal.',
+    'form_login_cta'      => 'Patient login',
+    'form_required'       => 'This field is required',
+    'form_invalid_phone'  => 'Invalid phone format (e.g. +989121234567 or 09121234567)',
+    'form_invalid_email'  => 'Please enter a valid email address',
+    'form_select_service' => 'Please select a procedure type',
+    'form_accept_terms'   => 'You must confirm the eligibility conditions',
+    'form_country'        => 'Country',
+    'form_dial_code'      => 'Country code',
+    'form_phone_intl'     => 'International phone number',
+
+    'booking_title'       => 'Book a Consultation',
+    'booking_subtitle'    => 'Complete the form and our reception team will coordinate with you.',
+    'eligibility_age'     => 'Age between 18 and 45',
+    'eligibility_revision'=> 'At least 24 months since any prior surgery',
+    'eligibility_confirm' => 'I confirm I meet the eligibility criteria',
+    'booking_priority'    => 'Patients who complete the online booking form are prioritised for scheduling',
+
+    'gallery_title'       => 'Before & After Gallery',
+    'gallery_subtitle'    => 'Real results published with patient consent',
+    'gallery_all'         => 'All cases',
+    'gallery_primary'     => 'Primary rhinoplasty',
+    'gallery_revision'    => 'Revision rhinoplasty',
+    'gallery_privacy_status' => 'Gallery images are under review',
+    'gallery_empty'       => 'No approved cases are currently published',
+    'gallery_case'        => 'Case',
+    'gallery_interval'    => 'Time interval',
+    'gallery_procedure'   => 'Procedure',
+
+    'faq_title'           => 'Frequently Asked Questions',
+    'faq_subtitle'        => 'Clear answers to the most common questions about rhinoplasty',
+    'about_title'         => 'About the Doctor',
+    'services_title'      => 'Services',
+    'contact_title'       => 'Contact Us',
+    'privacy'             => 'Privacy Policy',
+    'terms'               => 'Terms of Use',
+    'cancellation'        => 'Cancellation Policy',
+    'sitemap'             => 'Sitemap',
+
+    '404_title'           => 'Page not found',
+    '404_body'            => 'The page you are looking for does not exist or has been moved.',
+
+    'seo_home_title'      => 'Dr. Shahin Bastaninejad | Rhinoplasty Surgeon in Iran',
+    'seo_home_desc'       => 'Specialist rhinoplasty and ENT clinic in Iran led by Dr. Shahin Bastaninejad. Natural results in Tehran.',
+
+    'svc_rhinoplasty_primary'   => 'Primary Rhinoplasty',
+    'svc_rhinoplasty_revision'  => 'Revision Rhinoplasty',
+    'svc_rhinoplasty_bony'      => 'Bony / Structural Rhinoplasty',
+    'svc_rhinoplasty_natural'   => 'Natural Rhinoplasty',
+    'svc_hump_removal'          => 'Nasal Hump Removal',
+    'svc_septoplasty'           => 'Septoplasty',
+    'svc_turbinoplasty'         => 'Turbinoplasty',
+    'svc_sinus_endoscopy'       => 'Sinus Endoscopy (FESS)',
+
+    'search_placeholder'  => 'Search services and articles...',
+    'close'               => 'Close',
+    'open_contact'        => 'Open contact options',
+    'close_contact'       => 'Close contact options',
+    'loading'             => 'Loading...',
+    'read_more'           => 'Read more',
+    'years_experience'    => 'years of specialised experience',
+    'surgeries_count'     => 'surgeries',
+    'satisfaction'        => 'patient satisfaction',
+];

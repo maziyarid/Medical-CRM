@@ -1,0 +1,285 @@
+﻿<!doctype html>
+<!--
+  MΛZ Medical CRM — Task Kanban
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Data:  ✅ Wired to GET/POST /api/v1/tasks, PATCH /status, DELETE (Staff API, Phase D)
+  Auth:  Staff Bearer token required.
+-->
+<html dir="rtl" lang="fa-IR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>وظایف — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    .kanban {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) { .kanban { grid-template-columns: 1fr; } }
+    .kanban-col {
+      background: var(--porcelain);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      min-height: 360px;
+    }
+    .kanban-col-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1rem; font-size: .88rem; font-weight: 700;
+    }
+    .col-count {
+      background: var(--surface); color: var(--muted);
+      padding: 2px 10px; border-radius: 999px;
+      font-size: .72rem; font-weight: 700;
+    }
+    .task-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: .85rem 1rem;
+      margin-bottom: .6rem;
+    }
+    .task-card:last-of-type { margin-bottom: 0; }
+    .task-title { font-size: .88rem; font-weight: 600; margin-bottom: .4rem; display: flex; align-items: center; gap: .4rem; }
+    .task-meta  { display: flex; justify-content: space-between; font-size: .72rem; color: var(--muted); }
+    .task-actions { display: flex; gap: .3rem; margin-top: .5rem; }
+    .prio { display: inline-block; width: 4px; height: 14px; vertical-align: middle; border-radius: 2px; flex-shrink: 0; }
+    .prio-high { background: var(--error); }
+    .prio-mid  { background: var(--warning); }
+    .prio-low  { background: var(--muted); }
+    .kanban-col--done .task-card { opacity: .65; }
+    .add-task-btn {
+      width: 100%; border: 1.5px dashed var(--border); background: none;
+      border-radius: var(--radius-md); padding: .6rem;
+      color: var(--muted); font-size: .82rem; cursor: pointer;
+      font-family: inherit; transition: border-color var(--transition-fast), color var(--transition-fast);
+      margin-top: .6rem; min-height: 44px;
+    }
+    .add-task-btn:hover { border-color: var(--evergreen); color: var(--evergreen); }
+    /* New task modal */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 1.75rem; width: 100%; max-width: 420px;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-box h3 { margin: 0 0 1.25rem; font-size: 1.05rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1rem; }
+  </style>
+</head>
+<body data-shell="staff" data-nav="tasks">
+  <div class="app-shell">
+    <main class="main">
+
+      <div class="topbar">
+        <div>
+          <h1>وظایف و کارها</h1>
+          <p class="subtitle">مدیریت وظایف تیم</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" id="btn-new-task">+ وظیفه جدید</button>
+        </div>
+      </div>
+
+      <div class="kanban" role="region" aria-label="تابلوی وظایف Kanban" id="kanban-board">
+        <!-- Columns rendered by JS -->
+        <div class="kanban-col" id="col-todo" role="group" aria-label="در انتظار">
+          <div class="kanban-col-head">در انتظار <span class="col-count" id="cnt-todo">…</span></div>
+          <div id="tasks-todo" aria-live="polite"><div class="skeleton skeleton-line" style="width:80%;margin:.5rem 0"></div></div>
+          <button class="add-task-btn js-add-task-btn" data-status="todo">+ افزودن وظیفه</button>
+        </div>
+        <div class="kanban-col" id="col-in_progress" role="group" aria-label="در حال انجام">
+          <div class="kanban-col-head">در حال انجام <span class="col-count" id="cnt-in_progress">…</span></div>
+          <div id="tasks-in_progress" aria-live="polite"><div class="skeleton skeleton-line" style="width:80%;margin:.5rem 0"></div></div>
+          <button class="add-task-btn js-add-task-btn" data-status="in_progress">+ افزودن وظیفه</button>
+        </div>
+        <div class="kanban-col kanban-col--done" id="col-done" role="group" aria-label="انجام شده">
+          <div class="kanban-col-head">انجام شده <span class="col-count" id="cnt-done">…</span></div>
+          <div id="tasks-done" aria-live="polite"><div class="skeleton skeleton-line" style="width:80%;margin:.5rem 0"></div></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- New task modal -->
+  <div class="modal-backdrop" id="new-task-modal" role="dialog" aria-modal="true" aria-label="وظیفه جدید">
+    <div class="modal-box">
+      <h3>وظیفه جدید</h3>
+      <input type="hidden" id="task-init-status" value="todo"/>
+      <div class="input-group">
+        <label class="form-label" for="task-title">عنوان وظیفه</label>
+        <input class="form-input" id="task-title" placeholder="مثلاً: پیگیری بیمه بیمار"/>
+      </div>
+      <div class="input-group" style="margin-top:.75rem">
+        <label class="form-label" for="task-priority">اولویت</label>
+        <select class="form-select" id="task-priority">
+          <option value="high">بالا</option>
+          <option value="medium" selected>متوسط</option>
+          <option value="low">پایین</option>
+        </select>
+      </div>
+      <div class="input-group" style="margin-top:.75rem">
+        <label class="form-label" for="task-due">موعد</label>
+        <input class="form-input" id="task-due" placeholder="مثلاً: ۱۴۰۵/۰۵/۱۵ (اختیاری)" style="direction:ltr"/>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" id="btn-task-cancel">انصراف</button>
+        <button class="btn btn-primary btn-sm" id="btn-task-save">ذخیره</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { Staff, renderError, showToast, escHtml, requireAuth, redirectOn401 } from '../../shared/api.js';
+    if (!requireAuth('../auth/login.html')) { /* redirecting */ }
+
+    const PRIO_CLASS = { high: 'prio-high', medium: 'prio-mid', low: 'prio-low' };
+    const PRIO_LABEL = { high: 'اولویت بالا', medium: 'اولویت متوسط', low: 'اولویت پایین' };
+    const STATUS_NEXT = { todo: 'in_progress', in_progress: 'done', done: null };
+    const STATUS_BTN  = { todo: 'شروع کار', in_progress: 'تکمیل', done: null };
+
+    function renderColumn(tasks, status) {
+      const container = document.getElementById('tasks-' + status);
+      const count = document.getElementById('cnt-' + status);
+      if (!tasks || !tasks.length) {
+        container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:.25rem 0">وظیفه‌ای وجود ندارد.</p>';
+        count.textContent = '۰';
+        return;
+      }
+      count.textContent = String(tasks.length).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+      container.innerHTML = tasks.map(t => {
+        const prioClass = PRIO_CLASS[t.priority] || 'prio-mid';
+        const prioLbl = PRIO_LABEL[t.priority] || '';
+        const nextStatus = STATUS_NEXT[status];
+        const btnLabel = STATUS_BTN[status];
+        const moveBtn = nextStatus
+          ? `<button class="btn btn-ghost btn-sm js-move-btn" data-id="${t.id}" data-status="${nextStatus}">${escHtml(btnLabel)}</button>`
+          : '';
+        const deleteBtn = `<button class="btn btn-ghost btn-sm js-delete-btn" data-id="${t.id}" style="color:var(--error)">حذف</button>`;
+        return `<article class="task-card" aria-label="${escHtml(t.title || '')}">
+          <div class="task-title">
+            <span class="prio ${prioClass}" aria-label="${escHtml(prioLbl)}"></span>
+            ${escHtml(t.title || '')}
+          </div>
+          <div class="task-meta">
+            <span>${escHtml(t.assignee_name || t.assignee_id || '')}</span>
+            <span>${escHtml(t.due_date || t.due || '')}</span>
+          </div>
+          <div class="task-actions">${moveBtn}${deleteBtn}</div>
+        </article>`;
+      }).join('');
+
+      // Move buttons
+      container.querySelectorAll('.js-move-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+          this.disabled = true;
+          try {
+            await Staff.updateTaskStatus(Number(this.dataset.id), this.dataset.status);
+            showToast('وضعیت وظیفه بروزرسانی شد.', 'success');
+            loadTasks();
+          } catch (err) {
+            showToast(err.message || 'خطا در تغییر وضعیت.', 'error');
+            this.disabled = false;
+          }
+        });
+      });
+
+      // Delete buttons
+      container.querySelectorAll('.js-delete-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+          if (!confirm('این وظیفه حذف شود؟')) return;
+          this.disabled = true;
+          try {
+            await Staff.deleteTask(Number(this.dataset.id));
+            showToast('وظیفه حذف شد.', 'success');
+            loadTasks();
+          } catch (err) {
+            showToast(err.message || 'خطا در حذف وظیفه.', 'error');
+            this.disabled = false;
+          }
+        });
+      });
+    }
+
+    async function loadTasks() {
+      try {
+        const res = await Staff.listTasks();
+        const d = res.data || res;
+        // Backend returns { columns: { todo:[], in_progress:[], done:[] }, total }
+        // or a flat array — handle both shapes
+        if (d && d.columns) {
+          renderColumn(d.columns.todo        || [], 'todo');
+          renderColumn(d.columns.in_progress || [], 'in_progress');
+          renderColumn(d.columns.done        || [], 'done');
+        } else {
+          const tasks = d.rows || d.items || (Array.isArray(d) ? d : []);
+          renderColumn(tasks.filter(t => t.status === 'todo'),        'todo');
+          renderColumn(tasks.filter(t => t.status === 'in_progress'), 'in_progress');
+          renderColumn(tasks.filter(t => t.status === 'done'),        'done');
+        }
+      } catch (err) {
+        if (redirectOn401(err, '../auth/login.html')) return;
+        renderError(document.getElementById('kanban-board'), err);
+        showToast(err.message || 'خطا در بارگذاری وظایف', 'error');
+      }
+    }
+
+    // New task modal
+    function openNewTaskModal(status = 'todo') {
+      document.getElementById('task-init-status').value = status;
+      document.getElementById('task-title').value = '';
+      document.getElementById('task-due').value = '';
+      document.getElementById('new-task-modal').classList.add('open');
+    }
+
+    document.getElementById('btn-new-task').addEventListener('click', () => openNewTaskModal('todo'));
+    document.querySelectorAll('.js-add-task-btn').forEach(btn => {
+      btn.addEventListener('click', function() { openNewTaskModal(this.dataset.status); });
+    });
+    document.getElementById('btn-task-cancel').addEventListener('click', () => {
+      document.getElementById('new-task-modal').classList.remove('open');
+    });
+    document.getElementById('new-task-modal').addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+
+    document.getElementById('btn-task-save').addEventListener('click', async function() {
+      const title = document.getElementById('task-title').value.trim();
+      const priority = document.getElementById('task-priority').value;
+      const due = document.getElementById('task-due').value.trim();
+      const status = document.getElementById('task-init-status').value;
+      if (!title) { showToast('عنوان وظیفه اجباری است.', 'error'); return; }
+      this.disabled = true;
+      try {
+        await Staff.createTask({ title, priority, status, due_date: due || undefined });
+        showToast('وظیفه با موفقیت ایجاد شد.', 'success');
+        document.getElementById('new-task-modal').classList.remove('open');
+        loadTasks();
+      } catch (err) {
+        showToast(err.message || 'خطا در ایجاد وظیفه', 'error');
+      } finally {
+        this.disabled = false;
+      }
+    });
+
+    loadTasks();
+  </script>
+</body>
+</html>

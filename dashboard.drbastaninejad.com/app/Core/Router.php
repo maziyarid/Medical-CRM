@@ -112,10 +112,16 @@ final class Router
                 }
             }
 
-            // Call controller
+            // Call controller. Route placeholders are passed after Request in
+            // declaration order, e.g. (Request $req, string $id). Controllers
+            // that only consume Request safely ignore extra userland args.
             [$class, $action] = $route['handler'];
             $controller = new $class();
-            return $controller->$action($req);
+            $args = [$req];
+            foreach ($route['names'] as $name) {
+                $args[] = (string)($params[$name] ?? '');
+            }
+            return $controller->$action(...$args);
         }
 
         if ($pathMatched) {

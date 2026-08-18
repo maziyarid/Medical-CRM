@@ -1,0 +1,442 @@
+{
+  "lang": "tr",
+  "dir": "ltr",
+  "chrome": {
+    "site_name": "Dr. Shahin Bastaninejad",
+    "site_tagline": "İran'da Burun Estetiği Cerrahı ve KBB Uzmanı",
+    "nav_home": "Ana Sayfa",
+    "nav_about": "Doktor Hakkında",
+    "nav_services": "Hizmetler",
+    "nav_gallery": "Galeri",
+    "nav_faq": "Sıkça Sorulan Sorular",
+    "nav_blog": "Blog",
+    "nav_contact": "İletişim",
+    "nav_booking": "Randevu Al",
+    "nav_patient_login": "Hasta Girişi",
+    "cta_book": "Online Randevu Al",
+    "cta_contact": "Klinikle İletişime Geç",
+    "footer_rights": "Tüm hakları saklıdır",
+    "footer_address": "Tahran, İran",
+    "form_name": "Ad Soyad",
+    "form_mobile": "Cep Telefonu Numarası",
+    "form_email": "E-posta",
+    "form_procedure": "İşlem Türü",
+    "form_message": "Mesaj veya Açıklama",
+    "form_submit": "Talebi Gönder",
+    "form_success": "Talebiniz başarıyla alındı. Onay SMS'i gönderilecektir.",
+    "form_cooldown": "Bu telefon numarası için yakın zamanda bir talep oluşturulmuş. Lütfen hasta panelinden giriş yapın.",
+    "form_login_cta": "Hasta Paneline Giriş",
+    "booking_title": "Konsültasyon Randevusu",
+    "booking_subtitle": "Aşağıdaki formu doldurun, resepsiyon ekibimiz sizinle iletişime geçecektir.",
+    "eligibility_age": "18-45 yaş arası",
+    "eligibility_revision": "Önceki ameliyattan bu yana en az 24 ay geçmiş olması",
+    "lang_switcher_label": "Dil",
+    "privacy": "Gizlilik Politikası",
+    "404_title": "Sayfa bulunamadı",
+    "404_body": "Aradığınız sayfa mevcut değil.",
+    "seo_home_title": "Dr. Shahin Bastaninejad | İran'da Burun Estetiği Cerrahı",
+    "seo_home_desc": "Dr. Shahin Bastaninejad liderliğinde İran, Tahran'da uzman burun estetiği ve KBB kliniği."
+  },
+  "forms": {
+    "نشست فرم منقضی شده است. صفحه را تازه‌سازی کنید.": "Form oturumunuzun süresi doldu. Lütfen sayfayı yenileyin.",
+    "سامانه نوبت‌دهی موقتاً در دسترس نیست.": "Randevu sistemi geçici olarak kullanılamıyor.",
+    "درخواست این شماره به‌تازگی ثبت شده است. برای جلوگیری از ثبت تکراری کمی بعد دوباره تلاش کنید.": "Bu numara için yakın zamanda bir talep oluşturuldu. Tekrar oluşumu önlemek için lütfen daha sonra tekrar deneyin.",
+    "ثبت درخواست نوبت انجام نشد. لطفاً دوباره تلاش کنید.": "Randevu talebi kaydedilemedi. Lütfen tekrar deneyin.",
+    "ثبت درخواست نوبت انجام نشد.": "Randevu talebi kaydedilemedi.",
+    "درخواست نوبت شما با موفقیت ثبت شد.": "Randevu talebiniz başarıyla alındı.",
+    "درخواست نوبت شما ثبت شد. همکاران کلینیک برای هماهنگی تماس می‌گیرند. پنل بیمار: {login_url}": "Randevu talebiniz alındı. Klinik ekibimiz koordinasyon için sizinle iletişime geçecektir. Hasta paneli: {login_url}",
+    "ایمیل معتبر نیست.": "E-posta adresi geçerli değil.",
+    "برای رزرو بین‌المللی وارد کردن ایمیل معتبر الزامی است.": "Uluslararası randevular için geçerli bir e-posta adresi girilmesi zorunludur.",
+    "بررسی جراحی ترمیمی فقط پس از گذشت کامل ۲۴ ماه از جراحی قبلی انجام می‌شود.": "Revizyon ameliyatı değerlendirmesi, önceki ameliyattan itibaren tam 24 ay geçtikten sonra yapılır.",
+    "تأیید شرایط پذیرش الزامی است.": "Kabul koşullarının onaylanması zorunludur.",
+    "ترمیمی": "Revizyon",
+    "تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.": "İzin verilen talep sayısı aşıldı. Lütfen daha sonra tekrar deneyin.",
+    "ثبت پیام انجام نشد.": "Mesaj kaydedilemedi.",
+    "درخواست نامعتبر است.": "Talep geçersiz.",
+    "دریافت آمار از داشبورد انجام نشد.": "Panelden istatistikler alınamadı.",
+    "نام و شماره موبایل معتبر الزامی است.": "Geçerli bir ad ve cep telefonu numarası gereklidir.",
+    "٠": "0",
+    "١": "1",
+    "٢": "2",
+    "٣": "3",
+    "٤": "4",
+    "٥": "5",
+    "٦": "6",
+    "٧": "7",
+    "٨": "8",
+    "٩": "9",
+    "پذیرش جراحی فقط برای بازه سنی ۱۸ تا ۴۵ سال انجام می‌شود.": "Ameliyat kabulü yalnızca 18-45 yaş aralığı için yapılmaktadır.",
+    "پل داشبورد تنظیم نشده است.": "Panel bağlantısı yapılandırılmamış.",
+    "پیام تماس جدید: ": "Yeni iletişim mesajı: ",
+    "پیام تماس — ": "İletişim mesajı — ",
+    "پیام شما با موفقیت ثبت شد.": "Mesajınız başarıyla gönderildi.",
+    "۰": "0",
+    "۱": "1",
+    "۲": "2",
+    "۳": "3",
+    "۴": "4",
+    "۵": "5",
+    "۶": "6",
+    "۷": "7",
+    "۸": "8",
+    "۹": "9",
+    "نام و نام خانوادگی": "Ad Soyad",
+    "شماره موبایل": "Cep telefonu numarası",
+    "ایمیل": "E-posta",
+    "نوع خدمت": "İşlem türü",
+    "پیام یا توضیحات": "Mesaj veya açıklama",
+    "ارسال درخواست": "Talebi gönder"
+  },
+  "pages": [
+    {
+      "source_slug_fa": "صفحه-اصلی",
+      "slug": "ana-sayfa",
+      "title": "Ana Sayfa",
+      "seo_title": "Dr. Shahin Bastaninejad | İran'da Burun Estetiği Cerrahı",
+      "seo_description": "Dr. Shahin Bastaninejad ile İran'da uzman burun estetiği ve KBB bakımı. Tahran'da doğal görünümlü sonuçlar ve uzman konsültasyon.",
+      "content_html": "<h2>Dr. Shahin Bastaninejad</h2>\n<p>İran'da burun estetiği cerrahı ve KBB uzmanı; birincil ve revizyon burun estetiği, nazal rekonstrüksiyon ve endoskopik sinüs cerrahisi üzerine uzmanlaşmıştır.</p>\n<p>Hizmetleri, vaka galerisini ve çevrimiçi konsültasyon randevusunu inceleyin. Uluslararası hastalar, randevu formu üzerinden randevu talep edebilir.</p>\n<p><a href=\"/booking/\">Konsültasyon randevusu al</a> · <a href=\"/about/\">Doktor hakkında</a> · <a href=\"/gallery/\">Galeri</a></p>"
+    },
+    {
+      "source_slug_fa": "درباره-دکتر-شاهین-باستانی-نژاد",
+      "slug": "doktor-hakkinda",
+      "title": "Dr. Shahin Bastaninejad Hakkında",
+      "seo_title": "Dr. Shahin Bastaninejad Hakkında | İran'da KBB ve Burun Estetiği Cerrahı",
+      "seo_description": "Tahran, İran'da Kulak Burun Boğaz Doçenti olan Dr. Shahin Bastaninejad'ın biyografisi ve akademik geçmişi — burun estetiği, revizyon cerrahisi ve endoskopik sinüs bakımı.",
+      "content_html": "<h2>Dr. Shahin Bastaninejad Hakkında</h2>\n<p>Dr. Shahin Bastaninejad, burun plastik cerrahisine odaklanan bir kulak burun boğaz hastalıkları cerrahı ve uzmanıdır.</p>\n<p>1978 yılında doğmuş, aslen Şiraz'dan olup eğitiminin bir kısmını İsfahan'da tamamlamıştır. 1996 yılında İsfahan Tıp Bilimleri Üniversitesi'ne girmiş ve 2005 yılında Tahran Tıp Bilimleri Üniversitesi'nde kulak burun boğaz–baş ve boyun cerrahisi ihtisasına başlamış, 2009'da mezun olmuştur.</p>\n<p>İhtisas sırasında Tahran Tıp Bilimleri Üniversitesi'nde üstün başarılı asistan olarak tanınmış ve ulusal uzmanlık sınavında dördüncü olmuştur. Fars eyaletindeki Jahrom'da hizmetini tamamladıktan sonra (2009–2010), Tahran'daki Amir Alam Hastanesi'nde akademik kadroya katılmıştır.</p>\n<p>Geniş kapsamlı yayınlar yapmış ve burun estetiği ile endoskopik sinüs cerrahisi üzerine çok sayıda kurs düzenlemiştir. Klinik ilgi alanları arasında birincil ve ikincil burun estetiği, nazal rekonstrüksiyon, nazal tümörler, endoskopik sinüs cerrahisi ve beyin cerrahisi ekipleriyle kafa tabanı işbirliği bulunmaktadır.</p>\n<p>Tahran Tıp Bilimleri Üniversitesi'nde Kulak Burun Boğaz Doçenti ve İran Rinoloji ve Yüz Plastik Cerrahisi Derneği bilim kurulu üyesidir. Ayrıca Amir Alam Hastanesi'nde eğitim ve klinik yönetimi konularında liderlik görevlerinde bulunmuştur.</p>\n<p><a href=\"/contact/\">Klinikle iletişime geçin</a> · <a href=\"/gallery/\">Galeriyi görüntüleyin</a></p>"
+    },
+    {
+      "source_slug_fa": "تماس-با-ما",
+      "slug": "iletisim",
+      "title": "İletişim",
+      "seo_title": "İran'daki Dr. Bastaninejad Kliniği ile İletişime Geçin",
+      "seo_description": "Tahran, İran'da Dr. Shahin Bastaninejad'ın kliniğiyle iletişim bilgileri ve konsültasyon talebi.",
+      "content_html": "<h2>Klinikle iletişime geçin</h2>\n<p>Tahran, İran'da Dr. Shahin Bastaninejad ile yapılacak konsültasyonların koordinasyonu ve sorularınız için bu sayfadaki iletişim formunu veya çevrimiçi randevu formunu kullanın.</p>\n<p>Lütfen ulaşılabilir bir cep telefonu numarası ve uluslararası hastalar için geçerli bir e-posta adresi ekleyin.</p>"
+    },
+    {
+      "source_slug_fa": "دریافت-نوبت",
+      "slug": "randevu-al",
+      "title": "Konsültasyon Randevusu Al",
+      "seo_title": "İran'da Burun Estetiği Konsültasyonu Randevusu | Dr. Bastaninejad",
+      "seo_description": "İran'da Dr. Shahin Bastaninejad ile çevrimiçi konsültasyon talep edin. Uygunluk koşulları geçerlidir (18-45 yaş; revizyon en az 24 ay sonra).",
+      "content_html": "<h2>Konsültasyon randevusu al</h2>\n<p>Konsültasyon talep etmek için formu doldurun. Resepsiyon ekibimiz zamanlamayı koordine etmek için sizinle iletişime geçecektir.</p>\n<ul>\n<li>Uygun yaş: 18-45</li>\n<li>Revizyon vakaları: önceki ameliyattan itibaren en az 24 ay</li>\n<li>Uluslararası hastalar: ülke/arama kodu ve zorunlu e-posta ekleyin</li>\n</ul>\n<p>Gönderdikten sonra, bir hesabınız varsa takip için hasta panelini kullanabilirsiniz.</p>"
+    },
+    {
+      "source_slug_fa": "سوالات-متداول",
+      "slug": "sikca-sorulan-sorular",
+      "title": "Sıkça Sorulan Sorular",
+      "seo_title": "SSS | Dr. Bastaninejad ile İran'da Burun Estetiği ve KBB Bakımı",
+      "seo_description": "İran'da Dr. Shahin Bastaninejad'ın hastaları için kabul saatleri, uygunluk ve bakım sonrası hakkında cevaplar.",
+      "content_html": "<h2>Sıkça sorulan sorular</h2>\n<p>Klinik saatleri, ameliyat uygunluğu ve ameliyat sonrası bakım hakkında cevaplar bulun. Kişisel tıbbi tavsiye için doğrudan klinikle iletişime geçin.</p>"
+    },
+    {
+      "source_slug_fa": "گالری",
+      "slug": "galeri",
+      "title": "Galeri",
+      "seo_title": "Öncesi ve Sonrası Galerisi | İran'da Dr. Bastaninejad",
+      "seo_description": "İran'daki Dr. Shahin Bastaninejad kliniğinden seçilmiş burun estetiği vaka görüntüleri. Sonuçlar kişiden kişiye değişir.",
+      "content_html": "<h2>Vaka galerisi</h2>\n<p>Seçilmiş eğitici vaka görüntüleri. Sonuçlar anatomiye ve klinik plana göre değişir. Hiçbir sonuç garanti edilmez.</p>"
+    },
+    {
+      "source_slug_fa": "آتل-بینی",
+      "slug": "atel-sonrasi-bakim",
+      "title": "Atel Çıkarıldıktan Sonra Önemli Noktalar",
+      "seo_title": "Atel Çıkarıldıktan Sonra | Bakım Kılavuzu | İran'da Dr. Bastaninejad",
+      "seo_description": "İran'da Dr. Shahin Bastaninejad tarafından tedavi edilen hastalar için burun ateli çıkarıldıktan sonraki pratik bakım noktaları. Her zaman cerrahınızın yazılı planını takip edin.",
+      "content_html": "<h2>Atel çıkarıldıktan sonra önemli noktalar</h2>\n<p>Dış atel çıkarıldıktan sonra şişlik ve hassasiyet haftalarca sürebilir. Burnu travmadan koruyun, tavsiye edilmişse ağır gözlüklerden kaçının ve takip randevularına devam edin.</p>\n<p>Bantları veya dikişleri manipüle etmeyin. Yalnızca bakım ekibiniz tarafından onaylanan durulama, merhem veya ilaçları kullanın. Uyku pozisyonu ve aktivite sınırlamaları genel internet tavsiyelerini değil, yazılı talimatlarınızı takip etmelidir.</p>\n<p>Ağır kanama, ateş, şiddetli ağrı veya ani nefes alma zorluğu durumunda hemen klinikle iletişime geçin.</p>"
+    },
+    {
+      "source_slug_fa": "سیاست-حفظ-حریم-خصوصی",
+      "slug": "gizlilik-politikasi",
+      "title": "Gizlilik Politikası",
+      "seo_title": "Gizlilik Politikası | Dr. Bastaninejad Kliniği",
+      "seo_description": "Dr. Shahin Bastaninejad kliniği web sitesinin randevu talepleri ve site kullanımı için kişisel verileri nasıl işlediği.",
+      "content_html": "<h2>Gizlilik politikası</h2>\n<p>Bu web sitesi, talebinize yanıt vermek ve bakımla ilgili iletişimi koordine etmek amacıyla iletişim ve randevu formları aracılığıyla gönderdiğiniz bilgileri (ad, cep telefonu numarası ve e-posta gibi) toplar.</p>\n<p>Klinik kayıtları, halka açık pazarlama web sitesinden ayrı olarak kliniğin güvenli sistemlerinde yönetilir. Kişisel verileri satmıyoruz.</p>\n<p>Site, güvenlik ve oturum yönetimi için gerekli çerezleri kullanabilir. Üçüncü taraf sitelerden gömülü içerikler, kendi politikalarına göre kendi çerezlerini ayarlayabilir.</p>\n<p>Gizlilik soruları için, bu web sitesinde listelenen resmi iletişim kanalları aracılığıyla klinikle iletişime geçin.</p>"
+    },
+    {
+      "source_slug_fa": "مقالات",
+      "slug": "makaleler",
+      "title": "Makaleler",
+      "seo_title": "Makaleler | İran'da Dr. Bastaninejad Kliniği",
+      "seo_description": "İran'daki Dr. Shahin Bastaninejad kliniğinden hasta eğitim makaleleri.",
+      "content_html": "<h2>Makaleler</h2>\n<p>Hazırlık ve iyileşme üzerine eğitici gönderiler. Blog yazıları bu dil sürümünde tam olarak çevrilmemiştir; önemli kılavuzlar Farsça olarak mevcuttur.</p>"
+    },
+    {
+      "source_slug_fa": "دکتر-شاهین-باستانی-نژاد",
+      "slug": "dr-shahin-bastaninejad",
+      "title": "Dr. Shahin Bastaninejad",
+      "seo_title": "Dr. Shahin Bastaninejad | İran'da Burun Estetiği",
+      "seo_description": "İran'da burun estetiği ve KBB cerrahı Dr. Shahin Bastaninejad'ın resmi profil sayfası.",
+      "content_html": "<h2>Dr. Shahin Bastaninejad</h2>\n<p>İran'da burun estetiği ve KBB uzmanı. Daha fazla bilgi için <a href=\"/about/\">Hakkında</a> sayfasına göz atın veya <a href=\"/booking/\">konsültasyon randevusu alın</a>.</p>"
+    }
+  ],
+  "services": [
+    {
+      "slug": "rhinoplasty-primary",
+      "title": "Birincil burun estetiği",
+      "subtitle": "İlk kez burun ameliyatı",
+      "description": "Birincil burun estetiği, burnu yüzün diğer kısımlarıyla uyumlu şekilde biçimlendirir. Dr. Bastaninejad, özelliklerinize uyan doğal bir sonuç için güncel teknikler kullanır."
+    },
+    {
+      "slug": "rhinoplasty-revision",
+      "title": "Revizyon burun estetiği",
+      "subtitle": "İkincil burun estetiği",
+      "description": "Revizyon ameliyatı, önceki bir ameliyat sonrası istenmeyen sonuçları ele alır. Dr. Bastaninejad'ın bu alandaki yıllara dayanan odaklanmış deneyiminden gelen yüksek hassasiyet ve uzmanlık gerektirir."
+    },
+    {
+      "slug": "rhinoplasty-bony",
+      "title": "Kemikli burun estetiği",
+      "subtitle": "Sert, kemikli burun yapısı",
+      "description": "Kemikli burunlar daha sert bir çatıya sahiptir ve istenen şekle ulaşmak için özel teknikler gerektirir. Hedef, yüzle orantılı doğal bir görünümdür."
+    },
+    {
+      "slug": "rhinoplasty-natural",
+      "title": "Doğal görünümlü burun estetiği",
+      "subtitle": "İnce, doğal sonuçlar",
+      "description": "Doğal burun estetiği tarzı, burnun her zaman yüzünüze ait olmuş gibi görünmesini sağlayan ince değişiklikler yapar. Yüz hatlarıyla uyum önceliktir."
+    },
+    {
+      "slug": "hump-removal",
+      "title": "Burun kemeri küçültme",
+      "subtitle": "Burun profilini düzleştirme",
+      "description": "Sırt kemeri, hastaların ameliyat aramasının en yaygın nedenlerinden biridir. Hassas teknikler kemeri kaldırır ve daha düz bir yan profil oluşturur."
+    },
+    {
+      "slug": "septoplasty",
+      "title": "Septoplasti",
+      "subtitle": "Sapmış septumun düzeltilmesi",
+      "description": "Sapmış bir burun septumu ciddi nefes alma sorunlarına neden olabilir. Septoplasti septumu düzleştirir ve hava akışını önemli ölçüde iyileştirebilir."
+    },
+    {
+      "slug": "turbinoplasty",
+      "title": "Turbinoplasti",
+      "subtitle": "Büyümüş konkaların küçültülmesi",
+      "description": "Büyümüş konkalar, kronik burun tıkanıklığının yaygın bir nedenidir. Turbinoplasti bu dokuyu küçültür ve hava akışını optimize etmeye yardımcı olur."
+    },
+    {
+      "slug": "sinus-endoscopy",
+      "title": "Endoskopik sinüs cerrahisi (FESS)",
+      "subtitle": "Kronik sinüzit tedavisi",
+      "description": "Fonksiyonel endoskopik sinüs cerrahisi (FESS), kronik sinüzit, nazal polipler ve ilgili sinüs hastalıklarını, kalıcı iyileşme hedefleyen minimal invaziv bir yaklaşımla tedavi eder."
+    }
+  ],
+  "faqs": [
+    {
+      "source_id": "policy-hours",
+      "category": "Resepsiyon",
+      "question": "Klinik saatleri ve son kabul saati nedir?",
+      "answer_html": "<p>Cumartesi'den Salı'ya, 15:00–18:00. 18:00'den sonra gelen hastalar hiçbir koşulda kabul edilmeyecektir.</p>"
+    },
+    {
+      "source_id": "policy-age",
+      "category": "Resepsiyon",
+      "question": "Ameliyat için kabul edilebilir yaş aralığı nedir?",
+      "answer_html": "<p>Uygun yaş 18-45'tir. Bu aralığın dışındaki vakalar yalnızca cerrahın açık onayı ile değerlendirilir.</p>"
+    },
+    {
+      "source_id": "policy-revision-wait",
+      "category": "Resepsiyon",
+      "question": "Önceki ameliyattan sonra revizyon ne zaman düşünülebilir?",
+      "answer_html": "<p>Cerrahi ekip sizin durumunuz için farklı bir plan belirlemediği takdirde, önceki ameliyattan itibaren en az 24 ay geçmiş olmalıdır.</p>"
+    },
+    {
+      "source_id": "policy-booking",
+      "category": "Resepsiyon",
+      "question": "Konsültasyon randevusu nasıl alırım?",
+      "answer_html": "<p>Web sitesindeki çevrimiçi randevu formunu kullanın veya klinikle telefonla iletişime geçin. Gönderildikten sonra, resepsiyon ekibi randevuyu koordine eder.</p>"
+    },
+    {
+      "source_id": "policy-documents",
+      "category": "Resepsiyon",
+      "question": "Ziyarete ne getirmeliyim?",
+      "answer_html": "<p>Kimlik, varsa önceki görüntüleme veya ameliyat notları, ilaç listesi ve ekibin istediği önceki öncesi/sonrası fotoğrafları getirin.</p>"
+    },
+    {
+      "source_id": "preop-meds",
+      "category": "Ameliyat öncesi",
+      "question": "Ameliyattan önce hangi ilaçlar kesilmelidir?",
+      "answer_html": "<p>Yalnızca cerrahi ekibinizin yazılı talimatlarını takip edin. Kendi başınıza herhangi bir ilaç, takviye veya bitkisel ürünü başlatmayın veya durdurmayın.</p>"
+    },
+    {
+      "source_id": "preop-smoking",
+      "category": "Ameliyat öncesi",
+      "question": "Ameliyattan önce sigara veya elektronik sigara kullanımına izin veriliyor mu?",
+      "answer_html": "<p>Sigara ve nikotin ürünleri iyileşmeyi bozar. Cerrahınızın belirlediği süre boyunca ameliyattan önce ve sonra bunlardan kaçının.</p>"
+    },
+    {
+      "source_id": "preop-fasting",
+      "category": "Ameliyat öncesi",
+      "question": "Ameliyattan önce nasıl oruç tutmalıyım?",
+      "answer_html": "<p>Kabul saatiniz için verilen kesin açlık talimatlarını takip edin. Bu planın dışında yemek yemeyin veya içmeyin.</p>"
+    },
+    {
+      "source_id": "postop-care",
+      "category": "Ameliyat sonrası",
+      "question": "İlk günlerde ne tür genel bakım gereklidir?",
+      "answer_html": "<p>Ekibinizin bakım planını takip edin: tuzu azaltın, yeterince su içirin, ağır eğilmeden ve yorucu aktiviteden kaçının ve ilaçları tam olarak reçete edildiği şekilde alın.</p>"
+    },
+    {
+      "source_id": "postop-sutures",
+      "category": "Ameliyat sonrası",
+      "question": "Dikişlere nasıl bakılmalıdır?",
+      "answer_html": "<p>Dikişleri temiz tutun, onları manipüle etmeyin ve baskı, travma veya üst dudağın aşırı gerilmesinden kaçının. Onarım kremlerini yalnızca bakım ekibi onaylarsa kullanın.</p>"
+    },
+    {
+      "source_id": "postop-bath",
+      "category": "Ameliyat sonrası",
+      "question": "Ameliyattan sonra ne zaman duş alabilirim?",
+      "answer_html": "<p>Genellikle 72 saat sonra, talimat verildiği şekilde kısa bir duşla. Alçı ve bantlar ıslanmamalı veya kaymamalı, su çok sıcak olmamalıdır.</p>"
+    },
+    {
+      "source_id": "postop-diet",
+      "category": "Ameliyat sonrası",
+      "question": "İlk günlerde ne yemeliyim?",
+      "answer_html": "<p>Hafif, yumuşak, az tuzlu yiyecekleri seçin. Ağır çiğneme gerektiren sert, baharatlı veya tuzlu ürünlerden kaçının. Beslenme rehberliği için kliniğin anti-enflamatuar diyet makalesine bakın.</p>"
+    },
+    {
+      "source_id": "diet-dairy",
+      "category": "Beslenme",
+      "question": "Anti-enflamatuar diyette süt, yoğurt ve diğer süt ürünlerine izin veriliyor mu?",
+      "answer_html": "<p>Hayır. Tüm süt ürünleri kısıtlıdır; lor peyniri, protein içeriği nedeniyle planlanan miktar dahilinde onaylanan tek istisnadır.</p>"
+    },
+    {
+      "source_id": "diet-potato",
+      "category": "Beslenme",
+      "question": "Ameliyat sonrası patates püresi veya domates önerilir mi?",
+      "answer_html": "<p>Hayır. Bu protokolde patates, patates püresi ve domates enflamatuar kabul edilir ve izin verilmez.</p>"
+    },
+    {
+      "source_id": "diet-rice",
+      "category": "Beslenme",
+      "question": "Anti-enflamatuar diyette pilav veya sütlaç yenilebilir mi?",
+      "answer_html": "<p>Hayır. Bu protokolde pilav, sütlaç ve pirinç bazlı ürünlere izin verilmez.</p>"
+    },
+    {
+      "source_id": "diet-duration",
+      "category": "Beslenme",
+      "question": "Anti-enflamatuar diyet ne kadar sürer?",
+      "answer_html": "<p>Bakım ekibiniz durumunuz için farklı bir plan belirlemediği takdirde, ameliyattan sonra en az bir ay.</p>"
+    },
+    {
+      "source_id": "postop-meds-start",
+      "category": "Ameliyat sonrası",
+      "question": "Ameliyat sonrası ilaçlar ne zaman başlamalıdır?",
+      "answer_html": "<p>Taburcu olduktan sonra ilaçları tam olarak reçete edildiği şekilde başlatın. Spreyleri, durulamaları veya merhemleri kendi başınıza değiştirmeyin, durdurmayın veya eklemeyin.</p>"
+    },
+    {
+      "source_id": "postop-splint",
+      "category": "Ameliyat sonrası",
+      "question": "Atel burun üzerinde ne kadar süre kalır?",
+      "answer_html": "<p>Genellikle yaklaşık bir hafta; kesin zamanlama burnunuza ve cerrahın değerlendirmesine bağlıdır. Atel ıslanmamalı, gevşememeli veya kaymamalıdır.</p>"
+    },
+    {
+      "source_id": "postop-bleeding",
+      "category": "Ameliyat sonrası",
+      "question": "Kanla boyalı akıntı veya tıkanıklık normal mi?",
+      "answer_html": "<p>İlk 24-72 saatte hafif kanla boyalı akıntı ve hafif tıkanıklık normal olabilir. Şiddetli veya sürekli kanama, ateş, kontrolsüz ağrı veya belirgin nefes alma zorluğunu bakım ekibine hemen bildirin.</p>"
+    },
+    {
+      "source_id": "postop-sleep",
+      "category": "Ameliyat sonrası",
+      "question": "Ameliyattan sonra nasıl uyumalı ve dinlenmeliyim?",
+      "answer_html": "<p>Sadece durumunuz için verilen talimatları takip edin. Genel internet tavsiyelerine veya eski gönderilere güvenmeyin.</p>"
+    },
+    {
+      "source_id": "postop-packing",
+      "category": "Ameliyat sonrası",
+      "question": "İç burun tamponu kullanılıyor mu?",
+      "answer_html": "<p>Kliniğin güncel yaklaşımına göre, iç ağ veya tampon genellikle kullanılmaz; nihai karar ameliyat bulgularına bağlıdır.</p>"
+    },
+    {
+      "source_id": "postop-stay",
+      "category": "Ameliyat sonrası",
+      "question": "Ameliyattan sonra hastanede kaç gün kalacağım?",
+      "answer_html": "<p>Taburcu olma zamanlaması durumunuza ve bakım ekibinin değerlendirmesine bağlıdır; ayrılmadan önce değerlendirileceksiniz.</p>"
+    }
+  ],
+  "gallery_labels": [
+    {
+      "key": "case-01",
+      "label": "Vaka 01",
+      "procedure": "Revizyon burun estetiği",
+      "interval": "Ameliyattan 1 yıl sonra"
+    },
+    {
+      "key": "case-02",
+      "label": "Vaka 02",
+      "procedure": "Burun estetiği",
+      "interval": "Ameliyattan 5 ay sonra"
+    },
+    {
+      "key": "case-03",
+      "label": "Vaka 03",
+      "procedure": "Revizyon burun estetiği",
+      "interval": "Ameliyattan 50 gün sonra"
+    },
+    {
+      "key": "case-04",
+      "label": "Vaka 04",
+      "procedure": "Burun estetiği",
+      "interval": "Ameliyattan 1 yıl sonra"
+    },
+    {
+      "key": "case-05",
+      "label": "Vaka 05",
+      "procedure": "Revizyon burun estetiği",
+      "interval": "Ameliyattan 3 ay sonra"
+    },
+    {
+      "key": "case-06",
+      "label": "Vaka 06",
+      "procedure": "Burun estetiği",
+      "interval": "Ameliyattan 6 ay sonra"
+    },
+    {
+      "key": "case-07",
+      "label": "Vaka 07",
+      "procedure": "Burun estetiği",
+      "interval": "Ameliyattan 3 ay sonra"
+    },
+    {
+      "key": "case-08",
+      "label": "Vaka 08",
+      "procedure": "Revizyon burun estetiği",
+      "interval": "Ameliyattan 1 ay sonra"
+    },
+    {
+      "key": "case-09",
+      "label": "Vaka 09",
+      "procedure": "İşlem türü kaydedilmedi",
+      "interval": "Zamanlama kaydedilmedi"
+    },
+    {
+      "key": "case-10",
+      "label": "Vaka 10",
+      "procedure": "Burun estetiği",
+      "interval": "Ameliyattan 6 yıl sonra"
+    },
+    {
+      "key": "case-11",
+      "label": "Vaka 11",
+      "procedure": "Revizyon burun estetiği",
+      "interval": "Ameliyattan 4 ay sonra"
+    },
+    {
+      "key": "case-12",
+      "label": "Vaka 12",
+      "procedure": "Burun estetiği",
+      "interval": "Ameliyattan 1 yıl sonra"
+    },
+    {
+      "key": "case-13",
+      "label": "Vaka 13",
+      "procedure": "Revizyon burun estetiği",
+      "interval": "Ameliyattan 4 ay sonra"
+    },
+    {
+      "key": "case-14",
+      "label": "Vaka 14",
+      "procedure": "İşlem türü onay bekliyor",
+      "interval": "Onay bekliyor"
+    }
+  ]
+}

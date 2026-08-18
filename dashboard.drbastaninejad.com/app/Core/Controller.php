@@ -10,8 +10,8 @@ namespace App\Core;
  *   success: { "ok": true,  "status": 200, "data": {...} }
  *   error:   { "ok": false, "status": 4xx, "errors": [{"field": null|string, "message": "..."}] }
  *
- * The Router (App\Core\Router) reads the "status" key to set the HTTP status
- * code, then strips it before JSON-encoding the payload.
+ * public/index.php reads the "status" key to set the HTTP status code and keeps
+ * the complete documented envelope in the JSON response.
  */
 abstract class Controller
 {
@@ -19,14 +19,14 @@ abstract class Controller
     // Success
     // -------------------------------------------------------------------------
 
-    protected function success(array $data, int $status = 200): array
+    protected function success(array $data, int $status = 200, ?array $meta = null): array
     {
         return [
             'ok'     => true,
             'status' => $status,
             'data'   => $data,
             'errors' => null,
-            'meta'   => null,
+            'meta'   => $meta,
         ];
     }
 

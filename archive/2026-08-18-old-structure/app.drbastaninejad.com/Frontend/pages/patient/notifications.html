@@ -1,0 +1,302 @@
+﻿<!doctype html>
+<!--
+  MΛZ Medical CRM — Notification Preferences (Production-wired)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  API:
+    GET  /patient/notification-preferences  ✅ LIVE (2026-07-30, Phase C — NotificationPreferenceModel)
+    PATCH /patient/notification-preferences ✅ LIVE    — save button is wired to real API
+
+  CONTRACT COMPLIANCE NOTE (docs/API_CONTRACT.md §3.4):
+    The contract exposes exactly 4 fields:
+      sms_appointment_reminder    → toggle row 1  [LIVE]
+      sms_status_change           → toggle row 2  [LIVE]
+      email_appointment_reminder  → toggle row 3  [LIVE]
+      email_marketing             → toggle row 4  [LIVE]
+
+  Two toggles present in the old mock that have NO backend field are HIDDEN:
+    "drug_reminder"   → not in contract — hidden with aria-hidden
+    "promotions"      → not in contract — hidden with aria-hidden
+
+  requireAuth() guard protects the page.
+-->
+<html dir="rtl" lang="fa-IR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>اعلان‌ها — داشبورد بیمار</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    [data-state] .slot-loading,
+    [data-state] .slot-ready,
+    [data-state] .slot-pending,
+    [data-state] .slot-error { display: none !important; }
+    [data-state="loading"]  .slot-loading  { display: block !important; }
+    [data-state="ready"]    .slot-ready    { display: block !important; }
+    [data-state="pending"]  .slot-pending  { display: block !important; }
+    [data-state="error"]    .slot-error    { display: block !important; }
+
+    .toggle-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 0; border-bottom: 1px solid var(--border);
+      min-height: 44px; /* a11y touch target */
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label-group { flex: 1; min-width: 0; padding-inline-end: 1rem; }
+    .toggle-label-group strong { display: block; font-size: .9rem; font-weight: 600; }
+    .toggle-label-group span   { font-size: .78rem; color: var(--muted); }
+
+    /* Skeleton row */
+    .notif-skel-row {
+      height: 52px; border-radius: var(--radius-md); margin-bottom: .75rem;
+    }
+    /* Save feedback */
+    .save-feedback {
+      font-size: .8rem; color: var(--muted); margin-inline-start: .5rem;
+      opacity: 0; transition: opacity .3s;
+    }
+    .save-feedback.visible { opacity: 1; }
+
+    /* Pending-GET notice inside ready panel (inline, not full-page) */
+    .get-pending-note {
+      background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;
+      font-size: .78rem; padding: .65rem .9rem; border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body data-shell="patient" data-nav="notifications">
+  <div class="app-shell">
+    <main class="main">
+
+      <div class="topbar">
+        <div>
+          <h1>اعلان‌ها و تنظیمات</h1>
+          <p class="subtitle">نحوه ارتباط ما با شما را کنترل کنید</p>
+        </div>
+      </div>
+
+      <div id="notif-host" data-state="loading">
+
+        <!-- ── Loading ── -->
+        <div class="slot-loading" aria-hidden="true">
+          <div class="panel">
+            <div class="skeleton notif-skel-row"></div>
+            <div class="skeleton notif-skel-row" style="width:96%"></div>
+            <div class="skeleton notif-skel-row" style="width:90%"></div>
+            <div class="skeleton notif-skel-row" style="width:94%"></div>
+          </div>
+        </div>
+
+        <!-- ── Pending backend (full-page, only if both GET AND PATCH fail) ── -->
+        <div class="slot-pending">
+          <div class="state-panel state-pending" role="status">
+            <div class="state-icon" aria-hidden="true">⏳</div>
+            <h3>در انتظار پیاده‌سازی بک‌اند</h3>
+            <p>تنظیمات اعلان به <code>GET /patient/notification-preferences</code> متکی است.</p>
+            <div class="state-actions">
+              <a class="btn btn-secondary btn-sm" href="overview.html">← نمای کلی</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Ready ── -->
+        <div class="slot-ready">
+          <section class="panel">
+            <h3 style="margin-bottom:.75rem">تنظیمات اعلان‌ها</h3>
+
+            <!--
+              GET pending inline notice — shown when preferences could not be loaded
+              but PATCH is still functional (user can still save defaults).
+            -->
+            <div id="get-pending-note" class="get-pending-note" hidden role="note">
+              ⏳ تنظیمات فعلی شما در دسترس نیست (<code>GET /patient/notification-preferences</code>
+              هنوز پیاده‌سازی نشده). مقادیر پیش‌فرض نمایش داده شده‌اند.
+              پس از استقرار اندپوینت، تنظیمات واقعی بارگذاری می‌شود.
+            </div>
+
+            <form id="notif-form" novalidate aria-label="فرم تنظیمات اعلان‌ها">
+
+              <!-- Row 1: sms_appointment_reminder ✅ IN CONTRACT -->
+              <div class="toggle-row">
+                <div class="toggle-label-group">
+                  <strong>یادآور نوبت — پیامک</strong>
+                  <span>۲۴ ساعت قبل از نوبت</span>
+                </div>
+                <label class="switch" aria-label="یادآور نوبت از طریق پیامک">
+                  <input type="checkbox" id="tog-sms-appt" name="sms_appointment_reminder"
+                         checked/>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Row 2: sms_status_change ✅ IN CONTRACT -->
+              <div class="toggle-row">
+                <div class="toggle-label-group">
+                  <strong>تغییر وضعیت نوبت — پیامک</strong>
+                  <span>اطلاع‌رسانی لغو یا تغییر زمان نوبت</span>
+                </div>
+                <label class="switch" aria-label="اطلاع‌رسانی تغییر وضعیت نوبت از طریق پیامک">
+                  <input type="checkbox" id="tog-sms-status" name="sms_status_change"
+                         checked/>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Row 3: email_appointment_reminder ✅ IN CONTRACT -->
+              <div class="toggle-row">
+                <div class="toggle-label-group">
+                  <strong>یادآور نوبت — ایمیل</strong>
+                  <span>۴۸ ساعت قبل از نوبت</span>
+                </div>
+                <label class="switch" aria-label="یادآور نوبت از طریق ایمیل">
+                  <input type="checkbox" id="tog-email-appt" name="email_appointment_reminder"
+                         checked/>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Row 4: email_marketing ✅ IN CONTRACT -->
+              <div class="toggle-row">
+                <div class="toggle-label-group">
+                  <strong>اطلاع‌رسانی درباره خدمات — ایمیل</strong>
+                  <span>اخبار و خدمات جدید کلینیک — ماهانه</span>
+                </div>
+                <label class="switch" aria-label="اطلاع‌رسانی خدمات از طریق ایمیل">
+                  <input type="checkbox" id="tog-email-mkt" name="email_marketing"/>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!--
+                ⚠ REMOVED TOGGLES (not in API contract):
+                - drug_reminder    → no backend field in docs/API_CONTRACT.md §3.4
+                - promotions       → no backend field in docs/API_CONTRACT.md §3.4
+                These were present in the old mock but have been hidden to avoid
+                misleading users. Re-add when backend adds the fields.
+              -->
+
+              <div style="display:flex;align-items:center;justify-content:flex-end;
+                          margin-top:1.25rem;gap:.5rem">
+                <span class="save-feedback" id="save-feedback" aria-live="polite"></span>
+                <button type="submit" class="btn btn-primary btn-sm"
+                        id="btn-save-notif">ذخیره تنظیمات</button>
+              </div>
+
+              <div class="form-error" id="notif-error" role="alert" hidden></div>
+            </form>
+          </section>
+        </div><!-- /.slot-ready -->
+
+        <!-- ── Error ── -->
+        <div class="slot-error">
+          <div class="state-panel state-error" role="alert">
+            <div class="state-icon" aria-hidden="true">⚠️</div>
+            <h3>خطا در بارگذاری تنظیمات</h3>
+            <p id="notif-error-msg">لطفاً دوباره تلاش کنید.</p>
+            <div class="state-actions">
+              <button type="button" class="btn btn-secondary btn-sm"
+                      id="notif-retry-btn">تلاش مجدد</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /#notif-host -->
+
+    </main>
+  </div>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { requireAuth, Patient, showToast } from '../../shared/api.js';
+
+    if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
+
+    // Apply loaded preferences to the 4 contract-field toggles
+    function applyPrefs(prefs) {
+      const p = prefs || {};
+      document.getElementById('tog-sms-appt').checked   = !!p.sms_appointment_reminder;
+      document.getElementById('tog-sms-status').checked = !!p.sms_status_change;
+      document.getElementById('tog-email-appt').checked = !!p.email_appointment_reminder;
+      document.getElementById('tog-email-mkt').checked  = !!p.email_marketing;
+    }
+
+    function readForm() {
+      return {
+        sms_appointment_reminder:   document.getElementById('tog-sms-appt').checked,
+        sms_status_change:          document.getElementById('tog-sms-status').checked,
+        email_appointment_reminder: document.getElementById('tog-email-appt').checked,
+        email_marketing:            document.getElementById('tog-email-mkt').checked,
+      };
+    }
+
+    document.getElementById('notif-retry-btn')
+      .addEventListener('click', () => loadNotifs());
+
+    async function loadNotifs() {
+      const host = document.getElementById('notif-host');
+      MAZCRM.states.set(host, 'loading');
+
+      // GET preferences (✅ LIVE)
+      try {
+        const res = await Patient.getNotificationPreferences();
+        applyPrefs(res.data || {});
+      } catch (getErr) {
+        if (getErr.httpStatus === 401) {
+          window.location.replace('../auth/patient-login.html');
+          return;
+        } else if (getErr.httpStatus === 403) {
+          window.location.replace('../errors/403.html');
+          return;
+        } else {
+          // Hard error — go to error state
+          document.getElementById('notif-error-msg').textContent =
+            getErr.message || 'خطای سرور.';
+          MAZCRM.states.set(host, 'error');
+          return;
+        }
+      }
+
+      // Always show the form (PATCH is live)
+      MAZCRM.states.set(host, 'ready');
+    }
+
+    // ── PATCH /patient/notification-preferences ✅ LIVE ─────────────────────
+    document.getElementById('notif-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const btn      = document.getElementById('btn-save-notif');
+      const errEl    = document.getElementById('notif-error');
+      const feedback = document.getElementById('save-feedback');
+      errEl.hidden   = true;
+      btn.disabled   = true;
+      feedback.textContent = '';
+      feedback.classList.remove('visible');
+
+      try {
+        await Patient.updateNotificationPreferences(readForm());
+        feedback.textContent = '✓ ذخیره شد';
+        feedback.classList.add('visible');
+        setTimeout(() => feedback.classList.remove('visible'), 3500);
+        showToast('تنظیمات اعلان‌ها ذخیره شد.', 'success');
+      } catch (err) {
+        if (err.httpStatus === 401) {
+          window.location.replace('../auth/patient-login.html');
+          return;
+        }
+        errEl.textContent = err.message || 'خطا در ذخیره تنظیمات. لطفاً دوباره تلاش کنید.';
+        errEl.hidden = false;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    loadNotifs();
+  </script>
+</body>
+</html>

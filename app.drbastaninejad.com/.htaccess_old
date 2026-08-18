@@ -1,0 +1,64 @@
+# app.drbastaninejad.com — hotfix v4
+Options -Indexes
+DirectoryIndex index.html index.php
+AddDefaultCharset UTF-8
+
+RewriteEngine On
+
+# AutoSSL / ACME must be reachable over HTTP.
+RewriteCond %{REQUEST_URI} ^/\.well-known/(acme-challenge|pki-validation)/ [NC]
+RewriteRule ^ - [END]
+
+# Canonical host only. HTTPS forcing is intentionally disabled until the
+# certificate is confirmed on mobile. WebOTP activates automatically on HTTPS.
+RewriteCond %{HTTP_HOST} !^app\.drbastaninejad\.com$ [NC]
+RewriteRule ^ https://app.drbastaninejad.com%{REQUEST_URI} [R=301,L,NE]
+
+# /index.html -> /
+RewriteCond %{THE_REQUEST} \s/+index\.html(?:[\s?]|$) [NC]
+RewriteRule ^index\.html$ / [R=301,L,NE]
+
+# /page.html -> /page
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.html(?:[\s?]|$) [NC]
+RewriteRule ^(.+)\.html$ /$1 [R=301,L,NE]
+
+# Internally serve existing HTML pages without showing the suffix.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+RewriteRule ^(.+?)/?$ $1.html [L]
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), otp-credentials=(self)"
+
+  <FilesMatch "^(index\.html|config\.js|signature-pad-local\.js|robots\.txt|sitemap\.xml)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 hour"
+  ExpiresByType application/javascript "access plus 0 seconds"
+  ExpiresByType image/svg+xml "access plus 7 days"
+  ExpiresByType image/png "access plus 7 days"
+</IfModule>
+
+<FilesMatch "(^\.|\.md$|\.gs$|\.json$|\.env$|\.log$|\.sql$|\.bak$)">
+  Require all denied
+</FilesMatch>
+
+<FilesMatch "^(robots\.txt|sitemap\.xml)$">
+  Require all granted
+</FilesMatch>

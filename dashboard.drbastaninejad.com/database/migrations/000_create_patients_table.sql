@@ -1,0 +1,37 @@
+-- Migration 000 — shared patient identity required by all later clinical migrations.
+-- Additive/non-destructive; no patient rows are inserted or deleted.
+
+CREATE TABLE IF NOT EXISTS `patients` (
+    `id`                         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `uuid`                       CHAR(32) NOT NULL,
+    `clinic_id`                  INT UNSIGNED NOT NULL DEFAULT 1,
+    `first_name`                 VARCHAR(100) NOT NULL DEFAULT '',
+    `last_name`                  VARCHAR(100) NOT NULL DEFAULT '',
+    `father_name`                VARCHAR(100) NULL,
+    `mobile`                     VARCHAR(15) NOT NULL,
+    `email`                      VARCHAR(191) NULL,
+    `email_verified_at`          DATETIME NULL,
+    `password_hash`              VARCHAR(255) NULL,
+    `national_id`                VARCHAR(10) NULL,
+    `birth_date`                 DATE NULL,
+    `birth_date_jalali`          VARCHAR(10) NULL,
+    `gender`                     VARCHAR(20) NULL,
+    `home_tel`                   VARCHAR(32) NULL,
+    `home_address`               TEXT NULL,
+    `insurance_number`           VARCHAR(100) NULL,
+    `insurance_status`           ENUM('active','inactive','pending','unknown') NOT NULL DEFAULT 'pending',
+    `sms_appointment_reminder`   TINYINT(1) NOT NULL DEFAULT 1,
+    `sms_status_change`          TINYINT(1) NOT NULL DEFAULT 1,
+    `email_appointment_reminder` TINYINT(1) NOT NULL DEFAULT 0,
+    `marketing_email_optin`      TINYINT(1) NOT NULL DEFAULT 0,
+    `deleted_at`                 DATETIME NULL,
+    `created_at`                 DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`                 DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_patients_uuid` (`uuid`),
+    UNIQUE KEY `uq_patients_mobile` (`mobile`),
+    UNIQUE KEY `uq_patients_email` (`email`),
+    UNIQUE KEY `uq_patients_national_id` (`national_id`),
+    KEY `idx_patients_clinic` (`clinic_id`),
+    KEY `idx_patients_deleted` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

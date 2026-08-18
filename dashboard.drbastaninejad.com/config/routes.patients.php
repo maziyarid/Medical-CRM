@@ -26,3 +26,20 @@ $router->put('/api/v1/patients/{id}', [PatientController::class, 'update'], [
     AuthMiddleware::class,
     fn() => new RbacMiddleware('patients.manage'),
 ]);
+
+// Patient portal — same patient identity; protected by patient-scoped RBAC.
+use App\Controllers\PatientPortalController;
+
+$patientScope = [
+    AuthMiddleware::class,
+    fn() => new RbacMiddleware('patient.portal'),
+];
+
+$router->get('/api/v1/patient/overview', [PatientPortalController::class, 'overview'], $patientScope);
+$router->get('/api/v1/patient/profile', [PatientPortalController::class, 'profile'], $patientScope);
+$router->patch('/api/v1/patient/profile', [PatientPortalController::class, 'updateProfile'], $patientScope);
+$router->get('/api/v1/patient/appointments', [PatientPortalController::class, 'appointments'], $patientScope);
+$router->get('/api/v1/patient/documents', [PatientPortalController::class, 'documents'], $patientScope);
+$router->get('/api/v1/patient/records', [PatientPortalController::class, 'records'], $patientScope);
+$router->get('/api/v1/patient/notification-preferences', [PatientPortalController::class, 'notificationPreferences'], $patientScope);
+$router->patch('/api/v1/patient/notification-preferences', [PatientPortalController::class, 'updateNotificationPreferences'], $patientScope);

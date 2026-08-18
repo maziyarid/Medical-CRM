@@ -1,0 +1,1023 @@
+/*
+ * ============================================================================
+ *  MΛZ Medical CRM — Shared Components
+ *  Client / Product: Dr. Shahin Bastaninejad Multi-Specialty Medical Platform
+ * ----------------------------------------------------------------------------
+ *  Author  : MAZ//ID (Maziyar)  · maziyarid@gmail.com
+ *  License : Proprietary — © 2026 Maziyar / Dr. Shahin Bastaninejad
+ *  Depends : tokens.css, tokens-extended.css, base.css, states.css
+ *
+ *  Covers (in section order):
+ *    1.  Modal / dialog
+ *    2.  Tabs
+ *    3.  Timeline / activity feed
+ *    4.  Note entries (EMR past-notes)
+ *    5.  Calendar appointment block
+ *    6.  Conflict / gate banners
+ *    7.  Template pills (EMR)
+ *    8.  Checkbox-grid (EMR specialty fields)
+ *    9.  Media upload slot (EMR)
+ *   10.  Save / success banner (EMR)
+ *   11.  Filter bar / search row
+ *   12.  Patient card (patients list)
+ *   13.  Detail header (patient-detail)
+ *   14.  Intake card
+ *   15.  Task card
+ *   16.  Billing / invoice row
+ *   17.  Analytics chart placeholder
+ *   18.  Settings section
+ *   19.  AI Copilot panel
+ *   20.  Navigation view-switch
+ *   21.  Scroll wrappers
+ *   22.  Divider + label
+ *   23.  Pending / gate notice
+ *   24.  Breadcrumb
+ *   25.  Responsive overrides
+ * ============================================================================
+ */
+
+/* ============================================================================
+   1. MODAL / DIALOG
+   Used by: calendar.html (new-appt-modal)
+   ============================================================================ */
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--modal-backdrop, rgba(0, 0, 0, 0.45));
+  z-index: var(--z-modal, 500);
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-box {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: var(--modal-pad, 1.5rem);
+  width: 100%;
+  max-width: var(--modal-max-w, 460px);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+.modal-header h2 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--muted);
+  line-height: 1;
+  min-height: 36px;
+  min-width: 36px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+.modal-close:hover {
+  background: var(--porcelain);
+  color: var(--graphite);
+}
+
+/* Trap focus ring inside modal */
+.modal-box :focus-visible {
+  outline: 3px solid var(--evergreen);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   2. TABS
+   Used by: settings.html, patient-detail.html, billing.html
+   ============================================================================ */
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.tab-btn {
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  padding: 0.65rem 1.1rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+.tab-btn:hover {
+  color: var(--graphite);
+}
+.tab-btn.active {
+  color: var(--evergreen);
+  border-bottom-color: var(--evergreen);
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ============================================================================
+   3. TIMELINE / ACTIVITY FEED
+   Used by: dashboard.html (getTimelineEvents), patient-detail.html
+   ============================================================================ */
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.timeline-item:last-child {
+  border-bottom: none;
+}
+
+.timeline-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+  margin-top: 0.45rem;
+}
+.timeline-dot.intake      { background: var(--info); }
+.timeline-dot.appointment { background: var(--evergreen); }
+.timeline-dot.emr         { background: var(--brass); }
+.timeline-dot.task        { background: var(--warning); }
+
+.timeline-body {
+  flex: 1;
+  min-width: 0;
+}
+.timeline-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--graphite);
+}
+.timeline-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+.timeline-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   4. NOTE ENTRIES (EMR past-notes)
+   Used by: emr.html (.note-entry, .note-meta)
+   ============================================================================ */
+
+.note-entry {
+  padding: 0.85rem 1rem;
+  background: var(--note-surface, var(--porcelain));
+  border-radius: var(--radius-md);
+  margin-bottom: 0.65rem;
+  font-size: 0.85rem;
+  border-inline-start: 3px solid var(--border);
+  transition: border-color var(--transition-fast);
+}
+.note-entry:hover {
+  border-inline-start-color: var(--evergreen);
+}
+
+.note-meta {
+  font-size: var(--note-meta-size, 0.72rem);
+  color: var(--note-meta-color, var(--muted));
+  margin-bottom: 0.3rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.note-body {
+  color: var(--graphite);
+  line-height: 1.65;
+}
+.note-body p {
+  margin-top: 0.25rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+/* ============================================================================
+   5. CALENDAR APPOINTMENT BLOCK
+   Used by: calendar.html (.appt-block, .cal-week-grid variants)
+   (Grid structure itself is page-local; shared coloring lives here)
+   ============================================================================ */
+
+.appt-block {
+  background: var(--evergreen);
+  color: #fff;
+  padding: 0.3rem 0.5rem;
+  border-radius: 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.appt-block:hover { opacity: 0.85; }
+.appt-block:focus-visible { outline: 3px solid #fff; outline-offset: 1px; }
+
+/* Status color variants — match AppointmentController badge map */
+.appt-block.info    { background: var(--info); }
+.appt-block.success { background: var(--evergreen); }
+.appt-block.warning { background: var(--warning); color: var(--graphite); }
+.appt-block.error   { background: var(--error); }
+.appt-block.muted   { background: var(--muted); opacity: 0.7; }
+
+/* ============================================================================
+   6. CONFLICT / GATE BANNERS
+   Used by: calendar.html (.conflict-banner), dashboard.html (.gate-banner)
+   ============================================================================ */
+
+.conflict-banner,
+.gate-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+
+.conflict-banner {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.gate-banner {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+.gate-banner strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.88rem;
+}
+
+/* ============================================================================
+   7. TEMPLATE PILLS (EMR specialty selector)
+   Used by: emr.html (.template-pills)
+   ============================================================================ */
+
+.template-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.template-pills button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition-fast), color var(--transition-fast),
+              border-color var(--transition-fast);
+}
+.template-pills button:hover {
+  background: var(--porcelain);
+  color: var(--graphite);
+}
+.template-pills button.active {
+  background: var(--evergreen);
+  color: #fff;
+  border-color: var(--evergreen);
+}
+
+/* ============================================================================
+   8. CHECKBOX GRID (EMR specialty fields)
+   Used by: emr.html (.checkbox-grid, .cb-item)
+   ============================================================================ */
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.cb-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.85rem;
+  user-select: none;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+              color var(--transition-fast);
+}
+.cb-item input {
+  accent-color: var(--evergreen);
+  flex-shrink: 0;
+}
+.cb-item:has(input:checked) {
+  background: var(--evergreen-soft);
+  border-color: var(--evergreen);
+  color: var(--evergreen-dark);
+  font-weight: 600;
+}
+
+/* ============================================================================
+   9. MEDIA UPLOAD SLOT (EMR before/after images)
+   Used by: emr.html (.media-slot)
+   ============================================================================ */
+
+.media-slot {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+.media-slot:hover,
+.media-slot:focus-visible {
+  border-color: var(--evergreen);
+  color: var(--evergreen);
+  outline: none;
+}
+
+/* ============================================================================
+   10. SAVE / SUCCESS BANNER (EMR)
+   Used by: emr.html (.save-banner)
+   ============================================================================ */
+
+.save-banner {
+  display: none;
+  background: var(--evergreen-soft);
+  color: var(--evergreen-dark);
+  border: 1px solid var(--evergreen);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.save-banner.visible {
+  display: block;
+}
+
+/* ============================================================================
+   11. FILTER BAR / SEARCH ROW
+   Used by: patients.html, tasks.html, billing.html, analytics.html
+   ============================================================================ */
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+.search-input-wrap .search-icon {
+  position: absolute;
+  inset-inline-start: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  font-size: 1rem;
+}
+.search-input-wrap .form-input {
+  padding-inline-start: 2.25rem;
+}
+
+.filter-select {
+  /* Reuse base .form-select but narrower */
+  min-width: 140px;
+  width: auto;
+}
+
+/* ============================================================================
+   12. PATIENT CARD (patients list grid view)
+   Used by: patients.html
+   ============================================================================ */
+
+.patient-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  text-decoration: none;
+  color: inherit;
+}
+.patient-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+}
+
+.patient-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.patient-card-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--graphite);
+}
+.patient-card-meta {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.1rem;
+}
+.patient-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Patient cards grid */
+.patients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+/* ============================================================================
+   13. DETAIL HEADER (patient-detail.html)
+   Used by: patient-detail.html, staff view of a single patient
+   ============================================================================ */
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.detail-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--evergreen-soft);
+  color: var(--evergreen);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.detail-info { flex: 1; min-width: 0; }
+.detail-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--graphite);
+  margin-bottom: 0.2rem;
+}
+.detail-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-self: flex-start;
+}
+
+/* ============================================================================
+   14. INTAKE CARD
+   Used by: patients.html intake-queue mode, staff intake list
+   ============================================================================ */
+
+.intake-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+  cursor: pointer;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+.intake-card:hover {
+  background: var(--porcelain);
+  box-shadow: var(--shadow-sm);
+}
+.intake-card .intake-info { flex: 1; min-width: 0; }
+.intake-card .intake-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: block;
+}
+.intake-card .intake-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.1rem;
+}
+
+/* ============================================================================
+   15. TASK CARD
+   Used by: tasks.html
+   ============================================================================ */
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition-fast);
+}
+.task-item:last-child { border-bottom: none; }
+.task-item:hover { background: var(--porcelain); }
+
+.task-check {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--evergreen);
+  cursor: pointer;
+}
+.task-body { flex: 1; min-width: 0; }
+.task-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--graphite);
+}
+.task-title.done {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.task-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.task-due.overdue { color: var(--error); font-weight: 600; }
+
+/* ============================================================================
+   16. BILLING / INVOICE ROW
+   Used by: billing.html
+   ============================================================================ */
+
+.invoice-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+  transition: background var(--transition-fast);
+}
+.invoice-row:last-child { border-bottom: none; }
+.invoice-row:hover { background: var(--porcelain); }
+
+.invoice-patient { flex: 1; min-width: 0; }
+.invoice-patient strong { display: block; font-size: 0.9rem; }
+.invoice-patient span   { font-size: 0.75rem; color: var(--muted); }
+
+.invoice-amount {
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: end;
+  min-width: 110px;
+  font-variant-numeric: tabular-nums;
+}
+.invoice-amount.paid    { color: var(--success); }
+.invoice-amount.pending { color: var(--warning); }
+.invoice-amount.overdue { color: var(--error); }
+
+/* ============================================================================
+   17. ANALYTICS CHART PLACEHOLDER
+   Used by: analytics.html
+   ============================================================================ */
+
+.chart-wrap {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  min-height: 240px;
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.chart-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--graphite);
+}
+
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex: 1;
+  padding-top: 0.5rem;
+}
+.bar-chart .bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+.bar-chart .bar {
+  width: 100%;
+  background: var(--evergreen-soft);
+  border-radius: 4px 4px 0 0;
+  transition: height var(--transition-slow);
+  min-height: 4px;
+  position: relative;
+}
+.bar-chart .bar::after {
+  content: attr(data-value);
+  position: absolute;
+  top: -1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.bar-chart .bar.active { background: var(--evergreen); }
+.bar-chart .bar-label {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Referral-sources list */
+.ref-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.ref-item  { display: flex; align-items: center; gap: 0.75rem; font-size: 0.82rem; }
+.ref-item .ref-label { flex: 1; color: var(--graphite); }
+.ref-item .ref-bar-wrap {
+  flex: 2;
+  background: var(--porcelain);
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+.ref-item .ref-bar {
+  height: 100%;
+  background: var(--evergreen);
+  border-radius: 999px;
+  transition: width var(--transition-slow);
+}
+.ref-item .ref-pct { min-width: 36px; text-align: end; color: var(--muted); font-size: 0.75rem; }
+
+/* ============================================================================
+   18. SETTINGS SECTION
+   Used by: settings.html
+   ============================================================================ */
+
+.settings-section {
+  margin-bottom: 2rem;
+}
+.settings-section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.settings-row:last-child { border-bottom: none; }
+
+.settings-label { font-size: 0.9rem; font-weight: 600; color: var(--graphite); }
+.settings-hint  { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
+
+/* Template table inside settings */
+.template-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+/* ============================================================================
+   19. AI COPILOT PANEL
+   Used by: emr.html, dashboard.html (aside.panel + Dr. Copilot badge)
+   ============================================================================ */
+
+.ai-panel {
+  background: linear-gradient(135deg, var(--ai-surface, #f8fafc), #eef2ff);
+  border: 1px solid var(--ai-border, #dbeafe);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+
+.ai-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--ai-badge-bg, var(--maz-primary));
+  color: var(--ai-badge-color, #fff);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.3px;
+}
+
+.ai-draft-box {
+  background: var(--surface);
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  font-size: 0.82rem;
+  line-height: 1.75;
+  margin-bottom: 0.75rem;
+  min-height: 60px;
+  color: var(--muted);
+}
+.ai-draft-box.has-content {
+  color: var(--graphite);
+}
+
+.ai-disclaimer {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 0.75rem;
+  font-family: var(--font-mono);
+}
+
+/* ============================================================================
+   20. VIEW SWITCH (calendar tabs: day / week / month / list)
+   Used by: calendar.html (.view-switch)
+   ============================================================================ */
+
+.view-switch {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 2px;
+}
+.view-switch button {
+  border: none;
+  background: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  min-height: 36px;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.view-switch button:hover {
+  background: var(--porcelain);
+  color: var(--graphite);
+}
+.view-switch button.active {
+  background: var(--evergreen-soft);
+  color: var(--evergreen);
+}
+
+/* ============================================================================
+   21. SCROLL WRAPPERS
+   Used by: calendar.html (.cal-scroll), tables on smaller screens
+   ============================================================================ */
+
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-y {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================================
+   22. DIVIDER + LABEL
+   Used by: login.html, intake.html (the "یا" divider)
+   ============================================================================ */
+
+.divider {
+  text-align: center;
+  margin: 1.25rem 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  position: relative;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: var(--border);
+}
+.divider::before { inset-inline-start: 0; }
+.divider::after  { inset-inline-end: 0; }
+
+/* Section label divider (no lines) */
+.section-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+/* ============================================================================
+   23. PENDING / GATE NOTICE
+   Used by: login.html (.pending-notice), dashboard.html (.gate-banner)
+   ============================================================================ */
+
+.pending-notice {
+  background: #f8fafc;
+  border: 1px dashed var(--border);
+  color: var(--muted);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-size: 0.78rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+.pending-notice strong {
+  color: var(--graphite);
+}
+
+/* ============================================================================
+   24. BREADCRUMB
+   Used by: patient-detail.html (future — wire with chrome.js)
+   ============================================================================ */
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.breadcrumb a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.breadcrumb a:hover { color: var(--evergreen); text-decoration: underline; }
+.breadcrumb .sep { color: var(--border); font-size: 0.7rem; }
+.breadcrumb .current { color: var(--graphite); font-weight: 600; }
+
+/* ============================================================================
+   25. RESPONSIVE OVERRIDES
+   ============================================================================ */
+
+@media (max-width: 900px) {
+  /* Modal: full-width on mobile */
+  .modal-box {
+    max-width: 100%;
+    border-radius: var(--radius-md);
+  }
+
+  /* Detail header: stack on mobile */
+  .detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .detail-actions { align-self: stretch; }
+
+  /* Patient grid: single column */
+  .patients-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Filter bar: wrap tightly */
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-input-wrap { min-width: 0; }
+
+  /* Tabs: scroll on small screens */
+  .tabs {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Analytics bars: reduce gap */
+  .bar-chart { gap: 0.3rem; }
+
+  /* View switch: smaller padding */
+  .view-switch button {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+  }
+}
+
+/*
+ * ============================================================================
+ *  End of file — MAZ//ID · © 2026 Maziyar
+ * ============================================================================
+ */

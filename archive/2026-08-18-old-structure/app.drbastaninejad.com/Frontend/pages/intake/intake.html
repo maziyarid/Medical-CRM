@@ -1,0 +1,671 @@
+﻿<!doctype html>
+<!--
+  MΛZ Medical CRM — Public Intake Wizard (3 steps + OTP + signature)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Purpose: Public-facing patient onboarding — writes to `intakes` + `patients`.
+  Phase 2 (2026-07-29): OTP + POST /intakes fully wired to real PHP backend.
+  Backend field normalisation confirmed live (IntakeController::normalisePayload
+  accepts camelCase keys). See docs/API_CONTRACT.md v1.1 + PROGRESS_LOG.md.
+-->
+<html dir="rtl" lang="fa-IR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>تشکیل پرونده اولیه — دکتر شاهین باستانی‌نژاد</title>
+  <meta name="description" content="فرم پذیرش دیجیتال کلینیک تخصصی دکتر شاهین باستانی‌نژاد — کمتر از ۲ دقیقه"/>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <style>
+    body { padding-bottom: 0 !important; }
+    .intake-wrap { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+    .intake-brand { text-align:center;margin-bottom:1.5rem;display:flex;flex-direction:column;align-items:center;gap:.75rem; }
+    .intake-brand .mark { width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg,var(--evergreen),var(--evergreen-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.2rem; }
+    .progress { display:flex;gap:.5rem;margin-bottom:2rem; }
+    .progress .step { flex:1;height:6px;background:var(--border);border-radius:3px;transition:background var(--transition); }
+    .progress .step.done, .progress .step.active { background:var(--evergreen); }
+    .progress-labels { display:flex;justify-content:space-between;margin-top:.75rem;font-size:.78rem;color:var(--muted); }
+    .progress-labels span.active { color:var(--evergreen);font-weight:700; }
+    .step-form { display:none; animation: fadeUp .3s ease; }
+    .step-form.active { display:block; }
+    @keyframes fadeUp { from {opacity:0;transform:translateY(6px);} to {opacity:1;transform:translateY(0);} }
+    .notice { background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:1rem 1.15rem;border-radius:var(--radius-md);font-size:.83rem;line-height:1.75; }
+    .notice strong { color:#7f1d1d; }
+    .sig-pad-wrap { border:1px solid var(--border); border-radius:var(--radius-md); background:var(--porcelain); position:relative; margin-top:.5rem; }
+    #sigPad { width:100%; height:180px; display:block; touch-action:none; border-radius:var(--radius-md); }
+    .sig-clear { position:absolute; top:.5rem; inset-inline-end:.5rem; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:.3rem .7rem; font-size:.75rem; cursor:pointer; }
+    .step-actions { display:flex;justify-content:space-between;gap:.75rem;margin-top:2rem; }
+    .step-actions .btn { flex:1; }
+    .otp-meta { font-size:.78rem; color:var(--muted); margin-top:.5rem; display:block; }
+    /* Inline field error anchored below each input */
+    .field-error { font-size:.78rem; color:var(--error); margin-top:.3rem; display:block; }
+    /* Attempting state — dim the whole step card */
+    .form-busy { pointer-events:none; opacity:.7; }
+    /* Outcome-unknown / server-error banner */
+    .outcome-banner { background:var(--warning-soft); border:1px solid var(--warning); color:#92400e;
+      border-radius:var(--radius-md); padding:.9rem 1.1rem; font-size:.83rem; line-height:1.7; margin-bottom:1rem; }
+    .outcome-banner strong { color:#78350f; }
+    /* Rate-limited banner */
+    .rate-limit-banner { background:var(--error-soft); border:1px solid #fecaca; color:#991b1b;
+      border-radius:var(--radius-md); padding:.9rem 1.1rem; font-size:.83rem; line-height:1.7; margin-bottom:1rem; }
+    .checkbox-list { display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.5rem; }
+    .cb-pill { display:flex;align-items:center;gap:.5rem;padding:.65rem .8rem;border:1px solid var(--border);border-radius:var(--radius-md);cursor:pointer;font-size:.85rem; }
+    .cb-pill input { accent-color:var(--evergreen); }
+    .cb-pill:has(input:checked) { background:var(--evergreen-soft);border-color:var(--evergreen);color:var(--evergreen-dark);font-weight:600; }
+    .success-screen { text-align:center;padding:2.5rem 1rem; }
+    .success-screen .check { width:80px;height:80px;margin:0 auto 1.25rem;border-radius:50%;background:var(--success);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2.5rem; }
+    .btn[disabled] { opacity:.65; cursor:not-allowed; }
+  </style>
+</head>
+<body>
+  <main class="intake-wrap">
+    <div class="intake-brand">
+      <div class="mark" aria-hidden="true">MΛZ</div>
+      <h1 style="font-size:1.2rem">تشکیل پرونده اولیه</h1>
+      <p class="small" style="text-align:center">کلینیک تخصصی دکتر شاهین باستانی‌نژاد · کمتر از ۲ دقیقه</p>
+    </div>
+
+    <div class="card" id="wizard">
+      <div class="progress"><div class="step active" id="p1"></div><div class="step" id="p2"></div><div class="step" id="p3"></div></div>
+      <div class="progress-labels"><span class="active" id="l1">هویت</span><span id="l2">اطلاعات فردی</span><span id="l3">سلامت و امضا</span></div>
+
+      <!-- STEP 1 — identity + OTP (live Auth API) -->
+      <form class="step-form active" id="form-1" novalidate>
+        <h2 style="margin-top:1.5rem">تأیید هویت</h2>
+        <p class="small" style="margin-bottom:1.25rem">برای شروع، شماره همراه خود را وارد کنید تا کد تأیید ارسال شود.</p>
+
+        <div class="input-group">
+          <label class="form-label required" for="mobile">شماره همراه</label>
+          <input class="form-input" id="mobile" type="tel" inputmode="numeric" placeholder="09121234567" autocomplete="tel-national" required aria-describedby="err-mobile"/>
+          <div class="form-error" id="err-mobile" hidden role="alert"></div>
+        </div>
+
+        <div class="input-group" id="otp-block" hidden>
+          <label class="form-label required" for="otp">کد تأیید ۵ رقمی</label>
+          <input class="form-input" id="otp" type="text" inputmode="numeric" maxlength="5" placeholder="_____" autocomplete="one-time-code" style="letter-spacing:12px;text-align:center;font-size:1.2rem;font-weight:700" aria-describedby="err-otp otp-meta"/>
+          <div class="form-error" id="err-otp" hidden role="alert"></div>
+          <p class="otp-meta" id="otp-meta" aria-live="polite"></p>
+        </div>
+
+        <div class="step-actions">
+          <a href="../../index.html" class="btn btn-secondary" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;">انصراف</a>
+          <button class="btn btn-primary" type="submit" id="btn-send-otp">ارسال کد تأیید</button>
+          <button class="btn btn-primary" type="button" id="btn-verify-otp" hidden>تأیید و ادامه</button>
+        </div>
+      </form>
+
+      <!-- STEP 2 — personal info -->
+      <form class="step-form" id="form-2" novalidate>
+        <h2 style="margin-top:1.5rem">اطلاعات فردی</h2>
+        <p class="small" style="margin-bottom:1.25rem">اطلاعات با ستاره (*) الزامی هستند.</p>
+        <div class="grid-2">
+          <div class="input-group"><label class="form-label required">نام</label><input class="form-input" id="firstName" required/></div>
+          <div class="input-group"><label class="form-label required">نام خانوادگی</label><input class="form-input" id="lastName" required/></div>
+          <div class="input-group"><label class="form-label">نام پدر</label><input class="form-input" id="fatherName"/></div>
+          <div class="input-group"><label class="form-label required">کد ملی</label><input class="form-input" id="nationalId" inputmode="numeric" maxlength="10" placeholder="۱۰ رقم"/><div class="form-error" id="err-national" hidden></div></div>
+          <div class="input-group"><label class="form-label required">تاریخ تولد (شمسی)</label><input class="form-input" id="birthDate" placeholder="۱۳۷۰/۰۵/۱۲"/></div>
+          <div class="input-group"><label class="form-label">شماره تماس منزل</label><input class="form-input" id="homeTel" inputmode="numeric" placeholder="۰۲۱..."/></div>
+          <div class="input-group" style="grid-column:1/-1"><label class="form-label">آدرس</label><textarea class="form-textarea" id="homeAd" rows="2"></textarea></div>
+          <div class="input-group"><label class="form-label">ایمیل (اختیاری)</label><input class="form-input" id="email" type="email"/></div>
+          <div class="input-group">
+            <label class="form-label required">علت مراجعه</label>
+            <select class="form-select" id="visitReason" required>
+              <option value="">— انتخاب کنید —</option>
+              <option>مشاوره جراحی بینی</option>
+              <option>مشاوره جراحی ترمیمی</option>
+              <option>ویزیت پیگیری بعد از عمل</option>
+              <option>ویزیت اولیه</option>
+              <option>سایر</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button class="btn btn-secondary" type="button" id="btn-back-2">← بازگشت</button>
+          <button class="btn btn-primary" type="submit">ادامه</button>
+        </div>
+      </form>
+
+      <!-- STEP 3 — medical + signature -->
+      <form class="step-form" id="form-3" novalidate>
+        <h2 style="margin-top:1.5rem">تاریخچه پزشکی و امضا</h2>
+        <p class="small" style="margin-bottom:1.25rem">هر مورد صادق در مورد شما را علامت بزنید.</p>
+
+        <label class="form-label">تاریخچه پزشکی</label>
+        <div class="checkbox-list" style="margin-bottom:1.25rem">
+          <label class="cb-pill"><input type="checkbox" name="hist" value="hypertension"/> فشار خون بالا</label>
+          <label class="cb-pill"><input type="checkbox" name="hist" value="diabetes"/> دیابت</label>
+          <label class="cb-pill"><input type="checkbox" name="hist" value="thyroid"/> تیروئید</label>
+          <label class="cb-pill"><input type="checkbox" name="hist" value="heart"/> بیماری قلبی</label>
+          <label class="cb-pill"><input type="checkbox" name="hist" value="asthma"/> آسم</label>
+          <label class="cb-pill"><input type="checkbox" name="hist" value="allergy"/> حساسیت دارویی/غذایی</label>
+          <label class="cb-pill"><input type="checkbox" name="hist" value="autoimmune"/> بیماری خودایمنی</label>
+          <label class="cb-pill"><input type="checkbox" name="hist" value="scleroderma"/> اسکلرودرمی</label>
+          <label class="cb-pill"><input type="checkbox" name="hist" value="bleeding"/> اختلال انعقاد خون</label>
+          <label class="cb-pill"><input type="checkbox" name="hist" value="pregnancy"/> بارداری</label>
+        </div>
+
+        <label class="form-label">داروهای در حال مصرف</label>
+        <div class="checkbox-list" style="margin-bottom:1.25rem">
+          <label class="cb-pill"><input type="checkbox" name="drug" value="hbp"/> داروی فشار خون</label>
+          <label class="cb-pill"><input type="checkbox" name="drug" value="aspirin"/> آسپرین</label>
+          <label class="cb-pill"><input type="checkbox" name="drug" value="anticoagulant"/> ضد انعقاد</label>
+          <label class="cb-pill"><input type="checkbox" name="drug" value="steroid"/> کورتیکواستروئید</label>
+          <label class="cb-pill"><input type="checkbox" name="drug" value="ocp"/> قرص پیشگیری</label>
+          <label class="cb-pill"><input type="checkbox" name="drug" value="other"/> سایر</label>
+        </div>
+
+        <div class="input-group">
+          <label class="form-label">توضیحات تکمیلی (اختیاری)</label>
+          <textarea class="form-textarea" id="description" rows="2" placeholder="هرگونه اطلاعات مهم دیگر..."></textarea>
+        </div>
+
+        <div class="notice" style="margin:1rem 0">
+          <strong>⚠ توجه:</strong> در صورت داشتن هر یک از موارد زیر، اطلاع دهید:
+          اسکلرودرمی، بیماری‌های خودایمنی فعال، اختلال شدید انعقاد، بارداری، شیمی‌درمانی اخیر.
+          این موارد ممکن است انجام برخی از اعمال را غیرممکن کند.
+        </div>
+
+        <label class="form-label" style="margin-top:1rem">امضای دیجیتال (رضایت‌نامه)</label>
+        <div class="sig-pad-wrap">
+          <canvas id="sigPad"></canvas>
+          <button type="button" class="sig-clear" id="btn-clear-sig">پاک کردن</button>
+        </div>
+        <div class="form-error" id="err-sig" hidden style="margin-top:.5rem" role="alert">لطفاً امضای خود را وارد کنید.</div>
+
+        <label style="display:flex;gap:.5rem;align-items:start;margin-top:1rem;font-size:.85rem;line-height:1.7">
+          <input type="checkbox" id="consent" style="margin-top:.3rem;accent-color:var(--evergreen)"/>
+          <span>اطلاعات فوق را تأیید می‌کنم و با ذخیره‌سازی آن‌ها در پرونده کلینیک موافقم. متعهد می‌شوم در صورت تغییر شرایط، مرکز را مطلع کنم.</span>
+        </label>
+
+        <div class="step-actions">
+          <button class="btn btn-secondary" type="button" id="btn-back-3">← بازگشت</button>
+          <button class="btn btn-primary" type="submit" id="submit-btn">ثبت پرونده</button>
+        </div>
+      </form>
+
+      <!-- SUCCESS -->
+      <div class="success-screen" id="success" style="display:none;">
+        <div class="check">✓</div>
+        <h2>تشکیل پرونده اولیه شما با موفقیت انجام شد</h2>
+        <p class="small" style="margin:.75rem 0 1.5rem">شماره پیگیری: <strong id="track-id">—</strong></p>
+        <p style="font-size:.9rem;color:var(--muted);max-width:420px;margin:0 auto 1.5rem">به‌زودی همکاران ما با شما تماس خواهند گرفت. می‌توانید از طریق ورود بیمار، وضعیت پرونده را پیگیری کنید.</p>
+        <a class="btn btn-primary" href="../auth/patient-login.html">ورود به داشبورد بیمار</a>
+      </div>
+
+      <footer class="brand-footer" style="margin-top:2.5rem;">
+        <div class="maz-sig">M<span class="z">Λ</span>Z <span style="opacity:.5">//</span> ID</div>
+        <div>© 2026 دکتر شاهین باستانی‌نژاد — ساخته شده توسط <a href="https://maziyarid.com" target="_blank" rel="noopener">Maziyar</a></div>
+      </footer>
+    </div>
+  </main>
+
+  <div class="toast-container"></div>
+  <script src="../../assets/js/app.js"></script>
+  <script type="module">
+    /**
+     * intake.html inline controller — Phase 2 wiring
+     * All API calls go through shared/api.js (Auth + Intake).
+     * No OTP values, Code Meli numbers, or tokens are ever logged to console.
+     * Lifecycle: pending → attempting → submitted | failed_confirmed | outcome_unknown
+     */
+    import {
+      Auth,
+      Intake,
+      getOrCreateIntakeUUID,
+      normalizePersianDigits,
+      getPersianError
+    } from '../../shared/api.js';
+
+    // ── Module-level state ──────────────────────────────────────────────────
+    let sig = null;
+    const state = {
+      mobile: '',
+      otpVerified: false,
+      step: 1,
+      resendTimer: null,
+      rateLimitedUntil: 0  // epoch ms — block resend UI until this time
+    };
+
+    // ── Step navigation ─────────────────────────────────────────────────────
+    function goStep(n) {
+      state.step = n;
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById('form-' + i).classList.toggle('active', i === n);
+        document.getElementById('p' + i).classList.toggle('done', i < n);
+        document.getElementById('p' + i).classList.toggle('active', i === n);
+        document.getElementById('l' + i).classList.toggle('active', i === n);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── Button busy helpers ─────────────────────────────────────────────────
+    function setBusy(btn, busy, idleLabel) {
+      if (!btn) return;
+      btn.disabled = !!busy;
+      if (busy) {
+        btn.dataset.idleLabel = btn.dataset.idleLabel || btn.textContent;
+        btn.textContent = 'لطفاً صبر کنید…';
+      } else {
+        btn.textContent = idleLabel || btn.dataset.idleLabel || btn.textContent;
+      }
+    }
+
+    function setFormBusy(form, busy) {
+      if (!form) return;
+      form.classList.toggle('form-busy', !!busy);
+    }
+
+    // ── Inline field error display ──────────────────────────────────────────
+    /**
+     * Show a field-level error below a named input.
+     * errorEl — the existing <div class="form-error" id="err-*"> element.
+     */
+    function showFieldError(errorEl, message) {
+      if (!errorEl) return;
+      errorEl.textContent = message;
+      errorEl.hidden = false;
+    }
+
+    function clearFieldError(errorEl) {
+      if (!errorEl) return;
+      errorEl.textContent = '';
+      errorEl.hidden = true;
+    }
+
+    /**
+     * Map error.fields (from 422 response) to inline form-error elements.
+     * fieldMap: { apiFieldName: 'err-element-id' }
+     * Returns true if any field matched (so caller knows to show generic msg too if not).
+     */
+    function applyFieldErrors(fields, fieldMap) {
+      if (!fields || typeof fields !== 'object') return false;
+      let matched = false;
+      Object.keys(fields).forEach(function(key) {
+        const elId = fieldMap[key];
+        const el = elId ? document.getElementById(elId) : null;
+        if (el) {
+          showFieldError(el, fields[key]);
+          matched = true;
+        }
+      });
+      return matched;
+    }
+
+    // ── Resend / rate-limit countdown ───────────────────────────────────────
+    function startResendCountdown(seconds) {
+      const meta = document.getElementById('otp-meta');
+      const sendBtn = document.getElementById('btn-send-otp');
+      let left = Math.max(1, Math.round(seconds));
+
+      if (state.resendTimer) clearInterval(state.resendTimer);
+
+      sendBtn.hidden = false;
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'ارسال مجدد (' + left + ')';
+      meta.textContent = 'کد تا ' + left + ' ثانیه دیگر معتبر است.';
+
+      state.resendTimer = setInterval(function () {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(state.resendTimer);
+          state.resendTimer = null;
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'ارسال مجدد کد';
+          meta.textContent = 'می‌توانید کد جدید درخواست کنید.';
+          return;
+        }
+        sendBtn.textContent = 'ارسال مجدد (' + left + ')';
+        meta.textContent = 'کد تا ' + left + ' ثانیه دیگر معتبر است.';
+      }, 1000);
+    }
+
+    function startRateLimitCountdown(retryAfterSeconds) {
+      // OTP_RATE_LIMITED: show a banner, disable send for the given window
+      const form1 = document.getElementById('form-1');
+      let banner = document.getElementById('rate-limit-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'rate-limit-banner';
+        banner.className = 'rate-limit-banner';
+        banner.setAttribute('role', 'alert');
+        form1.insertBefore(banner, form1.querySelector('.input-group'));
+      }
+
+      const sendBtn = document.getElementById('btn-send-otp');
+      const verifyBtn = document.getElementById('btn-verify-otp');
+      let left = Math.max(1, Math.round(retryAfterSeconds || 600)); // 10 min default
+      state.rateLimitedUntil = Date.now() + left * 1000;
+
+      function update() {
+        if (left <= 0) {
+          clearInterval(state.resendTimer);
+          state.resendTimer = null;
+          banner.remove();
+          sendBtn.disabled = false;
+          sendBtn.textContent = 'ارسال کد تأیید';
+          if (verifyBtn) verifyBtn.hidden = true;
+          return;
+        }
+        const mins = Math.floor(left / 60);
+        const secs = left % 60;
+        const timeStr = mins > 0
+          ? (MAZCRM.toFaDigits(mins) + ' دقیقه و ' + MAZCRM.toFaDigits(secs) + ' ثانیه')
+          : (MAZCRM.toFaDigits(secs) + ' ثانیه');
+        banner.innerHTML =
+          '<strong>⚠ درخواست‌های بیش از حد:</strong> لطفاً ' + timeStr + ' دیگر دوباره تلاش کنید.';
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'ارسال مجدد (' + MAZCRM.toFaDigits(left) + ')';
+        left -= 1;
+      }
+
+      update();
+      if (state.resendTimer) clearInterval(state.resendTimer);
+      state.resendTimer = setInterval(update, 1000);
+    }
+
+    // ── Remove any outstanding banners ──────────────────────────────────────
+    function clearBanner(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    // ── DOM ready ────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
+      sig = MAZCRM.initSignaturePad(document.getElementById('sigPad'));
+
+      document.getElementById('btn-clear-sig').addEventListener('click', function () {
+        if (sig) sig.clear();
+        clearFieldError(document.getElementById('err-sig'));
+      });
+      document.getElementById('btn-back-2').addEventListener('click', function () { goStep(1); });
+      document.getElementById('btn-back-3').addEventListener('click', function () { goStep(2); });
+      document.getElementById('btn-verify-otp').addEventListener('click', verifyStep1);
+
+      // Prime the idempotency UUID on page load so it survives a hard refresh
+      // without creating a duplicate submission. See shared/api.js getOrCreateIntakeUUID().
+      getOrCreateIntakeUUID();
+    });
+
+    // ════════════════════════════════════════════════════════════════════════
+    // STEP 1 — OTP send
+    // ════════════════════════════════════════════════════════════════════════
+    document.getElementById('form-1').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const errEl = document.getElementById('err-mobile');
+      clearFieldError(errEl);
+      clearBanner('rate-limit-banner');
+
+      const raw = document.getElementById('mobile').value.trim();
+      const mobile = MAZCRM.toEnDigits(normalizePersianDigits(raw));
+      if (!MAZCRM.isValidMobile(mobile)) {
+        showFieldError(errEl, 'شماره همراه نامعتبر است.');
+        return;
+      }
+
+      // Guard: already rate-limited
+      if (state.rateLimitedUntil > Date.now()) {
+        return; // countdown is running; button is already disabled
+      }
+
+      const btn = document.getElementById('btn-send-otp');
+      setBusy(btn, true);
+
+      Auth.sendOtp(mobile)
+        .then(function (res) {
+          state.mobile = mobile;
+          document.getElementById('otp-block').hidden = false;
+          document.getElementById('btn-verify-otp').hidden = false;
+          document.getElementById('otp').focus();
+          clearFieldError(document.getElementById('err-otp'));
+
+          // expires_in from API response (300 = 5 min); show full countdown
+          const expiresIn = (res && res.data && res.data.expires_in) || 300;
+          startResendCountdown(expiresIn);
+          MAZCRM.toast('کد تأیید ارسال شد', 'success');
+        })
+        .catch(function (err) {
+          const code = err && err.code;
+          if (code === 'OTP_RATE_LIMITED') {
+            // 429 — rate limited; disable resend for 10 minutes
+            setBusy(btn, false, 'ارسال کد تأیید');
+            startRateLimitCountdown(600);
+            return;
+          }
+          showFieldError(errEl, (err && err.message) || getPersianError(code));
+          setBusy(btn, false, 'ارسال کد تأیید');
+        })
+        .finally(function () {
+          // Only restore button if it wasn't handled by startResendCountdown/startRateLimitCountdown
+          if (!btn.disabled || btn.textContent === 'لطفاً صبر کنید…') {
+            // still loading — do nothing; catch already reset it
+          }
+        });
+    });
+
+    // ════════════════════════════════════════════════════════════════════════
+    // STEP 1 — OTP verify
+    // ════════════════════════════════════════════════════════════════════════
+    function verifyStep1() {
+      const rawCode = document.getElementById('otp').value.trim();
+      const code = MAZCRM.toEnDigits(normalizePersianDigits(rawCode));
+      const errEl = document.getElementById('err-otp');
+      clearFieldError(errEl);
+
+      if (code.length !== 5) {
+        showFieldError(errEl, 'کد تأیید باید ۵ رقم باشد.');
+        return;
+      }
+      if (!state.mobile) {
+        showFieldError(errEl, 'ابتدا شماره همراه را تأیید کنید.');
+        return;
+      }
+
+      const btn = document.getElementById('btn-verify-otp');
+      setBusy(btn, true);
+
+      Auth.verifyOtp(state.mobile, code)
+        .then(function () {
+          state.otpVerified = true;
+          if (state.resendTimer) { clearInterval(state.resendTimer); state.resendTimer = null; }
+          MAZCRM.toast('شماره شما تأیید شد ✓', 'success');
+          goStep(2);
+        })
+        .catch(function (err) {
+          const code = err && err.code;
+          if (code === 'OTP_EXPIRED') {
+            showFieldError(errEl, 'کد منقضی شده است. کد جدید درخواست کنید.');
+            // Re-enable the send button so they can request a fresh OTP
+            const sendBtn = document.getElementById('btn-send-otp');
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'ارسال مجدد کد';
+            if (state.resendTimer) { clearInterval(state.resendTimer); state.resendTimer = null; }
+            document.getElementById('otp-meta').textContent = 'می‌توانید کد جدید درخواست کنید.';
+          } else {
+            showFieldError(errEl, (err && err.message) || getPersianError(code));
+          }
+        })
+        .finally(function () {
+          setBusy(btn, false, 'تأیید و ادامه');
+        });
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // STEP 2 — Personal info (client-side validation before advancing)
+    // ════════════════════════════════════════════════════════════════════════
+    document.getElementById('form-2').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const fn  = document.getElementById('firstName').value.trim();
+      const ln  = document.getElementById('lastName').value.trim();
+      const nid = MAZCRM.toEnDigits(document.getElementById('nationalId').value.trim());
+      const bd  = MAZCRM.toEnDigits(document.getElementById('birthDate').value.trim());
+      const reason = document.getElementById('visitReason').value;
+      const errN = document.getElementById('err-national');
+      clearFieldError(errN);
+
+      // Required fields — match API_CONTRACT.md §POST /intakes requirements
+      if (!fn || fn.length < 2) { MAZCRM.toast('نام را کامل وارد کنید (حداقل ۲ حرف)', 'error'); return; }
+      if (!ln || ln.length < 2) { MAZCRM.toast('نام خانوادگی را کامل وارد کنید (حداقل ۲ حرف)', 'error'); return; }
+
+      if (!nid) {
+        showFieldError(errN, 'کد ملی الزامی است.');
+        return;
+      }
+      if (!MAZCRM.isValidNationalId(nid)) {
+        showFieldError(errN, 'کد ملی نامعتبر است (کنترل رقم).');
+        return;
+      }
+
+      if (!bd) { MAZCRM.toast('تاریخ تولد را وارد کنید (مثال: ۱۳۷۰/۰۵/۱۲)', 'error'); return; }
+      // Lightweight format check — backend does the authoritative Jalali validation
+      if (!/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(bd)) {
+        MAZCRM.toast('تاریخ تولد را به فرمت YYYY/MM/DD وارد کنید', 'error'); return;
+      }
+
+      if (!reason) { MAZCRM.toast('علت مراجعه را انتخاب کنید', 'error'); return; }
+
+      goStep(3);
+    });
+
+    // ════════════════════════════════════════════════════════════════════════
+    // STEP 3 — Medical history + signature + final submit
+    // Lifecycle: attempting → submitted | failed_confirmed | outcome_unknown
+    // ════════════════════════════════════════════════════════════════════════
+    document.getElementById('form-3').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      // Guard: OTP must have been verified (paranoia check — button flow prevents this)
+      if (!state.otpVerified) {
+        MAZCRM.toast('تأیید شماره همراه الزامی است.', 'error');
+        goStep(1);
+        return;
+      }
+
+      // Signature required
+      const errSig = document.getElementById('err-sig');
+      clearFieldError(errSig);
+      if (!sig || sig.isEmpty()) {
+        showFieldError(errSig, 'لطفاً امضای خود را وارد کنید.');
+        window.scrollTo({ top: errSig.getBoundingClientRect().top + window.scrollY - 200, behavior: 'smooth' });
+        return;
+      }
+
+      // Consent required
+      if (!document.getElementById('consent').checked) {
+        MAZCRM.toast('تأیید نهایی الزامی است', 'error');
+        return;
+      }
+
+      // Remove any previous outcome banners
+      clearBanner('outcome-banner');
+
+      // Collect payload — keys match API_CONTRACT.md §POST /intakes field names.
+      // IntakeController::normalisePayload() also accepts camelCase, but we prefer
+      // snake_case here to be explicit about the contract we're fulfilling.
+      const payload = {
+        mobile:          state.mobile,
+        first_name:      document.getElementById('firstName').value.trim(),
+        last_name:       document.getElementById('lastName').value.trim(),
+        father_name:     document.getElementById('fatherName').value.trim() || null,
+        national_id:     MAZCRM.toEnDigits(document.getElementById('nationalId').value.trim()),
+        birth_date:      MAZCRM.toEnDigits(document.getElementById('birthDate').value.trim()),
+        home_tel:        MAZCRM.toEnDigits(document.getElementById('homeTel').value.trim()) || null,
+        home_address:    document.getElementById('homeAd').value.trim() || null,
+        email:           document.getElementById('email').value.trim() || null,
+        visit_reason:    document.getElementById('visitReason').value,
+        description:     document.getElementById('description').value.trim() || null,
+        medical_history: Array.from(document.querySelectorAll('input[name="hist"]:checked')).map(el => el.value),
+        current_drugs:   Array.from(document.querySelectorAll('input[name="drug"]:checked')).map(el => el.value),
+        signature:       sig.toDataURL(),  // base64 PNG data URI — never logged
+        is_transfer:     0
+        // submission_uuid is attached by Intake.submit() from sessionStorage
+      };
+
+      // ── Attempting state ─────────────────────────────────────────────────
+      const form3 = document.getElementById('form-3');
+      const btn   = document.getElementById('submit-btn');
+      setFormBusy(form3, true);
+      setBusy(btn, true, 'ثبت پرونده');
+
+      Intake.submit(payload)
+        .then(function (res) {
+          // ── submitted (terminal success) ──────────────────────────────
+          const data = (res && res.data) || res;
+          const intakeId = data && (data.intake_id || data.intakeId);
+
+          // Hide wizard, show success screen
+          document.querySelectorAll('#wizard .step-form, #wizard .progress, #wizard .progress-labels')
+            .forEach(function (el) { el.style.display = 'none'; });
+          document.getElementById('success').style.display = 'block';
+          document.getElementById('track-id').textContent =
+            intakeId ? MAZCRM.toFaDigits('INT-' + intakeId) : '—';
+        })
+        .catch(function (err) {
+          setFormBusy(form3, false);
+          setBusy(btn, false, 'ثبت پرونده');
+
+          const httpStatus = err && err.httpStatus;
+          const code = err && err.code;
+
+          // ── 422 Validation error — show field-level errors ────────────
+          if (httpStatus === 422) {
+            const fields = err && err.raw && err.raw.error && err.raw.error.fields;
+            const fieldMap = {
+              mobile:          'err-mobile',
+              national_id:     'err-national',
+              birth_date:      null,  // no dedicated element on step 2 currently
+              signature:       'err-sig'
+            };
+            const matched = applyFieldErrors(fields, fieldMap);
+            if (!matched) {
+              // Generic validation message if no field matched our map
+              MAZCRM.toast((err && err.message) || getPersianError(code), 'error');
+            } else {
+              // At least one field error shown — scroll to the first visible one
+              const firstErr = document.querySelector('.form-error:not([hidden])');
+              if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              // If the failing field is on a prior step, navigate back
+              if (fields && (fields.mobile || fields.national_id || fields.birth_date)) {
+                setTimeout(function () { goStep(fields.mobile ? 1 : 2); }, 200);
+              }
+            }
+            return;
+          }
+
+          // ── Network / offline — outcome_unknown: UUID preserved ───────
+          if (code === 'NETWORK_ERROR' || httpStatus === 0) {
+            showOutcomeBanner(
+              'خطای اتصال',
+              'اطلاعات شما ذخیره نشد. اینترنت را بررسی کرده و دکمه «ثبت پرونده» را دوباره بزنید. ' +
+              'به دلیل کد یکتای شما، اطلاعات تکراری ثبت نخواهد شد.'
+            );
+            return;
+          }
+
+          // ── 500 / unknown — outcome_unknown: UUID preserved ───────────
+          showOutcomeBanner(
+            'خطای سرور',
+            'ثبت موقتاً امکان‌پذیر نیست. لطفاً دوباره تلاش کنید. ' +
+            'در صورت تکرار خطا، با کلینیک تماس بگیرید.'
+          );
+        });
+    });
+
+    // ── Outcome-unknown banner (UUID preserved — safe to retry) ────────────
+    function showOutcomeBanner(title, text) {
+      clearBanner('outcome-banner');
+      const form3 = document.getElementById('form-3');
+      const banner = document.createElement('div');
+      banner.id = 'outcome-banner';
+      banner.className = 'outcome-banner';
+      banner.setAttribute('role', 'alert');
+      banner.innerHTML =
+        '<strong>' + title + ':</strong> ' + text;
+      form3.insertBefore(banner, form3.querySelector('.step-actions'));
+      banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  </script>
+</body>
+</html>

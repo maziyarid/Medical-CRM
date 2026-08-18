@@ -1,0 +1,315 @@
+﻿<!doctype html>
+<!--
+  MΛZ Medical CRM — Settings
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Data:  ✅ Wired to GET/PATCH /api/v1/settings/clinic (Staff API, Phase D)
+  Auth:  Staff Bearer token required.
+-->
+<html dir="rtl" lang="fa-IR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>تنظیمات — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    .settings-tabs {
+      display: flex; gap: .25rem; border-bottom: 1px solid var(--border);
+      margin-bottom: 1.75rem; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    }
+    .settings-tab {
+      padding: .7rem 1.25rem; background: none; border: none;
+      border-bottom: 2px solid transparent; font-family: inherit;
+      font-size: .88rem; font-weight: 600; color: var(--muted);
+      cursor: pointer; white-space: nowrap; min-height: 44px;
+    }
+    .settings-tab.active { color: var(--evergreen); border-bottom-color: var(--evergreen); }
+    .settings-panel { display: none; }
+    .settings-panel.active { display: block; }
+    .integration-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .9rem 1rem; background: var(--porcelain);
+      border-radius: var(--radius-md); margin-bottom: .65rem;
+    }
+    .integration-row:last-child { margin-bottom: 0; }
+    .integration-row strong { display: block; font-size: .9rem; }
+    .integration-row small { font-size: .75rem; color: var(--muted); }
+    .save-state { font-size: .78rem; color: var(--muted); margin-top: .5rem; text-align: center; min-height: 1.4rem; }
+    .save-state.success { color: var(--evergreen); }
+    .save-state.error   { color: var(--error); }
+  </style>
+</head>
+<body data-shell="staff" data-nav="settings">
+  <div class="app-shell">
+    <main class="main">
+
+      <div class="topbar">
+        <div>
+          <h1>تنظیمات</h1>
+          <p class="subtitle">پیکربندی کلینیک، کاربران و یکپارچه‌سازی‌ها</p>
+        </div>
+      </div>
+
+      <!-- Settings tabs -->
+      <div class="settings-tabs" role="tablist" aria-label="بخش‌های تنظیمات" id="settings-tabs">
+        <button class="settings-tab active" role="tab" aria-selected="true"  data-panel="clinic">اطلاعات کلینیک</button>
+        <button class="settings-tab" role="tab" aria-selected="false" data-panel="integrations">یکپارچه‌سازی‌ها</button>
+        <button class="settings-tab" role="tab" aria-selected="false" data-panel="users">کاربران و دسترسی</button>
+        <button class="settings-tab" role="tab" aria-selected="false" data-panel="emr-templates">قالب‌های EMR</button>
+        <button class="settings-tab" role="tab" aria-selected="false" data-panel="hours">ساعت کاری</button>
+      </div>
+
+      <!-- Panel: Clinic info -->
+      <div class="settings-panel active" id="panel-clinic" role="tabpanel">
+        <section class="panel" style="max-width:640px">
+          <div class="panel-header">
+            <div><h3>اطلاعات کلینیک</h3><p>این اطلاعات در سایت و فرم پذیرش نمایش داده می‌شود.</p></div>
+          </div>
+          <div class="grid-2" id="clinic-form-fields">
+            <div class="kpi-card" style="grid-column:1/-1"><div class="skeleton skeleton-line" style="width:60%"></div></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:.75rem">
+            <button class="btn btn-primary btn-sm" id="btn-save-clinic">ذخیره</button>
+          </div>
+          <p class="save-state" id="clinic-save-state"></p>
+        </section>
+      </div>
+
+      <!-- Panel: Integrations (static — keys are env-managed) -->
+      <div class="settings-panel" id="panel-integrations" role="tabpanel">
+        <section class="panel" style="max-width:640px">
+          <div class="panel-header"><div><h3>یکپارچه‌سازی‌ها</h3><p>سرویس‌های خارجی متصل به CRM</p></div></div>
+          <div class="integration-row">
+            <div><strong>کاوه‌نگار (SMS)</strong><small>خط خدماتی: 3000...</small></div>
+            <span class="pill success">فعال</span>
+          </div>
+          <div class="integration-row">
+            <div><strong>Zarinpal</strong><small>درگاه پرداخت</small></div>
+            <span class="pill success">فعال</span>
+          </div>
+          <div class="integration-row">
+            <div><strong>ArvanCloud S3</strong><small>ذخیره‌سازی تصاویر</small></div>
+            <span class="pill success">فعال</span>
+          </div>
+          <div class="integration-row">
+            <div><strong>OpenRouter (AI)</strong><small>Dr. Copilot — ۷ مدل فعال</small></div>
+            <span class="pill success">فعال</span>
+          </div>
+          <div class="integration-row">
+            <div><strong>SQL Server Mirror</strong><small>همگام‌سازی ثانویه</small></div>
+            <span class="pill muted">غیرفعال (v1.5)</span>
+          </div>
+          <p class="save-state" style="display:block;margin-top:1rem" role="note">
+            کلیدهای API از طریق متغیرهای محیطی (.env) مدیریت می‌شوند.
+          </p>
+        </section>
+      </div>
+
+      <!-- Panel: Users (RBAC — read-only for now, management is Phase E) -->
+      <div class="settings-panel" id="panel-users" role="tabpanel">
+        <section class="panel">
+          <div class="panel-header">
+            <div><h3>کاربران و دسترسی‌ها (RBAC)</h3></div>
+          </div>
+          <div class="table-wrap" style="box-shadow:none;border:none">
+            <table class="data-table">
+              <thead>
+                <tr><th>کاربر</th><th>نقش</th><th>وضعیت</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>دکتر شاهین باستانی‌نژاد</td>
+                  <td>مدیر کل + پزشک</td>
+                  <td><span class="pill success">فعال</span></td>
+                </tr>
+                <tr>
+                  <td>فاطمه رضایی</td>
+                  <td>منشی</td>
+                  <td><span class="pill success">فعال</span></td>
+                </tr>
+                <tr>
+                  <td>نگار حسینی</td>
+                  <td>پرستار</td>
+                  <td><span class="pill success">فعال</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="save-state" style="display:block;margin-top:.75rem">مدیریت کاربران در فاز E پیاده‌سازی می‌شود.</p>
+        </section>
+      </div>
+
+      <!-- Panel: EMR Templates (read-only listing from settings endpoint) -->
+      <div class="settings-panel" id="panel-emr-templates" role="tabpanel">
+        <section class="panel" style="max-width:640px">
+          <div class="panel-header">
+            <div><h3>قالب‌های EMR</h3><p>قالب‌های تخصصی پرونده الکترونیک</p></div>
+          </div>
+          <ul id="emr-templates-list" style="list-style:none;display:flex;flex-direction:column;gap:.6rem">
+            <li><div class="skeleton skeleton-line" style="width:70%"></div></li>
+          </ul>
+        </section>
+      </div>
+
+      <!-- Panel: Working Hours -->
+      <div class="settings-panel" id="panel-hours" role="tabpanel">
+        <section class="panel" style="max-width:640px">
+          <div class="panel-header"><div><h3>ساعت کاری کلینیک</h3><p>روزهای فعال و بازه زمانی</p></div></div>
+          <div id="hours-list" style="display:flex;flex-direction:column;gap:.75rem">
+            <div class="skeleton skeleton-line" style="width:80%;margin:.5rem 0"></div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:.75rem">
+            <button class="btn btn-primary btn-sm" id="btn-save-hours">ذخیره</button>
+          </div>
+          <p class="save-state" id="hours-save-state"></p>
+        </section>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { Staff, renderError, showToast, escHtml, requireAuth, redirectOn401 } from '../../shared/api.js';
+    if (!requireAuth('../auth/login.html')) { /* redirecting */ }
+
+    // ── Tab switching ────────────────────────────────────────────────────────
+    document.getElementById('settings-tabs').addEventListener('click', function(e) {
+      const btn = e.target.closest('.settings-tab[data-panel]');
+      if (!btn) return;
+      document.querySelectorAll('.settings-tab').forEach(t => {
+        t.classList.remove('active'); t.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active'); btn.setAttribute('aria-selected', 'true');
+      const panel = document.getElementById('panel-' + btn.dataset.panel);
+      if (panel) panel.classList.add('active');
+    });
+
+    // ── Load settings ────────────────────────────────────────────────────────
+    let loadedSettings = {};
+
+    function renderClinicForm(settings) {
+      const f = document.getElementById('clinic-form-fields');
+      f.innerHTML = `
+        <div class="input-group" style="grid-column:1/-1">
+          <label class="form-label" for="clinic-name">نام کلینیک</label>
+          <input class="form-input" id="clinic-name" value="${escHtml(settings.name || '')}"/>
+        </div>
+        <div class="input-group">
+          <label class="form-label" for="clinic-phone">شماره تماس</label>
+          <input class="form-input" id="clinic-phone" value="${escHtml(settings.phone || '')}" style="direction:ltr;text-align:right"/>
+        </div>
+        <div class="input-group">
+          <label class="form-label" for="clinic-tz">منطقه زمانی</label>
+          <select class="form-select" id="clinic-tz">
+            <option value="Asia/Tehran" ${settings.timezone === 'Asia/Tehran' ? 'selected' : ''}>Asia/Tehran (پیش‌فرض)</option>
+          </select>
+        </div>
+        <div class="input-group" style="grid-column:1/-1">
+          <label class="form-label" for="clinic-address">آدرس</label>
+          <textarea class="form-textarea" id="clinic-address" rows="2">${escHtml(settings.address || '')}</textarea>
+        </div>`;
+    }
+
+    function renderHours(hours) {
+      const container = document.getElementById('hours-list');
+      if (!hours || !hours.length) {
+        container.innerHTML = '<p style="color:var(--muted);font-size:.85rem">اطلاعات ساعت کاری دریافت نشد.</p>';
+        return;
+      }
+      container.innerHTML = hours.map(h => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:var(--porcelain);border-radius:var(--radius-md)">
+          <span style="font-size:.9rem;min-width:100px">${escHtml(h.day_label || h.day || '')}</span>
+          <span style="font-size:.88rem;direction:ltr">${h.active ? escHtml((h.open || '08:00') + ' – ' + (h.close || '20:00')) : 'تعطیل'}</span>
+          <span class="pill ${h.active ? 'evergreen' : 'muted'}">${h.active ? 'فعال' : 'غیرفعال'}</span>
+        </div>`).join('');
+    }
+
+    function renderEmrTemplates(templates) {
+      const ul = document.getElementById('emr-templates-list');
+      if (!templates || !templates.length) {
+        ul.innerHTML = '<li style="color:var(--muted);font-size:.85rem">قالبی یافت نشد.</li>';
+        return;
+      }
+      // emr_templates schema: { id, name, specialty, schema_json, created_at }
+      ul.innerHTML = templates.map(t => `
+        <li style="padding:.85rem 1rem;background:var(--porcelain);border-radius:var(--radius-md);display:flex;justify-content:space-between;align-items:center;gap:.75rem">
+          <div>
+            <span style="font-weight:600;font-size:.9rem">${escHtml(t.name || '')}</span>
+            ${t.specialty ? `<span style="font-size:.75rem;color:var(--muted);margin-inline-start:.4rem">${escHtml(t.specialty)}</span>` : ''}
+          </div>
+          <span class="pill evergreen" style="flex-shrink:0">فعال</span>
+        </li>`).join('');
+    }
+
+    async function loadSettings() {
+      try {
+        const res = await Staff.getClinicSettings();
+        // SettingsController.show() returns a flat object — NOT nested under d.clinic.
+        // Fields: id, name, phone, address, timezone, working_hours (parsed JSON),
+        //         updated_at, emr_templates[]
+        const d = res.data || res;
+        loadedSettings = d;
+        renderClinicForm(d);
+        renderHours(d.working_hours || []);
+        renderEmrTemplates(d.emr_templates || []);
+      } catch (err) {
+        if (redirectOn401(err, '../auth/login.html')) return;
+        renderError(document.getElementById('clinic-form-fields'), err);
+        showToast(err.message || 'خطا در بارگذاری تنظیمات', 'error');
+      }
+    }
+
+    // ── Save clinic info ─────────────────────────────────────────────────────
+    document.getElementById('btn-save-clinic').addEventListener('click', async function() {
+      const name    = document.getElementById('clinic-name')?.value.trim();
+      const phone   = document.getElementById('clinic-phone')?.value.trim();
+      const address = document.getElementById('clinic-address')?.value.trim();
+      const tz      = document.getElementById('clinic-tz')?.value;
+      if (!name) { showToast('نام کلینیک اجباری است.', 'error'); return; }
+      const state = document.getElementById('clinic-save-state');
+      this.disabled = true; state.textContent = 'در حال ذخیره…'; state.className = 'save-state';
+      try {
+        await Staff.updateClinicSettings({ name, phone, address, timezone: tz });
+        state.textContent = '✓ تنظیمات با موفقیت ذخیره شد.';
+        state.className = 'save-state success';
+        showToast('تنظیمات ذخیره شد.', 'success');
+      } catch (err) {
+        state.textContent = err.message || 'خطا در ذخیره تنظیمات';
+        state.className = 'save-state error';
+        showToast(err.message || 'خطا در ذخیره', 'error');
+      } finally {
+        this.disabled = false;
+      }
+    });
+
+    // ── Save hours (sends current rendered values) ───────────────────────────
+    document.getElementById('btn-save-hours').addEventListener('click', async function() {
+      const state = document.getElementById('hours-save-state');
+      this.disabled = true; state.textContent = 'در حال ذخیره…'; state.className = 'save-state';
+      try {
+        // Pass through the same working_hours from last load unchanged
+        await Staff.updateClinicSettings({ working_hours: loadedSettings.working_hours || loadedSettings.hours || [] });
+        state.textContent = '✓ ساعت کاری ذخیره شد.';
+        state.className = 'save-state success';
+        showToast('ساعت کاری ذخیره شد.', 'success');
+      } catch (err) {
+        state.textContent = err.message || 'خطا در ذخیره ساعت کاری';
+        state.className = 'save-state error';
+        showToast(err.message || 'خطا در ذخیره', 'error');
+      } finally {
+        this.disabled = false;
+      }
+    });
+
+    loadSettings();
+  </script>
+</body>
+</html>

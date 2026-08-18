@@ -1,774 +1,264 @@
-<!-- MAZ//ID · © 2026 Maziyar / Dr. Shahin Bastaninejad -->
+# API Contract — Dr. Shahin Bastaninejad Clinical Dashboard
 
-# API Contract — MΛZ Medical CRM
-
-**Version:** 1.2 · **Author:** MAZ//ID · **Date:** 27 July 2026  
+**Version:** 2.0 — 2026-08-10  
 **Base URL:** `https://dashboard.drbastaninejad.com/api/v1`
 
-All responses use the standard envelope:
-```json
-{ "ok": true, "data": ..., "meta": { "page": 1, "per_page": 20, "total": 0 }, "errors": null }
-```
-Error shape:
-```json
-{ "ok": false, "data": null, "errors": [{ "field": "mobile", "message": "شماره نامعتبر" }] }
-```
+This file describes the routes implemented by the PHP controllers in this repository. The canonical customer UI is `app.drbastaninejad.com/Frontend/`; `dashboard/public/index.html` is only a backend smoke-test shell.
 
----
+## 1. Response envelope — locked
 
-## Phase A — Intake Write Path
+Every JSON response keeps all five keys:
 
-### `POST /api/v1/intakes`
-
-**Auth:** None (public endpoint)  
-**Purpose:** Accept new patient intake form submission from `intake.html`
-
-#### Request body
-
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `submission_uuid` | string (≤64) | ✅ | Client-generated UUID v4; enables idempotent retries |
-| `firstName` | string | ✅ | camelCase from intake.html; normalised server-side (§6.1 UNIFIED_MASTER_PLAN) |
-| `lastName` | string | ✅ | camelCase from intake.html |
-| `mobile` | string | ✅ | Persian digits accepted; normalised to `09XXXXXXXXX` |
-| `nationalId` | string | ✅ | 10 digits, Persian digits accepted; mod-11 validated |
-| `birthDate` | string | ✅ | Format `YYYY/MM/DD`; Persian digits OK; Jalali — converted to Gregorian server-side |
-| `description` | string | ✅ | Free text — mapped to `chief_complaint` server-side |
-| `visitReason` | string | ✅ | Mapped to `visit_reason` column |
-| `email` | string | — | Optional email address |
-| `fatherName` | string | — | camelCase; mapped to `father_name` |
-| `homeTel` | string | — | Home telephone; stored in `raw_payload` only |
-| `homeAd` | string | — | camelCase; mapped to `home_address` |
-| `isTransfer` | int | — | Default `0` |
-
-> **Note:** Both camelCase (from `intake.html`) and snake_case keys are accepted.  
-> The server normalises camelCase to snake_case in `IntakeController::normalisePayload()`.  
-> The frontend payload contract is never changed (§6.1 UNIFIED_MASTER_PLAN.md).
-
-#### Responses
-
-**201 Created** — new submission accepted:
 ```json
 {
   "ok": true,
-  "data": {
-    "intake_id": 42,
-    "patient_uuid": "a1b2c3d4e5f6...",
-    "status": "pending",
-    "sheets_sync_status": "ok",
-    "idempotent": false
-  },
-  "meta": null,
-  "errors": null
+  "status": 200,
+  "data": {},
+  "errors": null,
+  "meta": null
 }
 ```
 
-> `sheets_sync_status` values:  
-> `"ok"` — row appended to Google Sheet  
-> `"failed"` — Sheets write failed (row is safe in MySQL; will retry on next duplicate request)  
-> `"skipped"` — Google Sheets not configured (expected in dev/staging)  
-> `"pending"` — only persists if the process was killed between DB commit and Sheets write
+Validation/error responses use the same shape:
 
-**200 OK** — duplicate `submission_uuid` (safe retry):
-```json
-{
-  "ok": true,
-  "data": {
-    "intake_id": 42,
-    "patient_uuid": "a1b2c3d4e5f6...",
-    "status": "pending",
-    "sheets_sync_status": "ok",
-    "idempotent": true
-  },
-  "meta": null,
-  "errors": null
-}
-```
-
-> On idempotent 200 path: if `sheets_sync_status` was `"failed"` or `"pending"`, the server
-> automatically retries the Sheets write before responding.
-
-**422 Unprocessable Entity** — validation failure:
 ```json
 {
   "ok": false,
+  "status": 422,
   "data": null,
-  "errors": [
-    { "field": "national_id", "message": "کد ملی معتبر نیست" },
-    { "field": "mobile", "message": "شماره موبایل معتبر نیست" }
-  ]
+  "errors": [{"field":"mobile","message":"شماره موبایل معتبر نیست"}],
+  "meta": null
 }
 ```
 
-**500 Internal Server Error** — transaction failed (retry safe — use the same `submission_uuid`).
+Authenticated routes use `Authorization: Bearer <raw-token>`. Only tokens with `auth_tokens.purpose='session'` are accepted by normal API middleware.
 
----
+## 2. Authentication
 
-### `GET /api/v1/intakes`
+### POST `/auth/otp/send`
+Public. Body:
 
-**Auth:** Bearer token (staff, requires `intakes.view` permission)  
-**Purpose:** Paginated staff review queue for `staff/dashboard.html` and `staff/patients.html`
+```json
+{"mobile":"09XXXXXXXXX","audience":"patient"}
+```
 
-#### Query params
+`audience` is `patient` or `staff`; default is `patient`. OTP is 5 digits, expires in 300 seconds, and is rate-limited per mobile + audience + purpose.
 
-| Param | Default | Notes |
+### POST `/auth/otp/verify`
+Public. Body:
+
+```json
+{"mobile":"09XXXXXXXXX","otp":"12345","audience":"patient"}
+```
+
+Success `data` contains `token`, `expires_at`, and `user`. The token is audience-specific. Patient and staff browser sessions must not share a token key.
+
+### Patient recovery
+
+`POST /auth/recovery/request`
+
+```json
+{"mobile":"09XXXXXXXXX","channel":"sms","email":""}
+```
+
+`channel` is `sms` or `email`. For the email branch, `email` must exactly match the patient record. Unknown accounts and email mismatches receive the same neutral response. Email delivery requires `EMAIL_OTP_ENABLED=1` and a valid `MAIL_FROM`.
+
+`POST /auth/recovery/verify`
+
+```json
+{"mobile":"09XXXXXXXXX","otp":"12345"}
+```
+
+Returns a one-use, 15-minute `reset_token` with `purpose='password_reset'`.
+
+`POST /auth/recovery/password`
+
+```json
+{"reset_token":"64-hex-characters","new_password":"minimum-10-characters"}
+```
+
+Stores only a password hash (Argon2id when available, bcrypt fallback), revokes the reset token, and revokes active patient sessions. Passwords are never sent by SMS or email. Patient OTP remains the primary login flow.
+
+## 3. WorkingVersion intake bridge
+
+### POST `/intakes`
+Public for the normal intake API, but the live WorkingVersion dual-write identifies itself with:
+
+`X-Intake-Bridge-Secret: <runtime INTAKE_BRIDGE_SECRET>`
+
+The bridge must send a stable `submission_uuid` and may send `_bridge_sheet_status` = `pending`, `ok`, or `failed`. The server uses the same `submission_uuid` idempotently.
+
+Canonical additive fields:
+
+| Field | Required | Notes |
+|---|---:|---|
+| `submission_uuid` | yes | max 64; idempotency key |
+| `firstName`, `lastName` | yes | existing field names remain accepted |
+| `mobile` | yes | globally unique patient identity after normalization |
+| `nationalId` | yes for medical intake | validated for medical intake; booking source may omit it |
+| `birthDate` | yes for medical intake | Jalali input is preserved in `birth_date_jalali` |
+| `description` / `chief_complaint` | yes | existing intake complaint/history payload |
+| `email` | no | validated only when non-empty; stored in `intakes.email` and patient upsert |
+| `visitReason` / `visit_reason` | no | stored in `intakes.visit_reason` |
+| `doctorRequest` / `doctor_request` | no | max 2000; stored explicitly and in raw payload |
+
+On WorkingVersion bridge calls, MySQL commit and Google Sheet delivery are isolated. Sheet failure does not delete the DB row. Intake success SMS is sent only on the bridge completion signal (`_bridge_sheet_status='ok'`); SMS failure updates `sms_status='failed'` and never rolls back the intake.
+
+### GET `/intakes`
+Staff auth + `intakes.view`. Query: `page`, `per_page`, `status`, `q`, `source_type` (`intake|booking`). Returns the admin review queue including email, visit reason, doctor request, Sheet status, SMS status, source type and review state.
+
+### PATCH `/intakes/{id}/status`
+Staff auth + `intakes.manage`. Body:
+
+```json
+{"status":"reviewed"}
+```
+
+Allowed: `pending`, `reviewed`, `converted`, `rejected`.
+
+## 4. WordPress booking bridge — server-to-server only
+
+WordPress remains a marketing UI. These routes require `X-WordPress-Bridge-Secret`; the secret must never be exposed to browser JavaScript.
+
+### POST `/bookings`
+Body from the trusted WordPress server:
+
+```json
+{
+  "submission_uuid":"wp-...",
+  "name":"نام بیمار",
+  "mobile":"09XXXXXXXXX",
+  "email":"optional@example.com",
+  "procedure":"نوع خدمت",
+  "message":"توضیحات اختیاری",
+  "cooldown_minutes":30,
+  "sms_template":"optional trusted admin template"
+}
+```
+
+The dashboard applies its own same-mobile cooldown, globally upserts `patients.mobile`, creates `intakes.source_type='booking'`, and sends booking confirmation through the existing `SmsProviderChain` after DB commit. Booking SMS failure does not roll back the booking.
+
+### GET `/bookings/stats`
+Same bridge secret. Returns non-PII counters only: `total`, `last_7_days`, `pending`, `sms_sent`, `sms_failed`.
+
+## 5. Patient portal
+
+All routes below require a **patient** session token. `RbacMiddleware('patient.portal')` allows patient-scoped access by user type.
+
+| Method | Path | Purpose |
 |---|---|---|
-| `page` | 1 | |
-| `per_page` | 20 | max 100 |
-| `status` | all | `pending` \| `reviewed` \| `converted` \| `rejected` |
-| `q` | — | search first_name, last_name, mobile, national_id |
+| GET | `/patient/overview` | next appointment + counts |
+| GET | `/patient/profile` | canonical profile |
+| PATCH | `/patient/profile` | writable: `email`, `home_tel`, `home_address` only |
+| GET | `/patient/appointments` | paginated appointment history |
+| GET | `/patient/documents` | patient media/document metadata (read-only; no upload route is currently contracted) |
+| GET | `/patient/records` | paginated EMR records |
+| GET | `/patient/notification-preferences` | notification choices |
+| PATCH | `/patient/notification-preferences` | update four boolean choices |
 
-#### Response `data` array item
+Notification keys:
 
-```json
-{
-  "id": 42,
-  "submission_uuid": "...",
-  "patient_uuid": "...",
-  "first_name": "علی",
-  "last_name": "محمدی",
-  "mobile": "09121234567",
-  "national_id": "0079643178",
-  "service_type": "rhinoplasty",
-  "chief_complaint": "اصلاح فرم بینی",
-  "preferred_date": "2026-10-01",
-  "status": "pending",
-  "created_at": "2026-07-27 11:00:00"
-}
-```
+- `sms_appointment_reminder`
+- `sms_status_change`
+- `email_appointment_reminder`
+- `email_marketing` (stored as `marketing_email_optin`)
 
----
+Profile PATCH does **not** allow changing mobile, national ID, names or medical data from the patient browser.
 
-## Phase B — OTP Authentication
+## 6. Staff CRM
 
-### `POST /api/v1/auth/otp/send`
+All staff routes require a staff session token and the named permission unless `super_admin`.
 
-**Auth:** None  
-**Purpose:** Send a 5-digit OTP to an Iranian mobile number
+### Dashboard
+- `GET /dashboard/overview` — `dashboard.view`
 
-#### Request body
+### Patients
+- `GET /patients` — `patients.view`
+- `GET /patients/{id}` — `patients.view`
+- `POST /patients` — `patients.manage`
+- `PUT /patients/{id}` — `patients.manage`
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `mobile` | string | ✅ | Persian digits accepted; all standard formats |
+Staff-created patient records also deduplicate globally by normalized mobile.
 
-**Rate limit:** 3 requests per 10 minutes per mobile → **429 Too Many Requests**
+### Appointments
+- `GET /appointments` — `appointments.view`
+- `GET /appointments/{id}` — `appointments.view`
+- `POST /appointments` — `appointments.manage`
+- `PATCH /appointments/{id}/reschedule` — `appointments.manage`
+- `PATCH /appointments/{id}/status` — `appointments.manage`
+- `DELETE /appointments/{id}` — `appointments.manage`
 
-#### Responses
+Canonical scheduling columns are `scheduled_at`, `duration_minutes`, `visit_reason`, `provider_id`, `room`, `status`, `notes`, `cancellation_reason`.
 
-**200 OK:**
-```json
-{ "ok": true, "data": { "message": "کد تایید ارسال شد", "expires_in": 300 }, "errors": null }
-```
+### EMR
+- `GET /patients/{id}/emr` — `emr.view`
+- `POST /patients/{id}/emr` — `emr.edit`
+- `GET /emr/templates` — `emr.view`
+- `POST /ai/emr-draft` — `emr.edit`; suggestions are review-only and never auto-saved.
 
-**422** — invalid mobile format  
-**429** — rate limit exceeded  
-**503** — SMS gateway error (retry after a moment)
-
----
-
-### `POST /api/v1/auth/otp/verify`
-
-**Auth:** None  
-**Purpose:** Verify OTP and receive a 30-day bearer token
-
-#### Request body
-
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `mobile` | string | ✅ | Same format as /send |
-| `otp` | string | ✅ | 5 digits; Persian digits accepted |
-
-#### Responses
-
-**200 OK:**
-```json
-{
-  "ok": true,
-  "data": {
-    "token": "<64-char hex>",
-    "expires_at": "2026-08-26 11:00:00",
-    "user": {
-      "uuid": "...",
-      "first_name": "علی",
-      "last_name": "محمدی",
-      "mobile": "09121234567",
-      "role": "patient"
-    }
-  },
-  "errors": null
-}
-```
-
-**401** — invalid OTP  
-**410** — expired OTP (re-send required)  
-**422** — format error
-
----
-
-## Phase C — Patient Portal (authenticated patient endpoints)
-
-All endpoints below require a valid patient-scoped Bearer token obtained from `/auth/otp/verify`.
-
-### `GET /api/v1/patient/overview`
-
-**Auth:** Bearer token (patient)  
-**Purpose:** Summary for the patient portal home screen
+AI draft request body:
 
 ```json
 {
-  "ok": true,
-  "data": {
-    "next_appointment": {
-      "uuid": "...",
-      "starts_at": "2026-08-15 10:30:00",
-      "ends_at": "2026-08-15 11:00:00",
-      "status": "confirmed",
-      "reason": "ویزیت پیگیری"
-    },
-    "last_intake": {
-      "uuid": "...",
-      "service_type": "rhinoplasty",
-      "chief_complaint": "اصلاح فرم بینی",
-      "status": "pending",
-      "submitted_at": "2026-07-27 09:00:00"
-    }
-  }
+  "patient_id": 123,
+  "prompt": "Draft a concise SOAP note from the clinician-entered text.",
+  "context": {"subjective": "...", "objective": "...", "assessment": "...", "plan": "..."}
 }
 ```
 
-`next_appointment` and `last_intake` are `null` if none exist.
+The AI route is disabled unless both `AI_ENABLED=1` and `AI_ALLOW_CLINICAL_TEXT=1` are set and a server-side provider key is configured. It never exposes provider credentials to the browser and never persists the generated draft automatically. The clinician must review and explicitly save any EMR content.
 
----
+**Media upload blocker:** this contract currently defines document/media listing only. There is no contracted upload/signing endpoint, so the Frontend must not pretend that uploads are available until a storage/upload contract is added.
 
-### `GET /api/v1/patient/profile`
+### Billing
+- `GET /billing/invoices` — `billing.view`
+- `GET /billing/invoices/{id}` — `billing.view`
+- `POST /billing/invoices` — `billing.manage`
+- `PATCH /billing/invoices/{id}/status` — `billing.manage`
 
-**Auth:** Bearer token (patient)  
-**Purpose:** Read the patient's own profile fields
+### Tasks
+- `GET /tasks` — `tasks.view`
+- `POST /tasks` — `tasks.manage`
+- `PATCH /tasks/{id}/status` — `tasks.manage`
+- `DELETE /tasks/{id}` — `tasks.manage`
 
-**Response `data`:** `uuid`, `first_name`, `last_name`, `father_name`, `mobile`, `email`, `national_id`, `birth_date`, `birth_date_jalali`, `gender`, `insurance_number`, `insurance_status`, `home_address`
+### Analytics
+- `GET /analytics/summary` — `analytics.view`
 
----
+### Clinic settings
+- `GET /settings/clinic` — `settings.view`
+- `PATCH /settings/clinic` — `settings.manage`
 
-### `PATCH /api/v1/patient/profile`
+`GET /settings/clinic` returns clinic settings plus read-only operational state needed by the canonical staff Settings page: the current MySQL-backed staff user list/roles and integration **configured/not configured** flags. It never returns bridge secrets, API keys, SMS credentials or database passwords. `PATCH` validates and stores supported clinic settings such as active working-day/time windows; it is not a user/role administration endpoint.
 
-**Auth:** Bearer token (patient)  
-**Purpose:** Update patient-editable fields
+There is currently no contracted staff-user/RBAC mutation endpoint. User/role assignment therefore remains an explicit database/bootstrap administration task until a management contract is defined; the UI must not invent one.
 
-**Allowed fields:** `first_name`, `last_name`, `father_name`, `home_address`, `email`  
-(Medical and RBAC fields are not writable by the patient.)
+## 7. Google Sheet ownership
 
-**Response:** `{ "ok": true, "data": { "updated": true } }`
+The live WorkingVersion remains the canonical Google Sheet writer. Exact live additive placement:
 
----
+- **T:** `Email`
+- **U:** `VisitReason` / علت مراجعه
+- **V:** `درخواست شما از دکتر چیست؟`
 
-### `GET /api/v1/patient/appointments`
+The JSON key is `doctor_request`. Missing values write an empty string. `Code.gs` inserts the new V header when necessary while preserving occupied columns to the right. The dashboard does not perform a duplicate Sheet append unless `DASHBOARD_SHEETS_WRITE_ENABLED=1` is explicitly enabled for a future integration.
 
-**Auth:** Bearer token (patient)  
-**Query:** `page` (default 1), `per_page` (default 20, max 50)  
-**Response `data`:** array of `{ uuid, starts_at, ends_at, status, reason, reminder_sent_at }`
+## 8. Login URL used in SMS
 
----
+Current deploy-safe value while the canonical UI is hosted on `app.drbastaninejad.com`:
 
-### `GET /api/v1/patient/documents`
+`https://app.drbastaninejad.com/Frontend/pages/auth/patient-login.html`
 
-**Auth:** Bearer token (patient)  
-**Purpose:** List patient's uploaded media files  
-**Response `data`:** array of `{ uuid, type, tag, mime_type, size_bytes, created_at, download_endpoint }`
+Once the canonical patient UI is actually mapped to the dashboard host, set only:
 
-> `download_endpoint` is `/api/v1/media/{uuid}/url` (signed URL generation — Phase 6, not yet live).
+`PATIENT_LOGIN_URL=https://dashboard.drbastaninejad.com/`
 
----
+Do not point patients to `dashboard/public/index.html`; it is a development shell.
 
-### `GET /api/v1/patient/notification-preferences`
+## 9. Database source of truth
 
-**Auth:** Bearer token (patient)  
-**Response:** `{ "ok": true, "data": { "marketing_email_optin": false } }`
+For a new/empty database use:
 
----
+`database/install/drbastaninejad_dash_clean_install.sql`
 
-### `PATCH /api/v1/patient/notification-preferences`
-
-**Auth:** Bearer token (patient)  
-**Body:** `{ "marketing_email_optin": true }`  
-**Response:** `{ "ok": true, "data": { "marketing_email_optin": true } }`
-
----
-
-## Phase D — Staff Dashboard & Patient Management
-
-All endpoints below require a valid staff-scoped Bearer token.
-
----
-
-### `GET /api/v1/dashboard/overview`
-
-**Auth:** Bearer token (staff, requires `dashboard.view` permission)
-**Purpose:** Aggregate KPI metrics and today's schedule for the staff dashboard home screen
-**Route file:** `config/routes.dashboard.php`
-**Controller:** `DashboardController::overview()`
-
-#### Response `data`
-
-```json
-{
-  "metrics": [
-    { "label": "نوبت‌های امروز",      "value": "5",            "href": "#calendar",  "deltaDir": "" },
-    { "label": "پذیرش‌های در انتظار", "value": "3",            "href": "#patients",  "deltaDir": "down" },
-    { "label": "درآمد امروز",          "value": "۱۲۰٬۰۰۰ تومان", "href": "#billing",   "deltaDir": "" },
-    { "label": "وظایف باز",           "value": "8",            "href": "#tasks",     "deltaDir": "" }
-  ],
-  "attention": [
-    { "patient": "علی محمدی", "item": "پذیرش بررسی‌نشده", "badge": "warning", "status": "در انتظار" }
-  ],
-  "today": [
-    { "patient": "مریم احمدی", "time": "10:00", "reason": "ویزیت", "status": "confirmed", "badge": "success" }
-  ]
-}
-```
-
-> `metrics` always has exactly 4 items in the same order.
-> `attention` and `today` are empty arrays when nothing matches.
-> `time` is in `HH:MM` format (UTC displayed as Tehran time by the frontend).
-
-**401** — token missing / expired
-**403** — `dashboard.view` permission not present on role
-
----
-
-### `GET /api/v1/patients`
-
-**Auth:** Bearer token (staff, requires `patients.view` permission)
-**Purpose:** Paginated, searchable list of all patients for the staff Patient Master Index
-
-#### Query params
-
-| Param | Default | Notes |
-|---|---|---|
-| `q` | — | free-text search: first_name, last_name, mobile, national_id |
-| `page` | 1 | |
-| `per_page` | 20 | max 100 |
-
-#### Response `data`
-
-```json
-{
-  "rows": [
-    {
-      "id": 1,
-      "name": "علی محمدی",
-      "mobile": "09121234567",
-      "national_id": "0079643178",
-      "insurance_status": "active",
-      "last_visit": "2026-07-15 10:00:00",
-      "upcoming_count": 2
-    }
-  ],
-  "total": 120,
-  "page": 1,
-  "per_page": 20
-}
-```
-
-> `last_visit` is a UTC datetime string; Jalali conversion is at the presentation layer.
-> `insurance_status` values: `active` | `inactive` | `pending` | `unknown`.
-
----
-
-### `GET /api/v1/patients/{id}`
-
-**Auth:** Bearer token (staff, requires `patients.view` permission)
-**Purpose:** Full patient header + timeline for the Patient Detail screen
-
-#### Response `data`
-
-```json
-{
-  "patient": {
-    "id": 1,
-    "name": "علی محمدی",
-    "mobile": "09121234567",
-    "national_id": "0079643178",
-    "birth_date": "1990-05-12",
-    "insurance_status": "active",
-    "home_address": "تهران، خیابان ولیعصر"
-  },
-  "timeline": []
-}
-```
-
----
-
-### `POST /api/v1/patients`
-
-**Auth:** Bearer token (staff, requires `patients.manage` permission)
-**Purpose:** Create a new patient record outside the public intake flow
-**Body:** `first_name`, `last_name`, `mobile` (required), `national_id`, `home_address`
-**Response:** `{ "ok": true, "data": { "id": 42 }, "meta": null, "errors": null }` (201)
-
----
-
-### `PUT /api/v1/patients/{id}`
-
-**Auth:** Bearer token (staff, requires `patients.manage` permission)
-**Purpose:** Update patient editable fields
-**Writable fields:** `first_name`, `last_name`, `mobile`, `home_address`, `insurance_status`
-**Response:** `{ "ok": true, "data": { "id": 42 } }`
-
----
-
-## Phase E — Staff Analytics, Billing, Tasks, Settings & Patient Records
-
-All staff endpoints below require a valid staff-scoped Bearer token.
-
----
-
-### `GET /api/v1/analytics/summary`
-
-**Auth:** Bearer token (staff)
-**Route file:** `config/routes.analytics.php`
-**Controller:** `AnalyticsController::summary()`
-**Purpose:** KPIs, weekly bar chart, and referral source breakdown for the Analytics page
-
-#### Query params
-
-| Param | Default | Notes |
-|---|---|---|
-| `range` | `30d` | `30d` \| `90d` \| `1y` |
-| `date_from` | — | Override range; format `YYYY-MM-DD` |
-| `date_to`   | — | Override range; format `YYYY-MM-DD` |
-
-#### Response `data`
-
-```json
-{
-  "kpis": {
-    "new_patients": 87,
-    "new_patients_delta": "۲۴٪ نسبت به دوره قبل",
-    "new_patients_delta_dir": "up",
-    "conversion_rate": 32,
-    "conversion_rate_delta": "۴٪",
-    "conversion_rate_delta_dir": "up",
-    "revenue_label": "۴۸۲م",
-    "revenue_delta": "۱۸٪",
-    "revenue_delta_dir": "up",
-    "return_rate": 68,
-    "return_rate_label": "۶ ماه اخیر"
-  },
-  "weekly_chart": [
-    { "label": "هـ۱", "count": 18 },
-    { "label": "هـ۲", "count": 24 },
-    { "label": "هـ۳", "count": 31 },
-    { "label": "هـ۴", "count": 14 }
-  ],
-  "referral_sources": [
-    { "source": "اینستاگرام", "percent": 42 },
-    { "source": "معرفی دوستان", "percent": 28 },
-    { "source": "گوگل", "percent": 18 },
-    { "source": "وب‌سایت", "percent": 8 },
-    { "source": "سایر", "percent": 4 }
-  ]
-}
-```
-
----
-
-### `GET /api/v1/billing/invoices`
-
-**Auth:** Bearer token (staff)
-**Route file:** `config/routes.billing.php`
-**Controller:** `BillingController::index()`
-
-#### Query params
-
-| Param | Default | Notes |
-|---|---|---|
-| `q` | — | Search patient name |
-| `status` | all | `paid` \| `pending` \| `failed` \| `insurance_pending` |
-| `gateway` | all | `zarinpal` \| `idpay` \| `bank_card` |
-| `page` | 1 | |
-
-#### Response `data`
-
-```json
-{
-  "rows": [
-    {
-      "id": 1042,
-      "invoice_number": "1042",
-      "patient_id": 7,
-      "patient_name": "مریم احمدی",
-      "amount_rials": 185000000,
-      "status": "paid",
-      "gateway": "zarinpal",
-      "created_at": "2026-07-12 10:00:00",
-      "created_at_jalali": "۱۴۰۵/۰۴/۱۲"
-    }
-  ],
-  "pagination": { "total": 42, "per_page": 20, "current_page": 1, "last_page": 3 },
-  "summary": {
-    "total": 42,
-    "pending_count": 12,
-    "pending_amount_label": "۸۹ میلیون",
-    "failed_count": 3,
-    "avg_label": "۱۸م"
-  }
-}
-```
-
----
-
-### `GET /api/v1/billing/invoices/{id}`
-
-**Auth:** Bearer token (staff)
-**Controller:** `BillingController::show()`
-**Response `data`:** Full invoice object (same as row above + `notes`)
-
----
-
-### `POST /api/v1/billing/invoices`
-
-**Auth:** Bearer token (staff)
-**Controller:** `BillingController::store()`
-
-**Body:**
-
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `patient_id` | int | ✅ | |
-| `amount_rials` | int | ✅ | |
-| `gateway` | string | — | `zarinpal` \| `idpay` \| `bank_card` |
-| `notes` | string | — | |
-
-**Response:** `{ "ok": true, "data": { "id": 1043 } }` (201)
-
----
-
-### `PATCH /api/v1/billing/invoices/{id}/status`
-
-**Auth:** Bearer token (staff)
-**Controller:** `BillingController::updateStatus()`
-**Body:** `{ "status": "paid" }`
-**Status enum:** `pending` | `paid` | `failed` | `insurance_pending`
-**Response:** `{ "ok": true, "data": { "id": 1042, "status": "paid" } }`
-
----
-
-### `GET /api/v1/tasks`
-
-**Auth:** Bearer token (staff)
-**Route file:** `config/routes.tasks.php`
-**Controller:** `TaskController::index()`
-
-#### Query params
-
-| Param | Default | Notes |
-|---|---|---|
-| `status` | all | `todo` \| `in_progress` \| `done` |
-| `assignee_id` | all | Filter by staff user ID |
-
-#### Response `data`
-
-```json
-{
-  "rows": [
-    {
-      "id": 1,
-      "title": "پیگیری بیمه بیمار #1039",
-      "status": "todo",
-      "priority": "high",
-      "assignee_id": 2,
-      "assignee_name": "منشی",
-      "due_date": "2026-08-01",
-      "created_at": "2026-07-30 09:00:00"
-    }
-  ]
-}
-```
-
----
-
-### `POST /api/v1/tasks`
-
-**Auth:** Bearer token (staff)
-**Controller:** `TaskController::store()`
-**Body:** `title` (required), `priority` (`high`|`medium`|`low`), `status` (`todo`|`in_progress`|`done`), `assignee_id`, `due_date`, `notes`
-**Response:** `{ "ok": true, "data": { "id": 5 } }` (201)
-
----
-
-### `PATCH /api/v1/tasks/{id}/status`
-
-**Auth:** Bearer token (staff)
-**Controller:** `TaskController::updateStatus()`
-**Body:** `{ "status": "in_progress" }`
-**Response:** `{ "ok": true, "data": { "id": 5, "status": "in_progress" } }`
-
----
-
-### `DELETE /api/v1/tasks/{id}`
-
-**Auth:** Bearer token (staff)
-**Controller:** `TaskController::destroy()`
-**Response:** `{ "ok": true, "data": { "deleted": true } }` (200)
-
----
-
-### `GET /api/v1/settings/clinic`
-
-**Auth:** Bearer token (staff)
-**Route file:** `config/routes.settings.php`
-**Controller:** `SettingsController::show()`
-
-#### Response `data`
-
-```json
-{
-  "clinic": {
-    "name": "کلینیک تخصصی دکتر شاهین باستانی‌نژاد",
-    "phone": "021-86087250",
-    "address": "تهران، خیابان نلسون ماندلا...",
-    "timezone": "Asia/Tehran"
-  },
-  "working_hours": [
-    { "day": "saturday",  "day_label": "شنبه",    "active": true,  "open": "08:00", "close": "20:00" },
-    { "day": "friday",    "day_label": "جمعه",    "active": false, "open": null,    "close": null    }
-  ],
-  "emr_templates": [
-    { "id": 1, "name": "رینوپلاستی — قبل از عمل", "version": "3" },
-    { "id": 2, "name": "رینوپلاستی — بعد از عمل", "version": "2" }
-  ]
-}
-```
-
----
-
-### `PATCH /api/v1/settings/clinic`
-
-**Auth:** Bearer token (staff)
-**Controller:** `SettingsController::update()`
-**Body (all optional):** `name`, `phone`, `address`, `timezone`, `working_hours` (array)
-**Response:** `{ "ok": true, "data": { "updated": true } }`
-
----
-
-### `GET /api/v1/appointments/{id}`
-
-**Auth:** Bearer token (staff)
-**Route file:** `config/routes.appointments.php`
-**Controller:** `AppointmentController::show()`
-**Response `data`:** Full appointment object (all columns)
-
----
-
-### `DELETE /api/v1/appointments/{id}`
-
-**Auth:** Bearer token (staff)
-**Controller:** `AppointmentController::destroy()`
-**Body:** `{ "reason": "بیمار درخواست لغو داد" }` (required)
-**Response:** `{ "ok": true, "data": { "cancelled": true } }`
-
----
-
-## Phase E — Patient Records (app.drbastaninejad.com)
-
-**Base URL:** `https://app.drbastaninejad.com/api/v1`
-**Envelope:** `{ "success": true, "data": {...} }` (NOT the dashboard "ok" envelope)
-
----
-
-### `GET /api/v1/patient/records`
-
-**Auth:** Bearer token (patient)
-**Route file:** `app.drbastaninejad.com/Backend/config/routes.php`
-**Controller:** `PatientPortalController::records()`
-**Purpose:** Paginated read-only timeline of the patient's signed EMR records
-
-#### Query params
-
-| Param | Default | Notes |
-|---|---|---|
-| `page` | 1 | |
-| `per_page` | 10 | max 50 |
-
-#### Response `data`
-
-```json
-{
-  "items": [
-    {
-      "id": 12,
-      "visit_type": "follow_up",
-      "author_name": "دکتر شاهین باستانی‌نژاد",
-      "subjective": "روند بهبود مناسب.",
-      "assessment": "تورم بینی کاهش یافته.",
-      "plan": "ادامه محدودیت فعالیت ۲ هفته.",
-      "is_signed": 1,
-      "signed_at": "2026-07-12 10:30:00",
-      "created_at": "2026-07-12 10:00:00"
-    }
-  ],
-  "pagination": {
-    "total": 3,
-    "per_page": 10,
-    "current_page": 1,
-    "last_page": 1
-  }
-}
-```
-
-> `is_draft = 0` records only are returned. Draft notes are never exposed to patients.
-
----
-
-## Idempotency & Dual-Write Notes
-
-1. The `submission_uuid` **UNIQUE** constraint is enforced at the DB level in `intakes.submission_uuid`, not only in PHP. A duplicate INSERT will throw a PDO exception, which the controller converts to a 200 idempotent response.
-
-2. Google Sheets dual-write happens **after** the DB transaction commits. A Sheets API failure never rolls back the DB write. The outcome is recorded in `intakes.sheets_sync_status` (`ok` | `failed` | `skipped` | `pending`).
-
-3. **outcome_unknown / reconciliation:** if `sheets_sync_status` is not `ok` on the idempotent 200 path, the server automatically retries the Sheets write. This handles the process-kill-after-DB-commit scenario without any external reconciliation job.
-
-4. OTP codes are stored as **bcrypt hashes** — raw codes are never persisted. In `APP_ENV != production`, the raw OTP is also logged to `error_log` for development convenience.
-
-5. The bearer token is stored as **SHA-256 hash** in `auth_tokens.token_hash`. The raw token is only returned once in the `/verify` response and never stored in plain text.
-
----
-
-## Environment Variables Required (`.env`)
-
-```ini
-# Database
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=medical_crm
-DB_USER=crm_user
-DB_PASS=your_password
-
-# Clinic
-DEFAULT_CLINIC_ID=1
-APP_ENV=production   # set to "development" to log OTPs
-
-# SMS (primary + fallback chain — see SmsProviderChain.php)
-SMS_PROVIDERS=kavenegar,ghasedak,farazsms,tsms
-KAVENEGAR_API_KEY=
-KAVENEGAR_SENDER=
-GHASEDAK_API_KEY=
-GHASEDAK_TEMPLATE=verify
-GHASEDAK_LINE=
-FARAZSMS_USERNAME=
-FARAZSMS_PASSWORD=
-FARAZSMS_FROM=
-TSMS_USERNAME=
-TSMS_PASSWORD=
-TSMS_FROM=
-
-# Google Sheets dual-write
-GOOGLE_SHEET_ID=
-GOOGLE_SHEET_TAB=Intakes
-GOOGLE_SA_KEY_PATH=/home/USER/sa-key.json  # OUTSIDE web root
-```
-
----
-
-_M•Z · MAZ//ID · © 2026 Dr. Shahin Bastaninejad_
+Target database and user are both `drbastaninejad_dash`. The installer is non-destructive and does not seed patient/staff PII. Existing installations should use numbered additive migrations after taking a backup; never use a destructive schema reset on production clinical data.

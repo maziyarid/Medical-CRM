@@ -35,9 +35,9 @@ final class AuthMiddleware
         try {
             $db   = Database::conn();
             $stmt = $db->prepare(
-                'SELECT t.id, t.user_id, t.user_type, t.expires_at, t.revoked_at
+                'SELECT t.id, t.user_id, t.user_type, t.purpose, t.expires_at, t.revoked_at
                    FROM auth_tokens t
-                   WHERE t.token_hash = ?
+                   WHERE t.token_hash = ? AND t.purpose = "session"
                    LIMIT 1'
             );
             $stmt->execute([$tokenHash]);
@@ -135,6 +135,6 @@ final class AuthMiddleware
     private function unauthorized(string $message): array
     {
         return ['ok' => false, 'status' => 401, 'data' => null,
-                'errors' => [['field' => null, 'message' => $message]]];
+                'errors' => [['field' => null, 'message' => $message]], 'meta' => null];
     }
 }

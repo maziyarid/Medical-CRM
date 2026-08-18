@@ -1,0 +1,134 @@
+/*
+ * Direction parity layer — v4.6.0
+ *
+ * Persian is the design source. Arabic keeps the same RTL geometry.
+ * EN/TR/RU/FR/DE/ES are true LTR mirrors: the first item in a row/grid starts
+ * at the left, the React logo starts at the left, navigation follows it, and
+ * physically anchored RTL decorations/controls are moved to the opposite side.
+ *
+ * IMPORTANT: do not use flex-direction:row-reverse globally. CSS flex/grid
+ * already mirrors DOM order correctly when the owning element has dir=ltr.
+ * Global row-reverse creates a double reversal and was the main cause of the
+ * broken non-Persian UI in earlier builds.
+ */
+html[dir="rtl"], html[dir="rtl"] body { direction: rtl; }
+html[dir="ltr"], html[dir="ltr"] body { direction: ltr; }
+html[dir="rtl"] #root .drb-react-root { direction: rtl; }
+html[dir="ltr"] #root .drb-react-root { direction: ltr; }
+
+/* Form copy follows locale direction; phone/email/code values remain LTR. */
+html[dir="rtl"] :is(input,textarea,select,button) { text-align: start; }
+html[dir="ltr"] :is(input,textarea,select,button) { text-align: start; }
+html :is(input[type="tel"],input[type="email"],input[inputmode="tel"],input[inputmode="email"],a[href^="tel:"],a[href^="mailto:"],.drb-phone-intl) {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* The Persian bundle contains physical text-right utilities. In LTR they mean
+   start alignment, therefore map only text-right -> left. Never invert an
+   explicit text-left utility: doing so breaks LTR forms, search, and cards. */
+html[dir="ltr"] #root .text-right { text-align: left !important; }
+@media (min-width: 40rem) { html[dir="ltr"] #root .sm\:text-right { text-align: left !important; } }
+@media (min-width: 48rem) { html[dir="ltr"] #root .md\:text-right { text-align: left !important; } }
+@media (min-width: 64rem) { html[dir="ltr"] #root .lg\:text-right { text-align: left !important; } }
+html[dir="ltr"] #root .text-center { text-align: center !important; }
+
+/* Physical Tailwind offsets present in the compiled Persian React bundle.
+   Rules exclude elements that intentionally have both sides set (e.g. inset
+   overlays), so full-width layers are not disturbed. */
+html[dir="ltr"] #root .right-0:not(.left-0) { right: auto !important; left: 0 !important; }
+html[dir="ltr"] #root .left-0:not(.right-0):not(.left-1\/2) { left: auto !important; right: 0 !important; }
+html[dir="ltr"] #root .right-3:not(.left-3) { right: auto !important; left: .75rem !important; }
+html[dir="ltr"] #root .left-3:not(.right-3) { left: auto !important; right: .75rem !important; }
+html[dir="ltr"] #root .right-4:not(.left-4) { right: auto !important; left: 1rem !important; }
+html[dir="ltr"] #root .left-4:not(.right-4) { left: auto !important; right: 1rem !important; }
+html[dir="ltr"] #root .right-5 { right: auto !important; left: 1.25rem !important; }
+html[dir="ltr"] #root .-right-1 { right: auto !important; left: -.25rem !important; }
+html[dir="ltr"] #root .-right-4 { right: auto !important; left: -1rem !important; }
+@media (min-width: 40rem) {
+  html[dir="ltr"] #root .sm\:left-6 { left: auto !important; right: 1.5rem !important; }
+}
+@media (min-width: 64rem) {
+  html[dir="ltr"] #root .lg\:-right-8 { right: auto !important; left: -2rem !important; }
+}
+
+/* Search controls were authored as RTL physical padding/icon offsets. */
+html[dir="ltr"] #root .pr-10.pl-4 { padding-right: 1rem !important; padding-left: 2.5rem !important; }
+html[dir="ltr"] #root .pr-9.pl-4  { padding-right: 1rem !important; padding-left: 2.25rem !important; }
+
+/* Inline icon/count spacing authored with RTL physical margins. */
+html[dir="ltr"] #root .ml-1 { margin-left: 0 !important; margin-right: .25rem !important; }
+html[dir="ltr"] #root .mr-1 { margin-right: 0 !important; margin-left: .25rem !important; }
+html[dir="ltr"] #root .mr-2 { margin-right: 0 !important; margin-left: .5rem !important; }
+html[dir="ltr"] #root .mr-auto { margin-right: 0 !important; margin-left: auto !important; }
+
+/* Native fallback/dropdown panels use mirrored logical placement. */
+html[dir="ltr"] .drb-native-services-menu > div { inset-inline-start: 0; inset-inline-end: auto; }
+html[dir="rtl"] .drb-native-services-menu > div { inset-inline-end: 0; inset-inline-start: auto; }
+html[dir="ltr"] .drb-native-menu__panel { inset-inline-end: 0; inset-inline-start: auto; }
+html[dir="rtl"] .drb-native-menu__panel { inset-inline-start: 0; inset-inline-end: auto; }
+
+/* Header/brand/nav order is intentionally NOT manually reordered. With the
+   React root carrying the active dir, flex/grid put the first DOM child (logo)
+   on the correct reading-start side automatically. */
+.drb-native-footer, .drb-native-header { text-align: start; }
+
+/* Floating contact widget mirrors from Persian right -> LTR left. The separate
+   scroll-to-top control is authored on Persian left and is mirrored above via
+   left-4/sm:left-6 -> right. */
+html[dir="ltr"] #root .chaty,
+html[dir="ltr"] .chaty {
+  left: 1.25rem !important;
+  right: auto !important;
+  align-items: flex-start !important;
+}
+html[dir="ltr"] #root .chaty__panel,
+html[dir="ltr"] .chaty__panel { transform-origin: bottom left !important; }
+html[dir="rtl"] #root .chaty,
+html[dir="rtl"] .chaty { right: 1.25rem !important; left: auto !important; align-items: flex-end !important; }
+html[dir="rtl"] #root .chaty__panel,
+html[dir="rtl"] .chaty__panel { transform-origin: bottom right !important; }
+
+/* Compact React/native footer start alignment. */
+@media (max-width: 639px) {
+  html[dir="ltr"] #root footer[role="contentinfo"] > div > div:nth-child(2) { text-align: left !important; }
+  html[dir="rtl"] #root footer[role="contentinfo"] > div > div:nth-child(2) { text-align: right !important; }
+}
+@media (max-width: 480px) {
+  html[dir="ltr"] .drb-native-footer__grid { text-align: left !important; }
+  html[dir="rtl"] .drb-native-footer__grid { text-align: right !important; }
+}
+
+/* Notices and case controls mirror with reading direction. */
+html[dir="ltr"] .drb-notice { border-right: 0; border-left: 4px solid #28722c; }
+html[dir="rtl"] .drb-notice { border-left: 0; border-right: 4px solid #28722c; }
+html[dir="ltr"] .drb-case-lightbox__prev { left: .8rem; right: auto; }
+html[dir="ltr"] .drb-case-lightbox__next { right: .8rem; left: auto; }
+html[dir="rtl"] .drb-case-lightbox__prev { right: .8rem; left: auto; }
+html[dir="rtl"] .drb-case-lightbox__next { left: .8rem; right: auto; }
+
+/* Native content lists/checklists must start from the reading side. */
+html[dir="ltr"] .drb-checklist { padding-left: 1.25rem; padding-right: 0; }
+html[dir="rtl"] .drb-checklist { padding-right: 1.25rem; padding-left: 0; }
+
+/* Arabic is RTL but uses Arabic copy; all other non-FA locales are LTR. */
+html[dir="ltr"] .drb-native-header__inner,
+html[dir="ltr"] .drb-native-desktop-nav,
+html[dir="ltr"] .drb-native-header__actions,
+html[dir="ltr"] .drb-native-brand,
+html[dir="ltr"] .drb-native-footer__brand { direction: ltr; }
+html[dir="rtl"] .drb-native-header__inner,
+html[dir="rtl"] .drb-native-desktop-nav,
+html[dir="rtl"] .drb-native-header__actions,
+html[dir="rtl"] .drb-native-brand,
+html[dir="rtl"] .drb-native-footer__brand { direction: rtl; }
+
+/* The bundled Persian font stack is optimized for Persian/Arabic shaping. Use
+   the platform Latin/Cyrillic stack on LTR hosts so German/French/Spanish/
+   Turkish/Russian glyph metrics do not distort buttons, tabs or form rows. */
+html[dir="ltr"] #root .drb-react-root,
+html[dir="ltr"] .drb-native-main,
+html[dir="ltr"] .drb-native-header,
+html[dir="ltr"] .drb-native-footer {
+  font-family: Arial, "Segoe UI", system-ui, -apple-system, sans-serif !important;
+}

@@ -14,6 +14,4 @@ CREATE TABLE IF NOT EXISTS clinics (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Add cancellation_reason column to appointments (used by DELETE /appointments/{id})
-ALTER TABLE appointments
-    ADD COLUMN IF NOT EXISTS cancellation_reason TEXT NULL AFTER notes;
+-- cancellation_reason is created with appointments in migration 011.

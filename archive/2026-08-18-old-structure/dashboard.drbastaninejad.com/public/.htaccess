@@ -1,0 +1,42 @@
+# .htaccess — MΛZ Medical CRM (dashboard.drbastaninejad.com/public/)
+#
+# Rewrites all API requests to public/index.php so the PHP front-controller
+# can match routes and dispatch to controllers.
+#
+# Compatible with Apache 2.4 and LiteSpeed (cPanel default).
+# LiteSpeed honours Apache mod_rewrite syntax directly.
+#
+# Rules:
+#   1. Serve any real files or directories as-is (assets, manifest.json, sw.js).
+#   2. Rewrite everything else to index.php, preserving the query string.
+#
+# Security:
+#   - No directory listing.
+#   - .env and hidden files are blocked by the rule below even if someone
+#     places them inside public/ (defence-in-depth; they should not be here).
+
+Options -Indexes
+Options -MultiViews
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Block access to dotfiles (e.g. .env, .git) as a safety net
+    RewriteRule ^\.(?!well-known) - [F,L]
+
+    # Pass through real files and directories (assets, manifest, sw.js, etc.)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route everything else through the PHP front-controller
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
+
+# Security headers — applied to all responses served from this directory
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

@@ -1,0 +1,63 @@
+﻿<!doctype html>
+<!--
+  ============================================================================
+   MΛZ Medical CRM — Landing / Router
+   Client: Dr. Shahin Bastaninejad Multi-Specialty Medical Platform
+  ----------------------------------------------------------------------------
+   Author  : MAZ//ID (Maziyar) · maziyarid@gmail.com
+   License : Proprietary — © 2026 Maziyar / Dr. Shahin Bastaninejad
+  ============================================================================
+-->
+<html dir="rtl" lang="fa-IR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>MΛZ Medical CRM — دکتر شاهین باستانی‌نژاد</title>
+  <meta name="description" content="پلتفرم مدیریت کلینیک چند تخصصی دکتر شاهین باستانی‌نژاد — پذیرش، پرونده الکترونیک، نوبت‌دهی و کوپایلوت هوش مصنوعی."/>
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg"/>
+  <link rel="stylesheet" href="assets/css/tokens.css"/>
+  <link rel="stylesheet" href="assets/css/base.css"/>
+  <style>
+    .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    .hero-card { max-width: 720px; width: 100%; text-align: center; }
+    .hero .brand-mark-lg { width: 88px; height: 88px; margin: 0 auto 1.5rem; border-radius: 22px; background: linear-gradient(135deg, var(--evergreen), var(--evergreen-dark)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.6rem; box-shadow: var(--shadow); }
+    .hero h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); margin-bottom: 0.75rem; }
+    .hero .lead { color: var(--muted); font-size: 1.05rem; margin-bottom: 2.25rem; max-width: 520px; margin-inline: auto; line-height: 1.75; }
+    .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    @media (max-width: 640px) { .paths { grid-template-columns: 1fr; } }
+    .path-card { padding: 1.5rem; text-align: right; text-decoration: none; color: var(--graphite); display: flex; flex-direction: column; gap: 0.5rem; }
+    .path-card:hover { text-decoration: none; transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .path-card h3 { color: var(--evergreen); }
+    .path-card p { color: var(--muted); font-size: 0.88rem; }
+    .badge-mvp { display: inline-block; background: var(--maz-accent); color: var(--graphite); font-family: var(--font-mono); font-size: 0.7rem; padding: 3px 10px; border-radius: 999px; font-weight: 700; margin-bottom: 1rem; letter-spacing: 0.5px; }
+  </style>
+</head>
+<body>
+  <main class="hero">
+    <div class="hero-card">
+      <div class="brand-mark-lg" aria-hidden="true">MΛZ</div>
+      <div class="badge-mvp">MVP · v1.0.0</div>
+      <h1>MΛZ Medical CRM</h1>
+      <p class="lead">پلتفرم یکپارچه مدیریت کلینیک چند تخصصی دکتر شاهین باستانی‌نژاد — پذیرش دیجیتال، پرونده الکترونیک، نوبت‌دهی هوشمند و کوپایلوت هوش مصنوعی (Dr. Copilot).</p>
+
+      <div class="paths">
+        <a class="card path-card" href="pages/auth/login.html">
+          <h3>ورود کارکنان</h3>
+          <p>پزشک، منشی، پرستار، مدیر — دسترسی به CRM کامل، تقویم، پرونده‌ها و صورتحساب.</p>
+        </a>
+        <a class="card path-card" href="pages/auth/patient-login.html">
+          <h3>ورود بیمار</h3>
+          <p>مشاهده نوبت‌ها، پرونده پزشکی، مدارک و تنظیمات اعلان‌ها.</p>
+        </a>
+      </div>
+
+      <a class="btn btn-ghost" href="pages/intake/intake.html">تشکیل پرونده جدید (بدون نیاز به ثبت‌نام) ←</a>
+
+      <footer class="brand-footer">
+        <div class="maz-sig">M<span class="z">Λ</span>Z <span style="opacity:.5">//</span> ID</div>
+        <div>ساخته شده توسط <a href="https://maziyarid.com" target="_blank" rel="noopener">Maziyar</a> — © 2026 دکتر شاهین باستانی‌نژاد.</div>
+      </footer>
+    </div>
+  </main>
+</body>
+</html>

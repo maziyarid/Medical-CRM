@@ -27,7 +27,7 @@ The SPA shell at `dashboard.drbastaninejad.com/public/index.html` (single-page, 
 - All new backend endpoints are documented in `docs/API_CONTRACT.md` (this directory) before either frontend consumes them.
 - The per-page `app.drbastaninejad.com/Frontend/` pages consume the `docs/API_CONTRACT.md` contracts verbatim.
 - The SPA shell at `public/index.html` may also consume these contracts for smoke-testing — it does NOT define them.
-- Frontend track owns `app.drbastaninejad.com/Frontend/` — do not modify HTML, CSS, or JS in that tree from the Backend track.
+- Canonical UI changes must remain in `app.drbastaninejad.com/Frontend/`; the dashboard `public/index.html` smoke shell must not be promoted to product UI.
 
 ---
 
@@ -42,8 +42,8 @@ The SPA shell at `dashboard.drbastaninejad.com/public/index.html` (single-page, 
 | Auth | Bearer token (SHA-256 hash stored in `auth_tokens` table) | Enforced in `AuthMiddleware` |
 | RBAC | Permission table join via `RbacMiddleware` | `super_admin` bypasses all checks |
 | Timezone | All DB writes in UTC; Jalali only at presentation layer | Never store Jalali dates |
-| SMS | Chain-of-responsibility (`SmsProviderChain`) | Kavenegar → Ghasedak → FarazSMS → TSMS → LogSmsProvider |
-| Google Sheets | Service-account JWT, APCu token cache | Non-fatal; MariaDB is source of truth |
+| SMS | Chain-of-responsibility (`SmsProviderChain`) | Kavenegar → Ghasedak → FarazSMS → TSMS; Log provider only outside production |
+| Google Sheets | Live WorkingVersion webhook + `Code.gs` | WorkingVersion remains canonical Sheet writer; dashboard DB is clinical source of truth |
 
 ---
 
@@ -95,12 +95,12 @@ dashboard.drbastaninejad.com/
 │   │   └── Patient.php
 │   │
 │   └── Services/
-│       ├── AiRouterService.php     ← OpenRouter stub (review-required, never auto-saves)
+│       ├── AiRouterService.php     ← Server-only OpenRouter client; disabled by default, review-required
 │       ├── AppointmentService.php
-│       ├── GoogleSheetsService.php ← Sheets API v4 JWT dual-write; returns 'ok'|'failed'|'skipped'
+│       ├── GoogleSheetsService.php ← duplicate-write guard; WorkingVersion owns live Sheet writes
 │       ├── OtpService.php          ← isRateLimited(), send(), verify(), issueToken()
 │       ├── PatientService.php
-│       ├── SmsProviderChain.php    ← Chain: Kavenegar→Ghasedak→FarazSMS→TSMS→LogSms
+│       ├── SmsProviderChain.php    ← Chain: Kavenegar→Ghasedak→FarazSMS→TSMS (LogSms only outside production)
 │       ├── SmsService.php          ← Single-provider legacy stub (kept for OtpService compatibility)
 │       └── ValidatorService.php    ← normalizeMobile(), isValidNationalId() mod-11, isValidJalaliDate()
 │
@@ -114,7 +114,8 @@ dashboard.drbastaninejad.com/
 │   └── routes.patients.php
 │
 ├── database/
-│   └── migrations/                 ← Run these in order on first deploy
+│   ├── database/install/            ← clean installer for a new database
+│   └── database/migrations/         ← additive upgrades for existing installs
 │       ├── 001_create_intakes_table.sql
 │       ├── 002_create_otp_codes_table.sql
 │       ├── 003_create_auth_tokens_table.sql
@@ -201,10 +202,10 @@ return $this->validationError($errors);
 
 | Concern | Implementation |
 |---|---|
-| Patient auth | OTP → SMS → bcrypt-hashed OTP stored in `otp_codes` table |
-| Staff auth | Password hash (`bcrypt`) in `users.password_hash` — login endpoint pending |
-| Token | SHA-256 hash of raw token stored in `auth_tokens`; raw token returned once |
-| Token storage (client) | `localStorage` key `mz_auth_token` |
+| Patient auth | Mobile + OTP primary; reset OTP may be SMS or matching email |
+| Staff auth | Mobile + OTP with explicit `audience=staff` |
+| Token | SHA-256 hash of raw token stored in `auth_tokens`; normal APIs accept only `purpose=session` |
+| Token storage (client) | Separate sessionStorage keys for patient and staff; no shared bearer key |
 | Expiry | `auth_tokens.expires_at` checked in `AuthMiddleware` |
 | Revocation | `auth_tokens.revoked_at` checked in `AuthMiddleware` |
 | `$req->user` shape | `{ id, uuid, clinic_id, role, user_type: 'patient'|'staff' }` |
@@ -213,8 +214,8 @@ return $this->validationError($errors);
 
 ## 7. Database rules
 
-- **All PHP code targets the migration files** (`001–007_*.sql`), not `docs/SCHEMA.md`.
-  `docs/SCHEMA.md` is the future normalised target — do not write code against it.
+- **New/empty DB:** use `database/install/drbastaninejad_dash_clean_install.sql`.
+- **Existing DB:** take a backup, then use additive numbered migrations. Never reset/drop clinical tables in production.
 - `clinic_id` is on every clinical table. Always scope queries to `clinic_id`.
 - Soft delete (`deleted_at`) on all clinical tables. Never hard-delete patient rows.
 - `submission_uuid` on `intakes` has a `UNIQUE` constraint — idempotency at DB level.
@@ -222,18 +223,17 @@ return $this->validationError($errors);
 
 ---
 
-## 8. Google Sheets dual-write
+## 8. Google Sheets and WorkingVersion bridge
 
-- `GoogleSheetsService::appendIntake()` returns `'ok' | 'failed' | 'skipped'` — never throws.
-- The DB transaction commits **before** the Sheets call. Sheets failure never rolls back the DB.
-- `intakes.sheets_sync_status` tracks outcome. The idempotent `GET /intakes` re-submit path retries Sheets if status is not `'ok'` or `'skipped'`.
-- Sheet columns A–K are frozen (match the legacy Google Sheet). Columns L–M are `email` and `visit_reason` (added by migration 004).
-
----
+- The live WorkingVersion remains the canonical Sheet writer.
+- Exact additive placement is T `Email`, U `VisitReason`, V `درخواست شما از دکتر چیست؟`; JSON key `doctor_request`.
+- WorkingVersion dual-writes MySQL through `X-Intake-Bridge-Secret` when `CRM_DUAL_WRITE_ENABLED=1`.
+- MySQL is committed before the live Sheet completion signal; Sheet and SMS failures do not erase committed intake/patient data.
+- `DASHBOARD_SHEETS_WRITE_ENABLED=0` is the default so the dashboard cannot duplicate the live Sheet row.
 
 ## 9. SMS provider chain
 
-`SmsProviderChain` implements chain-of-responsibility. Order is configurable via `SMS_PROVIDERS` env var (comma-separated). Default: `kavenegar,ghasedak,farazsms,tsms,log`.
+`SmsProviderChain` implements chain-of-responsibility. Order is configurable via `SMS_PROVIDERS` env var (comma-separated). Production default: `kavenegar,ghasedak,farazsms,tsms`. The `log` provider is available only outside production.
 
 Each provider implements `SmsProvider` interface:
 ```php
@@ -243,108 +243,59 @@ interface SmsProvider {
 }
 ```
 
-`LogSmsProvider` is always last — writes OTP to `error_log` in non-production; never throws.
+`LogSmsProvider` is available only outside production. Production delivery is never reported successful merely because a message was logged.
 
-> **TODO for next agent:** Wire `OtpService::send()` to use `SmsProviderChain` instead of the legacy `SmsService` stub.
+`OtpService` uses `SmsProviderChain` for both patient and staff OTP delivery. Recovery email is optional and sends only OTP codes, never passwords.
 
 ---
 
 ## 10. Environment variables required
 
-Create `.env` from `.env.example` (now in this directory). `chmod 600 .env`. Never commit `.env`.
+Create `.env` from `.env.example`, replace every `CHANGE_ME` value, and `chmod 600 .env`. The checked-in template contains no production secret. Core production groups are:
 
-Sample/placeholder values (replace before deploying — see `docs/DEPLOYMENT_GATE.md §4`):
+- DB: `DB_HOST`, `DB_PORT`, `DB_NAME=drbastaninejad_dash`, `DB_USER=drbastaninejad_dash`, `DB_PASS`
+- WorkingVersion bridge: `INTAKE_BRIDGE_SECRET`, intake success SMS toggle/template
+- WordPress booking bridge: `WORDPRESS_BRIDGE_SECRET`, booking cooldown/SMS template
+- Patient navigation: `PATIENT_LOGIN_URL`
+- SMS: `SMS_PROVIDERS` and provider-specific credentials
+- Recovery email: `EMAIL_OTP_ENABLED`, `MAIL_FROM`
+- Reminder worker: `SMS_REMINDER_OFFSETS`, `EMAIL_REMINDER_ENABLED`
+- AI clinical-text safety gates: `AI_ENABLED=0`, `AI_ALLOW_CLINICAL_TEXT=0`, plus server-only provider configuration when deliberately enabled
+- Sheet duplicate-write guard: `DASHBOARD_SHEETS_WRITE_ENABLED=0` by default
 
-```env
-APP_ENV=production
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_NAME=mazcrm_db
-DB_USER=mazcrm_user
-DB_PASS=REPLACE_WITH_STRONG_PASSWORD
-DEFAULT_CLINIC_ID=1
-
-# Google Sheets dual-write (leave empty to skip)
-GOOGLE_SHEET_ID=
-GOOGLE_SHEET_TAB=Intakes
-GOOGLE_SA_KEY_PATH=/home/USER/sa-key.json
-
-# SMS providers (comma-separated, tried in order)
-SMS_PROVIDERS=kavenegar,ghasedak,farazsms,tsms,log
-KAVENEGAR_API_KEY=
-GHASEDAK_API_KEY=
-FARAZSMS_USERNAME=
-FARAZSMS_PASSWORD=
-TSMS_USERNAME=
-TSMS_PASSWORD=
-TSMS_FROM=
-```
+See `.env.example` for exact names. Bridge/provider credentials are server-only.
 
 ---
 
 ## 11. cPanel / LiteSpeed deployment checklist
 
-1. Set the document root for `dashboard.drbastaninejad.com` to `public/`.
-2. Place the entire project root **outside** `public_html` (e.g. in `~/apps/maz-crm/`).
-3. Create `.env` in the project root. `chmod 600 .env`.
-4. Enable `mod_rewrite` / LiteSpeed rewrite (already configured in `public/.htaccess`).
-5. Run migrations 001–007 in order against the MariaDB instance.
-6. Confirm PHP 8.1+ with `APCu` extension enabled (used by `GoogleSheetsService` token cache).
-
----
+1. Back up the current live WorkingVersion files, dashboard code, WordPress theme, Apps Script deployment, and database.
+2. Point `dashboard.drbastaninejad.com` document root to this project's `public/` directory. `public/index.html` remains a smoke shell only.
+3. Copy `.env.example` to `.env`, replace every secret placeholder, and `chmod 600 .env`.
+4. For the new database `drbastaninejad_dash`, run `database/install/drbastaninejad_dash_clean_install.sql` once. Do not run destructive reset SQL.
+5. Create/assign the first staff user explicitly; no staff or patient PII is seeded by the installer.
+6. Deploy dashboard backend + canonical Frontend. Confirm patient and staff OTP use separate audiences.
+7. Configure the same `INTAKE_BRIDGE_SECRET` on dashboard and WorkingVersion runtime; deploy WorkingVersion code with `CRM_DUAL_WRITE_ENABLED=0` first, smoke-test, then enable it.
+8. Deploy the WordPress theme and configure the same `WORDPRESS_BRIDGE_SECRET` server-side on WordPress and dashboard. Never expose it in JS.
+9. Keep `PATIENT_LOGIN_URL=https://app.drbastaninejad.com/Frontend/pages/auth/patient-login.html` until the canonical patient UI is actually mapped to the dashboard host.
+10. Deploy `Code.gs`/Apps Script only if the production script does not already contain the T/U/V additive header logic; preserve existing columns.
+11. Run the CLI reminder worker from cron only after SMS provider credentials are verified.
 
 ## 12. API endpoints (summary)
 
-Full contract with request/response shapes is in `docs/API_CONTRACT.md`.
+`docs/API_CONTRACT.md` is the source of truth. Implemented route groups are:
 
-| Method | Path | Auth | Permission |
-|---|---|---|---|
-| POST | `/api/v1/auth/otp/send` | Public | — |
-| POST | `/api/v1/auth/otp/verify` | Public | — |
-| POST | `/api/v1/intakes` | Public | — |
-| GET | `/api/v1/intakes` | Bearer | `intakes.view` |
-| GET | `/api/v1/patients` | Bearer | `patients.view` |
-| GET | `/api/v1/patients/{id}` | Bearer | `patients.view` |
-| POST | `/api/v1/patients` | Bearer | `patients.manage` |
-| PUT | `/api/v1/patients/{id}` | Bearer | `patients.manage` |
-| GET | `/api/v1/patient/overview` | Bearer (patient) | `patient.self` |
-| GET | `/api/v1/patient/profile` | Bearer (patient) | `patient.self` |
-| PATCH | `/api/v1/patient/profile` | Bearer (patient) | `patient.self` |
-| GET | `/api/v1/patient/appointments` | Bearer (patient) | `patient.self` |
-| GET | `/api/v1/patient/documents` | Bearer (patient) | `patient.self` |
-| GET | `/api/v1/patient/notification-preferences` | Bearer (patient) | `patient.self` |
-| PATCH | `/api/v1/patient/notification-preferences` | Bearer (patient) | `patient.self` |
-| GET | `/api/v1/appointments` | Bearer | `appointments.view` |
-| POST | `/api/v1/appointments` | Bearer | `appointments.manage` |
-| PATCH | `/api/v1/appointments/{id}/reschedule` | Bearer | `appointments.manage` |
-| PATCH | `/api/v1/appointments/{id}/status` | Bearer | `appointments.manage` |
-| GET | `/api/v1/dashboard/overview` | Bearer | `dashboard.view` |
-| GET | `/api/v1/patients/{id}/emr` | Bearer | `emr.view` |
-| POST | `/api/v1/patients/{id}/emr` | Bearer | `emr.edit` |
-| GET | `/api/v1/emr/templates` | Bearer | `emr.view` |
-| POST | `/api/v1/ai/emr-draft` | Bearer | `emr.edit` |
+- Public/audience auth: `/auth/otp/send`, `/auth/otp/verify`
+- Patient recovery: `/auth/recovery/request`, `/auth/recovery/verify`, `/auth/recovery/password`
+- WorkingVersion intake bridge + staff review: `/intakes`, `/intakes/{id}/status`
+- WordPress server bridge: `/bookings`, `/bookings/stats`
+- Patient portal: `/patient/overview`, `/patient/profile`, `/patient/appointments`, `/patient/documents`, `/patient/records`, `/patient/notification-preferences`
+- Staff CRM: dashboard, patients, appointments, EMR, billing, tasks, analytics, clinic settings
 
----
+Every route keeps the response envelope `{ok,status,data,errors,meta}`.
 
-## 13. What Blackbox should build next
+### Known contract boundaries
 
-These items are specified and ready for implementation — no design decisions needed:
-
-1. **Staff password login** — `POST /api/v1/auth/password` → verify `users.password_hash` (bcrypt), issue bearer token same as OTP flow. Route file `config/routes.auth.php` already bootstrapped.
-2. **Wire `OtpService` → `SmsProviderChain`** — replace `new SmsService()` in `OtpService::send()` with `(new SmsProviderChain())->sendOtp(...)`.
-3. **Billing module** — `invoices` table (see `docs/SCHEMA.md` §8 for target shape), `BillingController`, `routes.billing.php`. Zarinpal / IDPay payment gateway callbacks.
-4. **Tasks / Kanban** — `tasks` table, `TaskController`, `routes.tasks.php`. Statuses: `todo`, `in_progress`, `done`. Priority: `low`, `medium`, `high`, `urgent`.
-5. **Analytics** — `AnalyticsController::referralConversion()` (date-range, group by `intakes.referral_code`), `AnalyticsController::appointmentStats()`.
-6. **Settings** — clinic working hours, user management (RBAC), EMR template builder (stores JSON template definitions).
-7. **Jalali fix in `patients.js`** — replace `toLocaleDateString('fa-IR')` with `Jalali.formatFull()` from `jalali.js`.
-
----
-
-## 14. What must NOT be changed
-
-- The response envelope shape (`ok / status / data / errors / meta`).
-- The `App\` PSR-4 namespace root.
-- The DB column conventions (`created_at`, `updated_at`, `deleted_at`, `clinic_id`).
-- `docs/API_CONTRACT.md` as the single source of truth for endpoints.
-- Google Sheet columns A–K.
-- Brand tokens in `public/assets/css/theme.css`.
+- Patient documents/media are currently list/read-only. The repository has no agreed upload/signing endpoint; the Frontend therefore does not fake an upload action.
+- Staff Settings reads real MySQL users/roles and server integration configuration state, but no user/role mutation endpoint is contracted yet.
+- EMR AI draft generation is off by default, requires explicit server-side clinical-text opt-in, and produces review-only text that is never auto-saved.

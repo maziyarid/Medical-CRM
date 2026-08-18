@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fa-IR" dir="rtl">
 <head>
   <meta charset="UTF-8">
@@ -153,6 +153,12 @@
     <p>دکتر شاهین باستانی‌نژاد</p>
   </div>
 
+  <!-- Connectivity banner (Bug J): shown only when the dashboard is unreachable -->
+  <div class="info-note" id="connectivity-banner" role="alert" style="display:none; background:var(--error-soft,#fde8e8); color:var(--error,#b3261e); border:1px solid var(--error,#b3261e);">
+    <span aria-hidden="true">⚠</span>
+    <span id="connectivity-message"></span>
+  </div>
+
   <!-- Step 1: Mobile input -->
   <section class="step active" id="step-mobile" aria-label="وارد کردن شماره موبایل">
     <div class="info-note" role="note">
@@ -185,6 +191,7 @@
         <span class="spinner" aria-hidden="true"></span>
       </button>
     </form>
+    <div class="resend-row"><a class="btn-ghost" href="forgot-password.html">بازیابی دسترسی / تنظیم رمز عبور</a></div>
   </section>
 
   <!-- Step 2: OTP input -->
@@ -231,6 +238,12 @@
     showToast,
     getPersianError
   } from '../../shared/api.js';
+
+  // NOTE: `checkConnectivity` is exported by newer builds of api.js, but older
+  // deployed copies do not have it. A static `import { checkConnectivity }`
+  // would throw a SyntaxError and kill the ENTIRE module (no handlers attach →
+  // the page silently does nothing on submit). We therefore load it via a
+  // guarded dynamic import below, so a version mismatch can never break login.
 
   // ── State ──
   let currentMobile = '';
@@ -349,7 +362,7 @@
     inputMobile.classList.remove('input-error');
     setLoading(btnSend, true);
     try {
-      await Auth.sendOtp(normalised);
+      await Auth.sendOtp(normalised, 'patient');
       currentMobile = normalised;
       mobileDisplay.textContent = normalised;
       showToast('کد تأیید ارسال شد ✓', 'success');
@@ -367,6 +380,32 @@
   formMobile.addEventListener('submit', e => { e.preventDefault(); doSendOtp(); });
   btnResend.addEventListener('click', doSendOtp);
 
+  // ── Connectivity preflight (Bug J) ──
+  // Surface SSL/DNS/host-down failures with an actionable Persian message
+  // before the patient tries to send an OTP, instead of a generic "خطای اتصال".
+  // Loaded via dynamic import so a missing export on an older api.js cannot
+  // break the login page (see note near the top of this module).
+  (async function checkDashboardConnectivity() {
+    const banner = document.getElementById('connectivity-banner');
+    const msg = document.getElementById('connectivity-message');
+    if (!banner || !msg) {
+      return;
+    }
+    try {
+      const mod = await import('../../shared/api.js');
+      if (typeof mod.checkConnectivity !== 'function') {
+        return;
+      }
+      const err = await mod.checkConnectivity();
+      if (err) {
+        msg.textContent = err.message;
+        banner.style.display = 'flex';
+      }
+    } catch {
+      // Connectivity preflight is best-effort; never block login on it.
+    }
+  })();
+
   // ── Verify OTP ──
   formOtp.addEventListener('submit', async e => {
     e.preventDefault();
@@ -378,7 +417,7 @@
     }
     setLoading(btnVerify, true);
     try {
-      await Auth.verifyOtp(currentMobile, code);
+      await Auth.verifyOtp(currentMobile, code, 'patient');
       showToast('ورود موفق — در حال انتقال...', 'success');
       setTimeout(() => { window.location.href = '../patient/overview.html'; }, 800);
     } catch (err) {

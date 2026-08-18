@@ -1,0 +1,24 @@
+# Dr. Bastaninejad theme — static-asset CORS for language subdomains.
+#
+# Why: the compiled React bundle CSS (assets/dist6) references webfonts via
+# absolute URLs (https://drbastaninejad.com/.../Irancell_*.woff2). When the
+# same WP install is served from a language subdomain (en./ar./...), those font
+# requests are cross-origin and blocked by CORS unless the origin sends an
+# Access-Control-Allow-Origin header. This .htaccess lives in the theme
+# directory, so Apache applies it to the theme dir and all subdirectories
+# (including assets/dist6/fonts/).
+#
+# Scope: fonts + the asset file types the SPA CSS may @import / url() across
+# origins. We deliberately do NOT add CORS to REST/PHP endpoints.
+
+<IfModule mod_headers.c>
+    # Web fonts (the main culprit).
+    <FilesMatch "\\.(woff|woff2|ttf|eot|otf)$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
+    # Theme CSS/JS referenced cross-origin (fallback; the same-origin filter in
+    # inc/i18n.php already makes most enqueued assets root-relative).
+    <FilesMatch "\\.(css|js|mjs)$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
+</IfModule>

@@ -4,40 +4,44 @@ declare(strict_types=1);
 namespace App\Services;
 
 /**
- * GoogleSheetsService — RETIRED (dashboard.drbastaninejad.com)
- *
- * RECONCILIATION DECISION (2026-07-31, Blackbox AI — see PROGRESS_LOG.md):
- *
- *   The canonical GoogleSheetsService for the entire platform is:
- *     app.drbastaninejad.com/Backend/app/Services/GoogleSheetsService.php
- *
- *   REASON this copy was retired:
- *   - The dashboard copy (this file) used a narrow 11-column schema
- *     (A–K: intake_id, submission_uuid, name, mobile, national_id, birth_date,
- *     service_type, chief_complaint, preferred_date, submitted_at, db_id) and
- *     threw RuntimeException on failure — violating the never-throws contract.
- *   - The canonical copy uses the frozen SmartFormat 23-column schema
- *     (A–W) matching UNIFIED_MASTER_PLAN.md §4, returns 'ok'|'skipped'|'failed'
- *     strings instead of throwing, caches OAuth tokens in APCu under a
- *     namespaced key ('gsheets_token_app'), and includes intake_db_id as a
- *     separate cross-reference column.
- *   - The canonical is strictly superior on every dimension.
- *
- *   RULE: Never make changes here. All Sheets logic lives in the canonical file.
- *   When Phase D merges the two backends, delete this file entirely.
+ * Google Sheets is owned by the live WorkingVersion intake during transition.
+ * The dashboard must not duplicate that write. Direct dashboard writes are
+ * therefore opt-in and require an already-shaped SmartFormat row.
  */
-
-if (!class_exists(GoogleSheetsService::class, false)) {
-    $canonicalPath = defined('APP_ROOT')
-        ? APP_ROOT . '/../app.drbastaninejad.com/Backend/app/Services/GoogleSheetsService.php'
-        : __DIR__ . '/../../../../app.drbastaninejad.com/Backend/app/Services/GoogleSheetsService.php';
-
-    if (is_file($canonicalPath)) {
-        require_once $canonicalPath;
-    } else {
-        throw new \LogicException(
-            '[GoogleSheetsService stub] Cannot locate canonical implementation at: ' . $canonicalPath .
-            '. Set APP_ROOT in your bootstrap or use a symlink.'
-        );
+final class GoogleSheetsService
+{
+    /** @return 'ok'|'failed'|'skipped' */
+    public function appendIntake(int $intakeId, array $data): string
+    {
+        if (($_ENV['DASHBOARD_SHEETS_WRITE_ENABLED'] ?? '0') !== '1') {
+            return 'skipped';
+        }
+        $url = trim((string)($_ENV['SHEET_WEBHOOK_URL'] ?? ''));
+        $secret = (string)($_ENV['SHEET_SHARED_SECRET'] ?? '');
+        $row = $data['sheet_row'] ?? null;
+        if (!is_array($row) || $url === '' || $secret === '') {
+            error_log('[GoogleSheetsService] direct dashboard Sheets write skipped: configuration/sheet_row missing.');
+            return 'skipped';
+        }
+        try {
+            $payload = json_encode($row, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+            $body = http_build_query(['secret' => $secret, 'payload' => $payload], '', '&', PHP_QUERY_RFC3986);
+            $ctx = stream_context_create(['http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/x-www-form-urlencoded; charset=UTF-8\r\nAccept: application/json\r\n",
+                'content' => $body,
+                'timeout' => 15,
+                'ignore_errors' => true,
+            ]]);
+            $response = @file_get_contents($url, false, $ctx);
+            if ($response === false) {
+                return 'failed';
+            }
+            $decoded = json_decode($response, true);
+            return is_array($decoded) && ($decoded['ok'] ?? false) ? 'ok' : 'failed';
+        } catch (\Throwable $e) {
+            error_log('[GoogleSheetsService] intake ' . $intakeId . ' failed: ' . $e->getMessage());
+            return 'failed';
+        }
     }
 }

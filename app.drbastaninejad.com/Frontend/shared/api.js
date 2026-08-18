@@ -24,8 +24,19 @@
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
-const API_BASE = 'https://app.drbastaninejad.com/api/v1';
-const TOKEN_KEY = 'mz_auth_token';
+// The dashboard API base can be overridden at deploy time by setting
+// window.__DRB_API_BASE__ before this module loads (e.g. in a small inline
+// <script> in the page <head>). This lets ops point the frontend at a different
+// dashboard host without editing this file — useful when SSL is being
+// reprovisioned or when a maintenance mirror is used. Falls back to canonical.
+const API_BASE = (typeof window !== 'undefined' && window.__DRB_API_BASE__)
+  ? String(window.__DRB_API_BASE__).replace(/\/+$/, '')
+  : 'https://dashboard.drbastaninejad.com/api/v1';
+const LEGACY_TOKEN_KEY = 'mz_auth_token';
+const TOKEN_KEYS = Object.freeze({
+  patient: 'mz_patient_auth_token',
+  staff: 'mz_staff_auth_token',
+});
 const UUID_KEY  = 'mz_intake_uuid';
 
 // ---------------------------------------------------------------------------
@@ -87,20 +98,44 @@ export function clearIntakeUUID() {
 // ---------------------------------------------------------------------------
 // Auth token helpers
 // ---------------------------------------------------------------------------
-export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+function assertAuthScope(scope) {
+  if (scope !== 'patient' && scope !== 'staff') {
+    throw new Error('Invalid authentication scope');
+  }
+  return scope;
 }
 
-export function setToken(token) {
-  localStorage.setItem(TOKEN_KEY, token);
+function migrateLegacyToken(scope) {
+  const key = TOKEN_KEYS[scope];
+  if (sessionStorage.getItem(key)) return;
+  const legacy = localStorage.getItem(LEGACY_TOKEN_KEY);
+  if (!legacy) return;
+  // One-time compatibility migration for a session opened before audience
+  // separation. The calling page selects the intended audience explicitly.
+  sessionStorage.setItem(key, legacy);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
 }
 
-export function clearToken() {
-  localStorage.removeItem(TOKEN_KEY);
+export function getToken(scope = 'patient') {
+  scope = assertAuthScope(scope);
+  migrateLegacyToken(scope);
+  return sessionStorage.getItem(TOKEN_KEYS[scope]);
 }
 
-export function isAuthenticated() {
-  return !!getToken();
+export function setToken(token, scope = 'patient') {
+  scope = assertAuthScope(scope);
+  sessionStorage.setItem(TOKEN_KEYS[scope], token);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
+}
+
+export function clearToken(scope = 'patient') {
+  scope = assertAuthScope(scope);
+  sessionStorage.removeItem(TOKEN_KEYS[scope]);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
+}
+
+export function isAuthenticated(scope = 'patient') {
+  return !!getToken(scope);
 }
 
 // ---------------------------------------------------------------------------
@@ -121,10 +156,38 @@ const ERROR_MESSAGES = {
   NOT_FOUND:               'اطلاعات مورد نظر یافت نشد.',
   SERVER_ERROR:            'خطای سرور. لطفاً دوباره تلاش کنید.',
   NETWORK_ERROR:           'خطای اتصال. اینترنت را بررسی کنید.',
+  SSL_ERROR:               'اتصال امن به سرور برقرار نشد. ممکن است گواهی امنیتی سایت نامعتبر باشد. کمی بعد تلاش کنید.',
+  DNS_ERROR:               'سرور پلتفرم پیدا نشد. لطفاً اتصال اینترنت را بررسی و دوباره تلاش کنید.',
+  TIMEOUT_ERROR:           'پاسخ سرور طول کشید. لطفاً دوباره تلاش کنید.',
 };
 
 export function getPersianError(code) {
   return ERROR_MESSAGES[code] || ERROR_MESSAGES.SERVER_ERROR;
+}
+
+/**
+ * Classify a fetch() network rejection into an actionable Persian error.
+ * Bug J: patients saw a generic "خطای اتصال" that hid the real cause (SSL
+ * certificate not yet valid on dashboard.drbastaninejad.com, DNS failure,
+ * or the host being down). We inspect the browser error type/message to surface
+ * a clearer hint without exposing internals.
+ */
+function classifyNetworkError(err) {
+  const raw = err && err.message ? String(err.message) : String(err || '');
+  const lower = raw.toLowerCase();
+  // Chrome: "Failed to fetch"; Firefox: "NetworkError when attempting to fetch".
+  // Safari throws a TypeError with "Load failed". All are generic.
+  let code = 'NETWORK_ERROR';
+  // SSL/TLS rejections usually include 'ssl', 'certificate', 'protocol', or
+  // 'aborted' in some user agents; DNS failures include 'dns' or 'name'.
+  if (/(ssl|certificate|tls|protocol|ERR_CERT|net::ERR_CERT)/i.test(lower)) {
+    code = 'SSL_ERROR';
+  } else if (/(dns|name resolution|getaddrinfo|ENOTFOUND|EAI_AGAIN)/i.test(lower)) {
+    code = 'DNS_ERROR';
+  } else if (/(timeout|timed out|aborted)/i.test(lower)) {
+    code = 'TIMEOUT_ERROR';
+  }
+  return { code, message: getPersianError(code), raw: err };
 }
 
 // ---------------------------------------------------------------------------
@@ -132,7 +195,7 @@ export function getPersianError(code) {
 // ---------------------------------------------------------------------------
 async function request(method, path, body = null, options = {}) {
   const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
-  const token = getToken();
+  const token = getToken('patient');
   if (token) headers['Authorization'] = `Bearer ${token}`;
   Object.assign(headers, options.headers || {});
 
@@ -143,7 +206,7 @@ async function request(method, path, body = null, options = {}) {
   try {
     response = await fetch(`${API_BASE}${path}`, config);
   } catch (networkErr) {
-    throw { code: 'NETWORK_ERROR', message: getPersianError('NETWORK_ERROR'), raw: networkErr };
+    throw classifyNetworkError(networkErr);
   }
 
   let data;
@@ -153,8 +216,8 @@ async function request(method, path, body = null, options = {}) {
     throw { code: 'SERVER_ERROR', message: getPersianError('SERVER_ERROR'), httpStatus: response.status };
   }
 
-  if (!response.ok || data.success === false) {
-    const code = data?.error?.code || (response.status === 401 ? 'UNAUTHORIZED' : 'SERVER_ERROR');
+  if (!response.ok || data.ok === false || data.success === false) {
+    const code = data?.error?.code || (response.status === 401 ? 'UNAUTHORIZED' : response.status === 403 ? 'FORBIDDEN' : response.status === 422 ? 'VALIDATION_FAILED' : 'SERVER_ERROR');
     throw { code, message: getPersianError(code), httpStatus: response.status, raw: data };
   }
 
@@ -170,10 +233,10 @@ export const Auth = {
    * @param {string} mobile — raw input (Persian digits OK, will be normalised)
    * @returns {Promise<{ success: true, expires_in: number }>}
    */
-  async sendOtp(mobile) {
+  async sendOtp(mobile, audience = 'patient') {
     const normalised = normalizeMobile(normalizePersianDigits(mobile));
     if (!normalised) throw { code: 'INVALID_MOBILE', message: getPersianError('INVALID_MOBILE') };
-    return request('POST', '/auth/otp/send', { mobile: normalised });
+    return request('POST', '/auth/otp/send', { mobile: normalised, audience });
   },
 
   /**
@@ -183,20 +246,37 @@ export const Auth = {
    * @param {string} otp — Persian digits OK
    * @returns {Promise<{ success: true, token: string, expires_at: string }>}
    */
-  async verifyOtp(mobile, otp) {
+  async verifyOtp(mobile, otp, audience = 'patient') {
     const normalised = normalizeMobile(normalizePersianDigits(mobile));
     const normalisedOtp = normalizePersianDigits(String(otp)).trim();
     if (!normalised) throw { code: 'INVALID_MOBILE', message: getPersianError('INVALID_MOBILE') };
-    const result = await request('POST', '/auth/otp/verify', { mobile: normalised, otp: normalisedOtp });
+    const result = await request('POST', '/auth/otp/verify', { mobile: normalised, otp: normalisedOtp, audience });
     // API_CONTRACT.md: token is in result.data.token (not result.token)
     const token = result && result.data && result.data.token;
-    if (token) setToken(token);
+    if (token) setToken(token, audience);
     return result;
   },
 
-  /** Remove token and redirect to login page. */
-  logout(redirectTo = '/Frontend/pages/auth/patient-login.html') {
-    clearToken();
+  async requestRecovery(mobile, channel = 'sms', email = '') {
+    const normalised = normalizeMobile(normalizePersianDigits(mobile));
+    if (!normalised) throw { code: 'INVALID_MOBILE', message: getPersianError('INVALID_MOBILE') };
+    return request('POST', '/auth/recovery/request', { mobile: normalised, channel, email });
+  },
+
+  async verifyRecovery(mobile, otp) {
+    const normalised = normalizeMobile(normalizePersianDigits(mobile));
+    const normalisedOtp = normalizePersianDigits(String(otp)).trim();
+    if (!normalised) throw { code: 'INVALID_MOBILE', message: getPersianError('INVALID_MOBILE') };
+    return request('POST', '/auth/recovery/verify', { mobile: normalised, otp: normalisedOtp });
+  },
+
+  async setRecoveredPassword(resetToken, newPassword) {
+    return request('POST', '/auth/recovery/password', { reset_token: resetToken, new_password: newPassword });
+  },
+
+  /** Remove the selected audience token and redirect to its login page. */
+  logout(redirectTo = '/Frontend/pages/auth/patient-login.html', audience = 'patient') {
+    clearToken(audience);
     window.location.href = redirectTo;
   },
 };
@@ -223,16 +303,15 @@ export const Intake = {
     };
     const result = await request('POST', '/intakes', payload);
     // Clear UUID only after confirmed success so refresh is safe
-    if (result.success) clearIntakeUUID();
+    if (result.ok !== false && result.success !== false) clearIntakeUUID();
     return result;
   },
 };
 
 // ---------------------------------------------------------------------------
 // Patient portal API
-// All endpoints below require a valid bearer token (mz_auth_token).
-// If the endpoint is not yet live on the backend, the function throws with
-// code PENDING_BACKEND so the UI can render the placeholder state.
+// All endpoints below require the patient-scoped bearer token stored for this browser session.
+// The canonical API host is dashboard.drbastaninejad.com.
 // ---------------------------------------------------------------------------
 export const Patient = {
   /**
@@ -325,12 +404,14 @@ export const Patient = {
 // Documented in dashboard.drbastaninejad.com/docs/API_CONTRACT.md §Phase D
 // ---------------------------------------------------------------------------
 
-const STAFF_API_BASE = 'https://dashboard.drbastaninejad.com/api/v1';
+const STAFF_API_BASE = (typeof window !== 'undefined' && window.__DRB_STAFF_API_BASE__)
+  ? String(window.__DRB_STAFF_API_BASE__).replace(/\/+$/, '')
+  : API_BASE;
 
 /** Core fetch for all staff (dashboard) endpoints. */
 async function staffRequest(method, path, body = null) {
   const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
-  const token = getToken();
+  const token = getToken('staff');
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const config = { method, headers };
   if (body !== null) config.body = JSON.stringify(body);
@@ -339,7 +420,7 @@ async function staffRequest(method, path, body = null) {
   try {
     response = await fetch(`${STAFF_API_BASE}${path}`, config);
   } catch (networkErr) {
-    throw { code: 'NETWORK_ERROR', message: getPersianError('NETWORK_ERROR'), raw: networkErr };
+    throw classifyNetworkError(networkErr);
   }
 
   let data;
@@ -361,6 +442,22 @@ async function staffRequest(method, path, body = null) {
 }
 
 export const Staff = {
+
+  // ── Intake / booking review queue ────────────────────────────────
+
+  async listIntakes(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.status) qs.set('status', params.status);
+    if (params.source_type) qs.set('source_type', params.source_type);
+    if (params.page) qs.set('page', String(params.page));
+    if (params.per_page) qs.set('per_page', String(params.per_page));
+    const query = qs.toString() ? '?' + qs.toString() : '';
+    return staffRequest('GET', '/intakes' + query);
+  },
+
+  async updateIntakeStatus(id, status) {
+    return staffRequest('PATCH', `/intakes/${id}/status`, { status });
+  },
   /**
    * GET /api/v1/dashboard/overview  ✅ LIVE
    * Returns: { metrics[], timeline[] }
@@ -472,7 +569,7 @@ export const Staff = {
 
   /**
    * POST /api/v1/ai/emr-draft  ✅ LIVE
-   * @param {{ patient_id: number, prompt: string }} body
+   * @param {{ patient_id: number, prompt: string, context?: Object }} body
    */
   async aiEmrDraft(body) {
     return staffRequest('POST', '/ai/emr-draft', body);
@@ -588,13 +685,11 @@ export const Staff = {
     return staffRequest('PATCH', '/settings/clinic', body);
   },
 
-  // ── Patient Records (app.drbastaninejad.com) ──────────────────────
-  // NOTE: this hits the patient-facing backend, not the dashboard backend.
-  // Uses the main `request()` helper, not staffRequest().
+  // Patient records are exposed by the same dashboard API through PatientExtended below.
 };
 
 // ---------------------------------------------------------------------------
-// Patient extended — additional endpoints on app.drbastaninejad.com backend
+// Patient extended — additional patient endpoints on the dashboard backend
 // ---------------------------------------------------------------------------
 export const PatientExtended = {
   /**
@@ -650,18 +745,6 @@ export function renderSkeleton(container, count = 3) {
   ).join('');
 }
 
-/**
- * Render a "pending backend" placeholder.
- * Used for Patient Portal endpoints not yet live.
- */
-export function renderPendingBackend(container, label = 'در انتظار پیاده‌سازی بک‌اند') {
-  if (!container) return;
-  container.innerHTML =
-    `<div class="state-pending" role="status">
-      <span class="state-icon" aria-hidden="true">⏳</span>
-      <p>${label}</p>
-    </div>`;
-}
 
 /**
  * Render an error state with Persian message.
@@ -701,12 +784,35 @@ export function showToast(message, type = 'info', duration = 4000) {
 // Guard: redirect to login if no token present.
 // Call at top of any patient-portal page.
 // ---------------------------------------------------------------------------
-export function requireAuth(redirectTo = '/Frontend/pages/auth/patient-login.html') {
-  if (!isAuthenticated()) {
+export function requireAuth(redirectTo = '/Frontend/pages/auth/patient-login.html', scope = 'patient') {
+  if (!isAuthenticated(scope)) {
     window.location.replace(redirectTo);
     return false;
   }
   return true;
+}
+
+/**
+ * Connectivity preflight (Bug J). Performs a lightweight HEAD/GET against the
+ * dashboard health surface to surface SSL/DNS/host-down failures before the
+ * patient submits the OTP form. Returns null when the dashboard is reachable,
+ * or a classified error object (same shape thrown by request()) when it is not.
+ * Call this on patient-login.html boot to show an actionable banner early.
+ */
+export async function checkConnectivity() {
+  try {
+    // A tiny no-op request to the canonical API base. We do not require a 2xx;
+   // any HTTP response (even 404/405) proves the host is reachable and TLS is
+    // valid. Only a network-level rejection means the dashboard is unreachable.
+    await fetch(`${API_BASE}/auth/otp/send`, {
+      method: 'HEAD',
+      // HEAD is not registered; the server returns 405, which is fine here.
+      cache: 'no-store',
+    });
+    return null;
+  } catch (err) {
+    return classifyNetworkError(err);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -722,9 +828,9 @@ export function requireAuth(redirectTo = '/Frontend/pages/auth/patient-login.htm
 //     renderError(el, err);
 //   }
 // ---------------------------------------------------------------------------
-export function redirectOn401(err, loginPath = '../auth/login.html') {
+export function redirectOn401(err, loginPath = '../auth/login.html', scope = 'patient') {
   if (err && err.httpStatus === 401) {
-    clearToken();
+    clearToken(scope);
     window.location.replace(loginPath);
     return true;
   }

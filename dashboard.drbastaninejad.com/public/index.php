@@ -130,7 +130,7 @@ if (in_array($origin, $allowedOrigins, true)) {
     header('Access-Control-Allow-Origin: *');
 }
 header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, Accept');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, Accept, X-Intake-Bridge-Secret, X-WordPress-Bridge-Secret');
 
 // Respond immediately to pre-flight OPTIONS requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -149,6 +149,7 @@ try {
         'routes.auth',
         'routes.dashboard',
         'routes.intake',
+        'routes.bookings',
         'routes.patients',
         'routes.appointments',
         'routes.emr',
@@ -185,7 +186,5 @@ try {
 $httpStatus = (int)($response['status'] ?? 200);
 http_response_code($httpStatus);
 
-// Remove the status key from the payload (it is conveyed via HTTP status line)
-unset($response['status']);
-
+// Keep the full documented envelope: {ok,status,data,errors,meta}.
 echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

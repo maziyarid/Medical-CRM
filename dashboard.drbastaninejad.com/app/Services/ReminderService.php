@@ -32,7 +32,7 @@ use App\Core\Database;
  *     appointment_id (e.g. after a reschedule that reuses the same row) will not
  *     create duplicate rows once cancel+re-insert is used. Callers should call
  *     cancelForAppointment() before scheduleForAppointment() on reschedule.
- *   - sendDue() dispatches only SMS for now; email is behind EMAIL_REMINDER_ENABLED.
+ *   - sendDue() dispatches SMS and, when EMAIL_REMINDER_ENABLED=1, email reminders.
  *   - sendDue() processes a bounded batch (default 50) per cron invocation to avoid
  *     overloading the SMS provider in a single call.
  *   - Never throws — all exceptions are caught and logged.
@@ -148,7 +148,7 @@ final class ReminderService
             $rows = $db->prepare(
                 "SELECT rl.id, rl.appointment_id, rl.patient_id, rl.channel,
                         rl.attempts, rl.max_attempts,
-                        p.mobile,
+                        p.mobile, p.email,
                         a.scheduled_at, a.visit_reason
                  FROM reminder_log rl
                  JOIN patients     p ON p.id = rl.patient_id
@@ -176,17 +176,18 @@ final class ReminderService
                 )->execute([$row['id']]);
 
                 if ($row['channel'] === 'sms') {
-                    $this->dispatchSms($row);
+                    $provider = $this->dispatchSms($row);
+                } elseif ($row['channel'] === 'email') {
+                    $provider = $this->dispatchEmail($row);
+                } else {
+                    throw new \RuntimeException('Unsupported reminder channel');
                 }
-                // email channel — intentionally a no-op until product owner approves
-                // email provider and template. ReminderService::dispatchEmail() will be
-                // added in Phase 5b once the decision is made (UNIFIED_MASTER_PLAN §9).
 
                 $db->prepare(
                     "UPDATE reminder_log
-                     SET status = 'sent', sent_at = UTC_TIMESTAMP(), updated_at = UTC_TIMESTAMP()
+                     SET status = 'sent', provider = ?, error_message = NULL, sent_at = UTC_TIMESTAMP(), updated_at = UTC_TIMESTAMP()
                      WHERE id = ?"
-                )->execute([$row['id']]);
+                )->execute([$provider, $row['id']]);
                 $sent++;
 
             } catch (\Throwable $e) {
@@ -241,13 +242,30 @@ final class ReminderService
      * Dispatch a single SMS reminder via SmsProviderChain.
      * Never throws — exceptions propagate to sendDue()'s catch block.
      */
-    private function dispatchSms(array $row): void
+    private function dispatchSms(array $row): string
     {
         $scheduled = date('H:i', strtotime($row['scheduled_at']));
         $reason    = $row['visit_reason'] ? ' (' . $row['visit_reason'] . ')' : '';
         $message   = "یادآوری: نوبت شما ساعت {$scheduled}{$reason} مقرر است. لغو: با مطب تماس بگیرید.";
 
         $chain = new SmsProviderChain();
-        $chain->sendReminder($row['mobile'], $message);
+        $result = $chain->sendReminder($row['mobile'], $message);
+        if (!($result['ok'] ?? false)) {
+            throw new \RuntimeException((string)($result['error'] ?? 'SMS reminder delivery failed'));
+        }
+        return (string)($result['provider'] ?? 'sms');
+    }
+
+    /** Dispatch a privacy-minimal appointment email reminder. */
+    private function dispatchEmail(array $row): string
+    {
+        $email = trim((string)($row['email'] ?? ''));
+        if ($email === '') {
+            throw new \RuntimeException('Patient email is not available');
+        }
+        if (!(new EmailService())->sendAppointmentReminder($email, (string)$row['scheduled_at'])) {
+            throw new \RuntimeException('Email reminder delivery failed or is disabled');
+        }
+        return 'php_mail';
     }
 }

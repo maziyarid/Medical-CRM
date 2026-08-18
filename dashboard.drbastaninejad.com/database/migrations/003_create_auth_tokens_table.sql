@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS `auth_tokens` (
     `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `user_id`    BIGINT UNSIGNED NOT NULL,
     `user_type`  ENUM('patient','staff') NOT NULL DEFAULT 'patient',
+    `purpose`    ENUM('session','password_reset') NOT NULL DEFAULT 'session',
     `token_hash` CHAR(64)     NOT NULL,   -- SHA-256 hex of the raw bearer token
     `expires_at` DATETIME     NOT NULL,
     `revoked_at` DATETIME     NULL,

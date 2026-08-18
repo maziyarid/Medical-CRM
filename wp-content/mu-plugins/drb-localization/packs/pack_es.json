@@ -1,0 +1,442 @@
+{
+  "lang": "es",
+  "dir": "ltr",
+  "chrome": {
+    "site_name": "Dr. Shahin Bastaninejad",
+    "site_tagline": "Cirujano de Rinoplastia y Especialista en ORL en Irán",
+    "nav_home": "Inicio",
+    "nav_about": "Sobre el Doctor",
+    "nav_services": "Servicios",
+    "nav_gallery": "Galería",
+    "nav_faq": "Preguntas Frecuentes",
+    "nav_blog": "Blog",
+    "nav_contact": "Contacto",
+    "nav_booking": "Reservar Cita",
+    "nav_patient_login": "Acceso de Pacientes",
+    "cta_book": "Reservar en Línea",
+    "cta_contact": "Contactar la Clínica",
+    "footer_rights": "Todos los derechos reservados",
+    "footer_address": "Teherán, Irán",
+    "form_name": "Nombre Completo",
+    "form_mobile": "Número de Móvil",
+    "form_email": "Correo Electrónico",
+    "form_procedure": "Tipo de Procedimiento",
+    "form_message": "Mensaje o Comentarios",
+    "form_submit": "Enviar Solicitud",
+    "form_success": "Su solicitud se envió correctamente. Se enviará un SMS de confirmación.",
+    "form_cooldown": "Ya existe una solicitud reciente para este número. Por favor inicie sesión en el portal de pacientes.",
+    "form_login_cta": "Acceder al Portal de Pacientes",
+    "booking_title": "Reservar una Consulta",
+    "booking_subtitle": "Complete el siguiente formulario y nuestro equipo de recepción se pondrá en contacto con usted.",
+    "eligibility_age": "Edad entre 18 y 45 años",
+    "eligibility_revision": "Al menos 24 meses desde cualquier cirugía previa",
+    "lang_switcher_label": "Idioma",
+    "privacy": "Política de Privacidad",
+    "404_title": "Página no encontrada",
+    "404_body": "Lo sentimos, la página que busca no existe.",
+    "seo_home_title": "Dr. Shahin Bastaninejad | Cirujano de Rinoplastia en Irán",
+    "seo_home_desc": "Clínica especializada en rinoplastia y ORL en Irán, dirigida por el Dr. Shahin Bastaninejad en Teherán."
+  },
+  "forms": {
+    "نشست فرم منقضی شده است. صفحه را تازه‌سازی کنید.": "Su sesión de formulario ha expirado. Por favor, actualice la página.",
+    "سامانه نوبت‌دهی موقتاً در دسترس نیست.": "El sistema de reservas no está disponible temporalmente.",
+    "درخواست این شماره به‌تازگی ثبت شده است. برای جلوگیری از ثبت تکراری کمی بعد دوباره تلاش کنید.": "Recientemente se envió una solicitud para este número. Para evitar duplicados, intente nuevamente más tarde.",
+    "ثبت درخواست نوبت انجام نشد. لطفاً دوباره تلاش کنید.": "No se pudo guardar la solicitud de cita. Por favor, intente nuevamente.",
+    "ثبت درخواست نوبت انجام نشد.": "No se pudo guardar la solicitud de cita.",
+    "درخواست نوبت شما با موفقیت ثبت شد.": "Su solicitud de cita se envió correctamente.",
+    "درخواست نوبت شما ثبت شد. همکاران کلینیک برای هماهنگی تماس می‌گیرند. پنل بیمار: {login_url}": "Se recibió su solicitud de cita. El equipo de la clínica se comunicará con usted para coordinar. Portal de pacientes: {login_url}",
+    "ایمیل معتبر نیست.": "El correo electrónico no es válido.",
+    "برای رزرو بین‌المللی وارد کردن ایمیل معتبر الزامی است.": "Se requiere un correo electrónico válido para reservas internacionales.",
+    "بررسی جراحی ترمیمی فقط پس از گذشت کامل ۲۴ ماه از جراحی قبلی انجام می‌شود.": "La revisión de cirugía de corrección solo se realiza después de que hayan transcurrido 24 meses completos desde la cirugía anterior.",
+    "تأیید شرایط پذیرش الزامی است.": "Es obligatorio confirmar las condiciones de admisión.",
+    "ترمیمی": "De revisión",
+    "تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.": "El número de solicitudes ha superado el límite permitido. Intente nuevamente más tarde.",
+    "ثبت پیام انجام نشد.": "No se pudo guardar el mensaje.",
+    "درخواست نامعتبر است.": "La solicitud no es válida.",
+    "دریافت آمار از داشبورد انجام نشد.": "No se pudieron obtener las estadísticas del panel.",
+    "نام و شماره موبایل معتبر الزامی است.": "Se requiere un nombre y número de móvil válidos.",
+    "٠": "0",
+    "١": "1",
+    "٢": "2",
+    "٣": "3",
+    "٤": "4",
+    "٥": "5",
+    "٦": "6",
+    "٧": "7",
+    "٨": "8",
+    "٩": "9",
+    "پذیرش جراحی فقط برای بازه سنی ۱۸ تا ۴۵ سال انجام می‌شود.": "La admisión para cirugía se acepta únicamente para el rango de edad de 18 a 45 años.",
+    "پل داشبورد تنظیم نشده است.": "El puente del panel no está configurado.",
+    "پیام تماس جدید: ": "Nuevo mensaje de contacto: ",
+    "پیام تماس — ": "Mensaje de contacto — ",
+    "پیام شما با موفقیت ثبت شد.": "Su mensaje se envió correctamente.",
+    "۰": "0",
+    "۱": "1",
+    "۲": "2",
+    "۳": "3",
+    "۴": "4",
+    "۵": "5",
+    "۶": "6",
+    "۷": "7",
+    "۸": "8",
+    "۹": "9",
+    "نام و نام خانوادگی": "Nombre completo",
+    "شماره موبایل": "Número de móvil",
+    "ایمیل": "Correo electrónico",
+    "نوع خدمت": "Tipo de procedimiento",
+    "پیام یا توضیحات": "Mensaje o comentarios",
+    "ارسال درخواست": "Enviar solicitud"
+  },
+  "pages": [
+    {
+      "source_slug_fa": "صفحه-اصلی",
+      "slug": "inicio",
+      "title": "Inicio",
+      "seo_title": "Dr. Shahin Bastaninejad | Cirujano de Rinoplastia en Irán",
+      "seo_description": "Atención especializada en rinoplastia y ORL en Irán con el Dr. Shahin Bastaninejad. Resultados de aspecto natural y consulta experta en Teherán.",
+      "content_html": "<h2>Dr. Shahin Bastaninejad</h2>\n<p>Cirujano de rinoplastia y especialista en ORL en Irán, enfocado en rinoplastia primaria y de revisión, reconstrucción nasal y cirugía endoscópica de senos paranasales.</p>\n<p>Explore los servicios, la galería de casos y la reserva de consulta en línea. Se invita a los pacientes internacionales a solicitar una cita a través del formulario de reserva.</p>\n<p><a href=\"/booking/\">Reservar una consulta</a> · <a href=\"/about/\">Sobre el doctor</a> · <a href=\"/gallery/\">Galería</a></p>"
+    },
+    {
+      "source_slug_fa": "درباره-دکتر-شاهین-باستانی-نژاد",
+      "slug": "sobre-el-doctor",
+      "title": "Sobre el Dr. Shahin Bastaninejad",
+      "seo_title": "Sobre el Dr. Shahin Bastaninejad | Cirujano de ORL y Rinoplastia en Irán",
+      "seo_description": "Biografía y trayectoria académica del Dr. Shahin Bastaninejad, Profesor Asociado de Otorrinolaringología en Teherán, Irán — rinoplastia, cirugía de revisión y atención endoscópica de senos paranasales.",
+      "content_html": "<h2>Sobre el Dr. Shahin Bastaninejad</h2>\n<p>El Dr. Shahin Bastaninejad es cirujano y especialista en enfermedades del oído, la nariz y la garganta, con un enfoque particular en la cirugía plástica nasal.</p>\n<p>Nació en 1978, es originario de Shiraz y completó parte de su educación en Isfahán. Ingresó a la Universidad de Ciencias Médicas de Isfahán en 1996 y comenzó su residencia en otorrinolaringología y cirugía de cabeza y cuello en la Universidad de Ciencias Médicas de Teherán en 2005, graduándose en 2009.</p>\n<p>Durante su residencia fue reconocido como residente destacado en la Universidad de Ciencias Médicas de Teherán y ocupó el cuarto lugar en el examen nacional de la junta. Tras completar su servicio en Jahrom, provincia de Fars (2009–2010), se incorporó al cuerpo docente del Hospital Amir Alam en Teherán.</p>\n<p>Ha publicado ampliamente y ha organizado múltiples cursos sobre rinoplastia y cirugía endoscópica de senos paranasales. Su enfoque clínico incluye rinoplastia primaria y secundaria, reconstrucción nasal, tumores nasales, cirugía endoscópica de senos paranasales y colaboración en cirugía de base de cráneo con colegas neurocirujanos.</p>\n<p>Es Profesor Asociado de Otorrinolaringología en la Universidad de Ciencias Médicas de Teherán y miembro del comité científico de la Asociación Iraní de Rinología y Cirugía Plástica Facial. También ha ocupado puestos de liderazgo en educación y gestión clínica en el Hospital Amir Alam.</p>\n<p><a href=\"/contact/\">Contactar la clínica</a> · <a href=\"/gallery/\">Ver galería</a></p>"
+    },
+    {
+      "source_slug_fa": "تماس-با-ما",
+      "slug": "contacto",
+      "title": "Contacto",
+      "seo_title": "Contacte a la Clínica del Dr. Bastaninejad en Irán",
+      "seo_description": "Datos de contacto y solicitud de consulta para la clínica del Dr. Shahin Bastaninejad en Teherán, Irán.",
+      "content_html": "<h2>Contactar la clínica</h2>\n<p>Para la coordinación de citas y consultas sobre consultas con el Dr. Shahin Bastaninejad en Teherán, Irán, utilice el formulario de contacto de esta página o el formulario de reserva en línea.</p>\n<p>Incluya un número de móvil accesible y, para pacientes internacionales, un correo electrónico válido.</p>"
+    },
+    {
+      "source_slug_fa": "دریافت-نوبت",
+      "slug": "reservar-cita",
+      "title": "Reservar una Consulta",
+      "seo_title": "Reserve una Consulta de Rinoplastia en Irán | Dr. Bastaninejad",
+      "seo_description": "Solicite una consulta en línea con el Dr. Shahin Bastaninejad en Irán. Se aplican reglas de elegibilidad (edad 18–45; revisión después de al menos 24 meses).",
+      "content_html": "<h2>Reservar una consulta</h2>\n<p>Complete el formulario para solicitar una consulta. La recepción se pondrá en contacto con usted para coordinar el horario.</p>\n<ul>\n<li>Edad elegible: 18–45 años</li>\n<li>Casos de revisión: al menos 24 meses desde la cirugía anterior</li>\n<li>Pacientes internacionales: incluir código de país/marcación y un correo electrónico obligatorio</li>\n</ul>\n<p>Después de enviar, puede utilizar el portal de pacientes para el seguimiento cuando exista una cuenta.</p>"
+    },
+    {
+      "source_slug_fa": "سوالات-متداول",
+      "slug": "preguntas-frecuentes",
+      "title": "Preguntas Frecuentes",
+      "seo_title": "FAQ | Rinoplastia y Atención de ORL con el Dr. Bastaninejad en Irán",
+      "seo_description": "Respuestas sobre horarios de admisión, elegibilidad y cuidados posteriores para pacientes del Dr. Shahin Bastaninejad en Irán.",
+      "content_html": "<h2>Preguntas frecuentes</h2>\n<p>Encuentre respuestas sobre horarios de la clínica, elegibilidad para cirugía y cuidados postoperatorios. Para asesoramiento médico personal, contacte directamente con la clínica.</p>"
+    },
+    {
+      "source_slug_fa": "گالری",
+      "slug": "galeria",
+      "title": "Galería",
+      "seo_title": "Galería de Antes y Después | Dr. Bastaninejad en Irán",
+      "seo_description": "Casos seleccionados de rinoplastia de la clínica del Dr. Shahin Bastaninejad en Irán. Los resultados individuales varían.",
+      "content_html": "<h2>Galería de casos</h2>\n<p>Casos educativos seleccionados. Los resultados varían según la anatomía y el plan clínico. No se garantiza ningún resultado.</p>"
+    },
+    {
+      "source_slug_fa": "آتل-بینی",
+      "slug": "cuidados-despues-de-retirar-la-ferula",
+      "title": "Puntos importantes después de retirar la férula",
+      "seo_title": "Después de Retirar la Férula | Guía de Cuidados | Dr. Bastaninejad en Irán",
+      "seo_description": "Puntos prácticos de cuidado después de retirar la férula nasal para pacientes tratados por el Dr. Shahin Bastaninejad en Irán. Siga siempre el plan escrito de su cirujano.",
+      "content_html": "<h2>Puntos importantes después de retirar la férula</h2>\n<p>Después de retirar la férula externa, la hinchazón y la sensibilidad pueden continuar durante semanas. Proteja la nariz de traumatismos, evite gafas pesadas si se le indica, y mantenga las visitas de seguimiento.</p>\n<p>No manipule las cintas ni las suturas. Use únicamente enjuagues, pomadas o medicamentos aprobados por su equipo de atención. La posición para dormir y los límites de actividad deben seguir sus instrucciones escritas, no consejos genéricos de internet.</p>\n<p>Contacte a la clínica de inmediato en caso de sangrado abundante, fiebre, dolor intenso o dificultad respiratoria súbita.</p>"
+    },
+    {
+      "source_slug_fa": "سیاست-حفظ-حریم-خصوصی",
+      "slug": "politica-de-privacidad",
+      "title": "Política de Privacidad",
+      "seo_title": "Política de Privacidad | Clínica del Dr. Bastaninejad",
+      "seo_description": "Cómo el sitio web de la clínica del Dr. Shahin Bastaninejad maneja los datos personales para solicitudes de citas y el uso del sitio.",
+      "content_html": "<h2>Política de privacidad</h2>\n<p>Este sitio web recopila la información que usted envía a través de los formularios de contacto y de citas (como nombre, número de móvil y correo electrónico) para responder a su solicitud y coordinar la comunicación relacionada con la atención.</p>\n<p>Los registros clínicos se gestionan en los sistemas seguros de la clínica, separados del sitio web de marketing público. No vendemos datos personales.</p>\n<p>El sitio puede utilizar cookies esenciales para la seguridad y la gestión de sesiones. El contenido incrustado de sitios de terceros puede establecer sus propias cookies según sus propias políticas.</p>\n<p>Para preguntas sobre privacidad, contacte a la clínica a través de los canales de contacto oficiales indicados en este sitio web.</p>"
+    },
+    {
+      "source_slug_fa": "مقالات",
+      "slug": "articulos",
+      "title": "Artículos",
+      "seo_title": "Artículos | Clínica del Dr. Bastaninejad en Irán",
+      "seo_description": "Artículos educativos para pacientes de la clínica del Dr. Shahin Bastaninejad en Irán.",
+      "content_html": "<h2>Artículos</h2>\n<p>Publicaciones educativas sobre preparación y recuperación. Las publicaciones del blog no están completamente traducidas en esta versión de idioma; las guías principales permanecen disponibles en persa.</p>"
+    },
+    {
+      "source_slug_fa": "دکتر-شاهین-باستانی-نژاد",
+      "slug": "dr-shahin-bastaninejad",
+      "title": "Dr. Shahin Bastaninejad",
+      "seo_title": "Dr. Shahin Bastaninejad | Rinoplastia en Irán",
+      "seo_description": "Página de perfil oficial del Dr. Shahin Bastaninejad, cirujano de rinoplastia y ORL en Irán.",
+      "content_html": "<h2>Dr. Shahin Bastaninejad</h2>\n<p>Especialista en rinoplastia y ORL en Irán. Conozca más en la página <a href=\"/about/\">Sobre el doctor</a> o <a href=\"/booking/\">reserve una consulta</a>.</p>"
+    }
+  ],
+  "services": [
+    {
+      "slug": "rhinoplasty-primary",
+      "title": "Rinoplastia primaria",
+      "subtitle": "Cirugía nasal por primera vez",
+      "description": "La rinoplastia primaria da forma a la nariz en equilibrio con el resto del rostro. El Dr. Bastaninejad utiliza técnicas contemporáneas para lograr un resultado natural que se adapte a sus rasgos."
+    },
+    {
+      "slug": "rhinoplasty-revision",
+      "title": "Rinoplastia de revisión",
+      "subtitle": "Rinoplastia secundaria",
+      "description": "La cirugía de revisión aborda resultados no deseados después de una operación previa. Requiere alta precisión y experiencia, que el Dr. Bastaninejad aporta gracias a años de práctica enfocada en este campo."
+    },
+    {
+      "slug": "rhinoplasty-bony",
+      "title": "Rinoplastia de nariz ósea",
+      "subtitle": "Estructura nasal firme y ósea",
+      "description": "Las narices óseas tienen una estructura más firme y necesitan técnicas específicas para lograr la forma deseada. El objetivo es un aspecto natural en proporción con el rostro."
+    },
+    {
+      "slug": "rhinoplasty-natural",
+      "title": "Rinoplastia de aspecto natural",
+      "subtitle": "Resultados sutiles y naturales",
+      "description": "El estilo de rinoplastia natural realiza cambios sutiles para que la nariz parezca que siempre ha pertenecido a su rostro. La armonía con los rasgos faciales es la prioridad."
+    },
+    {
+      "slug": "hump-removal",
+      "title": "Reducción de la joroba nasal",
+      "subtitle": "Suavizado del perfil del puente nasal",
+      "description": "La joroba dorsal es una de las razones más comunes por las que los pacientes buscan cirugía. Las técnicas precisas eliminan la joroba y refinan un perfil lateral más suave."
+    },
+    {
+      "slug": "septoplasty",
+      "title": "Septoplastia",
+      "subtitle": "Corrección de un tabique desviado",
+      "description": "Un tabique nasal desviado puede causar problemas respiratorios graves. La septoplastia endereza el tabique y puede mejorar significativamente el flujo de aire."
+    },
+    {
+      "slug": "turbinoplasty",
+      "title": "Turbinoplastia",
+      "subtitle": "Reducción de cornetes agrandados",
+      "description": "Los cornetes agrandados son una causa común de obstrucción nasal crónica. La turbinoplastia reduce este tejido y ayuda a optimizar el flujo de aire."
+    },
+    {
+      "slug": "sinus-endoscopy",
+      "title": "Cirugía endoscópica de senos paranasales (FESS)",
+      "subtitle": "Tratamiento de sinusitis crónica",
+      "description": "La cirugía endoscópica funcional de senos paranasales (FESS) trata la sinusitis crónica, los pólipos nasales y otras enfermedades relacionadas con los senos paranasales mediante un enfoque mínimamente invasivo orientado a resultados duraderos."
+    }
+  ],
+  "faqs": [
+    {
+      "source_id": "policy-hours",
+      "category": "Recepción",
+      "question": "¿Cuáles son los horarios de la clínica y la última hora de admisión?",
+      "answer_html": "<p>De sábado a martes, de 15:00 a 18:00. Los pacientes que lleguen después de las 18:00 no serán admitidos bajo ninguna circunstancia.</p>"
+    },
+    {
+      "source_id": "policy-age",
+      "category": "Recepción",
+      "question": "¿Cuál es el rango de edad aceptable para la cirugía?",
+      "answer_html": "<p>La edad elegible es de 18 a 45 años. Los casos fuera de este rango solo se revisan con la aprobación explícita del cirujano.</p>"
+    },
+    {
+      "source_id": "policy-revision-wait",
+      "category": "Recepción",
+      "question": "¿Cuánto tiempo después de una cirugía previa se puede considerar una revisión?",
+      "answer_html": "<p>Deben haber transcurrido al menos 24 meses desde la operación anterior, a menos que el equipo quirúrgico defina un plan diferente para su caso.</p>"
+    },
+    {
+      "source_id": "policy-booking",
+      "category": "Recepción",
+      "question": "¿Cómo reservo una consulta?",
+      "answer_html": "<p>Utilice el formulario de reserva en línea del sitio web o contacte a la clínica por teléfono. Después del envío, el equipo de recepción coordina la cita.</p>"
+    },
+    {
+      "source_id": "policy-documents",
+      "category": "Recepción",
+      "question": "¿Qué debo llevar a la visita?",
+      "answer_html": "<p>Lleve identificación, imágenes o notas operatorias previas si las tiene, una lista de medicamentos y cualquier foto de antes/después previa solicitada por el equipo.</p>"
+    },
+    {
+      "source_id": "preop-meds",
+      "category": "Antes de la cirugía",
+      "question": "¿Qué medicamentos deben suspenderse antes de la cirugía?",
+      "answer_html": "<p>Siga únicamente las instrucciones escritas de su equipo quirúrgico. No inicie ni suspenda ningún medicamento, suplemento o producto herbal por su cuenta.</p>"
+    },
+    {
+      "source_id": "preop-smoking",
+      "category": "Antes de la cirugía",
+      "question": "¿Se permite fumar o vapear antes de la cirugía?",
+      "answer_html": "<p>El tabaco y los productos con nicotina afectan la cicatrización. Suspéndalos durante el período que especifique su cirujano antes y después de la cirugía.</p>"
+    },
+    {
+      "source_id": "preop-fasting",
+      "category": "Antes de la cirugía",
+      "question": "¿Cómo debo ayunar antes de la cirugía?",
+      "answer_html": "<p>Siga las instrucciones exactas de ayuno dadas para su hora de admisión. No coma ni beba fuera de ese plan.</p>"
+    },
+    {
+      "source_id": "postop-care",
+      "category": "Después de la cirugía",
+      "question": "¿Qué cuidados generales se necesitan en los primeros días?",
+      "answer_html": "<p>Siga el plan de cuidados de su equipo: reduzca la sal, beba suficiente agua, evite agacharse mucho y la actividad extenuante, y tome los medicamentos exactamente como se le prescribió.</p>"
+    },
+    {
+      "source_id": "postop-sutures",
+      "category": "Después de la cirugía",
+      "question": "¿Cómo se debe cuidar las suturas?",
+      "answer_html": "<p>Mantenga las suturas limpias, no las manipule y evite la presión, traumatismos o el estiramiento excesivo del labio superior. Use cremas reparadoras solo si están aprobadas por el equipo de atención.</p>"
+    },
+    {
+      "source_id": "postop-bath",
+      "category": "Después de la cirugía",
+      "question": "¿Cuándo puedo ducharme después de la cirugía?",
+      "answer_html": "<p>Generalmente después de 72 horas, con una ducha corta según se indique. El yeso y las cintas no deben mojarse ni desplazarse, y el agua no debe estar muy caliente.</p>"
+    },
+    {
+      "source_id": "postop-diet",
+      "category": "Después de la cirugía",
+      "question": "¿Qué debo comer en los primeros días?",
+      "answer_html": "<p>Elija alimentos ligeros, blandos y bajos en sal. Evite alimentos duros, picantes o salados que requieran masticación intensa. Consulte el artículo de la clínica sobre la dieta antiinflamatoria para orientación nutricional.</p>"
+    },
+    {
+      "source_id": "diet-dairy",
+      "category": "Nutrición",
+      "question": "¿Se permiten la leche, el yogur y otros lácteos en la dieta antiinflamatoria?",
+      "answer_html": "<p>No. Todos los lácteos están restringidos; el requesón es la única excepción aprobada dentro de la cantidad planificada debido a su contenido de proteína.</p>"
+    },
+    {
+      "source_id": "diet-potato",
+      "category": "Nutrición",
+      "question": "¿Se recomienda el puré de papas o los tomates después de la cirugía?",
+      "answer_html": "<p>No. La papa, el puré de papas y el tomate se consideran inflamatorios en este protocolo y no están permitidos.</p>"
+    },
+    {
+      "source_id": "diet-rice",
+      "category": "Nutrición",
+      "question": "¿Se permite el arroz o el arroz con leche en la dieta antiinflamatoria?",
+      "answer_html": "<p>No. El arroz, el arroz con leche y los productos a base de arroz no están permitidos en este protocolo.</p>"
+    },
+    {
+      "source_id": "diet-duration",
+      "category": "Nutrición",
+      "question": "¿Cuánto dura la dieta antiinflamatoria?",
+      "answer_html": "<p>Al menos un mes después de la cirugía, a menos que su equipo de atención defina un plan diferente para su caso.</p>"
+    },
+    {
+      "source_id": "postop-meds-start",
+      "category": "Después de la cirugía",
+      "question": "¿Cuándo deben comenzar los medicamentos posoperatorios?",
+      "answer_html": "<p>Comience los medicamentos después del alta exactamente como se prescribió. No cambie, suspenda ni agregue aerosoles, enjuagues o pomadas por su cuenta.</p>"
+    },
+    {
+      "source_id": "postop-splint",
+      "category": "Después de la cirugía",
+      "question": "¿Cuánto tiempo permanece la férula en la nariz?",
+      "answer_html": "<p>Generalmente alrededor de una semana; el momento exacto depende de su nariz y del criterio del cirujano. La férula no debe mojarse, soltarse ni desplazarse.</p>"
+    },
+    {
+      "source_id": "postop-bleeding",
+      "category": "Después de la cirugía",
+      "question": "¿Es normal la secreción teñida de sangre o la congestión?",
+      "answer_html": "<p>Una secreción leve teñida de sangre en las primeras 24 a 72 horas y una congestión leve pueden ser normales. Informe de inmediato al equipo de atención cualquier sangrado abundante o persistente, fiebre, dolor incontrolado o dificultad respiratoria significativa.</p>"
+    },
+    {
+      "source_id": "postop-sleep",
+      "category": "Después de la cirugía",
+      "question": "¿Cómo debo dormir y descansar después de la cirugía?",
+      "answer_html": "<p>Siga únicamente las instrucciones dadas para su caso. No se base en consejos genéricos de internet ni en publicaciones desactualizadas.</p>"
+    },
+    {
+      "source_id": "postop-packing",
+      "category": "Después de la cirugía",
+      "question": "¿Se utiliza taponamiento nasal interno?",
+      "answer_html": "<p>Según el enfoque actual de la clínica, generalmente no se utiliza malla o taponamiento interno; la decisión final depende de los hallazgos operatorios.</p>"
+    },
+    {
+      "source_id": "postop-stay",
+      "category": "Después de la cirugía",
+      "question": "¿Cuántos días permaneceré en el hospital después de la cirugía?",
+      "answer_html": "<p>El momento del alta depende de su condición y de la evaluación del equipo de atención; será evaluado antes de partir.</p>"
+    }
+  ],
+  "gallery_labels": [
+    {
+      "key": "case-01",
+      "label": "Caso 01",
+      "procedure": "Rinoplastia de revisión",
+      "interval": "1 año después de la cirugía"
+    },
+    {
+      "key": "case-02",
+      "label": "Caso 02",
+      "procedure": "Rinoplastia",
+      "interval": "5 meses después de la cirugía"
+    },
+    {
+      "key": "case-03",
+      "label": "Caso 03",
+      "procedure": "Rinoplastia de revisión",
+      "interval": "50 días después de la cirugía"
+    },
+    {
+      "key": "case-04",
+      "label": "Caso 04",
+      "procedure": "Rinoplastia",
+      "interval": "1 año después de la cirugía"
+    },
+    {
+      "key": "case-05",
+      "label": "Caso 05",
+      "procedure": "Rinoplastia de revisión",
+      "interval": "3 meses después de la cirugía"
+    },
+    {
+      "key": "case-06",
+      "label": "Caso 06",
+      "procedure": "Rinoplastia",
+      "interval": "6 meses después de la cirugía"
+    },
+    {
+      "key": "case-07",
+      "label": "Caso 07",
+      "procedure": "Rinoplastia",
+      "interval": "3 meses después de la cirugía"
+    },
+    {
+      "key": "case-08",
+      "label": "Caso 08",
+      "procedure": "Rinoplastia de revisión",
+      "interval": "1 mes después de la cirugía"
+    },
+    {
+      "key": "case-09",
+      "label": "Caso 09",
+      "procedure": "Tipo de procedimiento no registrado",
+      "interval": "Tiempo no registrado"
+    },
+    {
+      "key": "case-10",
+      "label": "Caso 10",
+      "procedure": "Rinoplastia",
+      "interval": "6 años después de la cirugía"
+    },
+    {
+      "key": "case-11",
+      "label": "Caso 11",
+      "procedure": "Rinoplastia de revisión",
+      "interval": "4 meses después de la cirugía"
+    },
+    {
+      "key": "case-12",
+      "label": "Caso 12",
+      "procedure": "Rinoplastia",
+      "interval": "1 año después de la cirugía"
+    },
+    {
+      "key": "case-13",
+      "label": "Caso 13",
+      "procedure": "Rinoplastia de revisión",
+      "interval": "4 meses después de la cirugía"
+    },
+    {
+      "key": "case-14",
+      "label": "Caso 14",
+      "procedure": "Tipo de procedimiento pendiente de confirmación",
+      "interval": "Pendiente de confirmación"
+    }
+  ]
+}

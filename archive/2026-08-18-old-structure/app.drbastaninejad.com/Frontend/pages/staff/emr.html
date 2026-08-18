@@ -1,0 +1,329 @@
+﻿<!doctype html>
+<!--
+  MΛZ Medical CRM — EMR Editor
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Data:  ✅ LIVE — wired to GET/POST /api/v1/patients/{id}/emr,
+                   GET /api/v1/emr/templates, POST /api/v1/ai/emr-draft
+  Auth:  Staff Bearer token required.
+  Usage: /emr.html?patient_id=42
+-->
+<html dir="rtl" lang="fa-IR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>پرونده الکترونیک — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    .emr-layout{display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start}
+    @media(max-width:900px){.emr-layout{grid-template-columns:1fr}}
+    .template-pills{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem}
+    .template-pills button{border:1px solid var(--border);background:var(--surface);padding:.45rem 1rem;border-radius:999px;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit}
+    .template-pills button.active{background:var(--evergreen);color:#fff;border-color:var(--evergreen)}
+    .checkbox-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.6rem}
+    .cb-item{display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;border:1px solid var(--border);border-radius:var(--radius-md);cursor:pointer;font-size:.85rem;user-select:none}
+    .cb-item input{accent-color:var(--evergreen)}
+    .cb-item:has(input:checked){background:var(--evergreen-soft);border-color:var(--evergreen);color:var(--evergreen-dark);font-weight:600}
+    .media-slot{border:2px dashed var(--border);border-radius:var(--radius-md);padding:1.5rem;text-align:center;color:var(--muted);font-size:.85rem;cursor:pointer}
+    .media-slot:hover{border-color:var(--evergreen);color:var(--evergreen)}
+    /* Past notes timeline */
+    .note-entry{padding:.85rem 1rem;background:var(--porcelain);border-radius:var(--radius-md);margin-bottom:.65rem;font-size:.85rem}
+    .note-entry .note-meta{font-size:.72rem;color:var(--muted);margin-bottom:.3rem}
+    /* Save banner */
+    .save-banner{display:none;background:var(--evergreen-soft);color:var(--evergreen-dark);border:1px solid var(--evergreen);border-radius:var(--radius-md);padding:.6rem 1rem;font-size:.85rem;font-weight:600;margin-bottom:1rem}
+    .save-banner.visible{display:block}
+  </style>
+</head>
+<body data-shell="staff" data-nav="emr">
+  <div class="app-shell">
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>پرونده الکترونیک بیمار</h1>
+          <p class="subtitle" id="emr-subtitle">در حال بارگذاری…</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm" id="draft-btn">پیش‌نویس</button>
+          <button class="btn btn-primary btn-sm" id="save-btn">
+            <span class="btn-submit-text">امضا و ذخیره</span>
+            <span class="btn-submit-loading" hidden aria-hidden="true">در حال ذخیره…</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="save-banner" class="save-banner" role="status" aria-live="polite">✓ یادداشت با موفقیت ذخیره شد.</div>
+      <div id="emr-error" class="state-error" hidden></div>
+      <div id="emr-loading" class="state-loading" role="status"><div class="skeleton-row"><div class="skeleton skeleton-line" style="width:100%;height:200px;border-radius:var(--radius-md)"></div></div></div>
+
+      <!-- Template pills — populated from GET /emr/templates -->
+      <div class="template-pills" id="template-pills" hidden></div>
+
+      <div class="emr-layout" id="emr-layout" hidden>
+        <div style="display:flex;flex-direction:column;gap:1.5rem">
+
+          <!-- SOAP fields -->
+          <section class="panel">
+            <div class="panel-header"><div><h3>یادداشت بالینی — SOAP</h3></div></div>
+            <div class="input-group">
+              <label class="form-label" for="soap-s">شکایت اصلی (Subjective)</label>
+              <textarea class="form-textarea" id="soap-s" rows="2" placeholder="بیمار شرح می‌دهد…"></textarea>
+            </div>
+            <div class="input-group">
+              <label class="form-label" for="soap-o">معاینه (Objective)</label>
+              <textarea class="form-textarea" id="soap-o" rows="2" placeholder="یافته‌های بالینی…"></textarea>
+            </div>
+            <div class="input-group">
+              <label class="form-label" for="soap-a">تشخیص (Assessment)</label>
+              <textarea class="form-textarea" id="soap-a" rows="2" placeholder="تشخیص و ارزیابی…"></textarea>
+            </div>
+            <div class="input-group">
+              <label class="form-label" for="soap-p">برنامه درمان (Plan)</label>
+              <textarea class="form-textarea" id="soap-p" rows="2" placeholder="اقدامات بعدی…"></textarea>
+            </div>
+          </section>
+
+          <!-- Specialty-specific template fields -->
+          <section class="panel" id="template-fields-panel" hidden>
+            <div class="panel-header"><div><h3 id="template-fields-title">فیلدهای تخصصی</h3></div></div>
+            <div id="template-fields-body"></div>
+            <label class="form-label" style="margin-top:1rem">تصاویر مقایسه‌ای (قبل / بعد)</label>
+            <div class="media-slot" aria-label="بارگذاری تصویر">📷 برای بارگذاری تصاویر کلیک یا فایل را رها کنید</div>
+          </section>
+
+          <!-- Past notes timeline -->
+          <section class="panel">
+            <div class="panel-header"><div><h3>یادداشت‌های قبلی</h3></div></div>
+            <div id="past-notes-loading" class="state-loading" role="status"><div class="skeleton-row"><div class="skeleton skeleton-line" style="width:80%"></div></div></div>
+            <div id="past-notes-list" hidden></div>
+            <div id="past-notes-empty" class="state-empty" hidden><p>هیچ یادداشتی ثبت نشده است.</p></div>
+          </section>
+
+        </div>
+
+        <!-- AI Copilot side panel -->
+        <aside class="panel" style="background:linear-gradient(135deg,#f8fafc,#eef2ff);border-color:#dbeafe;position:sticky;top:1rem">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">
+            <span style="background:var(--maz-primary);color:#fff;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:700;font-family:var(--font-mono)">Dr. Copilot</span>
+            <strong style="font-size:.95rem">دستیار هوشمند</strong>
+          </div>
+          <p style="font-size:.82rem;color:var(--muted);line-height:1.7;margin-bottom:.75rem">پیش‌نویس AI — بررسی و ویرایش قبل از درج:</p>
+          <div id="ai-draft-output" style="background:var(--surface);padding:.9rem 1rem;border-radius:var(--radius-md);border:1px solid var(--border);font-size:.82rem;line-height:1.75;margin-bottom:.75rem;min-height:60px;color:var(--muted)">
+            برای دریافت پیش‌نویس، دکمه «دریافت پیش‌نویس» را بزنید.
+          </div>
+          <div id="ai-loading" hidden style="font-size:.78rem;color:var(--muted);text-align:center;padding:.5rem">در حال پردازش…</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" id="ai-insert-btn" disabled>درج در Assessment</button>
+            <button class="btn btn-secondary btn-sm" id="ai-draft-btn">دریافت پیش‌نویس</button>
+          </div>
+          <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #dbeafe">
+            <label class="form-label" style="font-size:.72rem" for="ai-prompt">درخواست اختصاصی</label>
+            <textarea class="form-textarea" id="ai-prompt" rows="3" placeholder="مثال: خلاصه ۳ خطی از تاریخچه بیمار…" style="font-size:.82rem"></textarea>
+            <button class="btn btn-ghost btn-sm" id="ai-run-btn" style="margin-top:.5rem;width:100%">اجرا</button>
+          </div>
+          <p style="font-size:.68rem;color:var(--muted);margin-top:.75rem;font-family:var(--font-mono)">
+            ⚠ این پیش‌نویس هرگز به صورت خودکار ذخیره نمی‌شود.
+          </p>
+        </aside>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { Staff, escHtml, requireAuth, redirectOn401 } from '../../shared/api.js';
+    if (!requireAuth('../auth/login.html')) { /* redirecting */ }
+
+    const params = new URLSearchParams(location.search);
+    const patientId = Number(params.get('patient_id') || 0);
+
+    const layout   = document.getElementById('emr-layout');
+    const loading  = document.getElementById('emr-loading');
+    const errorEl  = document.getElementById('emr-error');
+    const subtitle = document.getElementById('emr-subtitle');
+
+    if (!patientId) {
+      loading.hidden = true;
+      errorEl.textContent = 'شناسه بیمار در URL یافت نشد. مثال: /emr.html?patient_id=42';
+      errorEl.hidden = false;
+    } else {
+      init(patientId);
+    }
+
+    async function init(pid) {
+      subtitle.textContent = `بیمار #${pid}`;
+      try {
+        await Promise.all([loadTemplates(), loadNotes(pid)]);
+      } catch (err) {
+        if (redirectOn401(err, '../auth/login.html')) return;
+        errorEl.textContent = err.message || 'خطا در بارگذاری پرونده';
+        errorEl.hidden = false;
+        loading.hidden = true;
+        return;
+      }
+      loading.hidden = true;
+      layout.hidden = false;
+    }
+
+    async function loadTemplates() {
+      try {
+        const res = await Staff.getEmrTemplates();
+        const templates = res.data?.templates ?? [];
+        const pills = document.getElementById('template-pills');
+        if (templates.length === 0) return;
+        pills.hidden = false;
+        pills.innerHTML = templates.map((t, i) =>
+          `<button class="${i === 0 ? 'active' : ''}" data-specialty="${escHtml(t.specialty)}"
+            aria-pressed="${i === 0}">${escHtml(t.name)}</button>`
+        ).join('');
+        pills.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', () => {
+            pills.querySelectorAll('button').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+            btn.classList.add('active');
+            btn.setAttribute('aria-pressed','true');
+          });
+        });
+        // Render first template specialty fields
+        if (templates[0]) renderTemplateFields(templates[0]);
+      } catch (_) { /* templates non-critical */ }
+    }
+
+    function renderTemplateFields(tpl) {
+      const panel = document.getElementById('template-fields-panel');
+      const title = document.getElementById('template-fields-title');
+      const body  = document.getElementById('template-fields-body');
+      if (!tpl.fields || tpl.fields.length === 0) return;
+      title.textContent = escHtml(tpl.name);
+      const fields = tpl.fields;
+      body.innerHTML = fields.map(f => {
+        if (f.type === 'checkbox_group') {
+          return `<label class="form-label">${escHtml(f.label)}</label>
+            <div class="checkbox-grid" style="margin-bottom:1.25rem">
+            ${(f.options || []).map(o => `<label class="cb-item"><input type="checkbox"/> ${escHtml(o)}</label>`).join('')}
+            </div>`;
+        }
+        if (f.type === 'textarea') {
+          return `<div class="input-group"><label class="form-label" for="tpl-${escHtml(f.key)}">${escHtml(f.label)}</label>
+            <textarea class="form-textarea" id="tpl-${escHtml(f.key)}" rows="2"></textarea></div>`;
+        }
+        return `<div class="input-group"><label class="form-label" for="tpl-${escHtml(f.key)}">${escHtml(f.label)}</label>
+          <input class="form-input" id="tpl-${escHtml(f.key)}"/></div>`;
+      }).join('');
+      panel.hidden = false;
+    }
+
+    async function loadNotes(pid) {
+      const listEl  = document.getElementById('past-notes-list');
+      const loadEl  = document.getElementById('past-notes-loading');
+      const emptyEl = document.getElementById('past-notes-empty');
+      try {
+        const res = await Staff.getEmr(pid);
+        // EmrController returns { records: [...] }
+        const notes = res.data?.records ?? res.data?.notes ?? [];
+        loadEl.hidden = true;
+        if (notes.length === 0) { emptyEl.hidden = false; return; }
+        listEl.hidden = false;
+        // API returns: { records: [{id,chief_complaint,diagnosis,plan,ai_accepted,created_at}] }
+        listEl.innerHTML = notes.map(n =>
+          `<div class="note-entry">
+            <div class="note-meta">${escHtml(String(n.created_at ?? '').substring(0,10))} · دکتر باستانی‌نژاد</div>
+            <strong>${escHtml(n.chief_complaint ?? 'یادداشت پزشکی')}</strong>
+            <p style="margin-top:.25rem;color:var(--muted)">${escHtml(n.diagnosis ?? '')}</p>
+          </div>`
+        ).join('');
+      } catch (_) {
+        loadEl.hidden = true;
+        emptyEl.hidden = false;
+      }
+    }
+
+    // ── Save ────────────────────────────────────────────────────────
+    async function save(isDraft) {
+      if (!patientId) return;
+      const btn = document.getElementById('save-btn');
+      const saveText = btn.querySelector('.btn-submit-text');
+      const saveLoading = btn.querySelector('.btn-submit-loading');
+
+      // API contract: POST /patients/{id}/emr expects {chief_complaint, diagnosis, plan, appointment_id?}
+      // SOAP fields (subjective/objective/assessment) are not in the emr_records schema.
+      // Map: subjective → chief_complaint, assessment → diagnosis, plan stays plan.
+      const subjective  = document.getElementById('soap-s').value.trim();
+      const assessment  = document.getElementById('soap-a').value.trim();
+      const objective   = document.getElementById('soap-o').value.trim();
+      const plan        = document.getElementById('soap-p').value.trim();
+      const body = {
+        chief_complaint: subjective || objective || 'یادداشت پزشکی',
+        diagnosis:       assessment || null,
+        plan:            plan || null,
+      };
+
+      btn.disabled = true;
+      saveText.hidden = true;
+      saveLoading.hidden = false;
+      document.getElementById('emr-error').hidden = true;
+
+      try {
+        await Staff.createEmrNote(patientId, body);
+        const banner = document.getElementById('save-banner');
+        banner.classList.add('visible');
+        setTimeout(() => banner.classList.remove('visible'), 3000);
+        // Clear form
+        ['soap-s','soap-o','soap-a','soap-p'].forEach(id => { document.getElementById(id).value = ''; });
+        await loadNotes(patientId);
+      } catch (err) {
+        const e = document.getElementById('emr-error');
+        e.textContent = err.message || 'خطا در ذخیره‌سازی';
+        e.hidden = false;
+      } finally {
+        btn.disabled = false;
+        saveText.hidden = false;
+        saveLoading.hidden = true;
+      }
+    }
+
+    document.getElementById('save-btn').addEventListener('click', () => save(false));
+    document.getElementById('draft-btn').addEventListener('click', () => save(true));
+
+    // ── AI Copilot ──────────────────────────────────────────────────
+    async function callAi(prompt) {
+      const output = document.getElementById('ai-draft-output');
+      const aiLoad = document.getElementById('ai-loading');
+      const insertBtn = document.getElementById('ai-insert-btn');
+      aiLoad.hidden = false;
+      output.style.color = 'var(--muted)';
+      output.textContent = '';
+      insertBtn.disabled = true;
+      try {
+        const res = await Staff.aiEmrDraft({ patient_id: patientId, prompt });
+        const text = res.data?.draft ?? '';
+        output.textContent = text;
+        output.style.color = '';
+        if (text) insertBtn.disabled = false;
+      } catch (err) {
+        output.textContent = err.message || 'خطا در دریافت پیش‌نویس';
+      } finally {
+        aiLoad.hidden = true;
+      }
+    }
+
+    document.getElementById('ai-draft-btn').addEventListener('click', () => {
+      callAi('یادداشت بالینی بر اساس پرونده بیمار');
+    });
+    document.getElementById('ai-run-btn').addEventListener('click', () => {
+      const p = document.getElementById('ai-prompt').value.trim();
+      if (p) callAi(p);
+    });
+    document.getElementById('ai-insert-btn').addEventListener('click', () => {
+      const text = document.getElementById('ai-draft-output').textContent;
+      const current = document.getElementById('soap-a').value.trim();
+      document.getElementById('soap-a').value = current ? current + '\n' + text : text;
+    });
+  </script>
+</body>
+</html>

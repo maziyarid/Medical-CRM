@@ -1,0 +1,167 @@
+﻿<!doctype html>
+<!--
+  MΛZ Medical CRM — Patient Medical Records
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  Data:  ✅ Wired to GET /api/v1/patient/records (app backend, Phase E)
+  Auth:  Patient Bearer token required — requireAuth() guard.
+-->
+<html dir="rtl" lang="fa-IR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>پرونده پزشکی — داشبورد بیمار</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    .records-timeline { position: relative; padding-inline-start: 1.75rem; }
+    .records-timeline::before {
+      content: ''; position: absolute;
+      inset-inline-start: .45rem; top: 0; bottom: 0;
+      width: 2px; background: var(--border);
+    }
+    .tl-entry { position: relative; padding: 1rem 0; }
+    .tl-dot {
+      position: absolute; inset-inline-start: -1.38rem; top: 1.45rem;
+      width: 13px; height: 13px; border-radius: 50%;
+      background: var(--evergreen); border: 2.5px solid var(--porcelain);
+    }
+    .tl-card {
+      background: var(--porcelain); border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+    }
+    .tl-card .tl-meta { font-size: .75rem; color: var(--muted); margin-bottom: .3rem; }
+    .tl-card h4 { margin: 0 0 .3rem; font-size: .95rem; }
+    .tl-card p  { font-size: .85rem; color: var(--muted); line-height: 1.7; margin: 0; }
+    .tl-card .tl-pills { margin-top: .5rem; display: flex; gap: .35rem; }
+    .tl-note { font-size: .82rem; color: var(--muted); padding: .65rem .75rem; background: var(--surface); border-radius: var(--radius-sm); }
+  </style>
+</head>
+<body data-shell="patient" data-nav="records">
+  <div class="app-shell">
+    <main class="main">
+
+      <div class="topbar">
+        <div>
+          <h1>پرونده پزشکی من</h1>
+          <p class="subtitle">فقط قابل مشاهده — برای اصلاح با مرکز تماس بگیرید</p>
+        </div>
+      </div>
+
+      <section class="panel">
+        <h3 style="margin-bottom:1.25rem">ویزیت‌ها و یادداشت‌های پزشک</h3>
+
+        <div class="records-timeline" id="records-timeline" role="list" aria-live="polite">
+          <!-- JS renders entries here -->
+          <div class="tl-entry">
+            <div class="tl-dot" aria-hidden="true"></div>
+            <div class="tl-card">
+              <div class="skeleton skeleton-line" style="width:50%"></div>
+              <div class="skeleton skeleton-line" style="width:70%;margin-top:.5rem"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div id="records-pagination" style="display:flex;justify-content:center;gap:.5rem;margin-top:1rem;flex-wrap:wrap"></div>
+
+        <p style="font-size:.78rem;color:var(--muted);margin-top:1.25rem;padding-top:.75rem;border-top:1px solid var(--border)">
+          ⚠ این اطلاعات توسط تیم پزشکی ثبت شده و فقط قابل مشاهده است.
+          برای اصلاح با پذیرش مرکز تماس بگیرید.
+        </p>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/jalali.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { requireAuth, renderError, showToast, escHtml, PatientExtended } from '../../shared/api.js';
+
+    if (!requireAuth('../auth/patient-login.html')) { /* redirecting */ }
+
+    let currentPage = 1;
+
+    /**
+     * Convert a UTC DATETIME/date string to Jalali numeric display ("۱۴۰۵/۰۵/۲۴").
+     * Falls back to ISO YYYY-MM-DD substring if Jalali global is unavailable.
+     */
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      try {
+        const d = new Date(String(dateStr).replace(' ', 'T'));
+        if (isNaN(d.getTime())) return String(dateStr).substring(0, 10);
+        return Jalali.formatNumeric(d);
+      } catch (_) {
+        return String(dateStr).substring(0, 10);
+      }
+    }
+
+    function renderEntries(items) {
+      const timeline = document.getElementById('records-timeline');
+      if (!items || !items.length) {
+        timeline.innerHTML = `<div class="tl-entry">
+          <div class="tl-card" style="text-align:center;color:var(--muted)">هنوز یادداشت پزشکی ثبت نشده است.</div>
+        </div>`;
+        return;
+      }
+      // API returns: { id, chief_complaint, diagnosis, plan, ai_accepted, created_at }
+      timeline.innerHTML = items.map(r => {
+        const pill = r.ai_accepted
+          ? '<span class="pill evergreen">تایید شده</span>'
+          : '<span class="pill info">ثبت شده</span>';
+        const summary = r.diagnosis
+          ? `<p>${escHtml(r.diagnosis)}</p>`
+          : (r.chief_complaint ? `<p>${escHtml(r.chief_complaint)}</p>` : '');
+        return `<div class="tl-entry" role="listitem">
+          <div class="tl-dot" aria-hidden="true"></div>
+          <div class="tl-card">
+            <div class="tl-meta">${escHtml(formatDate(r.created_at))} · دکتر باستانی‌نژاد</div>
+            <h4>${escHtml(r.chief_complaint || 'یادداشت پزشکی')}</h4>
+            ${summary}
+            ${r.plan ? `<div class="tl-note" style="margin-top:.45rem"><strong>برنامه درمانی:</strong> ${escHtml(r.plan)}</div>` : ''}
+            <div class="tl-pills">${pill}</div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderPagination(pagination) {
+      const pg = document.getElementById('records-pagination');
+      if (!pagination || pagination.last_page <= 1) { pg.innerHTML = ''; return; }
+      let html = '';
+      for (let i = 1; i <= pagination.last_page; i++) {
+        html += `<button class="btn btn-sm ${i === pagination.current_page ? 'btn-primary' : 'btn-ghost'} js-page-btn"
+          data-page="${i}">${i}</button>`;
+      }
+      pg.innerHTML = html;
+      pg.querySelectorAll('.js-page-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          currentPage = Number(this.dataset.page);
+          loadRecords();
+        });
+      });
+    }
+
+    async function loadRecords() {
+      try {
+        const res = await PatientExtended.getRecords({ page: currentPage });
+        const d = res.data || res;
+        renderEntries(d.items || []);
+        renderPagination(d.pagination);
+      } catch (err) {
+        renderError(document.getElementById('records-timeline'), err);
+        showToast(err.message || 'خطا در بارگذاری پرونده پزشکی', 'error');
+      }
+    }
+
+    loadRecords();
+  </script>
+</body>
+</html>

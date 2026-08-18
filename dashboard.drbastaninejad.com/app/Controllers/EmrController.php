@@ -85,19 +85,40 @@ final class EmrController extends Controller
         return $this->success(['id' => $id], 201);
     }
 
-    /** POST /api/v1/ai/emr-draft — AI Copilot suggestion; returned as text only, never persisted */
+    /** POST /api/v1/ai/emr-draft — review-only AI suggestion; never persisted automatically. */
     public function draftNote(Request $req): array
     {
         $in = $req->body;
-        if (empty($in['chief_complaint'])) {
-            return $this->error('شرح شکایت اصلی الزامی است', 422);
+        $patientId = (int)($in['patient_id'] ?? 0);
+        $prompt = trim((string)($in['prompt'] ?? $in['chief_complaint'] ?? ''));
+        if ($patientId < 1 || $prompt === '') {
+            return $this->validationError([['field' => 'prompt', 'message' => 'شناسه بیمار و درخواست AI الزامی است']]);
+        }
+        if (mb_strlen($prompt) > 2000) {
+            return $this->validationError([['field' => 'prompt', 'message' => 'درخواست AI حداکثر ۲۰۰۰ کاراکتر است']]);
+        }
+        $patient = $this->patients->find($patientId);
+        if (!$patient || (int)$patient['clinic_id'] !== (int)($req->user['clinic_id'] ?? 1)) {
+            return $this->error('بیمار یافت نشد', 404);
         }
 
-        $draft = (new AiRouterService())->draftClinicalNote($in['chief_complaint'], $in['context'] ?? []);
+        $service = new AiRouterService();
+        if (!$service->isEnabled()) {
+            return $this->error('سرویس AI در محیط سرور فعال نشده است.', 503);
+        }
+        try {
+            $draft = $service->draftClinicalNote($prompt, is_array($in['context'] ?? null) ? $in['context'] : []);
+        } catch (\InvalidArgumentException $e) {
+            return $this->validationError([['field' => 'prompt', 'message' => $e->getMessage()]]);
+        } catch (\Throwable $e) {
+            error_log('[EmrController] AI draft failed: ' . $e->getMessage());
+            return $this->error('دریافت پیش‌نویس AI ناموفق بود. متن بالینی ذخیره یا خودکار اعمال نشد.', 502);
+        }
 
         return $this->success([
             'draft' => $draft,
-            'requires_review' => true, // UI must show Accept/Edit/Discard — never auto-save
+            'requires_review' => true,
+            'persisted' => false,
         ]);
     }
 }

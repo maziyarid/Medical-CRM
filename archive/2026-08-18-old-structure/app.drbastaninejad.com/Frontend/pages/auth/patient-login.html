@@ -1,0 +1,402 @@
+﻿<!DOCTYPE html>
+<html lang="fa-IR" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ورود بیماران — پلتفرم پزشکی دکتر شاهین باستانی‌نژاد">
+  <title>ورود بیماران | MΛZ Medical</title>
+
+  <!-- Tokens & base -->
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/base.css">
+
+  <style>
+    /* ── Page layout ── */
+    body { background: var(--porcelain); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: var(--space-4); }
+
+    .auth-card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: var(--space-8) var(--space-8);
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .auth-brand { text-align: center; margin-bottom: var(--space-8); }
+    .auth-brand .logo-mark {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 56px; height: 56px;
+      background: var(--evergreen); border-radius: var(--radius-md);
+      color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: var(--space-3);
+      font-family: var(--font-en);
+    }
+    .auth-brand h1 { font-size: 1.15rem; font-weight: 600; color: var(--graphite); margin: 0; }
+    .auth-brand p  { font-size: 0.85rem; color: var(--muted); margin: var(--space-1) 0 0; }
+
+    /* ── Step panels ── */
+    .step { display: none; }
+    .step.active { display: block; }
+
+    /* ── Form elements ── */
+    .field { margin-bottom: var(--space-5); }
+    .field label { display: block; font-size: 0.85rem; font-weight: 500; color: var(--graphite); margin-bottom: var(--space-2); }
+
+    .mobile-wrap { display: flex; gap: var(--space-2); }
+    .country-code {
+      flex-shrink: 0; width: 72px;
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      background: var(--porcelain); color: var(--muted);
+      font-family: var(--font-en); font-size: 0.95rem;
+      padding: 0 var(--space-3); height: 48px;
+      text-align: center; cursor: not-allowed;
+    }
+
+    input[type="tel"], input[type="text"] {
+      width: 100%; height: 48px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-md);
+      padding: 0 var(--space-4);
+      font-family: var(--font-fa); font-size: 1rem; color: var(--graphite);
+      background: var(--surface);
+      transition: border-color var(--transition);
+      box-sizing: border-box;
+    }
+    input:focus { outline: none; border-color: var(--evergreen); box-shadow: 0 0 0 3px var(--evergreen-soft); }
+    input.input-error { border-color: var(--error); }
+
+    .field-error { font-size: 0.8rem; color: var(--error); margin-top: var(--space-1); display: none; }
+    .field-error.visible { display: block; }
+
+    /* ── OTP boxes ── */
+    .otp-wrap { display: flex; gap: var(--space-2); justify-content: center; direction: ltr; }
+    .otp-box {
+      width: 52px; height: 60px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-md);
+      text-align: center; font-size: 1.4rem; font-weight: 600;
+      font-family: var(--font-en); color: var(--graphite);
+      transition: border-color var(--transition);
+    }
+    .otp-box:focus { outline: none; border-color: var(--evergreen); box-shadow: 0 0 0 3px var(--evergreen-soft); }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      width: 100%; height: 52px;
+      background: var(--evergreen); color: #fff;
+      border: none; border-radius: var(--radius-md);
+      font-family: var(--font-fa); font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: background var(--transition), opacity var(--transition);
+      display: flex; align-items: center; justify-content: center; gap: var(--space-2);
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--evergreen-dark); }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-ghost {
+      background: none; border: none; color: var(--evergreen);
+      font-family: var(--font-fa); font-size: 0.85rem; font-weight: 500;
+      cursor: pointer; padding: 0;
+    }
+    .btn-ghost:disabled { color: var(--muted); cursor: not-allowed; }
+
+    /* ── Resend row ── */
+    .resend-row { text-align: center; margin-top: var(--space-4); font-size: 0.85rem; color: var(--muted); }
+    #resend-countdown { font-weight: 600; color: var(--graphite); }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2.5px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-primary.loading .spinner { display: block; }
+    .btn-primary.loading .btn-label { display: none; }
+
+    /* ── Toast ── */
+    .mz-toast {
+      position: fixed; bottom: var(--space-6); right: 50%; transform: translateX(50%);
+      background: var(--graphite); color: #fff;
+      padding: var(--space-3) var(--space-6);
+      border-radius: var(--radius-full); font-size: 0.9rem;
+      opacity: 0; transition: opacity var(--transition-slow);
+      pointer-events: none; z-index: 9999; white-space: nowrap;
+    }
+    .mz-toast--visible { opacity: 1; }
+    .mz-toast--success { background: var(--success); }
+    .mz-toast--error   { background: var(--error); }
+
+    /* ── Info note ── */
+    .info-note {
+      background: var(--info-soft); border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-4);
+      font-size: 0.82rem; color: var(--info);
+      margin-bottom: var(--space-5);
+      display: flex; align-items: flex-start; gap: var(--space-2);
+    }
+
+    @media (max-width: 480px) {
+      .auth-card { padding: var(--space-6) var(--space-5); }
+      .otp-box { width: 44px; height: 54px; font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="auth-card" role="main" aria-label="ورود بیماران">
+
+  <!-- Brand -->
+  <div class="auth-brand">
+    <div class="logo-mark" aria-hidden="true">MZ</div>
+    <h1>ورود به پورتال بیماران</h1>
+    <p>دکتر شاهین باستانی‌نژاد</p>
+  </div>
+
+  <!-- Step 1: Mobile input -->
+  <section class="step active" id="step-mobile" aria-label="وارد کردن شماره موبایل">
+    <div class="info-note" role="note">
+      <span aria-hidden="true">ℹ️</span>
+      <span>کد تأیید ۵ رقمی به شماره موبایل شما ارسال می‌شود.</span>
+    </div>
+
+    <form id="form-mobile" novalidate>
+      <div class="field">
+        <label for="input-mobile">شماره موبایل</label>
+        <div class="mobile-wrap">
+          <div class="country-code" aria-label="کد کشور ایران" aria-hidden="true">+98</div>
+          <input
+            type="tel"
+            id="input-mobile"
+            name="mobile"
+            inputmode="numeric"
+            autocomplete="tel-national"
+            placeholder="09XXXXXXXXX"
+            maxlength="11"
+            aria-required="true"
+            aria-describedby="mobile-error"
+          >
+        </div>
+        <p class="field-error" id="mobile-error" role="alert"></p>
+      </div>
+
+      <button type="submit" class="btn-primary" id="btn-send">
+        <span class="btn-label">ارسال کد تأیید</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
+    </form>
+  </section>
+
+  <!-- Step 2: OTP input -->
+  <section class="step" id="step-otp" aria-label="وارد کردن کد تأیید">
+    <p style="font-size:0.9rem; color:var(--muted); text-align:center; margin-bottom:var(--space-5)" id="otp-hint">
+      کد ۵ رقمی ارسال‌شده به <strong id="otp-mobile-display"></strong> را وارد کنید.
+    </p>
+
+    <form id="form-otp" novalidate>
+      <div class="field">
+        <label for="otp-1" class="sr-only">کد تأیید</label>
+        <div class="otp-wrap" role="group" aria-label="کد تأیید پنج رقمی">
+          <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp-1" aria-label="رقم اول">
+          <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp-2" aria-label="رقم دوم">
+          <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp-3" aria-label="رقم سوم">
+          <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp-4" aria-label="رقم چهارم">
+          <input class="otp-box" type="text" inputmode="numeric" maxlength="1" id="otp-5" aria-label="رقم پنجم">
+        </div>
+        <p class="field-error" id="otp-error" role="alert"></p>
+      </div>
+
+      <button type="submit" class="btn-primary" id="btn-verify">
+        <span class="btn-label">تأیید و ورود</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
+    </form>
+
+    <div class="resend-row">
+      <span id="resend-text">ارسال مجدد در <span id="resend-countdown">60</span> ثانیه</span>
+      <button class="btn-ghost" id="btn-resend" disabled style="display:none">ارسال مجدد کد</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- Toast -->
+<div id="mz-toast" class="mz-toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+  import {
+    Auth,
+    normalizePersianDigits,
+    normalizeMobile,
+    showToast,
+    getPersianError
+  } from '../../shared/api.js';
+
+  // ── State ──
+  let currentMobile = '';
+  let countdownTimer = null;
+
+  // ── Elements ──
+  const stepMobile   = document.getElementById('step-mobile');
+  const stepOtp      = document.getElementById('step-otp');
+  const formMobile   = document.getElementById('form-mobile');
+  const formOtp      = document.getElementById('form-otp');
+  const inputMobile  = document.getElementById('input-mobile');
+  const btnSend      = document.getElementById('btn-send');
+  const btnVerify    = document.getElementById('btn-verify');
+  const btnResend    = document.getElementById('btn-resend');
+  const resendText   = document.getElementById('resend-text');
+  const countdownEl  = document.getElementById('resend-countdown');
+  const mobileDisplay= document.getElementById('otp-mobile-display');
+  const mobileError  = document.getElementById('mobile-error');
+  const otpError     = document.getElementById('otp-error');
+  const otpBoxes     = Array.from(document.querySelectorAll('.otp-box'));
+
+  // ── Helpers ──
+  function setLoading(btn, loading) {
+    btn.classList.toggle('loading', loading);
+    btn.disabled = loading;
+  }
+
+  function showFieldError(el, msg) {
+    el.textContent = msg;
+    el.classList.add('visible');
+  }
+  function clearFieldError(el) {
+    el.textContent = '';
+    el.classList.remove('visible');
+  }
+
+  function showStep(next) {
+    stepMobile.classList.toggle('active', next === 'mobile');
+    stepOtp.classList.toggle('active', next === 'otp');
+  }
+
+  function startCountdown(seconds = 60) {
+    clearInterval(countdownTimer);
+    countdownEl.textContent = seconds;
+    resendText.style.display = 'inline';
+    btnResend.style.display  = 'none';
+    btnResend.disabled = true;
+    countdownTimer = setInterval(() => {
+      seconds--;
+      countdownEl.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(countdownTimer);
+        resendText.style.display = 'none';
+        btnResend.style.display  = 'inline';
+        btnResend.disabled = false;
+      }
+    }, 1000);
+  }
+
+  function getOtpValue() {
+    return otpBoxes.map(b => normalizePersianDigits(b.value)).join('');
+  }
+
+  // ── OTP box keyboard navigation ──
+  otpBoxes.forEach((box, i) => {
+    box.addEventListener('input', e => {
+      const val = normalizePersianDigits(e.target.value).replace(/\D/g, '').slice(-1);
+      box.value = val;
+      if (val && i < otpBoxes.length - 1) otpBoxes[i + 1].focus();
+      if (getOtpValue().length === 5) formOtp.dispatchEvent(new Event('submit'));
+    });
+    box.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !box.value && i > 0) otpBoxes[i - 1].focus();
+    });
+    box.addEventListener('paste', e => {
+      e.preventDefault();
+      const pasted = normalizePersianDigits((e.clipboardData || window.clipboardData).getData('text'))
+        .replace(/\D/g, '').slice(0, 5);
+      pasted.split('').forEach((ch, j) => { if (otpBoxes[j]) otpBoxes[j].value = ch; });
+      const next = Math.min(pasted.length, 4);
+      otpBoxes[next].focus();
+      if (pasted.length === 5) formOtp.dispatchEvent(new Event('submit'));
+    });
+  });
+
+  // ── WebOTP API (auto-fill from SMS) ──
+  if ('OTPCredential' in window) {
+    navigator.credentials.get({ otp: { transport: ['sms'] } })
+      .then(otp => {
+        if (!otp) return;
+        const digits = normalizePersianDigits(otp.code).replace(/\D/g, '').slice(0, 5);
+        digits.split('').forEach((ch, i) => { if (otpBoxes[i]) otpBoxes[i].value = ch; });
+        formOtp.dispatchEvent(new Event('submit'));
+      })
+      .catch(() => { /* WebOTP not available or dismissed — silent fallback */ });
+  }
+
+  // ── Mobile normalisation on blur ──
+  inputMobile.addEventListener('blur', () => {
+    const raw = normalizePersianDigits(inputMobile.value);
+    const normalised = normalizeMobile(raw);
+    if (normalised) { inputMobile.value = normalised; clearFieldError(mobileError); }
+  });
+
+  // ── Send OTP ──
+  async function doSendOtp() {
+    clearFieldError(mobileError);
+    const raw = normalizePersianDigits(inputMobile.value.trim());
+    const normalised = normalizeMobile(raw);
+    if (!normalised) {
+      showFieldError(mobileError, getPersianError('INVALID_MOBILE'));
+      inputMobile.classList.add('input-error');
+      inputMobile.focus();
+      return;
+    }
+    inputMobile.classList.remove('input-error');
+    setLoading(btnSend, true);
+    try {
+      await Auth.sendOtp(normalised);
+      currentMobile = normalised;
+      mobileDisplay.textContent = normalised;
+      showToast('کد تأیید ارسال شد ✓', 'success');
+      showStep('otp');
+      otpBoxes[0].focus();
+      startCountdown(60);
+    } catch (err) {
+      showFieldError(mobileError, err.message || getPersianError(err.code));
+      showToast(err.message || getPersianError(err.code), 'error');
+    } finally {
+      setLoading(btnSend, false);
+    }
+  }
+
+  formMobile.addEventListener('submit', e => { e.preventDefault(); doSendOtp(); });
+  btnResend.addEventListener('click', doSendOtp);
+
+  // ── Verify OTP ──
+  formOtp.addEventListener('submit', async e => {
+    e.preventDefault();
+    clearFieldError(otpError);
+    const code = getOtpValue();
+    if (code.length !== 5 || /\D/.test(code)) {
+      showFieldError(otpError, 'لطفاً کد ۵ رقمی را کامل وارد کنید.');
+      return;
+    }
+    setLoading(btnVerify, true);
+    try {
+      await Auth.verifyOtp(currentMobile, code);
+      showToast('ورود موفق — در حال انتقال...', 'success');
+      setTimeout(() => { window.location.href = '../patient/overview.html'; }, 800);
+    } catch (err) {
+      showFieldError(otpError, err.message || getPersianError(err.code));
+      otpBoxes.forEach(b => { b.value = ''; b.classList.add('input-error'); });
+      otpBoxes[0].focus();
+    } finally {
+      setLoading(btnVerify, false);
+    }
+  });
+</script>
+
+<!-- sr-only utility (if not in base.css) -->
+<style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}</style>
+
+<!--
+  MZ — MAZ//ID
+  https://maziyarid.com
+-->
+</body>
+</html>

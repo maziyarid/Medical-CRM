@@ -24,7 +24,12 @@
   function apiBase() {
     var meta = document.querySelector('meta[name="mazcrm-api-base"]');
     if (meta && meta.getAttribute('content')) return meta.getAttribute('content').replace(/\/+$/, '');
-    return ''; // same origin
+    // Prefer explicit override, then same-origin when on app host (needs /api/v1 proxy or SSL on dashboard).
+    if (typeof window !== 'undefined' && window.__DRB_API_ORIGIN__) return String(window.__DRB_API_ORIGIN__).replace(/\/$/, '');
+    if (typeof window !== 'undefined' && window.location && /app\.drbastaninejad\.com$/i.test(window.location.hostname)) {
+      return window.location.origin;
+    }
+    return 'https://dashboard.drbastaninejad.com';
   }
 
   // ---------- Native Promise or fallback --------------------------------------
@@ -125,15 +130,15 @@
     },
 
     // ---- Phase B — Auth (API_CONTRACT.md §"Phase B — OTP Authentication") ----
-    otpSend: function (mobile) {
-      // POST /api/v1/auth/otp/send (public). 200 | 422 | 429 | 503.
-      return post('/api/v1/auth/otp/send', { mobile: mobile });
+    otpSend: function (mobile, audience) {
+      // POST /api/v1/auth/otp/send (public). audience: patient|staff.
+      return post('/api/v1/auth/otp/send', { mobile: mobile, audience: audience || 'patient' });
     },
-    otpVerify: function (mobile, otp) {
+    otpVerify: function (mobile, otp, audience) {
       // POST /api/v1/auth/otp/verify (public). 200 | 401 | 410 | 422.
       // On success the caller MUST persist the returned token via
       // MAZCRM.session.save(scope, data).
-      return post('/api/v1/auth/otp/verify', { mobile: mobile, otp: otp });
+      return post('/api/v1/auth/otp/verify', { mobile: mobile, otp: otp, audience: audience || 'patient' });
     },
 
     // ---- CRM endpoints already used by the SPA (dashboard.drbastaninejad.com) --
@@ -166,9 +171,9 @@
       // POST /api/v1/appointments — 409 on conflict
       return post('/api/v1/appointments', payload, { scope: 'staff' });
     },
-    appointmentReschedule: function (id, starts_at) {
+    appointmentReschedule: function (id, scheduled_at) {
       // PATCH /api/v1/appointments/{id}/reschedule — 409 on conflict
-      return patch('/api/v1/appointments/' + encodeURIComponent(id) + '/reschedule', { starts_at: starts_at }, { scope: 'staff' });
+      return patch('/api/v1/appointments/' + encodeURIComponent(id) + '/reschedule', { scheduled_at: scheduled_at }, { scope: 'staff' });
     },
     appointmentStatus: function (id, status) {
       // PATCH /api/v1/appointments/{id}/status
@@ -182,25 +187,16 @@
       // GET /api/v1/patients/{id}/emr
       return get('/api/v1/patients/' + encodeURIComponent(patientId) + '/emr', { scope: 'staff' });
     },
-    emrCreate: function (payload) {
-      // POST /api/v1/emr/records
-      return post('/api/v1/emr/records', payload, { scope: 'staff' });
+    emrCreate: function (patientId, payload) {
+      // POST /api/v1/patients/{id}/emr — canonical backend route.
+      return post('/api/v1/patients/' + encodeURIComponent(patientId) + '/emr', payload, { scope: 'staff' });
     },
     aiEmrDraft: function (payload) {
       // POST /api/v1/ai/emr-draft — response always includes requires_review:true
       return post('/api/v1/ai/emr-draft', payload, { scope: 'staff' });
     }
 
-    // ---- TODO(API-CONTRACT) — request from Backend track via UNIFIED_MASTER_PLAN.md ----
-    // patientOverview:            GET /api/v1/patient/overview                    (patient scope)
-    // patientDocuments:           GET /api/v1/patient/documents                   (patient scope)
-    // patientNotificationPrefs:   GET/PATCH /api/v1/patient/notification-preferences (patient scope)
-    // mediaSignedUrl:             GET /api/v1/media/{uuid}/url  → { url, expires_at } (short TTL)
-    // billingInvoices:            GET /api/v1/invoices, /invoices/{id}, POST invoice, POST /invoices/{id}/pay/zarinpal
-    // tasks:                      GET/POST/PATCH /api/v1/tasks + kanban filters
-    // analytics:                  GET /api/v1/analytics/referrals + date range
-    // settings:                   GET/PATCH /api/v1/settings/clinic + users + roles
-    // Each of these must be published in API_CONTRACT.md before we implement it here.
+    // Additional canonical patient/staff methods are exposed by Frontend/shared/api.js.
   };
 
   function _qs(params) {

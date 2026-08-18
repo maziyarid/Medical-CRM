@@ -1,0 +1,5 @@
+<?php
+if ( ! defined( 'WPINC' ) ) {
+	exit;
+}
+return json_decode( '{"lastScanTimestamp": 1786744457, "nextScanTimestamp": 1786743000.0, "username": "drbastaninejad", "malware": [], "config": {"MALWARE_SCANNING": {"enable_scan_cpanel": true, "default_action": "cleanup"}, "PROACTIVE_DEFENCE": {"blamer": null}}, "license": {"status": true, "expiration": null, "user_limit": -1, "id": "IMUNIFYAV", "user_count": 2, "message": null, "license_type": "imunifyAV", "upgrade_url": "../../../scripts14/purchase_imunifyavplus_init_IMUNIFY", "upgrade_url_360": "https://store.cpanel.net/index.php?rp=/store/partner-addons/imunify360&customfield%5B375%5D=", "ip_license": true, "eligible_for_imunify_patch": false}, "versions": {"imunify-core": "8.12.0-2.x86_64", "imunify360-firewall": null, "imunify-ui": "8.12.0-2.noarch", "imunify-antivirus": "8.8.6-4.x86_64"}}', true );

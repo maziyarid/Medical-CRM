@@ -18,10 +18,12 @@ final class PatientService
     {
         $db = Database::conn();
 
-        $existing = $db->prepare('SELECT id FROM patients WHERE mobile = ? AND clinic_id = ? LIMIT 1');
-        $existing->execute([$data['mobile'], $clinicId]);
+        $existing = $db->prepare('SELECT id FROM patients WHERE mobile = ? AND deleted_at IS NULL LIMIT 1');
+        $existing->execute([$data['mobile']]);
         $existingId = $existing->fetchColumn();
         if ($existingId) {
+            $db->prepare("UPDATE patients SET clinic_id = ?, first_name = COALESCE(NULLIF(?, ''), first_name), last_name = COALESCE(NULLIF(?, ''), last_name), national_id = COALESCE(NULLIF(?, ''), national_id), home_address = COALESCE(NULLIF(?, ''), home_address), updated_at = UTC_TIMESTAMP() WHERE id = ?")
+               ->execute([$clinicId, $data['first_name'], $data['last_name'], $data['national_id'], $data['home_address'], (int)$existingId]);
             return (int)$existingId;
         }
 

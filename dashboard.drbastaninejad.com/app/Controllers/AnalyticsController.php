@@ -87,9 +87,11 @@ final class AnalyticsController extends Controller
 
         // ── KPI 4: return rate (patients with 2+ visits in period) ──
         $returnStmt = $db->prepare(
-            "SELECT COUNT(DISTINCT patient_id) FROM appointments
-             WHERE clinic_id = ? AND scheduled_at BETWEEN ? AND ? AND status = 'completed'
-             GROUP BY patient_id HAVING COUNT(*) >= 2"
+            "SELECT COUNT(*) FROM (
+                 SELECT patient_id FROM appointments
+                 WHERE clinic_id = ? AND scheduled_at BETWEEN ? AND ? AND status = 'completed' AND deleted_at IS NULL
+                 GROUP BY patient_id HAVING COUNT(*) >= 2
+             ) returning_patients"
         );
         $returnStmt->execute([$clinicId, $dateFrom, $dateTo]);
         $returningCount = (int)$returnStmt->fetchColumn();
@@ -111,7 +113,7 @@ final class AnalyticsController extends Controller
 
         // ── Referral sources ─────────────────────────────────────────
         $refStmt = $db->prepare(
-            "SELECT COALESCE(referral_source, 'نامشخص') AS source, COUNT(*) AS cnt
+            "SELECT CASE source_type WHEN 'booking' THEN 'رزرو وب‌سایت' ELSE 'فرم پذیرش' END AS source, COUNT(*) AS cnt
              FROM intakes
              WHERE clinic_id = ? AND created_at BETWEEN ? AND ?
              GROUP BY source ORDER BY cnt DESC LIMIT 10"

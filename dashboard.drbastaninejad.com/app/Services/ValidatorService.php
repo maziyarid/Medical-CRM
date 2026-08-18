@@ -62,6 +62,46 @@ final class ValidatorService
         return (bool)preg_match('/^09[0-9]{9}$/', $normalised);
     }
 
+    /**
+     * Normalise an international mobile to E.164-ish digits (no leading +).
+     * Used for non-Persian bookings where the patient's number is not Iranian.
+     * Returns the bare digit string, or '' if the number is not plausible.
+     * Iranian numbers submitted on a non-FA page are returned in canonical
+     * 09XXXXXXXXX form so downstream SMS routing is unchanged.
+     */
+    public static function normalizeMobileInternational(string $raw): string
+    {
+        $digits = preg_replace('/\D/', '', self::normalizePersianDigits($raw));
+        if ($digits === null || $digits === '') {
+            return '';
+        }
+        // A leading 00 international prefix becomes the bare country code.
+        if (str_starts_with($digits, '00')) {
+            $digits = substr($digits, 2);
+        }
+        // Iranian number on a non-FA page → canonical 09XXXXXXXXX.
+        if (preg_match('/^09[0-9]{9}$/', $digits)) {
+            return $digits;
+        }
+        if (str_starts_with($digits, '98') && strlen($digits) === 12) {
+            return '0' . substr($digits, 2);
+        }
+        if (strlen($digits) < 7 || strlen($digits) > 15) {
+            return '';
+        }
+        return $digits;
+    }
+
+    /** True when $normalised is a plausible Iranian or international mobile. */
+    public static function isValidMobileInternational(string $normalised): bool
+    {
+        if ($normalised === '') {
+            return false;
+        }
+        return self::isValidMobile($normalised)
+            || (bool)preg_match('/^[0-9]{7,15}$/', $normalised);
+    }
+
     // -------------------------------------------------------------------------
     // Code Meli — mod-11 checksum
     // -------------------------------------------------------------------------

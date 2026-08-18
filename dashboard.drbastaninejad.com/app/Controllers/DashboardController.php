@@ -29,7 +29,7 @@ final class DashboardController extends Controller
         $appointmentsToday = (int)$todayCount->fetchColumn();
 
         $pendingIntakes = $db->prepare(
-            "SELECT COUNT(*) FROM intakes WHERE clinic_id = ? AND status = 'verified'"
+            "SELECT COUNT(*) FROM intakes WHERE clinic_id = ? AND status = 'pending' AND deleted_at IS NULL"
         );
         $pendingIntakes->execute([$clinicId]);
         $pending = (int)$pendingIntakes->fetchColumn();
@@ -47,13 +47,48 @@ final class DashboardController extends Controller
         $openTasks->execute([$clinicId]);
         $tasks = (int)$openTasks->fetchColumn();
 
+        $todayStmt = $db->prepare(
+            "SELECT a.id, a.scheduled_at, a.status, a.visit_reason, p.first_name, p.last_name
+             FROM appointments a JOIN patients p ON p.id = a.patient_id
+             WHERE a.clinic_id = ? AND DATE(a.scheduled_at) = UTC_DATE()
+               AND a.status != 'cancelled' AND a.deleted_at IS NULL
+             ORDER BY a.scheduled_at ASC LIMIT 20"
+        );
+        $todayStmt->execute([$clinicId]);
+        $today = array_map(static fn(array $r): array => [
+            'id' => (int)$r['id'],
+            'patient' => trim($r['first_name'] . ' ' . $r['last_name']),
+            'time' => gmdate('H:i', strtotime($r['scheduled_at'])),
+            'reason' => $r['visit_reason'] ?: '—',
+            'status' => $r['status'],
+        ], $todayStmt->fetchAll());
+
+        $attention = [];
+        if ($pending > 0) {
+            $attention[] = ['title' => 'پذیرش/رزرو در انتظار', 'item' => $pending . ' مورد نیازمند بررسی', 'status' => 'بررسی', 'badge' => 'warning'];
+        }
+        $sheetFailed = $db->prepare("SELECT COUNT(*) FROM intakes WHERE clinic_id = ? AND source_type = 'intake' AND sheets_sync_status = 'failed' AND deleted_at IS NULL");
+        $sheetFailed->execute([$clinicId]);
+        $sheetFailures = (int)$sheetFailed->fetchColumn();
+        if ($sheetFailures > 0) {
+            $attention[] = ['title' => 'همگام‌سازی Google Sheet', 'item' => $sheetFailures . ' مورد ناموفق', 'status' => 'پیگیری', 'badge' => 'warning'];
+        }
+        $smsFailed = $db->prepare("SELECT COUNT(*) FROM intakes WHERE clinic_id = ? AND sms_status = 'failed' AND deleted_at IS NULL");
+        $smsFailed->execute([$clinicId]);
+        $smsFailures = (int)$smsFailed->fetchColumn();
+        if ($smsFailures > 0) {
+            $attention[] = ['title' => 'ارسال پیامک', 'item' => $smsFailures . ' مورد ناموفق', 'status' => 'پیگیری', 'badge' => 'warning'];
+        }
+
         return $this->success([
             'metrics' => [
                 ['label' => 'نوبت‌های امروز', 'value' => (string)$appointmentsToday, 'icon' => 'calendar', 'href' => '/appointments'],
                 ['label' => 'پذیرش‌های در انتظار', 'value' => (string)$pending, 'icon' => 'clipboard-account', 'href' => '/intakes', 'deltaDir' => $pending > 0 ? 'down' : ''],
-                ['label' => 'درآمد امروز', 'value' => number_format($revenue) . ' تومان', 'icon' => 'finance', 'href' => '/billing'],
+                ['label' => 'درآمد امروز', 'value' => number_format($revenue / 10) . ' تومان', 'icon' => 'finance', 'href' => '/billing'],
                 ['label' => 'وظایف باز', 'value' => (string)$tasks, 'icon' => 'check-circle-outline', 'href' => '/tasks'],
             ],
+            'today' => $today,
+            'attention' => $attention,
             'timeline' => $this->getTimelineEvents($db, $clinicId),
         ]);
     }
@@ -67,7 +102,7 @@ final class DashboardController extends Controller
     {
         // 1. Fetch recent intakes
         $intakeStmt = $db->prepare(
-            "SELECT i.id, i.patient_id, i.created_at, i.status, i.referral_source,
+            "SELECT i.id, i.patient_id, i.created_at, i.status, i.source_type,
                     p.first_name, p.last_name
              FROM intakes i
              LEFT JOIN patients p ON i.patient_id = p.id
@@ -77,11 +112,10 @@ final class DashboardController extends Controller
         $intakeStmt->execute([$clinicId, $limit]);
         $intakes = array_map(function ($r) {
             $statusMap = [
-                'new' => ['label' => 'جدید', 'badge' => 'info'],
-                'verified' => ['label' => 'در انتظار بررسی', 'badge' => 'warning'],
-                'triaged' => ['label' => 'بررسی شده', 'badge' => 'primary'],
-                'scheduled' => ['label' => 'نوبت‌دهی شده', 'badge' => 'success'],
-                'archived' => ['label' => 'آرشیو شده', 'badge' => 'muted'],
+                'pending' => ['label' => 'در انتظار بررسی', 'badge' => 'warning'],
+                'reviewed' => ['label' => 'بررسی شده', 'badge' => 'primary'],
+                'converted' => ['label' => 'تبدیل شده', 'badge' => 'success'],
+                'rejected' => ['label' => 'رد شده', 'badge' => 'muted'],
             ];
             return [
                 'id' => 'intake-' . $r['id'],
@@ -93,7 +127,7 @@ final class DashboardController extends Controller
                     'href' => '/patients/' . $r['patient_id']
                 ],
                 'title' => 'پذیرش جدید دریافت شد',
-                'description' => 'از طریق ' . ($r['referral_source'] ?? 'نامشخص') . ' ارسال شده.',
+                'description' => $r['source_type'] === 'booking' ? 'درخواست نوبت از وب‌سایت' : 'فرم پذیرش پزشکی',
                 'status' => $statusMap[$r['status']] ?? ['label' => $r['status'], 'badge' => 'secondary'],
                 'actors' => [['type' => 'system', 'name' => 'فرم وب']],
                 'href' => '/intakes/' . $r['id'],

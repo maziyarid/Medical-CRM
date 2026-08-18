@@ -1,0 +1,22 @@
+{
+  "source_file": "WordPress.2026-07-09.xml",
+  "post_type_counts": {
+    "attachment": 0,
+    "elementor_library": 20,
+    "elementor_font": 1,
+    "page": 10,
+    "nav_menu_item": 5,
+    "post": 25,
+    "wp_navigation": 1,
+    "wp_global_styles": 3
+  },
+  "importable_posts": 21,
+  "importable_pages": 9,
+  "faq_count": 22,
+  "attachment_records": 0,
+  "demo_case_galleries": 14,
+  "demo_case_images": 70,
+  "patient_media_policy": "Legacy gallery omitted. User-consented demo images are anonymized, converted to WebP, and grouped by visit in the case gallery importer.",
+  "content_policy_version": "4.3.1",
+  "policy_precedence": "Latest direct clinical instructions override conflicting XML and SQL records."
+}

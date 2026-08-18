@@ -1,0 +1,281 @@
+﻿<!doctype html>
+<!--
+  MΛZ Medical CRM — Staff Login (Production-wired)
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  API:  POST /auth/otp/send    ✅ LIVE
+        POST /auth/otp/verify  ✅ LIVE — returns { success, data: { token, expires_at, user_type } }
+        POST /auth/password    ⚠️ PENDING — Phase C, not yet implemented
+  Note: Demo hint has been REMOVED. Password login is disabled with a clear
+        "PENDING" notice in the UI. OTP flow uses shared/api.js exclusively.
+-->
+<html dir="rtl" lang="fa-IR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ورود کارکنان — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <style>
+    .auth-wrap  { min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem; }
+    .auth-card  { max-width:440px;width:100%; }
+    .auth-card .brand { display:flex;align-items:center;justify-content:center;gap:.6rem;margin-bottom:1.5rem; }
+    .auth-card .brand-mark {
+      width:44px;height:44px;border-radius:12px;
+      background:linear-gradient(135deg,var(--evergreen),var(--evergreen-dark));
+      color:#fff;display:flex;align-items:center;justify-content:center;
+      font-weight:800;font-size:1rem;
+    }
+    .auth-card h1  { font-size:1.25rem;text-align:center;margin-bottom:.35rem; }
+    .auth-card .sub { text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:1.75rem; }
+    .otp-boxes { display:flex;gap:.55rem;justify-content:center;margin:1rem 0;direction:ltr; }
+    .otp-boxes input {
+      width:48px;height:56px;text-align:center;font-size:1.25rem;font-weight:700;
+      border:1px solid var(--border);border-radius:var(--radius-md);
+    }
+    .otp-boxes input:focus {
+      outline:none;border-color:var(--evergreen);box-shadow:0 0 0 3px rgba(47,125,50,.15);
+    }
+    .resend { text-align:center;margin-top:.75rem;font-size:.82rem;color:var(--muted); }
+    .resend a { font-weight:600; }
+    .step { display:none; }
+    .step.active { display:block; }
+    .divider {
+      text-align:center;margin:1.25rem 0;color:var(--muted);font-size:.78rem;position:relative;
+    }
+    .divider::before,.divider::after {
+      content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border);
+    }
+    .divider::before { inset-inline-start:0; }
+    .divider::after  { inset-inline-end:0; }
+    /* Pending notice for password login */
+    .pending-notice {
+      background:#f8fafc;border:1px dashed var(--border);color:var(--muted);
+      border-radius:var(--radius-md);padding:.75rem 1rem;font-size:.78rem;
+      text-align:center;margin-bottom:1rem;
+    }
+    .pending-notice strong { color:var(--graphite); }
+    /* Spinner inside submit button */
+    .btn-loading { pointer-events:none;opacity:.7; }
+    .btn-loading::before {
+      content:'';display:inline-block;width:14px;height:14px;
+      border:2px solid currentColor;border-top-color:transparent;
+      border-radius:50%;animation:spin .7s linear infinite;
+      vertical-align:middle;margin-inline-end:.4rem;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <main class="auth-wrap">
+    <div class="card auth-card">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">MΛZ</div>
+        <div style="font-weight:700">Medical CRM</div>
+      </div>
+      <h1>ورود کارکنان</h1>
+      <p class="sub">پزشک، منشی، پرستار یا مدیر — با شماره همراه ثبت‌شده وارد شوید.</p>
+
+      <!-- Step 1 — mobile entry -->
+      <form class="step active" id="step-mobile" novalidate aria-label="مرحله اول: ورود شماره همراه">
+        <div class="input-group">
+          <label class="form-label required" for="mobile">شماره همراه</label>
+          <input class="form-input" id="mobile" type="tel" inputmode="numeric"
+                 placeholder="09121234567" autocomplete="tel-national" required
+                 aria-describedby="hint-mobile err-mobile"/>
+          <div class="form-hint" id="hint-mobile">شماره ۱۱ رقمی شروع با ۰۹</div>
+          <div class="form-error" id="err-mobile" role="alert" hidden></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%"
+                id="btn-send-otp">ارسال کد تأیید</button>
+
+        <div class="divider">یا</div>
+
+        <!-- Password login — PENDING Phase C -->
+        <div class="pending-notice" role="note" aria-label="ورود با رمز عبور در دست توسعه است">
+          <strong>ورود با رمز عبور</strong><br/>
+          این قابلیت در فاز C پیاده‌سازی خواهد شد.<br/>
+          <span style="font-size:.72rem;opacity:.8">POST /auth/password — وضعیت: ⏳ PENDING</span>
+        </div>
+        <button type="button" class="btn btn-secondary" style="width:100%;opacity:.45"
+                disabled aria-disabled="true">ورود با رمز عبور (در دست توسعه)</button>
+      </form>
+
+      <!-- Step 2 — OTP verify -->
+      <form class="step" id="step-otp" novalidate aria-label="مرحله دوم: تأیید کد">
+        <p class="sub" id="otp-msg">کد ۵ رقمی برای شماره وارد شده ارسال شد.</p>
+        <div class="otp-boxes" id="otp" role="group" aria-label="کد تأیید یک‌بار مصرف">
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="رقم اول"  autocomplete="one-time-code"/>
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="رقم دوم" />
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="رقم سوم" />
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="رقم چهارم"/>
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="رقم پنجم" />
+        </div>
+        <div class="form-error" id="err-otp" role="alert" hidden></div>
+        <button type="submit" class="btn btn-primary" style="width:100%"
+                id="btn-verify-otp">تأیید و ورود</button>
+        <div class="resend" id="resend" aria-live="polite">
+          ارسال مجدد کد در <span id="countdown">۴۵</span> ثانیه
+        </div>
+        <div style="text-align:center;margin-top:1rem;">
+          <button type="button" class="btn btn-ghost btn-sm"
+                  id="btn-back-to-mobile">← تغییر شماره</button>
+        </div>
+      </form>
+
+      <div class="brand-footer">
+        <div class="maz-sig">M<span class="z">Λ</span>Z <span style="opacity:.5">//</span> ID</div>
+        <div>© 2026 دکتر شاهین باستانی‌نژاد — ساخته شده توسط Maziyar</div>
+      </div>
+    </div>
+  </main>
+
+  <div id="mz-toast" role="status" aria-live="polite"></div>
+
+  <!-- app.js kept for MAZCRM helpers (toFaDigits, isValidMobile, etc.) -->
+  <script src="../../assets/js/app.js"></script>
+  <script type="module">
+    import { Auth, setToken, showToast } from '../../shared/api.js';
+
+    const stepMobile = document.getElementById('step-mobile');
+    const stepOtp    = document.getElementById('step-otp');
+    const otpInputs  = document.querySelectorAll('#otp input');
+    let   mobileUsed = '';
+    let   countdown  = null;
+
+    // ── Step 1: Send OTP ────────────────────────────────────────────────────
+    stepMobile.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const raw   = document.getElementById('mobile').value.trim();
+      const errEl = document.getElementById('err-mobile');
+      const btn   = document.getElementById('btn-send-otp');
+      errEl.hidden = true;
+
+      btn.classList.add('btn-loading');
+      btn.textContent = 'در حال ارسال…';
+      btn.disabled = true;
+
+      try {
+        await Auth.sendOtp(raw);
+        mobileUsed = raw;
+        stepMobile.classList.remove('active');
+        stepOtp.classList.add('active');
+        document.getElementById('otp-msg').textContent =
+          'کد ۵ رقمی به شماره ' + raw + ' ارسال شد.';
+        otpInputs[0].focus();
+        startCountdown(45);
+      } catch (err) {
+        errEl.textContent = err.message || 'خطا در ارسال کد. لطفاً دوباره تلاش کنید.';
+        errEl.hidden = false;
+      } finally {
+        btn.classList.remove('btn-loading');
+        btn.textContent = 'ارسال کد تأیید';
+        btn.disabled = false;
+      }
+    });
+
+    // ── Step 2: Verify OTP ──────────────────────────────────────────────────
+    stepOtp.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const code  = Array.from(otpInputs).map(i =>
+        i.value.replace(/[\u06F0-\u06F9]/g, d => d.charCodeAt(0) - 0x06F0)
+               .replace(/[\u0660-\u0669]/g, d => d.charCodeAt(0) - 0x0660)
+      ).join('');
+      const errEl = document.getElementById('err-otp');
+      const btn   = document.getElementById('btn-verify-otp');
+      errEl.hidden = true;
+
+      if (code.length !== 5) {
+        errEl.textContent = 'کد را کامل وارد کنید.';
+        errEl.hidden = false;
+        return;
+      }
+
+      btn.classList.add('btn-loading');
+      btn.textContent = 'در حال تأیید…';
+      btn.disabled = true;
+
+      try {
+        const result = await Auth.verifyOtp(mobileUsed, code);
+        // token is stored inside Auth.verifyOtp via setToken()
+        // user_type from result.data determines redirect
+        const userType = result.data?.user_type || 'staff';
+        showToast('ورود موفق — در حال انتقال…', 'success');
+        setTimeout(() => {
+          if (userType === 'staff') {
+            window.location.href = '../staff/dashboard.html';
+          } else {
+            window.location.href = '../patient/overview.html';
+          }
+        }, 700);
+      } catch (err) {
+        errEl.textContent = err.message || 'کد نامعتبر یا منقضی شده است.';
+        errEl.hidden = false;
+        btn.classList.remove('btn-loading');
+        btn.textContent = 'تأیید و ورود';
+        btn.disabled = false;
+      }
+    });
+
+    // ── OTP auto-advance & backspace ─────────────────────────────────────────
+    otpInputs.forEach((input, idx) => {
+      input.addEventListener('input', e => {
+        // Normalise Persian/Arabic digits
+        e.target.value = e.target.value
+          .replace(/[\u06F0-\u06F9]/g, d => d.charCodeAt(0) - 0x06F0)
+          .replace(/[\u0660-\u0669]/g, d => d.charCodeAt(0) - 0x0660)
+          .replace(/\D/g, '');
+        if (e.target.value && idx < otpInputs.length - 1) otpInputs[idx + 1].focus();
+      });
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !e.target.value && idx > 0) otpInputs[idx - 1].focus();
+      });
+    });
+
+    // ── Back button ──────────────────────────────────────────────────────────
+    function backToMobile() {
+      stepOtp.classList.remove('active');
+      stepMobile.classList.add('active');
+      otpInputs.forEach(i => { i.value = ''; });
+      clearInterval(countdown);
+    }
+
+    document.getElementById('btn-back-to-mobile')
+      .addEventListener('click', backToMobile);
+
+    // ── Countdown timer ──────────────────────────────────────────────────────
+    function startCountdown(seconds) {
+      clearInterval(countdown);
+      let s = seconds;
+      const el  = document.getElementById('countdown');
+      const box = document.getElementById('resend');
+      el.textContent = toFa(s);
+      box.innerHTML = 'ارسال مجدد کد در <span id="countdown">' + toFa(s) + '</span> ثانیه';
+      countdown = setInterval(() => {
+        s -= 1;
+        document.getElementById('countdown').textContent = toFa(s);
+        if (s <= 0) {
+          clearInterval(countdown);
+          document.getElementById('resend').innerHTML =
+            '<a href="#" id="resend-link">ارسال مجدد کد</a>';
+          document.getElementById('resend-link').addEventListener('click', async ev => {
+            ev.preventDefault();
+            try {
+              await Auth.sendOtp(mobileUsed);
+              startCountdown(45);
+            } catch (err) {
+              showToast(err.message || 'خطا در ارسال مجدد کد.', 'error');
+            }
+          });
+        }
+      }, 1000);
+    }
+
+    function toFa(n) {
+      return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+  </script>
+</body>
+</html>

@@ -82,6 +82,6 @@ final class RbacMiddleware
     private function forbidden(string $message): array
     {
         return ['ok' => false, 'status' => 403, 'data' => null,
-                'errors' => [['field' => null, 'message' => $message]]];
+                'errors' => [['field' => null, 'message' => $message]], 'meta' => null];
     }
 }

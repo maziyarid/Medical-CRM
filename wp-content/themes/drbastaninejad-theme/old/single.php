@@ -1,0 +1,1 @@
+<?php get_header(); if ( is_singular( 'post' ) ) get_template_part( 'template-parts/native-single' ); elseif ( is_singular( 'case_study' ) ) get_template_part( 'template-parts/native-case-study' ); else get_template_part( 'template-parts/app-shell' ); get_footer();

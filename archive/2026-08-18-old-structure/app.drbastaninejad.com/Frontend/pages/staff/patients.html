@@ -1,0 +1,337 @@
+﻿<!doctype html>
+<!--
+  MΛZ Medical CRM — Patient Master Index
+  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  API:  GET /api/v1/patients  ✅ LIVE (dashboard.drbastaninejad.com, Phase D)
+  Contract: dashboard.drbastaninejad.com/docs/API_CONTRACT.md §GET /api/v1/patients
+  Response shape: { ok:true, data:{ rows[], total, page, per_page } }
+  Envelope: "ok" — see shared/api.js Staff.listPatients()
+  Note: Staff Bearer token required. 401 → login.html. 403 → errors/403.html.
+-->
+<html dir="rtl" lang="fa-IR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>بیماران — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <style>
+    .tr-skeleton td { padding: 0 !important; border: none !important; }
+    .tr-skeleton-inner {
+      height: 52px; border-radius: var(--radius-md); margin: .3rem .75rem;
+    }
+    .pagination { display:flex; gap:.4rem; justify-content:center; margin-top:1.25rem; flex-wrap:wrap; }
+    .pagination .pg-btn {
+      min-width:36px; height:36px; padding:0 .6rem;
+      border:1px solid var(--border); background:var(--surface);
+      border-radius:var(--radius-md); font-size:.85rem; cursor:pointer;
+    }
+    .pagination .pg-btn.active { background:var(--evergreen); color:#fff; border-color:var(--evergreen); }
+    .pagination .pg-btn:disabled { opacity:.4; cursor:default; }
+  </style>
+</head>
+<body data-shell="staff" data-nav="patients">
+  <div class="app-shell">
+    <main class="main">
+
+      <div class="topbar">
+        <div>
+          <h1>بیماران</h1>
+          <p class="subtitle">فهرست کامل بیماران ثبت‌شده — قابل جست‌وجو و فیلترپذیر.</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary btn-sm" id="btn-add-patient">+ افزودن بیمار</button>
+        </div>
+      </div>
+
+      <!-- Search / filter bar -->
+      <section class="panel" style="padding:1rem 1.5rem;margin-bottom:1.25rem;"
+               aria-label="جست‌وجو و فیلتر بیماران">
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
+          <input class="form-input" id="search-input"
+                 type="search"
+                 placeholder="جست‌وجو در نام، شماره یا کد ملی…"
+                 style="flex:1;min-width:240px"
+                 aria-label="جست‌وجوی بیمار"
+                 autocomplete="off"/>
+          <select class="form-select" id="filter-insurance" style="max-width:200px"
+                  aria-label="فیلتر وضعیت بیمه">
+            <option value="">همه وضعیت بیمه</option>
+            <option value="active">بیمه فعال</option>
+            <option value="inactive">بیمه غیرفعال</option>
+            <option value="pending">در انتظار</option>
+            <option value="unknown">نامشخص</option>
+          </select>
+          <button class="btn btn-secondary btn-sm" id="btn-search">جست‌وجو</button>
+        </div>
+      </section>
+
+      <!-- Table host with data-state -->
+      <div id="table-host" data-state="loading">
+
+        <!-- Loading state -->
+        <div class="slot-loading" aria-hidden="true">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>بیمار</th><th>شماره همراه</th><th>کد ملی</th>
+                  <th>نوبت‌های آتی</th><th>آخرین مراجعه</th><th>بیمه</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:94%"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:88%"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:96%"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:82%"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Ready state -->
+        <div class="slot-ready">
+          <div class="table-wrap">
+            <table class="data-table" id="patients-table" aria-live="polite" aria-label="لیست بیماران">
+              <thead>
+                <tr>
+                  <th>بیمار</th><th>شماره همراه</th><th>کد ملی</th>
+                  <th>نوبت‌های آتی</th><th>آخرین مراجعه</th><th>بیمه</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+          <div id="pagination-wrap" class="pagination" role="navigation" aria-label="صفحات"></div>
+        </div>
+
+        <!-- Empty state -->
+        <div class="slot-empty">
+          <div class="state-panel state-empty" role="status">
+            <div class="state-icon" aria-hidden="true">🌿</div>
+            <h3>بیماری یافت نشد</h3>
+            <p>معیار جست‌وجو را تغییر دهید یا بیمار جدید اضافه کنید.</p>
+          </div>
+        </div>
+
+        <!-- Error state -->
+        <div class="slot-error">
+          <div class="state-panel state-error" role="alert">
+            <div class="state-icon" aria-hidden="true">⚠️</div>
+            <h3>بارگذاری لیست بیماران ناموفق بود</h3>
+            <p id="patients-error-msg">لطفاً دوباره تلاش کنید.</p>
+            <div class="state-actions">
+              <button type="button" class="btn btn-secondary btn-sm"
+                      id="patients-retry-btn">تلاش مجدد</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /#table-host -->
+
+    </main>
+  </div>
+
+  <script src="../../assets/js/app.js"></script>
+  <script src="../../assets/js/jalali.js"></script>
+  <script src="../../assets/js/states.js"></script>
+  <script src="../../assets/js/chrome.js"></script>
+  <script type="module">
+    import { Staff, isAuthenticated } from '../../shared/api.js';
+
+    // ── Auth guard ───────────────────────────────────────────────────────────
+    if (!isAuthenticated()) {
+      window.location.replace('../auth/login.html');
+    }
+
+    // ── Nav button ────────────────────────────────────────────────────────────
+    document.getElementById('btn-add-patient')
+      .addEventListener('click', () => { location.href = '../intake/intake.html'; });
+
+    // ── Pagination state ──────────────────────────────────────────────────────
+    const state = { q: '', insurance: '', page: 1, total: 0, per_page: 20 };
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    const esc = MAZCRM.escHtml;
+
+    function toFa(n) {
+      return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+
+    /** Convert UTC DATETIME string to Jalali numeric, fallback to ISO date. */
+    function toJalaliDate(dateStr) {
+      if (!dateStr) return '—';
+      try {
+        const d = new Date(String(dateStr).replace(' ', 'T'));
+        if (isNaN(d.getTime())) return String(dateStr).substring(0, 10);
+        return Jalali.formatNumeric(d);
+      } catch (_) {
+        return String(dateStr).substring(0, 10);
+      }
+    }
+
+    // Insurance status — contract enum: active | inactive | pending | unknown
+    const INSURANCE_MAP = {
+      active:   ['evergreen', 'بیمه فعال'],
+      inactive: ['error',     'بیمه غیرفعال'],
+      pending:  ['warning',   'در انتظار'],
+      unknown:  ['muted',     'نامشخص'],
+    };
+    function insurancePill(s) {
+      const m = INSURANCE_MAP[s] || ['muted', esc(s) || '—'];
+      return '<span class="pill ' + m[0] + '">' + m[1] + '</span>';
+    }
+
+    // ── Render rows ───────────────────────────────────────────────────────────
+    function renderRows(rows) {
+      const tbody = document.getElementById('tbody');
+      if (!rows.length) {
+        tbody.innerHTML =
+          '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">' +
+            'هیچ نتیجه‌ای یافت نشد.' +
+          '</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(p => {
+        // Contract: name (full string), mobile, national_id, insurance_status, last_visit, upcoming_count
+        const nameStr    = esc(p.name || '—');
+        const initials   = (p.name || '')
+          .split(' ').map(w => w.charAt(0)).slice(0, 2).join('');
+        const mobile     = esc(p.mobile || '—');
+        const natId      = esc(p.national_id || '—');
+        const upcoming   = p.upcoming_count != null ? toFa(p.upcoming_count) : '—';
+        // last_visit is UTC datetime — convert to Jalali for display
+        const lastVisit  = p.last_visit ? esc(toJalaliDate(p.last_visit)) : '—';
+        return '<tr>' +
+          '<td><div style="display:flex;gap:.6rem;align-items:center;">' +
+            '<span class="avatar-md" aria-hidden="true">' + esc(initials) + '</span>' +
+            '<strong>' + nameStr + '</strong>' +
+          '</div></td>' +
+          '<td style="direction:ltr;text-align:right">' + mobile + '</td>' +
+          '<td style="direction:ltr;text-align:right">' + natId + '</td>' +
+          '<td>' + upcoming + '</td>' +
+          '<td>' + lastVisit + '</td>' +
+          '<td>' + insurancePill(p.insurance_status) + '</td>' +
+          '<td><a class="btn btn-ghost btn-sm" href="patient-detail.html?id=' +
+            encodeURIComponent(p.id) + '">مشاهده →</a></td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    // ── Pagination bar ────────────────────────────────────────────────────────
+    function renderPagination() {
+      const wrap = document.getElementById('pagination-wrap');
+      const pages = Math.ceil(state.total / state.per_page) || 1;
+      if (pages <= 1) { wrap.innerHTML = ''; return; }
+      let html = '<button class="pg-btn" id="pg-prev" aria-label="صفحه قبل"' +
+        (state.page <= 1 ? ' disabled' : '') + '>‹</button>';
+      const lo = Math.max(1, state.page - 2);
+      const hi = Math.min(pages, state.page + 2);
+      if (lo > 1) html += '<button class="pg-btn" data-p="1">۱</button>';
+      if (lo > 2) html += '<span style="padding:.4rem">…</span>';
+      for (let i = lo; i <= hi; i++) {
+        html += '<button class="pg-btn' + (i === state.page ? ' active' : '') +
+          '" data-p="' + i + '">' + toFa(i) + '</button>';
+      }
+      if (hi < pages - 1) html += '<span style="padding:.4rem">…</span>';
+      if (hi < pages) html += '<button class="pg-btn" data-p="' + pages + '">' + toFa(pages) + '</button>';
+      html += '<button class="pg-btn" id="pg-next" aria-label="صفحه بعد"' +
+        (state.page >= pages ? ' disabled' : '') + '>›</button>';
+      wrap.innerHTML = html;
+      wrap.querySelectorAll('[data-p]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.page = Number(btn.dataset.p);
+          loadPatients();
+        });
+      });
+      const prev = document.getElementById('pg-prev');
+      const next = document.getElementById('pg-next');
+      if (prev) prev.addEventListener('click', () => { state.page--; loadPatients(); });
+      if (next) next.addEventListener('click', () => { state.page++; loadPatients(); });
+    }
+
+    // ── Main loader ───────────────────────────────────────────────────────────
+    async function loadPatients() {
+      const host = document.getElementById('table-host');
+      MAZCRM.states.set(host, 'loading');
+      try {
+        const params = { q: state.q, page: state.page, per_page: state.per_page };
+        // Pass insurance_status filter when set — PatientController.index() supports it
+        if (state.insurance) params.insurance_status = state.insurance;
+        const res = await Staff.listPatients(params);
+        const d = res.data || {};
+        const rows = d.rows ?? [];
+        state.total    = d.total    ?? rows.length;
+        state.per_page = d.per_page ?? state.per_page;
+
+        if (!rows.length) {
+          MAZCRM.states.set(host, 'empty');
+          return;
+        }
+        renderRows(rows);
+        renderPagination();
+        MAZCRM.states.set(host, 'ready');
+      } catch (err) {
+        if (err.httpStatus === 401) {
+          window.location.replace('../auth/login.html');
+        } else if (err.httpStatus === 403) {
+          window.location.replace('../errors/403.html');
+        } else if (err.httpStatus === 404 || err.httpStatus === 503) {
+          // Deployment gate — endpoint not yet reachable
+          document.getElementById('table-host').innerHTML =
+            '<div class="state-panel state-empty" role="status">' +
+              '<div class="state-icon" aria-hidden="true">⏳</div>' +
+              '<h3>در انتظار استقرار بک‌اند</h3>' +
+              '<p>لیست بیماران پس از اجرای مهاجرت‌ها و استقرار بک‌اند در دسترس خواهد بود.</p>' +
+            '</div>';
+        } else {
+          document.getElementById('patients-error-msg').textContent =
+            err.code === 'NETWORK_ERROR'
+              ? 'اتصال اینترنت را بررسی کنید.'
+              : 'خطای سرور — لطفاً دوباره تلاش کنید.';
+          MAZCRM.states.set(host, 'error');
+        }
+      }
+    }
+
+    // ── Search / filter wiring ────────────────────────────────────────────────
+    const searchInput     = document.getElementById('search-input');
+    const filterInsurance = document.getElementById('filter-insurance');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        state.q    = searchInput.value.trim()
+          .replace(/[\u06F0-\u06F9]/g, d => d.charCodeAt(0) - 0x06F0)
+          .replace(/[\u0660-\u0669]/g, d => d.charCodeAt(0) - 0x0660);
+        state.page = 1;
+        loadPatients();
+      }, 350);
+    });
+
+    filterInsurance.addEventListener('change', () => {
+      state.insurance = filterInsurance.value;
+      state.page = 1;
+      loadPatients();
+    });
+
+    document.getElementById('btn-search').addEventListener('click', () => {
+      state.q    = searchInput.value.trim();
+      state.page = 1;
+      loadPatients();
+    });
+
+    document.getElementById('patients-retry-btn')
+      .addEventListener('click', () => loadPatients());
+
+    // ── Bootstrap ─────────────────────────────────────────────────────────────
+    loadPatients();
+  </script>
+</body>
+</html>
