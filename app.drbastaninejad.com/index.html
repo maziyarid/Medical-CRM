@@ -808,7 +808,26 @@
 <label class="checkbox-label"><input class="checkbox-input drug-chk" type="checkbox" value="6"/><span>آسپرین</span></label>
 </div>
 </fieldset>
+
+<div class="input-group doctor-request-group" id="doctor-request-wrap" style="margin-top:1.75rem;">
+<p style="font-size:0.9rem;font-weight:500;color:var(--muted);margin-bottom:0.5rem;">
+<span class="required-star">*</span>درخواست شما از دکتر
+</p>
+<textarea
+  class="form-input"
+  id="doctor-request"
+  maxlength="300"
+  minlength="2"
+  placeholder="مثلاً: دریافت مشاوره"
+  required=""
+  rows="3"
+  style="display:block;min-height:100px;padding:0.7rem 0;line-height:1.8;resize:vertical;"
+></textarea>
+<div class="error-message"></div>
+</div>
+
 </fieldset>
+
 <div class="confirmation-box">
 <label class="final-check">
 <input id="confirmation-check" required="" type="checkbox"/>
@@ -817,30 +836,34 @@
             </span>
 <span class="required-star">*</span>
 </label>
+
 <div class="error-message checkbox-error-message"></div>
-<div class="input-group" id="doctor-request-wrap" style="margin-top:1rem;">
-<input class="form-input" id="doctor-request" maxlength="300" placeholder=" " type="text"/>
-<label class="form-label" for="doctor-request">درخواست شما از دکتر</label>
-<div class="error-message"></div>
-</div>
+
 <div class="signature-pad-container">
 <canvas class="signature-pad" id="signature-pad"></canvas>
 <button class="clear-signature-btn" id="clear-signature-btn" type="button">پاک کردن</button>
 </div>
 </div>
+
 <div class="btn-row">
 <button class="btn-secondary" id="prev-step-btn-3" type="button">قبلی</button>
 <button class="btn" id="submit-btn" type="submit">ثبت نهایی پرونده</button>
 </div>
+
 </div>
 </form>
+
 <div class="success-panel hidden" id="success-panel">
 <div class="icon">✓</div>
 <h2>پرونده با موفقیت ثبت شد</h2>
 <p id="success-msg">از همکاری شما سپاسگزاریم. همکاران ما در اسرع وقت با شما تماس خواهند گرفت.</p>
 </div>
+
 </div>
+
 <div aria-live="polite" class="toast" id="toast-element" role="status"></div>
 
-<script defer="" src="/config.js?v=15"></script><script defer="" src="/app.js?v=15"></script></body>
+<script defer="" src="/config.js?v=15"></script>
+<script defer="" src="/app.js?v=15"></script>
+</body>
 </html>
