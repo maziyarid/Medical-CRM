@@ -114,20 +114,31 @@ if ($appEnv !== 'production') {
 
 // All responses from this entry point are JSON
 header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+header('Cross-Origin-Resource-Policy: same-site');
+if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    header('Strict-Transport-Security: max-age=15552000; includeSubDomains');
+}
 
-// CORS — allow the frontend origins to call this API.
-// In production, replace * with the exact frontend domains.
 $allowedOrigins = [
     'https://app.drbastaninejad.com',
     'https://dashboard.drbastaninejad.com',
+    'https://drbastaninejad.com',
+    'https://www.drbastaninejad.com',
 ];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $allowedOrigins, true)) {
     header("Access-Control-Allow-Origin: $origin");
     header('Access-Control-Allow-Credentials: true');
+    header('Vary: Origin');
 } elseif ($appEnv !== 'production') {
-    // Development: allow any origin
     header('Access-Control-Allow-Origin: *');
+    header('Vary: Origin');
+} else {
+    header('Vary: Origin');
 }
 header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, Accept, X-Intake-Bridge-Secret, X-WordPress-Bridge-Secret');
@@ -171,11 +182,13 @@ try {
     error_log('[index.php] Uncaught exception: ' . $e->getMessage()
         . ' in ' . $e->getFile() . ':' . $e->getLine());
 
+    $message = $e->getMessage() === 'Request body too large' ? 'حجم درخواست بیش از حد مجاز است.' : 'خطای داخلی سرور';
+    $status = $e->getMessage() === 'Request body too large' ? 413 : 500;
     $response = [
         'ok'     => false,
-        'status' => 500,
+        'status' => $status,
         'data'   => null,
-        'errors' => [['field' => null, 'message' => 'خطای داخلی سرور']],
+        'errors' => [['field' => null, 'message' => $message]],
         'meta'   => null,
     ];
 }

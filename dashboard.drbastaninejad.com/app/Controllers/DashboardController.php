@@ -20,12 +20,13 @@ final class DashboardController extends Controller
     {
         $clinicId = (int)($req->user['clinic_id'] ?? 1);
         $db = Database::conn();
+        [$dayStart, $dayEnd] = $this->clinicDayUtcBounds();
 
         $todayCount = $db->prepare(
             "SELECT COUNT(*) FROM appointments
-             WHERE clinic_id = ? AND DATE(scheduled_at) = CURDATE() AND status != 'cancelled'"
+             WHERE clinic_id = ? AND scheduled_at >= ? AND scheduled_at < ? AND status != 'cancelled'"
         );
-        $todayCount->execute([$clinicId]);
+        $todayCount->execute([$clinicId, $dayStart, $dayEnd]);
         $appointmentsToday = (int)$todayCount->fetchColumn();
 
         $pendingIntakes = $db->prepare(
@@ -36,9 +37,9 @@ final class DashboardController extends Controller
 
         $revenueToday = $db->prepare(
             "SELECT COALESCE(SUM(amount_rials),0) FROM invoices
-             WHERE clinic_id = ? AND status = 'paid' AND DATE(created_at) = CURDATE()"
+             WHERE clinic_id = ? AND status = 'paid' AND created_at >= ? AND created_at < ?"
         );
-        $revenueToday->execute([$clinicId]);
+        $revenueToday->execute([$clinicId, $dayStart, $dayEnd]);
         $revenue = (float)$revenueToday->fetchColumn();
 
         $openTasks = $db->prepare(
@@ -50,11 +51,11 @@ final class DashboardController extends Controller
         $todayStmt = $db->prepare(
             "SELECT a.id, a.scheduled_at, a.status, a.visit_reason, p.first_name, p.last_name
              FROM appointments a JOIN patients p ON p.id = a.patient_id
-             WHERE a.clinic_id = ? AND DATE(a.scheduled_at) = UTC_DATE()
+             WHERE a.clinic_id = ? AND a.scheduled_at >= ? AND a.scheduled_at < ?
                AND a.status != 'cancelled' AND a.deleted_at IS NULL
              ORDER BY a.scheduled_at ASC LIMIT 20"
         );
-        $todayStmt->execute([$clinicId]);
+        $todayStmt->execute([$clinicId, $dayStart, $dayEnd]);
         $today = array_map(static fn(array $r): array => [
             'id' => (int)$r['id'],
             'patient' => trim($r['first_name'] . ' ' . $r['last_name']),
@@ -65,19 +66,19 @@ final class DashboardController extends Controller
 
         $attention = [];
         if ($pending > 0) {
-            $attention[] = ['title' => 'پذیرش/رزرو در انتظار', 'item' => $pending . ' مورد نیازمند بررسی', 'status' => 'بررسی', 'badge' => 'warning'];
+        $attention[] = ['title' => 'پذیرش/رزرو در انتظار', 'patient' => 'پذیرش/رزرو در انتظار', 'item' => $pending . ' مورد نیازمند بررسی', 'status' => 'بررسی', 'badge' => 'warning'];
         }
         $sheetFailed = $db->prepare("SELECT COUNT(*) FROM intakes WHERE clinic_id = ? AND source_type = 'intake' AND sheets_sync_status = 'failed' AND deleted_at IS NULL");
         $sheetFailed->execute([$clinicId]);
         $sheetFailures = (int)$sheetFailed->fetchColumn();
         if ($sheetFailures > 0) {
-            $attention[] = ['title' => 'همگام‌سازی Google Sheet', 'item' => $sheetFailures . ' مورد ناموفق', 'status' => 'پیگیری', 'badge' => 'warning'];
+            $attention[] = ['title' => 'همگام‌سازی Google Sheet', 'patient' => 'همگام‌سازی Google Sheet', 'item' => $sheetFailures . ' مورد ناموفق', 'status' => 'پیگیری', 'badge' => 'warning'];
         }
         $smsFailed = $db->prepare("SELECT COUNT(*) FROM intakes WHERE clinic_id = ? AND sms_status = 'failed' AND deleted_at IS NULL");
         $smsFailed->execute([$clinicId]);
         $smsFailures = (int)$smsFailed->fetchColumn();
         if ($smsFailures > 0) {
-            $attention[] = ['title' => 'ارسال پیامک', 'item' => $smsFailures . ' مورد ناموفق', 'status' => 'پیگیری', 'badge' => 'warning'];
+            $attention[] = ['title' => 'ارسال پیامک', 'patient' => 'ارسال پیامک', 'item' => $smsFailures . ' مورد ناموفق', 'status' => 'پیگیری', 'badge' => 'warning'];
         }
 
         return $this->success([
@@ -175,5 +176,23 @@ final class DashboardController extends Controller
         });
 
         return array_slice($timeline, 0, $limit);
+    }
+
+    /** @return array{0:string,1:string} UTC [start, end) for the clinic-local calendar day */
+    private function clinicDayUtcBounds(): array
+    {
+        $tzName = (string)($_ENV['CLINIC_TIMEZONE'] ?? 'Asia/Tehran');
+        try {
+            $tz = new \DateTimeZone($tzName);
+        } catch (\Exception $e) {
+            $tz = new \DateTimeZone('Asia/Tehran');
+        }
+        $utc = new \DateTimeZone('UTC');
+        $start = new \DateTimeImmutable('today', $tz);
+        $end = $start->modify('+1 day');
+        return [
+            $start->setTimezone($utc)->format('Y-m-d H:i:s'),
+            $end->setTimezone($utc)->format('Y-m-d H:i:s'),
+        ];
     }
 }

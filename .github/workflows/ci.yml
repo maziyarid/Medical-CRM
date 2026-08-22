@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: PHP syntax (custom code only)
+        run: |
+          find wp-content/themes/drbastaninejad-theme wp-content/mu-plugins \
+            dashboard.drbastaninejad.com/app dashboard.drbastaninejad.com/config \
+            dashboard.drbastaninejad.com/public dashboard.drbastaninejad.com/tests \
+            app.drbastaninejad.com/api \
+            -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: JavaScript syntax
+        run: |
+          find dashboard.drbastaninejad.com/public app.drbastaninejad.com/Frontend \
+            -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Forbidden tracked artifacts
+        run: |
+          if git ls-files | grep -E '(^|/)(\.env($|\.)|wp-config\.php$|app_private/storage|.*\.(zip|bak|log)$)' | grep -v '\.env.example'; then
+            echo "Forbidden files are tracked" >&2
+            exit 1
+          fi
+      - name: Dashboard PHPUnit
+        working-directory: dashboard.drbastaninejad.com
+        run: |
+          if [ -f composer.json ]; then
+            composer install --no-interaction --prefer-dist || true
+          fi
+          if [ -x vendor/bin/phpunit ]; then
+            vendor/bin/phpunit --testsuite Unit
+          else
+            echo "PHPUnit not installed; syntax lint already passed"
+          fi

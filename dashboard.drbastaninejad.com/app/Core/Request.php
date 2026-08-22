@@ -76,7 +76,15 @@ final class Request
         // Body — parse JSON for write verbs; fall back to [] for GET / HEAD
         $req->body = [];
         if (in_array($req->method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-            $raw = file_get_contents('php://input');
+            $maxBytes = max(1024, (int)($_ENV['MAX_BODY_BYTES'] ?? 65536));
+            $length = (int)($headers['content-length'] ?? 0);
+            if ($length > $maxBytes) {
+                throw new \RuntimeException('Request body too large');
+            }
+            $raw = file_get_contents('php://input', false, null, 0, $maxBytes + 1);
+            if (is_string($raw) && strlen($raw) > $maxBytes) {
+                throw new \RuntimeException('Request body too large');
+            }
             if ($raw !== false && $raw !== '') {
                 $decoded = json_decode($raw, true);
                 if (is_array($decoded)) {

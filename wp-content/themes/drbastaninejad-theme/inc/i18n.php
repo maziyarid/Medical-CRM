@@ -322,11 +322,18 @@ function drb_iran_phone_e164(string $raw): string
 function drb_format_iran_phone(string $raw, ?string $lang = null, bool $href = false): string
 {
     $lang = $lang ?? drb_detect_lang();
-    if ($lang === 'fa') return $raw;
     $e164 = drb_iran_phone_e164($raw);
-    if (!$e164) return $raw;
-    if ($href) return 'tel:' . $e164;
-    $national = substr($e164, 3); // remove +98
+    if ($href) {
+        return $e164 ? 'tel:' . $e164 : '';
+    }
+    if (!$e164) {
+        return $raw;
+    }
+    $national = substr($e164, 3);
+    if ($lang === 'fa') {
+        $display = '0' . $national;
+        return function_exists('drb_ascii_digits') ? $display : $display;
+    }
     if (strpos($national, '9') === 0) {
         return '+98 ' . substr($national, 0, 3) . ' ' . substr($national, 3, 3) . ' ' . substr($national, 6, 4);
     }

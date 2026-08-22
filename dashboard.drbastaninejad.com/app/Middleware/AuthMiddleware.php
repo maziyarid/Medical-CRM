@@ -34,14 +34,25 @@ final class AuthMiddleware
 
         try {
             $db   = Database::conn();
-            $stmt = $db->prepare(
-                'SELECT t.id, t.user_id, t.user_type, t.purpose, t.expires_at, t.revoked_at
-                   FROM auth_tokens t
-                   WHERE t.token_hash = ? AND t.purpose = "session"
-                   LIMIT 1'
-            );
-            $stmt->execute([$tokenHash]);
-            $token = $stmt->fetch();
+            try {
+                $stmt = $db->prepare(
+                    'SELECT t.id, t.user_id, t.user_type, t.purpose, t.expires_at, t.revoked_at
+                       FROM auth_tokens t
+                       WHERE t.token_hash = ? AND t.purpose = "session"
+                       LIMIT 1'
+                );
+                $stmt->execute([$tokenHash]);
+                $token = $stmt->fetch();
+            } catch (\Throwable $e) {
+                $stmt = $db->prepare(
+                    'SELECT t.id, t.user_id, t.user_type, t.expires_at, t.revoked_at
+                       FROM auth_tokens t
+                       WHERE t.token_hash = ?
+                       LIMIT 1'
+                );
+                $stmt->execute([$tokenHash]);
+                $token = $stmt->fetch();
+            }
         } catch (\Throwable $e) {
             error_log('[AuthMiddleware] DB error: ' . $e->getMessage());
             return $this->unauthorized('خطای داخلی در احراز هویت');
@@ -75,6 +86,8 @@ final class AuthMiddleware
         }
 
         // Attach resolved user to the request for downstream handlers
+        $user['_token_id'] = (int)$token['id'];
+        $user['_token_hash'] = $tokenHash;
         $req->user = $user;
 
         return null; // null = pass through to next handler
@@ -108,11 +121,13 @@ final class AuthMiddleware
         // staff — from the users table
         $stmt = $db->prepare(
             'SELECT u.id, u.uuid, u.clinic_id, u.full_name, u.mobile, u.is_active, u.deleted_at,
-                    r.name AS role
+                    GROUP_CONCAT(r.name ORDER BY r.id SEPARATOR ",") AS roles
                FROM users u
                LEFT JOIN role_user ru ON ru.user_id = u.id
                LEFT JOIN roles r      ON r.id = ru.role_id
-               WHERE u.id = ? LIMIT 1'
+               WHERE u.id = ?
+               GROUP BY u.id, u.uuid, u.clinic_id, u.full_name, u.mobile, u.is_active, u.deleted_at
+               LIMIT 1'
         );
         $stmt->execute([$userId]);
         $row = $stmt->fetch();
@@ -121,13 +136,17 @@ final class AuthMiddleware
             return null;
         }
 
+        $roles = array_values(array_filter(array_map('trim', explode(',', (string)($row['roles'] ?? '')))));
+        $primary = $roles[0] ?? 'staff';
+
         return [
             'id'        => (int)$row['id'],
             'uuid'      => $row['uuid'],
             'clinic_id' => (int)$row['clinic_id'],
             'name'      => $row['full_name'],
             'mobile'    => $row['mobile'],
-            'role'      => $row['role'] ?? 'staff',
+            'role'      => $primary,
+            'roles'     => $roles,
             'user_type' => 'staff',
         ];
     }

@@ -164,7 +164,7 @@ final class BookingController extends Controller
         }
 
         $smsStatus = 'skipped';
-        if (($_ENV['BOOKING_SMS_ENABLED'] ?? '1') === '1') {
+        if ($this->shouldSendBookingSms($mobile, $isInternational)) {
             $loginUrl = trim((string)($_ENV['PATIENT_LOGIN_URL'] ?? 'https://app.drbastaninejad.com/Frontend/pages/auth/patient-login.html'));
             $template = trim((string)($req->body['sms_template'] ?? ''));
             if ($template === '') {
@@ -175,11 +175,10 @@ final class BookingController extends Controller
                 '{name}' => $firstName,
                 '{login_url}' => $loginUrl,
             ]));
-            $smsStatus = $sms['ok'] ? 'sent' : 'failed';
-            $db->prepare('UPDATE intakes SET sms_status = ?, sms_sent_at = IF(?, UTC_TIMESTAMP(), NULL), updated_at = UTC_TIMESTAMP() WHERE id = ?')
-               ->execute([$smsStatus, $sms['ok'] ? 1 : 0, $bookingId]);
-            if (!$sms['ok']) {
-                error_log('[BookingController] booking SMS failed for booking ' . $bookingId . ': ' . ($sms['error'] ?? 'unknown'));
+            $smsStatus = !empty($sms['ok']) ? 'sent' : 'failed';
+            $this->recordSmsResult($db, $bookingId, $smsStatus, $sms);
+            if ($smsStatus !== 'sent') {
+                error_log('[BookingController] booking SMS failed for booking ' . $bookingId . ' provider=' . ($sms['provider'] ?? 'none') . ' error=' . ($sms['error'] ?? 'unknown'));
             }
         } else {
             $db->prepare('UPDATE intakes SET sms_status = "skipped", updated_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$bookingId]);
@@ -250,5 +249,38 @@ final class BookingController extends Controller
     {
         $parts = preg_split('/\s+/u', trim($name), 2) ?: [];
         return [trim((string)($parts[0] ?? $name)), trim((string)($parts[1] ?? ''))];
+    }
+
+    private function shouldSendBookingSms(string $mobile, bool $isInternational): bool
+    {
+        if (($_ENV['BOOKING_SMS_ENABLED'] ?? '1') !== '1') {
+            return false;
+        }
+        if ($isInternational && !preg_match('/^09\d{9}$/', $mobile)) {
+            return false;
+        }
+        return preg_match('/^09\d{9}$/', $mobile) === 1;
+    }
+
+    /** @param array{ok?:bool,provider?:?string,message_id?:?string,error?:?string} $sms */
+    private function recordSmsResult(\PDO $db, int $bookingId, string $smsStatus, array $sms): void
+    {
+        $sent = $smsStatus === 'sent' ? 1 : 0;
+        try {
+            $db->prepare(
+                'UPDATE intakes SET sms_status = ?, sms_sent_at = IF(?, UTC_TIMESTAMP(), NULL),
+                        sms_provider = ?, sms_provider_id = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?'
+            )->execute([
+                $smsStatus,
+                $sent,
+                $sms['provider'] ?? null,
+                $sms['message_id'] ?? null,
+                $bookingId,
+            ]);
+        } catch (\PDOException $e) {
+            $db->prepare(
+                'UPDATE intakes SET sms_status = ?, sms_sent_at = IF(?, UTC_TIMESTAMP(), NULL), updated_at = UTC_TIMESTAMP() WHERE id = ?'
+            )->execute([$smsStatus, $sent, $bookingId]);
+        }
     }
 }

@@ -1,77 +1,50 @@
 # Booking / SMS deployment runbook
 
-This reflects the booking/SMS instructions from the supplied project history and the 4.6.0 theme contract.
+WordPress is the marketing/form frontend. The dashboard is the **only** SMS owner.
 
 ## Architecture
 
-- WordPress is the marketing/form frontend, not the clinical vault.
-- Appointment form → WordPress REST endpoint → server-to-server dashboard `/api/v1/bookings`.
-- WordPress sends `X-WordPress-Bridge-Secret`.
-- Dashboard commits the booking, then its `SmsProviderChain` / TSMS integration sends the confirmation SMS.
-- SMS provider failure must not erase/roll back an already committed booking.
-- SMS/provider credentials stay in the dashboard `.env`, never JavaScript and never page content.
+- Appointment form → WordPress REST `/drb/v1/appointment` → dashboard `POST /api/v1/bookings`
+- WordPress sends `X-WordPress-Bridge-Secret`
+- Dashboard commits the intake, then `SmsProviderChain` sends at most one confirmation SMS
+- The MU plugin `drb-booking-tsms.php` is **disabled** (inert). Do not re-enable a rest_post_dispatch SMS fallback
+- Provider failure must not roll back a committed booking
+- Credentials stay in dashboard `.env`, never JavaScript
+
+## WordPress origin recovery
+
+If uncached pages return 500 with a parse error in `drb-booking-tsms.php`:
+
+```bash
+cd /home/drbastaninejad/public_html/wp-content/mu-plugins
+php -l drb-booking-tsms.php
+```
+
+Replace the file atomically with the repo copy (the inert 2.0 stub), then reset OPcache/PHP-FPM. Confirm cache-bypassed `/`, `/wp-json/`, `/booking/` return 200 **before** purging CDN cache.
 
 ## Required secrets
 
-In WordPress `wp-config.php`:
+WordPress `wp-config.php` (not in Git):
 
 ```php
 define( 'DRB_WORDPRESS_BRIDGE_SECRET', 'SAME_LONG_RANDOM_STRING' );
 ```
 
-In the dashboard `.env`:
+Dashboard `.env`:
 
 ```text
 WORDPRESS_BRIDGE_SECRET=SAME_LONG_RANDOM_STRING
+BOOKING_SMS_ENABLED=1
+TSMS_USERNAME=...
+TSMS_PASSWORD=...
+TSMS_FROM=...
 ```
 
-The values must match. Keep the existing TSMS/SMS provider keys, sender and provider URL only in the dashboard `.env` using the variable names expected by the dashboard source.
+If `SMS_PROVIDERS` is empty, the chain auto-detects TSMS / Kavenegar / Ghasedak / Faraz from credentials. TSMS credentials are sent in a POST body, never a query string.
 
-## Dashboard host requirements
+## Acceptance
 
-The project history requires the dashboard virtual host/document root to point to its `public/` directory, not the repository root. The dashboard TLS certificate must be valid for exactly `dashboard.drbastaninejad.com`.
-
-Do not disable TLS verification as a workaround.
-
-From the server, the historical smoke check was:
-
-```bash
-curl -I https://dashboard.drbastaninejad.com/api/v1/auth/otp/send
-```
-
-A method-not-allowed response for a GET is evidence that the API route is being reached; a directory listing/404 means the document root/routing is wrong. A certificate hostname error must be fixed in the certificate/vhost, not in theme code.
-
-## SMS provider diagnostics
-
-If an API POST reaches the controller but reports a confirmation-code/SMS error, check the dashboard `.env` provider configuration only:
-
-- TSMS / SMS credentials;
-- sender identity/line;
-- provider URL;
-- provider enablement/selection used by `SmsProviderChain`.
-
-Do not copy those values into WordPress JavaScript.
-
-## Theme-side booking test
-
-For a non-Persian locale:
-
-1. Country is required.
-2. Dial code is required and starts at `+98` by default.
-3. Email is required.
-4. Submit a valid 18–45 test case.
-5. For revision rhinoplasty, previous surgery must be at least 24 complete months ago.
-6. Confirm the browser receives a booking success response with `bookingId` and `smsStatus`.
-7. Confirm the displayed message agrees with `smsStatus` rather than always claiming SMS success.
-8. Confirm the SMS arrives.
-9. Immediately repeat with the same normalized phone and confirm the duplicate/cooldown path directs the user to patient login.
-
-For Persian, repeat one test and confirm the international-only country/dial/email enhancement does not alter the existing Persian form UI.
-
-## Interpretation
-
-- **Booking saved + `smsStatus=sent/delivered` + SMS received:** complete.
-- **Booking saved + `smsStatus=failed`:** theme/booking write succeeded; fix dashboard TSMS/SMS configuration.
-- **WordPress gets 503 before a booking ID:** check dashboard TLS, document root, bridge secret and dashboard availability.
-- **403 form-session error:** verify the public form nonce/bootstrap and cache is serving the current theme files.
-- **409/429 with patient-login URL:** duplicate/cooldown behavior is working as designed.
+- One booking → one intake → at most one SMS
+- `sms_status=sent` only after the provider returns a validated message id
+- Failed SMS leaves the booking in place with `sms_status=failed`
+- Repeat submit within cooldown is idempotent

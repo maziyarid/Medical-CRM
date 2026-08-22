@@ -33,45 +33,50 @@ final class RbacMiddleware
             return $this->forbidden('احراز هویت الزامی است');
         }
 
-        $role = $user['role'] ?? '';
+        $roles = $user['roles'] ?? [];
+        if (!is_array($roles) || $roles === []) {
+            $roles = [$user['role'] ?? ''];
+        }
 
-        // super_admin bypasses all permission checks
-        if ($role === 'super_admin') {
+        if (in_array('super_admin', $roles, true) && (int)($user['clinic_id'] ?? 0) === (int)($_ENV['SYSTEM_TENANT_ID'] ?? ($user['clinic_id'] ?? 0))) {
             return null;
         }
 
-        // Patients may only access patient-scoped endpoints
-        if ($user['user_type'] === 'patient') {
+        if (($user['user_type'] ?? '') === 'patient') {
             if (!str_starts_with($this->requiredPermission, 'patient.')) {
                 return $this->forbidden('دسترسی کافی ندارید');
             }
-            return null; // patient portal permissions are granted by user_type alone
+            return null;
         }
 
-        // Staff roles: look up actual permissions from the DB
-        if (!$this->staffHasPermission($role, $this->requiredPermission)) {
+        if (!$this->staffHasPermission($user, $this->requiredPermission)) {
             return $this->forbidden('دسترسی کافی ندارید');
         }
 
-        return null; // pass through
+        return null;
     }
 
-    // -------------------------------------------------------------------------
-
-    private function staffHasPermission(string $roleName, string $permission): bool
+    private function staffHasPermission(array $user, string $permission): bool
     {
+        $userId = (int)($user['id'] ?? 0);
+        $clinicId = (int)($user['clinic_id'] ?? 0);
+        if ($userId < 1 || $clinicId < 1) {
+            return false;
+        }
         try {
             $db   = Database::conn();
             $stmt = $db->prepare(
                 'SELECT 1
-                   FROM roles r
-                   JOIN role_user ru            ON ru.role_id = r.id
+                   FROM users u
+                   JOIN role_user ru            ON ru.user_id = u.id
+                   JOIN roles r                 ON r.id = ru.role_id
                    JOIN permission_role pr      ON pr.role_id = r.id
                    JOIN permissions p           ON p.id = pr.permission_id
-                   WHERE r.name = ? AND p.name = ?
+                   WHERE u.id = ? AND u.clinic_id = ? AND u.is_active = 1 AND u.deleted_at IS NULL
+                     AND p.name = ?
                    LIMIT 1'
             );
-            $stmt->execute([$roleName, $permission]);
+            $stmt->execute([$userId, $clinicId, $permission]);
             return (bool)$stmt->fetch();
         } catch (\Throwable $e) {
             error_log('[RbacMiddleware] DB error: ' . $e->getMessage());

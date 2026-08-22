@@ -149,7 +149,11 @@ function drb_booking_transport_public_error( WP_Error $error ) {
 
 function drb_verify_public_form_nonce( WP_REST_Request $request ) {
     $nonce = (string) $request->get_header( 'X-DRB-Form-Nonce' );
-    return $nonce && wp_verify_nonce( $nonce, 'drb_public_form' );
+    if ( $nonce && wp_verify_nonce( $nonce, 'drb_public_form' ) ) {
+        return true;
+    }
+    $param = (string) $request->get_param( '_wpnonce' );
+    return $param && wp_verify_nonce( $param, 'drb_public_form' );
 }
 
 function drb_form_error_message( $source ) {
@@ -172,6 +176,12 @@ function drb_process_submission( WP_REST_Request $request, $kind ) {
     }
 
     $data = (array) $request->get_json_params();
+    if ( ! $data ) {
+        $data = (array) $request->get_body_params();
+    }
+    if ( ! $data ) {
+        $data = (array) $request->get_params();
+    }
     if ( ! empty( $data['website'] ) ) return new WP_Error( 'spam', drb_form_error_message( 'درخواست نامعتبر است.' ), array( 'status' => 400 ) );
 
     $ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';

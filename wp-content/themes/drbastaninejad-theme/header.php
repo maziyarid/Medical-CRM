@@ -22,6 +22,7 @@ $drb_route = static function ( $path ) use ( $drb_lang ) {
     return function_exists( 'drb_route_url' ) ? drb_route_url( $path, $drb_lang ) : home_url( $path );
 };
 ?>
+<?php if ( function_exists( 'drb_use_native_template' ) && drb_use_native_template() ) : ?>
 <header class="drb-native-header" role="banner">
   <div class="drb-native-header__inner">
     <a class="drb-native-brand" href="<?php echo esc_url( $drb_home ); ?>">
@@ -73,3 +74,4 @@ $drb_route = static function ( $path ) use ( $drb_lang ) {
     </div>
   </div>
 </header>
+<?php endif; ?>

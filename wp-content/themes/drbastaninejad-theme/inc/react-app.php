@@ -158,9 +158,24 @@ function drb_enqueue_react_app() {
             'site' => array(
                 'doctorName' => $options['doctor_name'],
                 'doctorTitle' => $options['doctor_title'],
-                'phones' => array_values( array_map( static function ( $phone ) {
-                    return function_exists( 'drb_format_iran_phone' ) ? drb_format_iran_phone( trim( (string) $phone ) ) : trim( (string) $phone );
-                }, array_filter( preg_split( '/\R+/', $options['phones'] ) ) ) ),
+                'phones' => array_values( array_filter( array_map( static function ( $phone ) {
+                    $raw = trim( (string) $phone );
+                    $e164 = function_exists( 'drb_iran_phone_e164' ) ? drb_iran_phone_e164( $raw ) : '';
+                    if ( $e164 ) {
+                        return '0' . substr( $e164, 3 );
+                    }
+                    $digits = function_exists( 'drb_ascii_digits' ) ? preg_replace( '/\D+/', '', drb_ascii_digits( $raw ) ) : preg_replace( '/\D+/', '', $raw );
+                    return $digits ?: null;
+                }, array_filter( preg_split( '/\R+/', $options['phones'] ) ) ) ) ),
+                'phoneLinks' => array_values( array_filter( array_map( static function ( $phone ) {
+                    $raw = trim( (string) $phone );
+                    $href = function_exists( 'drb_format_iran_phone' ) ? drb_format_iran_phone( $raw, null, true ) : '';
+                    $display = function_exists( 'drb_format_iran_phone' ) ? drb_format_iran_phone( $raw ) : $raw;
+                    if ( $href === '' ) {
+                        return null;
+                    }
+                    return array( 'display' => $display, 'href' => $href );
+                }, array_filter( preg_split( '/\R+/', $options['phones'] ) ) ) ) ),
                 'address' => $options['address'],
                 'clinicHours' => $options['clinic_hours'],
                 'admissionNotice' => $options['admission_notice'],

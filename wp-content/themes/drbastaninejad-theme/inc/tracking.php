@@ -5,6 +5,9 @@ defined( 'ABSPATH' ) || exit;
 /** Output the administrator-configured analytics tags once in the document head. */
 function drb_output_tracking_tags() {
     if ( is_admin() ) return;
+    if ( is_page( array( 'booking', 'contact', 'login' ) ) ) return;
+    $path = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
+    if ( preg_match( '#/(booking|contact|wp-login|patient-login)(/|\?|$)#', $path ) ) return;
     $options = drb_get_theme_options();
     $ga_id = isset( $options['google_analytics_id'] ) ? (string) $options['google_analytics_id'] : '';
     $clarity_id = isset( $options['clarity_id'] ) ? (string) $options['clarity_id'] : '';

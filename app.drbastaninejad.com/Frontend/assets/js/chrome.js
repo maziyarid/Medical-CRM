@@ -68,19 +68,39 @@
     }).join('');
   }
 
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"')
+      .replace(/'/g, '&#39;');
+  }
+
+  function sessionApi() {
+    return (window.MAZCRM && window.MAZCRM.session) ? window.MAZCRM.session : null;
+  }
+
+  function currentUser(kind) {
+    var api = sessionApi();
+    if (!api) return null;
+    return api.user(kind === 'patient' ? 'patient' : 'staff');
+  }
+
   function renderSidebar(kind, active, user) {
     var nav = kind === 'patient' ? PATIENT_NAV : STAFF_NAV;
-    var name = (user && user.name) || (kind === 'patient' ? 'مریم احمدی' : 'دکتر شاهین باستانی‌نژاد');
-    var role = (user && user.role) || (kind === 'patient' ? 'بیمار' : 'پزشک — مدیر مرکز');
-    var initials = name.split(' ').map(function (w) { return w[0]; }).slice(0,2).join('');
+    user = user || currentUser(kind);
+    var name = (user && user.name) ? String(user.name) : 'حساب کاربری';
+    var role = (user && user.role) ? String(user.role) : (kind === 'patient' ? 'بیمار' : 'کارمند');
+    var initials = name.split(' ').map(function (w) { return w.charAt(0); }).slice(0,2).join('');
     return '' +
       '<nav class="sidebar" aria-label="ناوبری اصلی">' +
         brandBlock(kind) +
         renderNav(nav, active) +
         '<div class="sidebar-footer">' +
           '<div class="sidebar-user">' +
-            '<div class="avatar-md">' + initials + '</div>' +
-            '<div class="who">' + name + '<small>' + role + '</small></div>' +
+            '<div class="avatar-md">' + escapeHtml(initials) + '</div>' +
+            '<div class="who">' + escapeHtml(name) + '<small>' + escapeHtml(role) + '</small></div>' +
           '</div>' +
           '<button class="logout-btn" type="button" data-logout-href="../auth/login.html" aria-label="خروج از حساب">' + ICON.logout + '<span>خروج از حساب</span></button>' +
         '</div>' +
@@ -119,7 +139,22 @@
       var logoutBtn = shell.querySelector('.logout-btn[data-logout-href]');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', function () {
-          window.location.href = logoutBtn.getAttribute('data-logout-href');
+          var scope = kind === 'patient' ? 'patient' : 'staff';
+          var api = sessionApi();
+          var token = api ? api.token(scope) : null;
+          var finish = function () {
+            if (api) api.clear(scope);
+            window.location.href = logoutBtn.getAttribute('data-logout-href');
+          };
+          if (token) {
+            fetch('https://dashboard.drbastaninejad.com/api/v1/auth/logout', {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' },
+              credentials: 'include'
+            }).catch(function () { /* still clear locally */ }).then(finish);
+            return;
+          }
+          finish();
         });
       }
     }
