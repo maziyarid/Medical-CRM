@@ -5,6 +5,8 @@
 !.env.testing.example
 wp-config.php
 wp-config-local.php
+*.env.bak
+*.env.bak2
 
 # Patient / clinical runtime storage
 app_private/storage/
