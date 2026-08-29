@@ -13,6 +13,9 @@ use App\Services\AppointmentService;
  * Powers the Smart Scheduling Calendar (Medical CRM.md §5.6):
  * day/week/month/agenda views, drag-to-reschedule, quick-create, conflict detection,
  * provider/room/status filters, reminder-status indicator.
+ *
+ * Writes are serialized per clinic. Provider and room conflicts are re-checked
+ * inside the transaction. Cancelled/completed reactivation is conflict-gated.
  */
 final class AppointmentController extends Controller
 {
@@ -69,12 +72,7 @@ final class AppointmentController extends Controller
         }
 
         $duration = (int)($in['duration_minutes'] ?? 20);
-
-        if ($this->appointments->hasConflict($clinicId, (int)$in['provider_id'], $in['scheduled_at'], $duration)) {
-            return $this->error('این بازه زمانی با نوبت دیگری تداخل دارد', 409);
-        }
-
-        $id = $this->service->create($clinicId, [
+        $result = $this->service->createLocked($clinicId, [
             'patient_id' => (int)$in['patient_id'],
             'provider_id' => (int)$in['provider_id'],
             'scheduled_at' => $in['scheduled_at'],
@@ -84,7 +82,11 @@ final class AppointmentController extends Controller
             'notes' => $in['notes'] ?? null,
         ]);
 
-        return $this->success(['id' => $id], 201);
+        if (!$result['ok']) {
+            return $this->error($result['message'], $result['status']);
+        }
+
+        return $this->success(['id' => $result['id']], 201);
     }
 
     /** PATCH /api/v1/appointments/{id}/reschedule — drag-and-drop reschedule */
@@ -101,20 +103,21 @@ final class AppointmentController extends Controller
 
         $newStart = $in['scheduled_at'] ?? $existing['scheduled_at'];
         $newDuration = isset($in['duration_minutes']) ? (int)$in['duration_minutes'] : (int)$existing['duration_minutes'];
+        $room = array_key_exists('room', $in) ? $in['room'] : ($existing['room'] ?? null);
 
-        if ($this->appointments->hasConflict($clinicId, (int)$existing['provider_id'], $newStart, $newDuration, $appointmentId)) {
-            return $this->error('این بازه زمانی با نوبت دیگری تداخل دارد', 409);
-        }
-
-        $this->appointments->reschedule($appointmentId, $newStart, $newDuration);
-
-        // Cancel old reminders and schedule new ones for the updated time
-        $this->service->reschedule(
-            $appointmentId,
-            (int)$existing['patient_id'],
+        $result = $this->service->rescheduleLocked(
             $clinicId,
-            $newStart
+            $appointmentId,
+            $newStart,
+            $newDuration,
+            $room,
+            (int)$existing['provider_id'],
+            (int)$existing['patient_id']
         );
+
+        if (!$result['ok']) {
+            return $this->error($result['message'], $result['status']);
+        }
 
         return $this->success(['id' => $appointmentId]);
     }
@@ -160,7 +163,6 @@ final class AppointmentController extends Controller
             'cancellation_reason' => $reason ?: null,
         ]);
 
-        // Cancel any pending reminders — no point sending an SMS for a cancelled appointment
         (new \App\Services\ReminderService())->cancelForAppointment($appointmentId);
 
         return $this->success(['id' => $appointmentId, 'status' => 'cancelled']);
@@ -183,7 +185,17 @@ final class AppointmentController extends Controller
             return $this->error('نوبت یافت نشد', 404);
         }
 
-        $this->appointments->update($appointmentId, ['status' => $status]);
+        $result = $this->service->updateStatusLocked($clinicId, $existing, $status);
+        if (!$result['ok']) {
+            return $this->error($result['message'], $result['status']);
+        }
+
+        if ($status === 'cancelled' && isset($req->body['reason'])) {
+            $this->appointments->update($appointmentId, [
+                'cancellation_reason' => trim((string)$req->body['reason']) ?: null,
+            ]);
+        }
+
         return $this->success(['id' => $appointmentId, 'status' => $status]);
     }
 }

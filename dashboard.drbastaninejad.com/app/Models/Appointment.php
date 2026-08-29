@@ -37,22 +37,71 @@ final class Appointment extends Model
         return $stmt->fetchAll();
     }
 
+    /** Occupying statuses — cancelled/completed do not hold the slot. */
+    public const OCCUPYING_STATUSES = ['scheduled', 'confirmed'];
+
     /** Overlap check for conflict detection: any appointment for the same provider whose
      *  [start, start+duration) window intersects the requested slot. */
     public function hasConflict(int $clinicId, int $providerId, string $scheduledAt, int $durationMinutes, ?int $excludeId = null): bool
     {
-        $db = $this->db();
+        return $this->hasOverlap(
+            $clinicId,
+            $scheduledAt,
+            $durationMinutes,
+            'provider_id',
+            $providerId,
+            $excludeId
+        );
+    }
+
+    /**
+     * Room collision: same clinic + non-empty room + overlapping occupying slot.
+     * Empty/null rooms never collide.
+     */
+    public function hasRoomConflict(int $clinicId, ?string $room, string $scheduledAt, int $durationMinutes, ?int $excludeId = null): bool
+    {
+        $room = trim((string)$room);
+        if ($room === '') {
+            return false;
+        }
+        return $this->hasOverlap(
+            $clinicId,
+            $scheduledAt,
+            $durationMinutes,
+            'room',
+            $room,
+            $excludeId
+        );
+    }
+
+    /**
+     * @param 'provider_id'|'room' $column
+     * @param int|string $value
+     */
+    private function hasOverlap(
+        int $clinicId,
+        string $scheduledAt,
+        int $durationMinutes,
+        string $column,
+        int|string $value,
+        ?int $excludeId
+    ): bool {
+        $allowed = ['provider_id', 'room'];
+        if (!in_array($column, $allowed, true)) {
+            throw new \InvalidArgumentException('Invalid overlap column');
+        }
+        $placeholders = implode(',', array_fill(0, count(self::OCCUPYING_STATUSES), '?'));
         $sql = "SELECT COUNT(*) FROM appointments
-                WHERE clinic_id = ? AND provider_id = ? AND deleted_at IS NULL
-                  AND status != 'cancelled'
+                WHERE clinic_id = ? AND {$column} = ? AND deleted_at IS NULL
+                  AND status IN ({$placeholders})
                   AND ? < DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE)
                   AND DATE_ADD(?, INTERVAL ? MINUTE) > scheduled_at";
-        $params = [$clinicId, $providerId, $scheduledAt, $scheduledAt, $durationMinutes];
+        $params = [$clinicId, $value, ...self::OCCUPYING_STATUSES, $scheduledAt, $scheduledAt, $durationMinutes];
         if ($excludeId) {
             $sql .= " AND id != ?";
             $params[] = $excludeId;
         }
-        $stmt = $db->prepare($sql);
+        $stmt = $this->db()->prepare($sql);
         $stmt->execute($params);
         return (int)$stmt->fetchColumn() > 0;
     }
