@@ -106,11 +106,14 @@ final class Appointment extends Model
         return (int)$stmt->fetchColumn() > 0;
     }
 
-    public function reschedule(int $id, string $scheduledAt, ?int $durationMinutes = null): void
+    public function reschedule(int $id, string $scheduledAt, ?int $durationMinutes = null, ?string $room = null): void
     {
         $data = ['scheduled_at' => $scheduledAt];
         if ($durationMinutes !== null) {
             $data['duration_minutes'] = $durationMinutes;
+        }
+        if ($room !== null) {
+            $data['room'] = $room;
         }
         $this->update($id, $data);
     }

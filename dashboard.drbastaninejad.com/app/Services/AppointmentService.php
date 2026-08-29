@@ -123,7 +123,7 @@ final class AppointmentService
                 if ($appointment->hasRoomConflict($clinicId, $room, $newStart, $newDuration, $appointmentId)) {
                     throw new RuntimeException('room conflict');
                 }
-                $appointment->reschedule($appointmentId, $newStart, $newDuration);
+                $appointment->reschedule($appointmentId, $newStart, $newDuration, $room);
             });
         } catch (RuntimeException $e) {
             return $this->conflictOrLock($e);

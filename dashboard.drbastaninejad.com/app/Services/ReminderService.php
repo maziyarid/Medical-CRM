@@ -76,7 +76,9 @@ final class ReminderService
                     'Y-m-d H:i:s',
                     strtotime($scheduledAt) - ($offsetMinutes * 60)
                 );
-                // Only schedule if the reminder time is in the future
+                $db->prepare("UPDATE reminder_log SET remind_at = ?, status = 'pending', updated_at = UTC_TIMESTAMP() WHERE appointment_id = ? AND remind_offset_minutes = ? AND status = 'cancelled' AND remind_at > UTC_TIMESTAMP()")
+                      ->execute([$remindAt, $appointmentId, $offsetMinutes]);
+                  // Only schedule if the reminder time is in the future
                 if (strtotime($remindAt) > time()) {
                     $stmt->execute([$appointmentId, $patientId, $clinicId, $remindAt, $offsetMinutes]);
                 }
@@ -90,7 +92,12 @@ final class ReminderService
                           remind_at, remind_offset_minutes, status, created_at, updated_at)
                      VALUES (?, ?, ?, 'email', ?, ?, 'pending', UTC_TIMESTAMP(), UTC_TIMESTAMP())"
                 );
-                foreach ($offsets as $offsetMinutes) {
+                // Reactivation/rescheduling may encounter cancelled rows under the
+              // unique key. Restore only future rows; sent rows remain untouched.
+              $db->prepare("UPDATE reminder_log SET patient_id = ?, clinic_id = ?, status = 'pending', updated_at = UTC_TIMESTAMP() WHERE appointment_id = ? AND status = 'cancelled' AND remind_at > UTC_TIMESTAMP()")
+                  ->execute([$patientId, $clinicId, $appointmentId]);
+
+              foreach ($offsets as $offsetMinutes) {
                     $remindAt = date(
                         'Y-m-d H:i:s',
                         strtotime($scheduledAt) - ($offsetMinutes * 60)
