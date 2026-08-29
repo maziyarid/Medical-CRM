@@ -28,6 +28,24 @@ BEGIN
 END$$
 DELIMITER ;
 
+-- Migration 001 defaults new intakes to clinic 1. Ensure that parent exists
+-- before validating the FK; other orphan IDs are rejected explicitly below.
+INSERT INTO clinics (id, name)
+SELECT 1, 'Default clinic'
+WHERE NOT EXISTS (SELECT 1 FROM clinics WHERE id = 1);
+
+DROP PROCEDURE IF EXISTS mazcrm_check_intake_clinic_orphans;
+DELIMITER $$
+CREATE PROCEDURE mazcrm_check_intake_clinic_orphans()
+BEGIN
+    IF EXISTS (SELECT 1 FROM intakes i LEFT JOIN clinics c ON c.id = i.clinic_id WHERE c.id IS NULL) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot add fk_intakes_clinic: intakes contain unknown clinic_id values';
+    END IF;
+END$$
+DELIMITER ;
+CALL mazcrm_check_intake_clinic_orphans();
+DROP PROCEDURE IF EXISTS mazcrm_check_intake_clinic_orphans;
+
 CALL mazcrm_add_fk_if_missing(
     'intakes',
     'fk_intakes_clinic',
