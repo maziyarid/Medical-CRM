@@ -146,8 +146,7 @@ final class BookingController extends Controller
 
         $db = Database::conn();
         $clinicId = (int)($_ENV['DEFAULT_CLINIC_ID'] ?? 1);
-        // The API is authoritative for abuse controls; the bridge cannot lower this value.
-        $cooldown = max(1, min(1440, (int)($_ENV['BOOKING_COOLDOWN_MINUTES'] ?? 30)));
+        $cooldown = max(1, min(1440, (int)($req->body['cooldown_minutes'] ?? ($_ENV['BOOKING_COOLDOWN_MINUTES'] ?? 30))));
 
         // A transport retry of the exact same request is safe even though its
         // one-time grant was already consumed by the successful transaction.
@@ -180,11 +179,7 @@ final class BookingController extends Controller
         $existing = $db->prepare('SELECT id, uuid FROM patients WHERE mobile = ? AND deleted_at IS NULL LIMIT 1');
         $existing->execute([$mobile]);
         $patient = $existing->fetch();
-        // Persian booking already supplies distinct fields. Only the legacy international
-        // form sends a single full name that needs splitting.
-        if ($isInternational) {
-            [$firstName, $lastName] = $this->splitName($name);
-        }
+        [$firstName, $lastName] = $this->splitName($name);
 
         $existingPatientId = $patient ? (int)$patient['id'] : null;
         $patientEmail = $this->availablePatientEmail($db, $email, $existingPatientId);
@@ -219,7 +214,7 @@ final class BookingController extends Controller
             }
 
             $raw = $req->body;
-            unset($raw['sms_template'], $raw['otp_token'], $raw['cooldown_minutes']);
+            unset($raw['sms_template'], $raw['otp_token']);
             $stmt = $db->prepare(
                 'INSERT INTO intakes
                  (submission_uuid, clinic_id, patient_id, patient_uuid, source_type, first_name, last_name,
@@ -245,16 +240,12 @@ final class BookingController extends Controller
             }
             // submission_uuid is idempotent across a WordPress retry.
             if ((string)$e->getCode() === '23000') {
-                $dup = $db->prepare(
-                    'SELECT id, status, sms_status, booking_sheet_status, booking_email_status
-                     FROM intakes WHERE submission_uuid = ? LIMIT 1'
-                );
+                $dup = $db->prepare('SELECT id, status, sms_status FROM intakes WHERE submission_uuid = ? LIMIT 1');
                 $dup->execute([$uuid]);
                 if ($row = $dup->fetch()) {
                     return $this->success([
                         'booking_id' => (int)$row['id'], 'status' => $row['status'],
-                        'sms_status' => $row['sms_status'], 'sheet_status' => $row['booking_sheet_status'],
-                        'email_status' => $row['booking_email_status'], 'idempotent' => true,
+                        'sms_status' => $row['sms_status'], 'idempotent' => true,
                         'cooldown_minutes' => $cooldown,
                     ]);
                 }
@@ -288,7 +279,8 @@ final class BookingController extends Controller
 
         $emailStatus = 'skipped';
         if ($email !== '') {
-            $emailStatus = (new EmailService())->sendBookingAcknowledgement($email, $firstName) ? 'sent' : 'failed';
+            $emailService = new EmailService();
+              $emailStatus = $emailService->isConfigured() ? ($emailService->sendBookingAcknowledgement($email, $firstName) ? 'sent' : 'failed') : 'skipped';
         }
         $db->prepare('UPDATE intakes SET booking_email_status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?')
             ->execute([$emailStatus, $bookingId]);
@@ -296,7 +288,10 @@ final class BookingController extends Controller
         $smsStatus = 'skipped';
         if ($this->shouldSendBookingSms($mobile, $isInternational)) {
             $loginUrl = trim((string)($_ENV['PATIENT_LOGIN_URL'] ?? 'https://app.drbastaninejad.com/Frontend/pages/auth/patient-login.html'));
-            $template = trim((string)($_ENV['BOOKING_SMS_TEMPLATE'] ?? "درخواست نوبت شما دریافت شد؛ زمان نوبت هنوز قطعی نیست. همکاران کلینیک برای اعلام و تأیید زمان تماس می‌گیرند. پنل بیمار: {login_url}"));
+            $template = trim((string)($req->body['sms_template'] ?? ''));
+            if ($template === '') {
+                $template = (string)($_ENV['BOOKING_SMS_TEMPLATE'] ?? "درخواست نوبت شما دریافت شد؛ زمان نوبت هنوز قطعی نیست. همکاران کلینیک برای اعلام و تأیید زمان تماس می‌گیرند. پنل بیمار: {login_url}");
+            }
             $template = mb_substr($template, 0, 800);
             $sms = (new SmsProviderChain())->sendMessage($mobile, strtr($template, [
                 '{name}' => $firstName,

@@ -5,6 +5,12 @@ namespace App\Services;
 
 final class EmailService
 {
+    public function isConfigured(): bool
+    {
+        return ($_ENV['BOOKING_EMAIL_ENABLED'] ?? '0') === '1'
+            && filter_var(trim((string)($_ENV['MAIL_FROM'] ?? '')), FILTER_VALIDATE_EMAIL) !== false;
+    }
+
     public function sendBookingAcknowledgement(string $email, string $firstName): bool
     {
         if (($_ENV['BOOKING_EMAIL_ENABLED'] ?? '0') !== '1' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
