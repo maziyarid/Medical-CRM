@@ -11,7 +11,11 @@ function doGet() {
 function doPost(e) {
   const lock = LockService.getScriptLock();
   try {
-    lock.waitLock(20000);
+    try {
+      lock.waitLock(20000);
+    } catch (lockError) {
+      return json_({ok: false, error: 'lock_unavailable', retryable: true});
+    }
     const body = parseBody_(e);
     const props = PropertiesService.getScriptProperties();
     const expectedSecret = String(props.getProperty('SHARED_SECRET') || '');
