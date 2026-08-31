@@ -15,7 +15,8 @@ final class IntakeModel extends Model
             'SELECT id, clinic_id, patient_id, patient_uuid, submission_uuid, source_type,
                     first_name, last_name, mobile, national_id, birth_date, birth_date_jalali,
                     service_type, chief_complaint, preferred_date, email, visit_reason, doctor_request,
-                    status, sheets_sync_status, sms_status, created_at
+                    status, sheets_sync_status, booking_sheet_status, booking_email_status,
+                    sms_status, created_at
              FROM intakes WHERE submission_uuid = ? LIMIT 1'
         );
         $stmt->execute([$submissionUuid]);
@@ -47,6 +48,24 @@ final class IntakeModel extends Model
         return $this->create($data);
     }
 
+    public function findForClinic(int $id, int $clinicId): ?array
+    {
+        $stmt = $this->db()->prepare(
+            'SELECT id, submission_uuid, patient_id, patient_uuid, source_type,
+                    first_name, last_name, mobile, national_id, birth_date, birth_date_jalali,
+                    email, service_type, chief_complaint, preferred_date, visit_reason,
+                    doctor_request, raw_payload, status, sheets_sync_status,
+                    booking_sheet_status, booking_email_status, sms_status,
+                    reviewed_by, reviewed_at, created_at, updated_at
+             FROM intakes
+             WHERE id = ? AND clinic_id = ? AND deleted_at IS NULL
+             LIMIT 1'
+        );
+        $stmt->execute([$id, $clinicId]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
     public function list(int $clinicId, int $page, int $perPage, ?string $status, string $q, ?string $sourceType = null): array
     {
         $db = $this->db();
@@ -71,8 +90,9 @@ final class IntakeModel extends Model
         $total = (int)$count->fetchColumn();
         $stmt = $db->prepare(
             "SELECT id, submission_uuid, patient_uuid, source_type, first_name, last_name,
-                    mobile, national_id, email, visit_reason, doctor_request, service_type,
+                    mobile, national_id, birth_date_jalali, email, visit_reason, doctor_request, service_type,
                     chief_complaint, preferred_date, status, sheets_sync_status, sms_status,
+                    booking_sheet_status, booking_email_status,
                     reviewed_by, reviewed_at, created_at
              FROM intakes WHERE {$where}
              ORDER BY created_at DESC LIMIT {$perPage} OFFSET {$offset}"

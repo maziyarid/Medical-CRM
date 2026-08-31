@@ -74,6 +74,27 @@ final class DashboardController extends Controller
         if ($sheetFailures > 0) {
             $attention[] = ['title' => 'همگام‌سازی Google Sheet', 'patient' => 'همگام‌سازی Google Sheet', 'item' => $sheetFailures . ' مورد ناموفق', 'status' => 'پیگیری', 'badge' => 'warning'];
         }
+        $bookingSheetFailed = $db->prepare(
+            "SELECT COUNT(*) FROM intakes
+             WHERE clinic_id = ? AND source_type = 'booking'
+               AND booking_sheet_status IN ('failed_confirmed','outcome_unknown')
+               AND deleted_at IS NULL"
+        );
+        $bookingSheetFailed->execute([$clinicId]);
+        $bookingSheetFailures = (int)$bookingSheetFailed->fetchColumn();
+        if ($bookingSheetFailures > 0) {
+            $attention[] = ['title' => 'شیت درخواست نوبت', 'patient' => 'شیت درخواست نوبت', 'item' => $bookingSheetFailures . ' مورد نیازمند پیگیری', 'status' => 'پیگیری', 'badge' => 'warning'];
+        }
+        $bookingEmailFailed = $db->prepare(
+            "SELECT COUNT(*) FROM intakes
+             WHERE clinic_id = ? AND source_type = 'booking'
+               AND booking_email_status = 'failed' AND deleted_at IS NULL"
+        );
+        $bookingEmailFailed->execute([$clinicId]);
+        $bookingEmailFailures = (int)$bookingEmailFailed->fetchColumn();
+        if ($bookingEmailFailures > 0) {
+            $attention[] = ['title' => 'ایمیل درخواست نوبت', 'patient' => 'ایمیل درخواست نوبت', 'item' => $bookingEmailFailures . ' مورد ناموفق', 'status' => 'پیگیری', 'badge' => 'warning'];
+        }
         $smsFailed = $db->prepare("SELECT COUNT(*) FROM intakes WHERE clinic_id = ? AND sms_status = 'failed' AND deleted_at IS NULL");
         $smsFailed->execute([$clinicId]);
         $smsFailures = (int)$smsFailed->fetchColumn();

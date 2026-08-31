@@ -186,6 +186,8 @@ CREATE TABLE IF NOT EXISTS `intakes` (
     `raw_payload`        JSON NULL,
     `status`             ENUM('pending','reviewed','converted','rejected') NOT NULL DEFAULT 'pending',
     `sheets_sync_status` ENUM('pending','ok','failed','skipped') NOT NULL DEFAULT 'pending',
+    `booking_sheet_status` ENUM('pending','attempting','submitted','failed_confirmed','outcome_unknown','skipped') NOT NULL DEFAULT 'pending',
+    `booking_email_status` ENUM('pending','sent','failed','skipped') NOT NULL DEFAULT 'pending',
     `sms_status`         ENUM('pending','sent','failed','skipped') NOT NULL DEFAULT 'pending',
     `sms_sent_at`        DATETIME NULL,
     `reviewed_by`        INT UNSIGNED NULL,
@@ -210,6 +212,18 @@ CREATE TABLE IF NOT EXISTS `intakes` (
         ON UPDATE CASCADE ON DELETE SET NULL,
     CONSTRAINT `fk_intakes_reviewer` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`)
         ON UPDATE CASCADE ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `booking_verifications` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `mobile` VARCHAR(15) NOT NULL,
+    `token_hash` CHAR(64) NOT NULL,
+    `expires_at` DATETIME NOT NULL,
+    `consumed_at` DATETIME NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_booking_verification_token` (`token_hash`),
+    KEY `idx_booking_verification_mobile` (`mobile`,`consumed_at`,`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `otp_codes` (

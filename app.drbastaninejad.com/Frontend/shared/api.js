@@ -455,6 +455,10 @@ export const Staff = {
     return staffRequest('GET', '/intakes' + query);
   },
 
+  async getIntake(id) {
+    return staffRequest('GET', `/intakes/${id}`);
+  },
+
   async updateIntakeStatus(id, status) {
     return staffRequest('PATCH', `/intakes/${id}/status`, { status });
   },

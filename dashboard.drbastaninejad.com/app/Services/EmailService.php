@@ -5,6 +5,22 @@ namespace App\Services;
 
 final class EmailService
 {
+    public function sendBookingAcknowledgement(string $email, string $firstName): bool
+    {
+        if (($_ENV['BOOKING_EMAIL_ENABLED'] ?? '0') !== '1' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return false;
+        }
+        $from = trim((string)($_ENV['MAIL_FROM'] ?? ''));
+        if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {
+            return false;
+        }
+        $loginUrl = trim((string)($_ENV['PATIENT_LOGIN_URL'] ?? 'https://app.drbastaninejad.com/Frontend/pages/auth/patient-login.html'));
+        $subject = 'تأیید دریافت درخواست نوبت';
+        $body = "{$firstName} عزیز،\nدرخواست نوبت شما دریافت شد؛ این پیام به معنی قطعی‌شدن زمان نوبت نیست. همکاران کلینیک برای اعلام و تأیید زمان با شما تماس می‌گیرند.\n\nورود و راه‌اندازی حساب بیمار با شماره همراه تأییدشده:\n{$loginUrl}";
+        $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: ' . $from];
+        return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
+    }
+
     public function sendRecoveryOtp(string $email, string $code): bool
     {
         if (($_ENV['EMAIL_OTP_ENABLED'] ?? '0') !== '1') {

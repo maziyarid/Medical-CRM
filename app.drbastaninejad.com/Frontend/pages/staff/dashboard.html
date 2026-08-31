@@ -48,6 +48,15 @@
       0%   { background-position: -400px 0; }
       100% { background-position: 400px 0; }
     }
+    .intake-dialog { width:min(720px,calc(100% - 2rem)); border:0; border-radius:var(--radius); padding:0; box-shadow:0 24px 70px rgba(15,40,31,.22); }
+    .intake-dialog::backdrop { background:rgba(11,32,25,.48); }
+    .intake-dialog__head { display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.25rem;border-bottom:1px solid var(--border); }
+    .intake-dialog__body { padding:1.25rem;display:grid;gap:1rem;max-height:70vh;overflow:auto; }
+    .intake-detail-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem; }
+    .intake-detail-item { background:var(--surface-subtle,#f6f8f7);border-radius:var(--radius-md);padding:.75rem;line-height:1.75;overflow-wrap:anywhere; }
+    .intake-detail-item strong { display:block;font-size:.74rem;color:var(--muted);margin-bottom:.2rem; }
+    .intake-detail-item.is-wide { grid-column:1/-1;white-space:pre-wrap; }
+    @media (max-width:640px) { .intake-detail-grid { grid-template-columns:1fr; } }
   </style>
 </head>
 <body data-shell="staff" data-nav="dashboard">
@@ -190,6 +199,14 @@
         <div id="intake-review-host"><p style="color:var(--muted)">در حال بارگذاری…</p></div>
       </section>
 
+      <dialog class="intake-dialog" id="intake-detail-dialog" aria-labelledby="intake-detail-title">
+        <div class="intake-dialog__head">
+          <h3 id="intake-detail-title" style="margin:0">جزئیات درخواست</h3>
+          <button class="btn btn-ghost btn-sm" type="button" id="intake-detail-close">بستن</button>
+        </div>
+        <div class="intake-dialog__body" id="intake-detail-body"></div>
+      </dialog>
+
     </main>
   </div>
 
@@ -224,6 +241,8 @@
     document.getElementById('appt-retry-btn')
       .addEventListener('click', loadAppointments);
     document.getElementById('intake-refresh').addEventListener('click', loadIntakeQueue);
+    const intakeDialog = document.getElementById('intake-detail-dialog');
+    document.getElementById('intake-detail-close').addEventListener('click', () => intakeDialog.close());
 
     // ── Jalali date for subtitle ─────────────────────────────────────────────
     (function () {
@@ -363,7 +382,39 @@
 
     function statusLabel(value) {
       return ({ pending:'در انتظار', reviewed:'بررسی شد', converted:'تبدیل شد', rejected:'رد شد',
-                ok:'موفق', sent:'ارسال شد', failed:'ناموفق', skipped:'رد شد/لازم نیست' })[value] || value || '—';
+                ok:'موفق', sent:'ارسال شد', failed:'ناموفق', skipped:'لازم نیست', attempting:'در حال ارسال',
+                submitted:'ثبت شد', failed_confirmed:'ناموفق قطعی', outcome_unknown:'نتیجه نامشخص' })[value] || value || '—';
+    }
+
+    function detailItem(label, value, wide = false) {
+      return '<div class="intake-detail-item' + (wide ? ' is-wide' : '') + '"><strong>' +
+        escHtml(label) + '</strong>' + escHtml(value || '—') + '</div>';
+    }
+
+    async function showIntakeDetail(id) {
+      const body = document.getElementById('intake-detail-body');
+      body.innerHTML = '<p style="color:var(--muted)">در حال بارگذاری…</p>';
+      if (typeof intakeDialog.showModal === 'function') intakeDialog.showModal();
+      else intakeDialog.setAttribute('open', '');
+      try {
+        const res = await Staff.getIntake(id);
+        const r = res.data || {};
+        const sheetStatus = r.source_type === 'booking' ? r.booking_sheet_status : r.sheets_sync_status;
+        body.innerHTML = '<div class="intake-detail-grid">' +
+          detailItem('نام بیمار', ((r.first_name || '') + ' ' + (r.last_name || '')).trim()) +
+          detailItem('منبع', r.source_type === 'booking' ? 'درخواست نوبت وب‌سایت' : 'پذیرش پزشکی') +
+          detailItem('تلفن همراه', r.mobile) + detailItem('کد ملی', r.national_id) +
+          detailItem('تاریخ تولد', r.birth_date_jalali) + detailItem('ایمیل', r.email) +
+          detailItem('وضعیت بررسی', statusLabel(r.status)) + detailItem('وضعیت شیت', statusLabel(sheetStatus)) +
+          detailItem('وضعیت پیامک', statusLabel(r.sms_status)) + detailItem('وضعیت ایمیل', statusLabel(r.source_type === 'booking' ? r.booking_email_status : 'skipped')) +
+          detailItem('تاریخچه پزشکی', r.medical_history || r.chief_complaint, true) +
+          detailItem('داروهای مصرفی', r.medications, true) +
+          detailItem('درخواست از دکتر', r.doctor_request, true) +
+          '</div>';
+      } catch (err) {
+        if (err.httpStatus === 401) { window.location.replace('../auth/login.html'); return; }
+        body.innerHTML = '<div class="state-panel state-error"><p>' + escHtml(err.message || 'جزئیات درخواست بارگذاری نشد.') + '</p></div>';
+      }
     }
 
     async function loadIntakeQueue() {
@@ -377,23 +428,29 @@
           return;
         }
         host.innerHTML = '<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem">' +
-          '<thead><tr><th>بیمار</th><th>منبع</th><th>ایمیل</th><th>علت/درخواست</th><th>Sheet</th><th>SMS</th><th>وضعیت</th><th>اقدام</th></tr></thead>' +
+          '<thead><tr><th>بیمار</th><th>منبع</th><th>ایمیل</th><th>علت/درخواست</th><th>Sheet</th><th>ایمیل تأیید</th><th>SMS</th><th>وضعیت</th><th>اقدام</th></tr></thead>' +
           '<tbody>' + rows.map(r => {
             const detail = [r.visit_reason, r.doctor_request].filter(Boolean).join(' — ');
+            const sheetStatus = r.source_type === 'booking' ? r.booking_sheet_status : r.sheets_sync_status;
             return '<tr style="border-top:1px solid var(--border)">' +
               '<td style="padding:.65rem">' + escHtml((r.first_name||'')+' '+(r.last_name||'')) + '<br><span dir="ltr">' + escHtml(r.mobile||'') + '</span></td>' +
               '<td style="padding:.65rem">' + escHtml(r.source_type === 'booking' ? 'رزرو وب‌سایت' : 'پذیرش') + '</td>' +
               '<td style="padding:.65rem">' + escHtml(r.email||'—') + '</td>' +
               '<td style="padding:.65rem;max-width:280px;white-space:normal">' + escHtml(detail||r.chief_complaint||'—') + '</td>' +
-              '<td style="padding:.65rem">' + escHtml(statusLabel(r.sheets_sync_status)) + '</td>' +
+              '<td style="padding:.65rem">' + escHtml(statusLabel(sheetStatus)) + '</td>' +
+              '<td style="padding:.65rem">' + escHtml(statusLabel(r.source_type === 'booking' ? r.booking_email_status : 'skipped')) + '</td>' +
               '<td style="padding:.65rem">' + escHtml(statusLabel(r.sms_status)) + '</td>' +
               '<td style="padding:.65rem">' + escHtml(statusLabel(r.status)) + '</td>' +
               '<td style="padding:.65rem;white-space:nowrap">' +
+                '<button class="btn btn-ghost btn-sm intake-detail" data-id="'+Number(r.id)+'">جزئیات</button> ' +
                 '<button class="btn btn-ghost btn-sm intake-action" data-id="'+Number(r.id)+'" data-status="reviewed">بررسی شد</button> ' +
                 '<button class="btn btn-ghost btn-sm intake-action" data-id="'+Number(r.id)+'" data-status="converted">تبدیل</button> ' +
                 '<button class="btn btn-ghost btn-sm intake-action" data-id="'+Number(r.id)+'" data-status="rejected">رد</button>' +
               '</td></tr>';
           }).join('') + '</tbody></table></div>';
+        host.querySelectorAll('.intake-detail').forEach(btn => btn.addEventListener('click', () => {
+          showIntakeDetail(Number(btn.dataset.id));
+        }));
         host.querySelectorAll('.intake-action').forEach(btn => btn.addEventListener('click', async () => {
           btn.disabled = true;
           try {

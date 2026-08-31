@@ -11,6 +11,10 @@ $router->get('/api/v1/intakes', [IntakeController::class, 'index'], [
     AuthMiddleware::class,
     fn() => new RbacMiddleware('intakes.view'),
 ]);
+$router->get('/api/v1/intakes/{id}', [IntakeController::class, 'show'], [
+    AuthMiddleware::class,
+    fn() => new RbacMiddleware('intakes.view'),
+]);
 $router->patch('/api/v1/intakes/{id}/status', [IntakeController::class, 'updateStatus'], [
     AuthMiddleware::class,
     fn() => new RbacMiddleware('intakes.manage'),
