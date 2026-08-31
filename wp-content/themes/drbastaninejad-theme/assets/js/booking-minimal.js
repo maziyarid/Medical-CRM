@@ -43,14 +43,24 @@
       (help ? '<small>' + help + '</small>' : '') + '</label>';
   }
 
-  function mount() {
-    if (document.querySelector('[data-drb-minimal-booking]')) return;
+  function findLegacyForm() {
     var forms = document.querySelectorAll('form');
-    var legacy = null;
     for (var i = 0; i < forms.length; i++) {
-      if (forms[i].querySelector('input[type="tel"]') && forms[i].querySelector('input[type="number"]')) {
-        legacy = forms[i]; break;
+      if (!forms[i].hasAttribute('data-drb-minimal-booking') &&
+          forms[i].querySelector('input[type="tel"]') &&
+          forms[i].querySelector('input[type="number"]')) {
+        return forms[i];
       }
+    }
+    return null;
+  }
+
+  function mount() {
+    var legacy = findLegacyForm();
+    var existing = document.querySelector('[data-drb-minimal-booking]');
+    if (existing) {
+      if (legacy) legacy.hidden = true;
+      return;
     }
     if (!legacy || !legacy.parentNode) return;
 
