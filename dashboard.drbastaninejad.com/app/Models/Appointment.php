@@ -14,6 +14,13 @@ final class Appointment extends Model
 {
     protected string $table = 'appointments';
 
+    public function findForClinic(int $id, int $clinicId): ?array
+    {
+        $stmt = $this->db()->prepare('SELECT * FROM appointments WHERE id = ? AND clinic_id = ? AND deleted_at IS NULL LIMIT 1');
+        $stmt->execute([$id, $clinicId]);
+        return $stmt->fetch() ?: null;
+    }
+
     /** Range query for calendar rendering — inclusive of both bounds, clinic-scoped. */
     public function inRange(int $clinicId, string $from, string $to, ?int $providerId = null): array
     {
@@ -106,11 +113,14 @@ final class Appointment extends Model
         return (int)$stmt->fetchColumn() > 0;
     }
 
-    public function reschedule(int $id, string $scheduledAt, ?int $durationMinutes = null): void
+    public function reschedule(int $id, string $scheduledAt, ?int $durationMinutes = null, ?string $room = null): void
     {
         $data = ['scheduled_at' => $scheduledAt];
         if ($durationMinutes !== null) {
             $data['duration_minutes'] = $durationMinutes;
+        }
+        if ($room !== null) {
+            $data['room'] = $room;
         }
         $this->update($id, $data);
     }
