@@ -162,11 +162,6 @@ function drb_booking_bridge_secret() {
     return $env ? (string) $env : '';
 }
 
-function drb_booking_sms_template() {
-    $default = 'درخواست نوبت شما ثبت شد. همکاران کلینیک برای هماهنگی تماس می‌گیرند. پنل بیمار: {login_url}';
-    return (string) get_option( 'drb_booking_sms_template', $default );
-}
-
 function drb_booking_cooldown_minutes() {
     return max( 1, min( 1440, (int) get_option( 'drb_booking_cooldown_minutes', 30 ) ) );
 }
@@ -382,8 +377,6 @@ function drb_proxy_appointment_to_dashboard( array $data, $name, $mobile, $email
         'otp_token' => sanitize_text_field( $data['otpToken'] ?? $data['otp_token'] ?? '' ),
         'age' => absint( strtr( (string) ( $data['age'] ?? 0 ), array( '۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9' ) ) ),
         'previous_surgery_months' => absint( strtr( (string) ( $data['previousSurgeryMonths'] ?? 0 ), array( '۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9' ) ) ),
-        'cooldown_minutes' => $cooldown,
-        'sms_template' => drb_booking_sms_template(),
         'source' => 'wordpress_booking',
         'language' => function_exists( 'drb_detect_lang' ) ? drb_detect_lang() : 'fa',
     );
