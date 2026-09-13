@@ -10,6 +10,60 @@ namespace App\Services;
  */
 final class GoogleSheetsService
 {
+    /** @return 'submitted'|'failed_confirmed'|'outcome_unknown'|'skipped' */
+    public function appendBooking(int $bookingId, string $submissionUuid, array $data): string
+    {
+        if (($_ENV['BOOKING_SHEET_WRITE_ENABLED'] ?? '0') !== '1') {
+            return 'skipped';
+        }
+        $url = trim((string)($_ENV['BOOKING_SHEET_WEBHOOK_URL'] ?? ''));
+        $secret = trim((string)($_ENV['BOOKING_SHEET_SHARED_SECRET'] ?? ''));
+        if ($url === '' || $secret === '') {
+            return 'skipped';
+        }
+        $payload = [
+            'secret' => $secret,
+            'submission_uuid' => $submissionUuid,
+            'row' => BookingSheetRowBuilder::build($data),
+        ];
+        $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($json === false) {
+            return 'failed_confirmed';
+        }
+        $headers = "Content-Type: application/json; charset=UTF-8\r\nAccept: application/json\r\n";
+        $ctx = stream_context_create(['http' => [
+            'method' => 'POST', 'header' => $headers, 'content' => $json,
+            'timeout' => 15, 'ignore_errors' => true,
+        ]]);
+        try {
+            $response = @file_get_contents($url, false, $ctx);
+            if ($response === false) {
+                return 'outcome_unknown';
+            }
+            $statusLine = $http_response_header[0] ?? '';
+            $status = preg_match('/\s(\d{3})\s/', $statusLine, $m) ? (int)$m[1] : 0;
+            $decoded = json_decode($response, true);
+            if ($status >= 200 && $status < 300 && is_array($decoded) && !empty($decoded['ok'])) {
+                return 'submitted';
+            }
+            // Apps Script can report transient lock contention as an application-level
+            // retryable response. That does not prove a permanent failure or whether a
+            // previous attempt wrote the row, so keep it reconcilable.
+            if (is_array($decoded) && !empty($decoded['retryable'])) {
+                return 'outcome_unknown';
+            }
+            // ContentService often replies HTTP 200 even for an explicit application rejection.
+            if (is_array($decoded) && array_key_exists('ok', $decoded) && !$decoded['ok']) {
+                return 'failed_confirmed';
+            }
+            // Transport/server status alone cannot prove whether the remote write happened.
+            return 'outcome_unknown';
+        } catch (\Throwable $e) {
+            error_log('[GoogleSheetsService] booking ' . $bookingId . ' outcome unknown: ' . $e->getMessage());
+            return 'outcome_unknown';
+        }
+    }
+
     /** @return 'ok'|'failed'|'skipped' */
     public function appendIntake(int $intakeId, array $data): string
     {

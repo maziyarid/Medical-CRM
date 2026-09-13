@@ -6,6 +6,11 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Database;
 use App\Core\Request;
+use App\Services\BookingSheetRowBuilder;
+use App\Services\BookingVerificationService;
+use App\Services\EmailService;
+use App\Services\GoogleSheetsService;
+use App\Services\OtpService;
 use App\Services\SmsProviderChain;
 use App\Validators\ValidatorService;
 
@@ -17,6 +22,45 @@ use App\Validators\ValidatorService;
  */
 final class BookingController extends Controller
 {
+    public function sendOtp(Request $req): array
+    {
+        if (!$this->authorised($req)) {
+            return $this->error('دسترسی پل رزرو معتبر نیست.', 401);
+        }
+        $mobile = ValidatorService::normalizeMobile(trim((string)($req->body['mobile'] ?? '')));
+        if (!ValidatorService::isValidMobile($mobile)) {
+            return $this->validationError([['field' => 'mobile', 'message' => 'شماره موبایل معتبر نیست']]);
+        }
+        $otp = new OtpService();
+        if ($otp->isGloballyRateLimited() || $otp->isRateLimited($mobile, 'patient', 'register')) {
+            return $this->error('تعداد درخواست‌های کد تأیید بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.', 429);
+        }
+        if (!$otp->sendSms($mobile, 'patient', 'register')) {
+            return $this->error('ارسال کد تأیید با خطا مواجه شد. لطفاً دوباره تلاش کنید.', 503);
+        }
+        return $this->success(['message' => 'کد تأیید ارسال شد.', 'expires_in' => 300]);
+    }
+
+    public function verifyOtp(Request $req): array
+    {
+        if (!$this->authorised($req)) {
+            return $this->error('دسترسی پل رزرو معتبر نیست.', 401);
+        }
+        $mobile = ValidatorService::normalizeMobile(trim((string)($req->body['mobile'] ?? '')));
+        $code = ValidatorService::normalizePersianDigits(trim((string)($req->body['otp'] ?? '')));
+        if (!ValidatorService::isValidMobile($mobile) || !preg_match('/^\d{5}$/', $code)) {
+            return $this->validationError([['field' => 'otp', 'message' => 'شماره همراه یا کد تأیید معتبر نیست']]);
+        }
+        $result = (new OtpService())->verify($mobile, $code, 'patient', 'register');
+        if ($result === 'expired') {
+            return $this->error('کد تأیید منقضی شده است. کد جدید دریافت کنید.', 410);
+        }
+        if ($result !== 'ok') {
+            return $this->error('کد تأیید نامعتبر است.', $result === 'locked' ? 429 : 401);
+        }
+        return $this->success((new BookingVerificationService())->issue($mobile));
+    }
+
     public function store(Request $req): array
     {
         if (!$this->authorised($req)) {
@@ -24,11 +68,20 @@ final class BookingController extends Controller
         }
 
         $mobile = ValidatorService::normalizeMobile(trim((string)($req->body['mobile'] ?? '')));
-        $name = trim((string)($req->body['name'] ?? ''));
+        $firstName = trim((string)($req->body['first_name'] ?? ''));
+        $lastName = trim((string)($req->body['last_name'] ?? ''));
+        $name = trim((string)($req->body['name'] ?? trim($firstName . ' ' . $lastName)));
         $email = trim((string)($req->body['email'] ?? ''));
         $procedure = trim((string)($req->body['procedure'] ?? ''));
         $message = trim((string)($req->body['message'] ?? ''));
         $uuid = trim((string)($req->body['submission_uuid'] ?? ''));
+        $birthDateJalali = ValidatorService::normalizePersianDigits(trim((string)($req->body['birth_date_jalali'] ?? '')));
+        $birthDateJalali = str_replace('-', '/', $birthDateJalali);
+        $nationalId = ValidatorService::normalizePersianDigits(trim((string)($req->body['national_id'] ?? '')));
+        $medicalHistory = trim((string)($req->body['medical_history'] ?? ''));
+        $medications = trim((string)($req->body['medications'] ?? ''));
+        $doctorRequest = trim((string)($req->body['doctor_request'] ?? $message));
+        $verificationToken = trim((string)($req->body['otp_token'] ?? ''));
         // Non-Persian bookings (en/ar/tr/ru/fr/de/es) come from international
         // patients whose mobile may not be Iranian. Accept E.164-ish numbers for
         // those and require an email so the clinic can reach them.
@@ -38,7 +91,13 @@ final class BookingController extends Controller
             $mobile = ValidatorService::normalizeMobileInternational(trim((string)($req->body['mobile'] ?? '')));
         }
         $errors = [];
-        if (mb_strlen($name) < 2 || mb_strlen($name) > 200) {
+        if (!$isInternational && (mb_strlen($firstName) < 2 || mb_strlen($firstName) > 100)) {
+            $errors[] = ['field' => 'first_name', 'message' => 'نام معتبر الزامی است'];
+        }
+        if (!$isInternational && (mb_strlen($lastName) < 2 || mb_strlen($lastName) > 100)) {
+            $errors[] = ['field' => 'last_name', 'message' => 'نام خانوادگی معتبر الزامی است'];
+        }
+        if ($isInternational && (mb_strlen($name) < 2 || mb_strlen($name) > 200)) {
             $errors[] = ['field' => 'name', 'message' => 'نام معتبر الزامی است'];
         }
         if ($isInternational) {
@@ -50,6 +109,24 @@ final class BookingController extends Controller
             }
         } elseif (!ValidatorService::isValidMobile($mobile)) {
             $errors[] = ['field' => 'mobile', 'message' => 'شماره موبایل معتبر نیست'];
+        }
+        if (!$isInternational && !ValidatorService::isValidJalaliDate($birthDateJalali)) {
+            $errors[] = ['field' => 'birth_date_jalali', 'message' => 'تاریخ تولد شمسی معتبر نیست'];
+        }
+        if (!$isInternational && !ValidatorService::isValidNationalId($nationalId)) {
+            $errors[] = ['field' => 'national_id', 'message' => 'کد ملی معتبر نیست'];
+        }
+        foreach ([
+            'medical_history' => $medicalHistory,
+            'medications' => $medications,
+            'doctor_request' => $doctorRequest,
+        ] as $field => $value) {
+            if (!$isInternational && (mb_strlen($value) < 2 || mb_strlen($value) > 2000)) {
+                $errors[] = ['field' => $field, 'message' => 'این فیلد باید بین ۲ تا ۲۰۰۰ کاراکتر باشد'];
+            }
+        }
+        if (!$isInternational && !preg_match('/^[a-f0-9]{64}$/', $verificationToken)) {
+            $errors[] = ['field' => 'otp_token', 'message' => 'تأیید شماره همراه الزامی است'];
         }
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = ['field' => 'email', 'message' => 'ایمیل معتبر نیست'];
@@ -69,7 +146,24 @@ final class BookingController extends Controller
 
         $db = Database::conn();
         $clinicId = (int)($_ENV['DEFAULT_CLINIC_ID'] ?? 1);
-        $cooldown = max(1, min(1440, (int)($req->body['cooldown_minutes'] ?? ($_ENV['BOOKING_COOLDOWN_MINUTES'] ?? 30))));
+        // The API is authoritative for abuse controls; the bridge cannot lower this value.
+        $cooldown = max(1, min(1440, (int)($_ENV['BOOKING_COOLDOWN_MINUTES'] ?? 30)));
+
+        // A transport retry of the exact same request is safe even though its
+        // one-time grant was already consumed by the successful transaction.
+        $sameRequest = $db->prepare(
+            'SELECT id, status, sms_status, booking_sheet_status, booking_email_status
+             FROM intakes WHERE submission_uuid = ? AND source_type = "booking" LIMIT 1'
+        );
+        $sameRequest->execute([$uuid]);
+        if ($row = $sameRequest->fetch()) {
+            return $this->success([
+                'booking_id' => (int)$row['id'], 'status' => $row['status'],
+                'sms_status' => $row['sms_status'], 'sheet_status' => $row['booking_sheet_status'],
+                'email_status' => $row['booking_email_status'], 'idempotent' => true,
+                'cooldown_minutes' => $cooldown,
+            ]);
+        }
 
         // Backend rate limit is authoritative even if WordPress cache/transients are bypassed.
         $recent = $db->prepare(
@@ -80,19 +174,17 @@ final class BookingController extends Controller
         );
         $recent->execute([$mobile, $cooldown]);
         if ($row = $recent->fetch()) {
-            return $this->success([
-                'booking_id' => (int)$row['id'],
-                'status' => $row['status'],
-                'sms_status' => $row['sms_status'],
-                'idempotent' => true,
-                'cooldown_minutes' => $cooldown,
-            ]);
+            return $this->error('درخواست این شماره به‌تازگی ثبت شده است. زمان نوبت پس از تماس کلینیک قطعی می‌شود.', 429);
         }
 
         $existing = $db->prepare('SELECT id, uuid FROM patients WHERE mobile = ? AND deleted_at IS NULL LIMIT 1');
         $existing->execute([$mobile]);
         $patient = $existing->fetch();
-        [$firstName, $lastName] = $this->splitName($name);
+        // Persian booking already supplies distinct fields. Only the legacy international
+        // form sends a single full name that needs splitting.
+        if ($isInternational) {
+            [$firstName, $lastName] = $this->splitName($name);
+        }
 
         $existingPatientId = $patient ? (int)$patient['id'] : null;
         $patientEmail = $this->availablePatientEmail($db, $email, $existingPatientId);
@@ -102,37 +194,47 @@ final class BookingController extends Controller
 
         $db->beginTransaction();
         try {
+            if (!$isInternational && !(new BookingVerificationService())->consume($db, $mobile, $verificationToken)) {
+                throw new \RuntimeException('BOOKING_OTP_INVALID');
+            }
+            $birthDate = $isInternational ? null : ValidatorService::jalaliToGregorian($birthDateJalali);
             if ($patient) {
                 $patientId = (int)$patient['id'];
                 $patientUuid = (string)$patient['uuid'];
                 $db->prepare(
                     'UPDATE patients SET clinic_id = ?, first_name = COALESCE(NULLIF(?, ""), first_name),
                         last_name = COALESCE(NULLIF(?, ""), last_name), email = COALESCE(?, email),
+                        national_id = COALESCE(NULLIF(?, ""), national_id),
+                        birth_date = COALESCE(?, birth_date), birth_date_jalali = COALESCE(NULLIF(?, ""), birth_date_jalali),
                         updated_at = UTC_TIMESTAMP() WHERE id = ?'
-                )->execute([$clinicId, $firstName, $lastName, $patientEmail, $patientId]);
+                )->execute([$clinicId, $firstName, $lastName, $patientEmail, $nationalId, $birthDate, $birthDateJalali, $patientId]);
             } else {
                 $patientUuid = bin2hex(random_bytes(16));
                 $db->prepare(
-                    'INSERT INTO patients (uuid, clinic_id, first_name, last_name, mobile, email, insurance_status, created_at, updated_at)
-                     VALUES (?, ?, ?, ?, ?, ?, "pending", UTC_TIMESTAMP(), UTC_TIMESTAMP())'
-                )->execute([$patientUuid, $clinicId, $firstName, $lastName, $mobile, $patientEmail]);
+                    'INSERT INTO patients (uuid, clinic_id, first_name, last_name, mobile, email, national_id,
+                                           birth_date, birth_date_jalali, insurance_status, created_at, updated_at)
+                     VALUES (?, ?, ?, ?, ?, ?, NULLIF(?, ""), ?, NULLIF(?, ""), "pending", UTC_TIMESTAMP(), UTC_TIMESTAMP())'
+                )->execute([$patientUuid, $clinicId, $firstName, $lastName, $mobile, $patientEmail, $nationalId, $birthDate, $birthDateJalali]);
                 $patientId = (int)$db->lastInsertId();
             }
 
             $raw = $req->body;
-            unset($raw['sms_template']);
+            unset($raw['sms_template'], $raw['otp_token'], $raw['cooldown_minutes']);
             $stmt = $db->prepare(
                 'INSERT INTO intakes
                  (submission_uuid, clinic_id, patient_id, patient_uuid, source_type, first_name, last_name,
-                  mobile, national_id, chief_complaint, service_type, email, visit_reason, doctor_request,
-                  raw_payload, status, sheets_sync_status, sms_status, created_at, updated_at)
-                 VALUES (?, ?, ?, ?, "booking", ?, ?, ?, NULL, ?, NULLIF(?, ""), NULLIF(?, ""), NULLIF(?, ""),
-                         NULLIF(?, ""), ?, "pending", "skipped", "pending", UTC_TIMESTAMP(), UTC_TIMESTAMP())'
+                  mobile, national_id, birth_date, birth_date_jalali, chief_complaint, service_type, email,
+                  visit_reason, doctor_request, raw_payload, status, sheets_sync_status, booking_sheet_status,
+                  booking_email_status, sms_status, created_at, updated_at)
+                 VALUES (?, ?, ?, ?, "booking", ?, ?, ?, NULLIF(?, ""), ?, NULLIF(?, ""), ?, NULLIF(?, ""),
+                         NULLIF(?, ""), NULLIF(?, ""), NULLIF(?, ""), ?, "pending", "pending", "pending",
+                         "pending", "pending", UTC_TIMESTAMP(), UTC_TIMESTAMP())'
             );
             $stmt->execute([
                 $uuid, $clinicId, $patientId, $patientUuid, $firstName, $lastName, $mobile,
-                $message !== '' ? $message : ($procedure !== '' ? $procedure : 'درخواست نوبت'),
-                $procedure, $email, $procedure, $message,
+                $nationalId, $birthDate, $birthDateJalali,
+                $medicalHistory !== '' ? $medicalHistory : ($message !== '' ? $message : 'درخواست نوبت'),
+                $procedure, $email, $procedure, $doctorRequest,
                 json_encode($raw, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             ]);
             $bookingId = (int)$db->lastInsertId();
@@ -143,12 +245,16 @@ final class BookingController extends Controller
             }
             // submission_uuid is idempotent across a WordPress retry.
             if ((string)$e->getCode() === '23000') {
-                $dup = $db->prepare('SELECT id, status, sms_status FROM intakes WHERE submission_uuid = ? LIMIT 1');
+                $dup = $db->prepare(
+                    'SELECT id, status, sms_status, booking_sheet_status, booking_email_status
+                     FROM intakes WHERE submission_uuid = ? LIMIT 1'
+                );
                 $dup->execute([$uuid]);
                 if ($row = $dup->fetch()) {
                     return $this->success([
                         'booking_id' => (int)$row['id'], 'status' => $row['status'],
-                        'sms_status' => $row['sms_status'], 'idempotent' => true,
+                        'sms_status' => $row['sms_status'], 'sheet_status' => $row['booking_sheet_status'],
+                        'email_status' => $row['booking_email_status'], 'idempotent' => true,
                         'cooldown_minutes' => $cooldown,
                     ]);
                 }
@@ -159,17 +265,38 @@ final class BookingController extends Controller
             if ($db->inTransaction()) {
                 $db->rollBack();
             }
+            if ($e->getMessage() === 'BOOKING_OTP_INVALID') {
+                return $this->error('تأیید شماره همراه منقضی یا قبلاً استفاده شده است. کد جدید دریافت کنید.', 401);
+            }
             error_log('[BookingController] booking transaction failed: ' . $e->getMessage());
             return $this->error('ثبت درخواست نوبت انجام نشد.', 500);
         }
 
+        $sheetData = [
+            'first_name' => $firstName, 'last_name' => $lastName,
+            'birth_date_jalali' => $birthDateJalali, 'mobile' => $mobile,
+            'national_id' => $nationalId, 'email' => $email,
+            'medical_history' => $medicalHistory, 'medications' => $medications,
+            'doctor_request' => $doctorRequest,
+        ];
+        $db->prepare('UPDATE intakes SET booking_sheet_status = "attempting", updated_at = UTC_TIMESTAMP() WHERE id = ?')
+            ->execute([$bookingId]);
+        $sheetStatus = (new GoogleSheetsService())->appendBooking($bookingId, $uuid, $sheetData);
+        $legacySheetStatus = $sheetStatus === 'submitted' ? 'ok' : ($sheetStatus === 'skipped' ? 'skipped' : 'failed');
+        $db->prepare('UPDATE intakes SET booking_sheet_status = ?, sheets_sync_status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?')
+            ->execute([$sheetStatus, $legacySheetStatus, $bookingId]);
+
+        $emailStatus = 'skipped';
+        if ($email !== '') {
+            $emailStatus = (new EmailService())->sendBookingAcknowledgement($email, $firstName) ? 'sent' : 'failed';
+        }
+        $db->prepare('UPDATE intakes SET booking_email_status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?')
+            ->execute([$emailStatus, $bookingId]);
+
         $smsStatus = 'skipped';
         if ($this->shouldSendBookingSms($mobile, $isInternational)) {
             $loginUrl = trim((string)($_ENV['PATIENT_LOGIN_URL'] ?? 'https://app.drbastaninejad.com/Frontend/pages/auth/patient-login.html'));
-            $template = trim((string)($req->body['sms_template'] ?? ''));
-            if ($template === '') {
-                $template = (string)($_ENV['BOOKING_SMS_TEMPLATE'] ?? "درخواست نوبت شما ثبت شد. همکاران کلینیک برای هماهنگی تماس می‌گیرند. پنل بیمار: {login_url}");
-            }
+            $template = trim((string)($_ENV['BOOKING_SMS_TEMPLATE'] ?? "درخواست نوبت شما دریافت شد؛ زمان نوبت هنوز قطعی نیست. همکاران کلینیک برای اعلام و تأیید زمان تماس می‌گیرند. پنل بیمار: {login_url}"));
             $template = mb_substr($template, 0, 800);
             $sms = (new SmsProviderChain())->sendMessage($mobile, strtr($template, [
                 '{name}' => $firstName,
@@ -188,6 +315,8 @@ final class BookingController extends Controller
             'booking_id' => $bookingId,
             'status' => 'pending',
             'sms_status' => $smsStatus,
+            'sheet_status' => $sheetStatus,
+            'email_status' => $emailStatus,
             'idempotent' => false,
             'cooldown_minutes' => $cooldown,
         ], 201);
@@ -204,7 +333,11 @@ final class BookingController extends Controller
                     SUM(created_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)) AS last_7_days,
                     SUM(status = "pending") AS pending,
                     SUM(sms_status = "sent") AS sms_sent,
-                    SUM(sms_status = "failed") AS sms_failed
+                    SUM(sms_status = "failed") AS sms_failed,
+                    SUM(booking_sheet_status = "submitted") AS sheet_submitted,
+                    SUM(booking_sheet_status IN ("failed_confirmed","outcome_unknown")) AS sheet_attention,
+                    SUM(booking_email_status = "sent") AS email_sent,
+                    SUM(booking_email_status = "failed") AS email_failed
              FROM intakes WHERE clinic_id = ? AND source_type = "booking" AND deleted_at IS NULL'
         );
         $stmt->execute([$clinicId]);
@@ -215,6 +348,10 @@ final class BookingController extends Controller
             'pending' => (int)($r['pending'] ?? 0),
             'sms_sent' => (int)($r['sms_sent'] ?? 0),
             'sms_failed' => (int)($r['sms_failed'] ?? 0),
+            'sheet_submitted' => (int)($r['sheet_submitted'] ?? 0),
+            'sheet_attention' => (int)($r['sheet_attention'] ?? 0),
+            'email_sent' => (int)($r['email_sent'] ?? 0),
+            'email_failed' => (int)($r['email_failed'] ?? 0),
         ]);
     }
 

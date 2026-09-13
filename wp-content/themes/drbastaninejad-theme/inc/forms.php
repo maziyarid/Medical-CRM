@@ -9,8 +9,70 @@ function drb_register_form_routes() {
             'permission_callback' => '__return_true',
         ) );
     }
+    register_rest_route( 'drb/v1', '/booking-otp/send', array(
+        'methods' => WP_REST_Server::CREATABLE,
+        'callback' => function( WP_REST_Request $request ) { return drb_proxy_booking_otp( $request, 'send' ); },
+        'permission_callback' => '__return_true',
+    ) );
+    register_rest_route( 'drb/v1', '/booking-otp/verify', array(
+        'methods' => WP_REST_Server::CREATABLE,
+        'callback' => function( WP_REST_Request $request ) { return drb_proxy_booking_otp( $request, 'verify' ); },
+        'permission_callback' => '__return_true',
+    ) );
 }
 add_action( 'rest_api_init', 'drb_register_form_routes' );
+
+function drb_proxy_booking_otp( WP_REST_Request $request, $action ) {
+    if ( ! drb_verify_public_form_nonce( $request ) ) {
+        return new WP_Error( 'invalid_nonce', drb_form_error_message( 'نشست فرم منقضی شده است. صفحه را تازه‌سازی کنید.' ), array( 'status' => 403 ) );
+    }
+    $secret = drb_booking_bridge_secret();
+    if ( '' === $secret ) {
+        return new WP_Error( 'booking_bridge_unconfigured', drb_form_error_message( 'سامانه تأیید شماره همراه موقتاً در دسترس نیست.' ), array( 'status' => 503 ) );
+    }
+    $data = (array) $request->get_json_params();
+    $mobile = drb_normalize_mobile( $data['mobile'] ?? '' );
+    $payload = array( 'mobile' => $mobile );
+    if ( 'verify' === $action ) {
+        $payload['otp'] = preg_replace( '/\D+/', '', drb_ascii_digits( (string) ( $data['otp'] ?? '' ) ) );
+    }
+    if ( ! $mobile ) {
+        return new WP_Error( 'invalid_mobile', drb_form_error_message( 'شماره موبایل معتبر نیست.' ), array( 'status' => 422 ) );
+    }
+    $ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+    $rate_key = 'drb_booking_otp_' . hash( 'sha256', $ip . '|' . $mobile . '|' . $action );
+    $count = (int) get_transient( $rate_key );
+    if ( $count >= ( 'send' === $action ? 4 : 8 ) ) {
+        return new WP_Error( 'rate_limited', drb_form_error_message( 'تعداد تلاش‌ها بیش از حد مجاز است. کمی بعد دوباره امتحان کنید.' ), array( 'status' => 429 ) );
+    }
+    set_transient( $rate_key, $count + 1, 10 * MINUTE_IN_SECONDS );
+    $response = wp_remote_post( drb_dashboard_api_base() . '/bookings/otp/' . $action, array(
+        'timeout' => 20, 'redirection' => 0, 'sslverify' => true,
+        'reject_unsafe_urls' => true, 'httpversion' => '1.1',
+        'headers' => array(
+            'Accept' => 'application/json', 'Content-Type' => 'application/json; charset=utf-8',
+            'X-WordPress-Bridge-Secret' => $secret,
+        ),
+        'body' => wp_json_encode( $payload ),
+    ) );
+    if ( is_wp_error( $response ) ) {
+        return new WP_Error( 'booking_otp_transport', drb_form_error_message( 'ارتباط با سامانه پیامک برقرار نشد.' ), array( 'status' => 503 ) );
+    }
+    $status = (int) wp_remote_retrieve_response_code( $response );
+    $decoded = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+    if ( $status < 200 || $status >= 300 || ! is_array( $decoded ) || empty( $decoded['ok'] ) ) {
+        $message = is_array( $decoded ) && ! empty( $decoded['errors'][0]['message'] )
+            ? sanitize_text_field( (string) $decoded['errors'][0]['message'] )
+            : drb_form_error_message( 'تأیید شماره همراه انجام نشد.' );
+        return new WP_Error( 'booking_otp_failed', $message, array( 'status' => $status >= 400 ? $status : 502 ) );
+    }
+    return new WP_REST_Response( array(
+        'success' => true,
+        'message' => sanitize_text_field( (string) ( $decoded['data']['message'] ?? 'شماره همراه تأیید شد.' ) ),
+        'verificationToken' => sanitize_text_field( (string) ( $decoded['data']['verification_token'] ?? '' ) ),
+        'expiresIn' => (int) ( $decoded['data']['expires_in'] ?? 0 ),
+    ), $status );
+}
 
 function drb_normalize_mobile( $raw ) {
     $digits = strtr( (string) $raw, array(
@@ -22,6 +84,16 @@ function drb_normalize_mobile( $raw ) {
     elseif ( 0 === strpos( $digits, '98' ) && 12 === strlen( $digits ) ) $digits = '0' . substr( $digits, 2 );
     elseif ( 10 === strlen( $digits ) && '9' === $digits[0] ) $digits = '0' . $digits;
     return preg_match( '/^09\d{9}$/', $digits ) ? $digits : '';
+}
+
+function drb_is_valid_national_id( $raw ) {
+    $id = preg_replace( '/\D+/', '', drb_ascii_digits( (string) $raw ) );
+    if ( ! preg_match( '/^\d{10}$/', $id ) || preg_match( '/^(\d)\1{9}$/', $id ) ) return false;
+    $sum = 0;
+    for ( $i = 0; $i < 9; $i++ ) $sum += (int) $id[ $i ] * ( 10 - $i );
+    $remainder = $sum % 11;
+    $expected = $remainder < 2 ? $remainder : 11 - $remainder;
+    return (int) $id[9] === $expected;
 }
 
 /**
@@ -88,11 +160,6 @@ function drb_booking_bridge_secret() {
     if ( defined( 'DRB_WORDPRESS_BRIDGE_SECRET' ) && DRB_WORDPRESS_BRIDGE_SECRET ) return (string) DRB_WORDPRESS_BRIDGE_SECRET;
     $env = getenv( 'WORDPRESS_BRIDGE_SECRET' );
     return $env ? (string) $env : '';
-}
-
-function drb_booking_sms_template() {
-    $default = 'درخواست نوبت شما ثبت شد. همکاران کلینیک برای هماهنگی تماس می‌گیرند. پنل بیمار: {login_url}';
-    return (string) get_option( 'drb_booking_sms_template', $default );
 }
 
 function drb_booking_cooldown_minutes() {
@@ -190,7 +257,9 @@ function drb_process_submission( WP_REST_Request $request, $kind ) {
     if ( $count >= 5 ) return new WP_Error( 'rate_limited', drb_form_error_message( 'تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.' ), array( 'status' => 429 ) );
     set_transient( $rate_key, $count + 1, 10 * MINUTE_IN_SECONDS );
 
-    $name   = sanitize_text_field( $data['name'] ?? $data['fullName'] ?? '' );
+    $first_name = sanitize_text_field( $data['firstName'] ?? $data['first_name'] ?? '' );
+    $last_name = sanitize_text_field( $data['lastName'] ?? $data['last_name'] ?? '' );
+    $name   = sanitize_text_field( $data['name'] ?? $data['fullName'] ?? trim( $first_name . ' ' . $last_name ) );
     $is_non_fa = drb_is_non_fa_lang();
     $country = sanitize_text_field( $data['country'] ?? '' );
     $dial_code = preg_replace( '/[^+0-9]/', '', drb_ascii_digits( (string) ( $data['dialCode'] ?? $data['dial_code'] ?? '' ) ) );
@@ -224,18 +293,33 @@ function drb_process_submission( WP_REST_Request $request, $kind ) {
         $to_latin = static function( $value ) {
             return strtr( (string) $value, array( '۰'=>'0', '۱'=>'1', '۲'=>'2', '۳'=>'3', '۴'=>'4', '۵'=>'5', '۶'=>'6', '۷'=>'7', '۸'=>'8', '۹'=>'9' ) );
         };
-        $age = absint( $to_latin( $data['age'] ?? 0 ) );
-        if ( $age < 18 || $age > 45 ) {
-            return new WP_Error( 'ineligible_age', drb_form_error_message( 'پذیرش جراحی فقط برای بازه سنی ۱۸ تا ۴۵ سال انجام می‌شود.' ), array( 'status' => 422 ) );
-        }
-        if ( empty( $data['eligibilityConfirmed'] ) || ! in_array( (string) $data['eligibilityConfirmed'], array( '1', 'true', 'yes', 'on' ), true ) ) {
-            return new WP_Error( 'eligibility_required', drb_form_error_message( 'تأیید شرایط پذیرش الزامی است.' ), array( 'status' => 422 ) );
-        }
         $procedure = sanitize_text_field( $data['procedure'] ?? $data['service'] ?? '' );
-        if ( drb_is_revision_booking( $data, $procedure ) ) {
-            $months = absint( $to_latin( $data['previousSurgeryMonths'] ?? 0 ) );
-            if ( $months < 24 ) {
-                return new WP_Error( 'revision_too_soon', drb_form_error_message( 'بررسی جراحی ترمیمی فقط پس از گذشت کامل ۲۴ ماه از جراحی قبلی انجام می‌شود.' ), array( 'status' => 422 ) );
+        if ( ! $is_non_fa ) {
+            $birth = str_replace( '-', '/', $to_latin( $data['birthDateJalali'] ?? $data['birth_date_jalali'] ?? '' ) );
+            $national_id = preg_replace( '/\D+/', '', $to_latin( $data['nationalId'] ?? $data['national_id'] ?? '' ) );
+            $medical = sanitize_textarea_field( $data['medicalHistory'] ?? $data['medical_history'] ?? '' );
+            $medications = sanitize_textarea_field( $data['medications'] ?? '' );
+            $doctor_request = sanitize_textarea_field( $data['doctorRequest'] ?? $data['doctor_request'] ?? '' );
+            $otp_token = sanitize_text_field( $data['otpToken'] ?? $data['otp_token'] ?? '' );
+            if ( mb_strlen( $first_name ) < 2 || mb_strlen( $last_name ) < 2 ) {
+                return new WP_Error( 'name_required', drb_form_error_message( 'نام و نام خانوادگی معتبر الزامی است.' ), array( 'status' => 422 ) );
+            }
+            if ( ! preg_match( '/^(?:12|13|14|15)\d{2}\/(?:0?[1-9]|1[0-2])\/(?:0?[1-9]|[12]\d|3[01])$/', $birth ) ) {
+                return new WP_Error( 'birth_required', drb_form_error_message( 'تاریخ تولد شمسی معتبر الزامی است.' ), array( 'status' => 422 ) );
+            }
+            if ( ! drb_is_valid_national_id( $national_id ) ) {
+                return new WP_Error( 'national_id_required', drb_form_error_message( 'کد ملی معتبر نیست.' ), array( 'status' => 422 ) );
+            }
+            if ( mb_strlen( $medical ) < 2 || mb_strlen( $medications ) < 2 || mb_strlen( $doctor_request ) < 2 ) {
+                return new WP_Error( 'medical_fields_required', drb_form_error_message( 'تاریخچه پزشکی، داروهای مصرفی و درخواست از دکتر الزامی است؛ اگر موردی ندارید «ندارم» بنویسید.' ), array( 'status' => 422 ) );
+            }
+            if ( ! preg_match( '/^[a-f0-9]{64}$/', $otp_token ) ) {
+                return new WP_Error( 'otp_required', drb_form_error_message( 'تأیید شماره همراه الزامی است.' ), array( 'status' => 422 ) );
+            }
+        } else {
+            $age = absint( $to_latin( $data['age'] ?? 0 ) );
+            if ( $age < 18 || $age > 45 ) {
+                return new WP_Error( 'ineligible_age', drb_form_error_message( 'پذیرش جراحی فقط برای بازه سنی ۱۸ تا ۴۵ سال انجام می‌شود.' ), array( 'status' => 422 ) );
             }
         }
         return drb_proxy_appointment_to_dashboard( $data, $name, $mobile, $email, $procedure );
@@ -276,6 +360,8 @@ function drb_proxy_appointment_to_dashboard( array $data, $name, $mobile, $email
     $payload = array(
         'submission_uuid' => wp_generate_uuid4(),
         'name' => $name,
+        'first_name' => sanitize_text_field( $data['firstName'] ?? $data['first_name'] ?? '' ),
+        'last_name' => sanitize_text_field( $data['lastName'] ?? $data['last_name'] ?? '' ),
         'mobile' => $mobile,
         'email' => $email,
         'country' => sanitize_text_field( $data['country'] ?? '' ),
@@ -283,10 +369,14 @@ function drb_proxy_appointment_to_dashboard( array $data, $name, $mobile, $email
         'procedure' => $procedure,
         'procedure_key' => sanitize_key( $data['procedureKey'] ?? $data['procedure_key'] ?? '' ),
         'message' => sanitize_textarea_field( $data['message'] ?? $data['notes'] ?? '' ),
+        'birth_date_jalali' => sanitize_text_field( $data['birthDateJalali'] ?? $data['birth_date_jalali'] ?? '' ),
+        'national_id' => sanitize_text_field( $data['nationalId'] ?? $data['national_id'] ?? '' ),
+        'medical_history' => sanitize_textarea_field( $data['medicalHistory'] ?? $data['medical_history'] ?? '' ),
+        'medications' => sanitize_textarea_field( $data['medications'] ?? '' ),
+        'doctor_request' => sanitize_textarea_field( $data['doctorRequest'] ?? $data['doctor_request'] ?? '' ),
+        'otp_token' => sanitize_text_field( $data['otpToken'] ?? $data['otp_token'] ?? '' ),
         'age' => absint( strtr( (string) ( $data['age'] ?? 0 ), array( '۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9' ) ) ),
         'previous_surgery_months' => absint( strtr( (string) ( $data['previousSurgeryMonths'] ?? 0 ), array( '۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9' ) ) ),
-        'cooldown_minutes' => $cooldown,
-        'sms_template' => drb_booking_sms_template(),
         'source' => 'wordpress_booking',
         'language' => function_exists( 'drb_detect_lang' ) ? drb_detect_lang() : 'fa',
     );
@@ -347,13 +437,13 @@ function drb_proxy_appointment_to_dashboard( array $data, $name, $mobile, $email
     set_transient( $mobile_key, 'confirmed', $cooldown * MINUTE_IN_SECONDS );
     $sms_status = sanitize_key( $decoded['data']['sms_status'] ?? '' );
     if ( in_array( $sms_status, array( 'sent', 'delivered', 'success', 'successful' ), true ) ) {
-        $success_message = 'درخواست نوبت ثبت شد و پیامک تأیید ارسال شد.';
+        $success_message = 'درخواست نوبت دریافت شد؛ زمان نوبت هنوز قطعی نیست. همکاران کلینیک برای اعلام و تأیید زمان با شما تماس می‌گیرند. پیامک ثبت درخواست نیز ارسال شد.';
     } elseif ( in_array( $sms_status, array( 'failed', 'error', 'rejected', 'undelivered' ), true ) ) {
         // Booking is already committed by the dashboard. SMS failure must never
         // make the browser retry and accidentally create a second appointment.
-        $success_message = 'درخواست نوبت ثبت شد، اما ارسال پیامک تأیید ناموفق بود. همکاران کلینیک درخواست را دریافت کرده‌اند.';
+        $success_message = 'درخواست نوبت دریافت شد؛ زمان نوبت هنوز قطعی نیست. ارسال پیامک ناموفق بود، اما همکاران کلینیک برای اعلام و تأیید زمان تماس می‌گیرند.';
     } else {
-        $success_message = 'درخواست نوبت ثبت شد. وضعیت ارسال پیامک از سامانه نوبت‌دهی دریافت نشد.';
+        $success_message = 'درخواست نوبت دریافت شد؛ این ثبت به معنی نوبت قطعی نیست. همکاران کلینیک برای اعلام و تأیید زمان تماس می‌گیرند.';
     }
     return new WP_REST_Response( array(
         'success' => true,

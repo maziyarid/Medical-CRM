@@ -86,13 +86,33 @@ final class Request
                 throw new \RuntimeException('Request body too large');
             }
             if ($raw !== false && $raw !== '') {
-                $decoded = json_decode($raw, true);
-                if (is_array($decoded)) {
-                    $req->body = $decoded;
-                }
+                $req->body = self::decodeJsonBody($raw);
             }
         }
 
         return $req;
+    }
+
+    /**
+     * Decode a JSON object/array body. Empty input is []. Malformed JSON is
+     * never treated as an empty payload.
+     *
+     * @return array<string, mixed>
+     */
+    public static function decodeJsonBody(string $raw): array
+    {
+        $raw = trim($raw);
+        if ($raw === '') {
+            return [];
+        }
+        try {
+            $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new \RuntimeException('Malformed JSON', 0, $e);
+        }
+        if (!is_array($decoded)) {
+            throw new \RuntimeException('Malformed JSON');
+        }
+        return $decoded;
     }
 }

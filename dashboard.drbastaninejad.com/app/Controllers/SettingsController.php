@@ -182,6 +182,9 @@ final class SettingsController extends Controller
         $orKey = $has('OPENROUTER_API_KEY');
         $aiOn = (($_ENV['AI_ENABLED'] ?? '0') === '1') && ($youKey || $orKey);
         $emailRecovery = (($_ENV['EMAIL_OTP_ENABLED'] ?? '0') === '1') && $has('MAIL_FROM');
+        $bookingSheet = (($_ENV['BOOKING_SHEET_WRITE_ENABLED'] ?? '0') === '1')
+            && $has('BOOKING_SHEET_WEBHOOK_URL') && $has('BOOKING_SHEET_SHARED_SECRET');
+        $bookingEmail = (($_ENV['BOOKING_EMAIL_ENABLED'] ?? '0') === '1') && $has('MAIL_FROM');
         $provider = strtolower(trim((string)($_ENV['AI_PROVIDER'] ?? 'auto')));
 
         return [
@@ -191,6 +194,8 @@ final class SettingsController extends Controller
             ['key' => 'openrouter', 'label' => 'OpenRouter / AI', 'configured' => $orKey && $aiOn, 'detail' => (string)($_ENV['OPENROUTER_MODEL'] ?? 'مدل تنظیم نشده')],
             ['key' => 'intake_bridge', 'label' => 'پل پذیرش WorkingVersion', 'configured' => $has('INTAKE_BRIDGE_SECRET'), 'detail' => 'secret فقط سمت سرور'],
             ['key' => 'wordpress_bridge', 'label' => 'پل رزرو WordPress', 'configured' => $has('WORDPRESS_BRIDGE_SECRET'), 'detail' => 'secret فقط سمت سرور'],
+            ['key' => 'booking_sheet', 'label' => 'شیت درخواست نوبت', 'configured' => $bookingSheet, 'detail' => 'وب‌هوک جداگانه Booking؛ secret فقط سمت سرور'],
+            ['key' => 'booking_email', 'label' => 'ایمیل ثبت درخواست نوبت', 'configured' => $bookingEmail, 'detail' => 'فقط در صورت تکمیل ایمیل بیمار'],
         ];
     }
 }

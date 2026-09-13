@@ -273,6 +273,24 @@ function drb_enqueue_booking_fetch_patch() {
 }
 add_action( 'wp_enqueue_scripts', 'drb_enqueue_booking_fetch_patch', 20 );
 
+function drb_enqueue_minimal_booking_form() {
+    if ( is_admin() ) return;
+    $path = wp_parse_url( (string) ( $_SERVER['REQUEST_URI'] ?? '' ), PHP_URL_PATH );
+    if ( ! is_page( 'booking' ) && '/booking' !== untrailingslashit( (string) $path ) ) return;
+    $js = DRB_THEME_DIR . '/assets/js/booking-minimal.js';
+    $css = DRB_THEME_DIR . '/assets/css/booking-minimal.css';
+    if ( ! is_readable( $js ) || ! is_readable( $css ) ) return;
+    wp_enqueue_style( 'drb-booking-minimal', DRB_THEME_URI . '/assets/css/booking-minimal.css', array(), filemtime( $css ) );
+    wp_enqueue_script( 'drb-booking-minimal', DRB_THEME_URI . '/assets/js/booking-minimal.js', array(), filemtime( $js ), true );
+    wp_add_inline_script( 'drb-booking-minimal', 'window.__DRB_BOOKING_API__=' . wp_json_encode( array(
+        'appointment' => rest_url( 'drb/v1/appointment' ),
+        'otpSend' => rest_url( 'drb/v1/booking-otp/send' ),
+        'otpVerify' => rest_url( 'drb/v1/booking-otp/verify' ),
+        'nonce' => wp_create_nonce( 'drb_public_form' ),
+    ) ) . ';', 'before' );
+}
+add_action( 'wp_enqueue_scripts', 'drb_enqueue_minimal_booking_form', 35 );
+
 function drb_use_native_template() {
     return is_home() || is_singular( array( 'post', 'case_study' ) ) || is_archive() || is_search();
 }
