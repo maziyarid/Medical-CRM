@@ -6,7 +6,6 @@ namespace App\Services;
 use App\Core\Database;
 use DateInterval;
 use DateTimeImmutable;
-use DateTimeInterface;
 use DateTimeZone;
 use RuntimeException;
 
@@ -36,6 +35,8 @@ final class AppointmentSlotAvailabilityService
         $blocked = $this->blockedRanges($clinicId, $startUtc, $endUtc);
 
         foreach ($days as &$day) {
+            $day['held_count'] = (int)($day['held'] ?? 0);
+            $day['booked_count'] = (int)($day['booked'] ?? 0);
             $day['slots'] = $this->slotsForDay($day, $blocked);
             $day['slots_configured'] = $day['opens_at'] !== null && $day['closes_at'] !== null;
         }
