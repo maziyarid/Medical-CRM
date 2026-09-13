@@ -24,7 +24,14 @@
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
-const API_BASE = 'https://dashboard.drbastaninejad.com/api/v1';
+// The dashboard API base can be overridden at deploy time by setting
+// window.__DRB_API_BASE__ before this module loads (e.g. in a small inline
+// <script> in the page <head>). This lets ops point the frontend at a different
+// dashboard host without editing this file — useful when SSL is being
+// reprovisioned or when a maintenance mirror is used. Falls back to canonical.
+const API_BASE = (typeof window !== 'undefined' && window.__DRB_API_BASE__)
+  ? String(window.__DRB_API_BASE__).replace(/\/+$/, '')
+  : 'https://dashboard.drbastaninejad.com/api/v1';
 const LEGACY_TOKEN_KEY = 'mz_auth_token';
 const TOKEN_KEYS = Object.freeze({
   patient: 'mz_patient_auth_token',
@@ -149,10 +156,38 @@ const ERROR_MESSAGES = {
   NOT_FOUND:               'اطلاعات مورد نظر یافت نشد.',
   SERVER_ERROR:            'خطای سرور. لطفاً دوباره تلاش کنید.',
   NETWORK_ERROR:           'خطای اتصال. اینترنت را بررسی کنید.',
+  SSL_ERROR:               'اتصال امن به سرور برقرار نشد. ممکن است گواهی امنیتی سایت نامعتبر باشد. کمی بعد تلاش کنید.',
+  DNS_ERROR:               'سرور پلتفرم پیدا نشد. لطفاً اتصال اینترنت را بررسی و دوباره تلاش کنید.',
+  TIMEOUT_ERROR:           'پاسخ سرور طول کشید. لطفاً دوباره تلاش کنید.',
 };
 
 export function getPersianError(code) {
   return ERROR_MESSAGES[code] || ERROR_MESSAGES.SERVER_ERROR;
+}
+
+/**
+ * Classify a fetch() network rejection into an actionable Persian error.
+ * Bug J: patients saw a generic "خطای اتصال" that hid the real cause (SSL
+ * certificate not yet valid on dashboard.drbastaninejad.com, DNS failure,
+ * or the host being down). We inspect the browser error type/message to surface
+ * a clearer hint without exposing internals.
+ */
+function classifyNetworkError(err) {
+  const raw = err && err.message ? String(err.message) : String(err || '');
+  const lower = raw.toLowerCase();
+  // Chrome: "Failed to fetch"; Firefox: "NetworkError when attempting to fetch".
+  // Safari throws a TypeError with "Load failed". All are generic.
+  let code = 'NETWORK_ERROR';
+  // SSL/TLS rejections usually include 'ssl', 'certificate', 'protocol', or
+  // 'aborted' in some user agents; DNS failures include 'dns' or 'name'.
+  if (/(ssl|certificate|tls|protocol|ERR_CERT|net::ERR_CERT)/i.test(lower)) {
+    code = 'SSL_ERROR';
+  } else if (/(dns|name resolution|getaddrinfo|ENOTFOUND|EAI_AGAIN)/i.test(lower)) {
+    code = 'DNS_ERROR';
+  } else if (/(timeout|timed out|aborted)/i.test(lower)) {
+    code = 'TIMEOUT_ERROR';
+  }
+  return { code, message: getPersianError(code), raw: err };
 }
 
 // ---------------------------------------------------------------------------
@@ -171,7 +206,7 @@ async function request(method, path, body = null, options = {}) {
   try {
     response = await fetch(`${API_BASE}${path}`, config);
   } catch (networkErr) {
-    throw { code: 'NETWORK_ERROR', message: getPersianError('NETWORK_ERROR'), raw: networkErr };
+    throw classifyNetworkError(networkErr);
   }
 
   let data;
@@ -220,6 +255,29 @@ export const Auth = {
     const token = result && result.data && result.data.token;
     if (token) setToken(token, audience);
     return result;
+  },
+
+  async passwordLogin(mobile, password) {
+    const normalised = normalizeMobile(normalizePersianDigits(mobile));
+    if (!normalised) throw { code: 'INVALID_MOBILE', message: getPersianError('INVALID_MOBILE') };
+    if (!password) throw { code: 'VALIDATION_FAILED', message: 'رمز عبور را وارد کنید.' };
+    const result = await request('POST', '/auth/password', { mobile: normalised, password });
+    const token = result?.data?.token;
+    if (token) setToken(token, 'staff');
+    return result;
+  },
+
+  async setStaffPassword(newPassword) {
+    const result = await staffRequest('POST', '/auth/password/set', { new_password: newPassword });
+    const token = result?.data?.session?.token;
+    if (token) setToken(token, 'staff');
+    return result;
+  },
+
+  async me(audience = 'staff') {
+    return audience === 'staff'
+      ? staffRequest('GET', '/auth/me')
+      : request('GET', '/auth/me');
   },
 
   async requestRecovery(mobile, channel = 'sms', email = '') {
@@ -369,7 +427,9 @@ export const Patient = {
 // Documented in dashboard.drbastaninejad.com/docs/API_CONTRACT.md §Phase D
 // ---------------------------------------------------------------------------
 
-const STAFF_API_BASE = 'https://dashboard.drbastaninejad.com/api/v1';
+const STAFF_API_BASE = (typeof window !== 'undefined' && window.__DRB_STAFF_API_BASE__)
+  ? String(window.__DRB_STAFF_API_BASE__).replace(/\/+$/, '')
+  : API_BASE;
 
 /** Core fetch for all staff (dashboard) endpoints. */
 async function staffRequest(method, path, body = null) {
@@ -383,7 +443,7 @@ async function staffRequest(method, path, body = null) {
   try {
     response = await fetch(`${STAFF_API_BASE}${path}`, config);
   } catch (networkErr) {
-    throw { code: 'NETWORK_ERROR', message: getPersianError('NETWORK_ERROR'), raw: networkErr };
+    throw classifyNetworkError(networkErr);
   }
 
   let data;
@@ -397,8 +457,10 @@ async function staffRequest(method, path, body = null) {
   if (!response.ok || data.ok === false) {
     const code = (response.status === 401 ? 'UNAUTHORIZED'
                 : response.status === 403 ? 'FORBIDDEN'
+                : response.status === 422 ? 'VALIDATION_FAILED'
                 : 'SERVER_ERROR');
-    throw { code, message: getPersianError(code), httpStatus: response.status, raw: data };
+    const serverMessage = data?.errors?.[0]?.message;
+    throw { code, message: serverMessage || getPersianError(code), httpStatus: response.status, raw: data };
   }
 
   return data;
@@ -640,6 +702,30 @@ export const Staff = {
     return staffRequest('GET', '/settings/clinic');
   },
 
+  async me() {
+    return staffRequest('GET', '/auth/me');
+  },
+
+  async listStaffAccounts() {
+    return staffRequest('GET', '/admin/staff');
+  },
+
+  async createStaffAccount(body) {
+    return staffRequest('POST', '/admin/staff', body);
+  },
+
+  async updateStaffAccount(id, body) {
+    return staffRequest('PATCH', `/admin/staff/${id}`, body);
+  },
+
+  async resendStaffInvite(id) {
+    return staffRequest('POST', `/admin/staff/${id}/resend-invite`);
+  },
+
+  async getAppointmentIntegrationStatus() {
+    return staffRequest('GET', '/admin/appointment-integrations');
+  },
+
   /**
    * PATCH /api/v1/settings/clinic  ✅ LIVE
    * @param {{ name?, phone?, address?, timezone?, working_hours? }} body
@@ -753,6 +839,29 @@ export function requireAuth(redirectTo = '/Frontend/pages/auth/patient-login.htm
     return false;
   }
   return true;
+}
+
+/**
+ * Connectivity preflight (Bug J). Performs a lightweight HEAD/GET against the
+ * dashboard health surface to surface SSL/DNS/host-down failures before the
+ * patient submits the OTP form. Returns null when the dashboard is reachable,
+ * or a classified error object (same shape thrown by request()) when it is not.
+ * Call this on patient-login.html boot to show an actionable banner early.
+ */
+export async function checkConnectivity() {
+  try {
+    // A tiny no-op request to the canonical API base. We do not require a 2xx;
+   // any HTTP response (even 404/405) proves the host is reachable and TLS is
+    // valid. Only a network-level rejection means the dashboard is unreachable.
+    await fetch(`${API_BASE}/auth/otp/send`, {
+      method: 'HEAD',
+      // HEAD is not registered; the server returns 405, which is fine here.
+      cache: 'no-store',
+    });
+    return null;
+  } catch (err) {
+    return classifyNetworkError(err);
+  }
 }
 
 // ---------------------------------------------------------------------------

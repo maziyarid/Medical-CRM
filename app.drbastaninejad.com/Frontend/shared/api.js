@@ -257,6 +257,29 @@ export const Auth = {
     return result;
   },
 
+  async passwordLogin(mobile, password) {
+    const normalised = normalizeMobile(normalizePersianDigits(mobile));
+    if (!normalised) throw { code: 'INVALID_MOBILE', message: getPersianError('INVALID_MOBILE') };
+    if (!password) throw { code: 'VALIDATION_FAILED', message: 'رمز عبور را وارد کنید.' };
+    const result = await request('POST', '/auth/password', { mobile: normalised, password });
+    const token = result?.data?.token;
+    if (token) setToken(token, 'staff');
+    return result;
+  },
+
+  async setStaffPassword(newPassword) {
+    const result = await staffRequest('POST', '/auth/password/set', { new_password: newPassword });
+    const token = result?.data?.session?.token;
+    if (token) setToken(token, 'staff');
+    return result;
+  },
+
+  async me(audience = 'staff') {
+    return audience === 'staff'
+      ? staffRequest('GET', '/auth/me')
+      : request('GET', '/auth/me');
+  },
+
   async requestRecovery(mobile, channel = 'sms', email = '') {
     const normalised = normalizeMobile(normalizePersianDigits(mobile));
     if (!normalised) throw { code: 'INVALID_MOBILE', message: getPersianError('INVALID_MOBILE') };
@@ -434,8 +457,10 @@ async function staffRequest(method, path, body = null) {
   if (!response.ok || data.ok === false) {
     const code = (response.status === 401 ? 'UNAUTHORIZED'
                 : response.status === 403 ? 'FORBIDDEN'
+                : response.status === 422 ? 'VALIDATION_FAILED'
                 : 'SERVER_ERROR');
-    throw { code, message: getPersianError(code), httpStatus: response.status, raw: data };
+    const serverMessage = data?.errors?.[0]?.message;
+    throw { code, message: serverMessage || getPersianError(code), httpStatus: response.status, raw: data };
   }
 
   return data;
@@ -675,6 +700,30 @@ export const Staff = {
    */
   async getClinicSettings() {
     return staffRequest('GET', '/settings/clinic');
+  },
+
+  async me() {
+    return staffRequest('GET', '/auth/me');
+  },
+
+  async listStaffAccounts() {
+    return staffRequest('GET', '/admin/staff');
+  },
+
+  async createStaffAccount(body) {
+    return staffRequest('POST', '/admin/staff', body);
+  },
+
+  async updateStaffAccount(id, body) {
+    return staffRequest('PATCH', `/admin/staff/${id}`, body);
+  },
+
+  async resendStaffInvite(id) {
+    return staffRequest('POST', `/admin/staff/${id}/resend-invite`);
+  },
+
+  async getAppointmentIntegrationStatus() {
+    return staffRequest('GET', '/admin/appointment-integrations');
   },
 
   /**
