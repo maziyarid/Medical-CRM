@@ -9,6 +9,7 @@ use App\Core\Request;
 use App\Services\AppointmentAvailabilityAdminService;
 use App\Services\AppointmentBookingGuardService;
 use App\Services\AppointmentPaymentFacadeService;
+use App\Services\AppointmentSchemaBootstrapService;
 use App\Services\AppointmentSlotAvailabilityService;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -24,6 +25,7 @@ final class AppointmentBookingController extends Controller
         $from = trim((string)($req->query['from'] ?? $today->format('Y-m-d')));
         $to = trim((string)($req->query['to'] ?? $today->modify('+60 days')->format('Y-m-d')));
         try {
+            (new AppointmentSchemaBootstrapService())->ensure();
             $days = (new AppointmentSlotAvailabilityService())->availability($clinicId, $from, $to);
             return $this->success(['days' => $days, 'timezone' => 'Asia/Tehran']);
         } catch (RuntimeException $e) {
@@ -180,7 +182,7 @@ final class AppointmentBookingController extends Controller
             'paid slot requires reconciliation', 'weekly open-day limit reached', 'monthly open-day limit reached' => 409,
             'Zarinpal is not configured', 'Vandar is not configured',
             'payment callback base is not configured', 'cURL extension is required for payment gateways',
-            'clinic lock timeout' => 503,
+            'clinic lock timeout', 'appointment schema migration lock timeout' => 503,
             default => 422,
         };
         $public = match ($message) {
@@ -190,7 +192,7 @@ final class AppointmentBookingController extends Controller
             'paid slot requires reconciliation' => 'پرداخت ثبت شده اما زمان نیاز به بررسی پذیرش دارد',
             'weekly open-day limit reached' => 'حداکثر دو روز کاری در این هفته قابل تنظیم است',
             'monthly open-day limit reached' => 'حداکثر هشت روز کاری در این ماه قابل تنظیم است',
-            'clinic lock timeout' => 'تقویم در حال به‌روزرسانی است؛ دوباره تلاش کنید',
+            'clinic lock timeout', 'appointment schema migration lock timeout' => 'سامانه نوبت در حال آماده‌سازی است؛ دوباره تلاش کنید',
             default => $message,
         };
         return $this->error($public, $status);
