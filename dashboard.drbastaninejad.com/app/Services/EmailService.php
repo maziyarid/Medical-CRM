@@ -30,38 +30,22 @@ final class EmailService
 
     public function sendRecoveryOtp(string $email, string $code): bool
     {
-        if (($_ENV['EMAIL_OTP_ENABLED'] ?? '0') !== '1') {
-            return false;
-        }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return false;
-        }
+        if (($_ENV['EMAIL_OTP_ENABLED'] ?? '0') !== '1') return false;
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return false;
         $from = trim((string)($_ENV['MAIL_FROM'] ?? ''));
-        if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {
-            return false;
-        }
+        if (!filter_var($from, FILTER_VALIDATE_EMAIL)) return false;
         $subject = 'کد بازیابی پنل بیمار';
         $body = "کد یکبارمصرف بازیابی حساب شما: {$code}\nاین کد تا ۵ دقیقه معتبر است.\nرمز عبور خود را برای هیچ‌کس ارسال نکنید.";
-        $headers = [
-            'Content-Type: text/plain; charset=UTF-8',
-            'From: ' . $from,
-        ];
+        $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: ' . $from];
         return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
     }
 
     public function sendAppointmentReminder(string $email, string $scheduledAt): bool
     {
-        if (($_ENV['EMAIL_REMINDER_ENABLED'] ?? '0') !== '1') {
-            return false;
-        }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return false;
-        }
+        if (($_ENV['EMAIL_REMINDER_ENABLED'] ?? '0') !== '1') return false;
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) return false;
         $from = trim((string)($_ENV['MAIL_FROM'] ?? ''));
-        if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {
-            return false;
-        }
-
+        if (!filter_var($from, FILTER_VALIDATE_EMAIL)) return false;
         try {
             $when = (new \DateTimeImmutable($scheduledAt, new \DateTimeZone('UTC')))
                 ->setTimezone(new \DateTimeZone('Asia/Tehran'))
@@ -71,20 +55,22 @@ final class EmailService
         }
         $subject = 'یادآوری نوبت کلینیک';
         $body = "یادآوری نوبت شما: {$when} به وقت تهران.\nبرای تغییر یا لغو نوبت با کلینیک تماس بگیرید.";
-        $headers = [
-            'Content-Type: text/plain; charset=UTF-8',
-            'From: ' . $from,
-        ];
+        $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: ' . $from];
         return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
     }
-    public function sendStaffInvitation(string $email, string $fullName, string $loginUrl): bool
+
+    public function sendStaffInvitation(string $email, string $fullName, string $url, bool $activation = false): bool
     {
         if (($_ENV['STAFF_EMAIL_ENABLED'] ?? '1') !== '1' || !$this->hasSender() || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return false;
         }
         $from = trim((string)($_ENV['MAIL_FROM'] ?? ''));
-        $subject = 'دعوت به پنل کارکنان کلینیک';
-        $body = "{$fullName} عزیز،\nحساب کارکنان کلینیک برای شما ایجاد شده است.\nبرای ورود، شماره همراه ثبت‌شده خود را وارد و کد یکبارمصرف دریافت کنید. پس از نخستین ورود می‌توانید رمز عبور تعیین کنید.\n\n{$loginUrl}\n\nاین پیام شامل هیچ اطلاعات پزشکی بیمار نیست.";
+        $subject = $activation ? 'فعال‌سازی حساب کارکنان کلینیک' : 'ورود به پنل کارکنان کلینیک';
+        if ($activation) {
+            $body = "{$fullName} عزیز،\nحساب کارکنان کلینیک برای شما ایجاد شده است.\nبرای فعال‌سازی حساب و تعیین رمز عبور، لینک یکبارمصرف زیر را باز کنید. این لینک ۲۴ ساعت اعتبار دارد:\n\n{$url}\n\nاگر این حساب را انتظار نداشتید، این پیام را نادیده بگیرید. رمز عبور و کدهای ورود خود را برای هیچ‌کس ارسال نکنید.";
+        } else {
+            $body = "{$fullName} عزیز،\nحساب کارکنان کلینیک شما فعال است. برای ورود از لینک زیر استفاده کنید:\n\n{$url}\n\nرمز عبور و کدهای ورود خود را برای هیچ‌کس ارسال نکنید.";
+        }
         $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: ' . $from];
         return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
     }
@@ -104,5 +90,4 @@ final class EmailService
         $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: ' . $from];
         return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
     }
-
 }
