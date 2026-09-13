@@ -7,8 +7,9 @@ use App\Core\Controller;
 use App\Core\Database;
 use App\Core\Request;
 use App\Services\AppointmentAvailabilityAdminService;
-use App\Services\AppointmentBookingService;
-use App\Services\AppointmentPaymentService;
+use App\Services\AppointmentBookingGuardService;
+use App\Services\AppointmentPaymentFacadeService;
+use App\Services\AppointmentSlotAvailabilityService;
 use DateTimeImmutable;
 use DateTimeZone;
 use RuntimeException;
@@ -23,7 +24,7 @@ final class AppointmentBookingController extends Controller
         $from = trim((string)($req->query['from'] ?? $today->format('Y-m-d')));
         $to = trim((string)($req->query['to'] ?? $today->modify('+60 days')->format('Y-m-d')));
         try {
-            $days = (new AppointmentBookingService())->availability($clinicId, $from, $to);
+            $days = (new AppointmentSlotAvailabilityService())->availability($clinicId, $from, $to);
             return $this->success(['days' => $days, 'timezone' => 'Asia/Tehran']);
         } catch (RuntimeException $e) {
             return $this->domainError($e);
@@ -46,7 +47,7 @@ final class AppointmentBookingController extends Controller
             return $this->error('مبلغ رزرو در سامانه تنظیم نشده است', 503);
         }
         try {
-            $booking = (new AppointmentBookingService())->createPatientHold(
+            $booking = (new AppointmentBookingGuardService())->createPatientHold(
                 $clinicId,
                 (int)$req->user['id'],
                 (int)($req->body['open_day_id'] ?? 0),
@@ -67,7 +68,7 @@ final class AppointmentBookingController extends Controller
             return $this->error('ورود بیمار برای پرداخت الزامی است', 403);
         }
         try {
-            $result = (new AppointmentPaymentService())->start(
+            $result = (new AppointmentPaymentFacadeService())->start(
                 (int)$req->user['clinic_id'],
                 (int)$req->user['id'],
                 (int)$id
@@ -85,7 +86,7 @@ final class AppointmentBookingController extends Controller
             return $this->error('درگاه پرداخت نامعتبر است', 404);
         }
         try {
-            $result = (new AppointmentPaymentService())->verifyCallback($gateway, $req->query);
+            $result = (new AppointmentPaymentFacadeService())->verifyCallback($gateway, $req->query);
             $result['return_url'] = trim((string)($_ENV['BOOKING_PAYMENT_RETURN_URL'] ?? 'https://app.drbastaninejad.com/'));
             return $this->success($result, $result['verified'] ? 200 : 402);
         } catch (RuntimeException $e) {
@@ -105,8 +106,9 @@ final class AppointmentBookingController extends Controller
         $startAt = (string)($req->body['start_at'] ?? '');
         $mode = strtolower(trim((string)($req->body['payment_mode'] ?? 'free')));
         try {
+            $guard = new AppointmentBookingGuardService();
             if ($mode === 'free') {
-                $booking = (new AppointmentBookingService())->createAdminFreeBooking(
+                $booking = $guard->createAdminFreeBooking(
                     $clinicId,
                     $patientId,
                     $staffId,
@@ -124,9 +126,8 @@ final class AppointmentBookingController extends Controller
             if ($amount <= 0) {
                 return $this->error('مبلغ رزرو در سامانه تنظیم نشده است', 503);
             }
-            $service = new AppointmentBookingService();
-            $booking = $service->createPatientHold($clinicId, $patientId, $openDayId, $startAt, $amount, $mode);
-            $payment = (new AppointmentPaymentService($service))->start($clinicId, $patientId, (int)$booking['id']);
+            $booking = $guard->createPatientHold($clinicId, $patientId, $openDayId, $startAt, $amount, $mode);
+            $payment = (new AppointmentPaymentFacadeService())->start($clinicId, $patientId, (int)$booking['id']);
             Database::conn()->prepare(
                 'UPDATE appointment_booking_requests SET source = "admin", receptionist_user_id = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?'
             )->execute([$staffId, (int)$booking['id']]);
@@ -142,7 +143,7 @@ final class AppointmentBookingController extends Controller
             return $this->error('دسترسی کارکنان الزامی است', 403);
         }
         try {
-            $result = (new AppointmentBookingService())->confirmPaidByStaff(
+            $result = (new AppointmentBookingGuardService())->confirmPaidByStaff(
                 (int)$req->user['clinic_id'],
                 (int)$id,
                 (int)$req->user['id']
@@ -174,11 +175,12 @@ final class AppointmentBookingController extends Controller
     {
         $message = $e->getMessage();
         $status = match ($message) {
-            'booking not found', 'open day not found', 'payment attempt not found' => 404,
+            'booking not found', 'open day not found', 'payment attempt not found', 'patient not found' => 404,
             'slot unavailable', 'daily quota reached', 'open day closed', 'booking hold expired',
-            'paid slot requires reconciliation' => 409,
+            'paid slot requires reconciliation', 'weekly open-day limit reached', 'monthly open-day limit reached' => 409,
             'Zarinpal is not configured', 'Vandar is not configured',
-            'payment callback base is not configured', 'cURL extension is required for payment gateways' => 503,
+            'payment callback base is not configured', 'cURL extension is required for payment gateways',
+            'clinic lock timeout' => 503,
             default => 422,
         };
         $public = match ($message) {
@@ -186,6 +188,9 @@ final class AppointmentBookingController extends Controller
             'daily quota reached' => 'ظرفیت این روز تکمیل شده است',
             'booking hold expired' => 'مهلت نگهداری این زمان تمام شده است؛ دوباره زمان را انتخاب کنید',
             'paid slot requires reconciliation' => 'پرداخت ثبت شده اما زمان نیاز به بررسی پذیرش دارد',
+            'weekly open-day limit reached' => 'حداکثر دو روز کاری در این هفته قابل تنظیم است',
+            'monthly open-day limit reached' => 'حداکثر هشت روز کاری در این ماه قابل تنظیم است',
+            'clinic lock timeout' => 'تقویم در حال به‌روزرسانی است؛ دوباره تلاش کنید',
             default => $message,
         };
         return $this->error($public, $status);
