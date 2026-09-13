@@ -168,6 +168,7 @@ try {
         'routes.tasks',
         'routes.analytics',
         'routes.settings',
+        'routes.staff',
     ] as $routeFile) {
         $path = BASE_PATH . '/config/' . $routeFile . '.php';
         if (is_file($path)) {

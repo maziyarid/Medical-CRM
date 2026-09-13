@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Services\OtpService;
+use App\Services\PasswordAuthService;
 use App\Validators\ValidatorService;
 
 final class OtpController extends Controller
@@ -28,6 +29,11 @@ final class OtpController extends Controller
             return $this->validationError([['field' => 'audience', 'message' => 'نوع حساب معتبر نیست']]);
         }
         $ip = $this->clientIp($req);
+        if ($audience === 'staff' && !(new PasswordAuthService())->staffExists($mobile)) {
+            // Anti-enumeration: do not send SMS to an unregistered number, but return
+            // the same neutral response shape as a valid request.
+            return $this->success(['message' => 'اگر حساب فعالی برای این شماره وجود داشته باشد، کد تایید ارسال می‌شود', 'expires_in' => 300, 'audience' => $audience]);
+        }
         if ($this->otpService->isGloballyRateLimited() || $this->otpService->isIpRateLimited($ip) || $this->otpService->isRateLimited($mobile, $audience, 'login')) {
             return $this->error('تعداد درخواست‌های کد تایید بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.', 429);
         }
@@ -64,6 +70,9 @@ final class OtpController extends Controller
         }
         try {
             $tokenData = $this->otpService->issueToken($mobile, $audience, 'session');
+            if ($audience === 'staff') {
+                (new PasswordAuthService())->markOtpLogin((int)($tokenData['user']['id'] ?? 0));
+            }
         } catch (\RuntimeException $e) {
             return $this->error($e->getMessage(), 404);
         }

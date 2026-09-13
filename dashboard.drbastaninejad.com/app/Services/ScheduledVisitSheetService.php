@@ -59,21 +59,33 @@ final class ScheduledVisitSheetService
             return 'skipped';
         }
 
-        $url = trim((string)($_ENV['BOOKING_SHEET_WEBHOOK_URL'] ?? ''));
-        $secret = trim((string)($_ENV['BOOKING_SHEET_SHARED_SECRET'] ?? ''));
-        if ($url === '' || $secret === '') {
-            // Keep the row pending so enabling credentials later automatically catches it up.
-            $this->mark($db, $bookingId, 'pending', 'ScheduledVisits webhook is not configured');
+        $bridgeUrl = rtrim(trim((string)($_ENV['BOOKING_SHEET_BRIDGE_URL'] ?? $_ENV['GOOGLE_BRIDGE_URL'] ?? '')), '/');
+        $bridgeToken = trim((string)($_ENV['BOOKING_SHEET_BRIDGE_TOKEN'] ?? $_ENV['GOOGLE_BRIDGE_TOKEN'] ?? ''));
+        $webhookUrl = trim((string)($_ENV['BOOKING_SHEET_WEBHOOK_URL'] ?? ''));
+        $webhookSecret = trim((string)($_ENV['BOOKING_SHEET_SHARED_SECRET'] ?? ''));
+
+        $headers = ['Content-Type: application/json; charset=UTF-8', 'Accept: application/json'];
+        if ($bridgeUrl !== '' && $bridgeToken !== '') {
+            $url = $bridgeUrl . '/sheet/upsert';
+            $headers[] = 'Authorization: Bearer ' . $bridgeToken;
+            $payload = [
+                'visit_uuid' => (string)$projection['VisitUUID'],
+                'row' => $projection,
+            ];
+        } elseif ($webhookUrl !== '' && $webhookSecret !== '') {
+            $url = $webhookUrl;
+            $payload = [
+                'secret' => $webhookSecret,
+                'action' => 'scheduled_visit_upsert',
+                'sheet_name' => trim((string)($_ENV['BOOKING_VISIT_SHEET_NAME'] ?? 'ScheduledVisits')) ?: 'ScheduledVisits',
+                'visit_uuid' => (string)$projection['VisitUUID'],
+                'row' => $projection,
+            ];
+        } else {
+            $this->mark($db, $bookingId, 'pending', 'ScheduledVisits transport is not configured');
             return 'pending';
         }
 
-        $payload = [
-            'secret' => $secret,
-            'action' => 'scheduled_visit_upsert',
-            'sheet_name' => trim((string)($_ENV['BOOKING_VISIT_SHEET_NAME'] ?? 'ScheduledVisits')) ?: 'ScheduledVisits',
-            'visit_uuid' => (string)$projection['VisitUUID'],
-            'row' => $projection,
-        ];
         $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($json === false) {
             $this->mark($db, $bookingId, 'error', 'Failed to encode ScheduledVisits payload');
@@ -83,7 +95,7 @@ final class ScheduledVisitSheetService
         try {
             $ctx = stream_context_create(['http' => [
                 'method' => 'POST',
-                'header' => "Content-Type: application/json; charset=UTF-8\r\nAccept: application/json\r\n",
+                'header' => implode("\r\n", $headers) . "\r\n",
                 'content' => $json,
                 'timeout' => 15,
                 'ignore_errors' => true,
@@ -102,7 +114,7 @@ final class ScheduledVisitSheetService
             }
             $error = is_array($decoded) && isset($decoded['error'])
                 ? (string)$decoded['error']
-                : 'ScheduledVisits webhook rejected the update';
+                : 'ScheduledVisits transport rejected the update';
             $this->mark($db, $bookingId, 'error', $error);
             return 'error';
         } catch (\Throwable $e) {

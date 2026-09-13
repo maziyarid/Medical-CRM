@@ -186,6 +186,7 @@ final class BookingController extends Controller
             [$firstName, $lastName] = $this->splitName($name);
         }
 
+        $patientCreated = !$patient;
         $existingPatientId = $patient ? (int)$patient['id'] : null;
         $patientEmail = $this->availablePatientEmail($db, $email, $existingPatientId);
         if ($email !== '' && $patientEmail === null) {
@@ -287,31 +288,45 @@ final class BookingController extends Controller
             ->execute([$sheetStatus, $legacySheetStatus, $bookingId]);
 
         $emailStatus = 'skipped';
-        if ($email !== '') {
-            $emailService = new EmailService();
-            if ($emailService->isConfigured()) {
-                $emailStatus = $emailService->sendBookingAcknowledgement($email, $firstName) ? 'sent' : 'failed';
-            }
-        }
-        $db->prepare('UPDATE intakes SET booking_email_status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?')
-            ->execute([$emailStatus, $bookingId]);
-
         $smsStatus = 'skipped';
-        if ($this->shouldSendBookingSms($mobile, $isInternational)) {
-            $loginUrl = trim((string)($_ENV['PATIENT_LOGIN_URL'] ?? 'https://app.drbastaninejad.com/Frontend/pages/auth/patient-login.html'));
-            $template = trim((string)($_ENV['BOOKING_SMS_TEMPLATE'] ?? "درخواست نوبت شما دریافت شد؛ زمان نوبت هنوز قطعی نیست. همکاران کلینیک برای اعلام و تأیید زمان تماس می‌گیرند. پنل بیمار: {login_url}"));
-            $template = mb_substr($template, 0, 800);
-            $sms = (new SmsProviderChain())->sendMessage($mobile, strtr($template, [
-                '{name}' => $firstName,
-                '{login_url}' => $loginUrl,
-            ]));
-            $smsStatus = !empty($sms['ok']) ? 'sent' : 'failed';
-            $this->recordSmsResult($db, $bookingId, $smsStatus, $sms);
-            if ($smsStatus !== 'sent') {
-                error_log('[BookingController] booking SMS failed for booking ' . $bookingId . ' provider=' . ($sms['provider'] ?? 'none') . ' error=' . ($sms['error'] ?? 'unknown'));
+        if ($patientCreated) {
+            try {
+                $registration = (new \App\Services\PatientRegistrationNotificationService())->notify($patientId, true, false);
+                $emailStatus = (string)($registration['email'] ?? 'skipped');
+                $smsStatus = (string)($registration['sms'] ?? 'failed');
+            } catch (\Throwable $e) {
+                error_log('[BookingController] patient registration notification failed for booking ' . $bookingId . ': ' . $e->getMessage());
+                $emailStatus = 'failed';
+                $smsStatus = 'failed';
             }
+            $db->prepare('UPDATE intakes SET booking_email_status = ?, sms_status = ?, sms_sent_at = IF(? = "sent", UTC_TIMESTAMP(), NULL), updated_at = UTC_TIMESTAMP() WHERE id = ?')
+                ->execute([$emailStatus, $smsStatus, $smsStatus, $bookingId]);
         } else {
-            $db->prepare('UPDATE intakes SET sms_status = "skipped", updated_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$bookingId]);
+            if ($email !== '') {
+                $emailService = new EmailService();
+                if ($emailService->isConfigured()) {
+                    $emailStatus = $emailService->sendBookingAcknowledgement($email, $firstName) ? 'sent' : 'failed';
+                }
+            }
+            $db->prepare('UPDATE intakes SET booking_email_status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?')
+                ->execute([$emailStatus, $bookingId]);
+
+            if ($this->shouldSendBookingSms($mobile, $isInternational)) {
+                $loginUrl = trim((string)($_ENV['PATIENT_LOGIN_URL'] ?? 'https://app.drbastaninejad.com/Frontend/pages/auth/patient-login.html'));
+                $template = trim((string)($_ENV['BOOKING_SMS_TEMPLATE'] ?? "درخواست نوبت شما دریافت شد؛ زمان نوبت هنوز قطعی نیست. همکاران کلینیک برای اعلام و تأیید زمان تماس می‌گیرند. پنل بیمار: {login_url}"));
+                $template = mb_substr($template, 0, 800);
+                $sms = (new SmsProviderChain())->sendMessage($mobile, strtr($template, [
+                    '{name}' => $firstName,
+                    '{login_url}' => $loginUrl,
+                ]));
+                $smsStatus = !empty($sms['ok']) ? 'sent' : 'failed';
+                $this->recordSmsResult($db, $bookingId, $smsStatus, $sms);
+                if ($smsStatus !== 'sent') {
+                    error_log('[BookingController] booking SMS failed for booking ' . $bookingId . ' provider=' . ($sms['provider'] ?? 'none') . ' error=' . ($sms['error'] ?? 'unknown'));
+                }
+            } else {
+                $db->prepare('UPDATE intakes SET sms_status = "skipped", updated_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$bookingId]);
+            }
         }
 
         return $this->success(array_merge([

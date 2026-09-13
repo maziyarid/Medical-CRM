@@ -1,0 +1,22 @@
+[Unit]
+Description=DRB local Google Sheets/Calendar bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=maziyarid
+Group=maziyarid
+EnvironmentFile=/etc/drb-google-bridge.env
+ExecStart=/srv/drb-google-bridge/venv/bin/python /srv/drb-google-bridge/bridge.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadOnlyPaths=/srv/maziyar-wp-mcp/state/secrets/google-medical-service-account.json
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

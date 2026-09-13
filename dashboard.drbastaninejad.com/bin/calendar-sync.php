@@ -46,10 +46,13 @@ try {
     $released = (new App\Services\AppointmentBookingService())->releaseExpiredHolds($clinicId);
 
     $calendar = ['status' => 'skipped', 'push' => null, 'pull' => null];
-    $calendarConfigured = trim((string)($_ENV['GOOGLE_CALENDAR_ID'] ?? '')) !== ''
-        && trim((string)($_ENV['GOOGLE_CALENDAR_CLIENT_ID'] ?? '')) !== ''
+    $bridgeConfigured = trim((string)($_ENV['GOOGLE_BRIDGE_URL'] ?? '')) !== ''
+        && trim((string)($_ENV['GOOGLE_BRIDGE_TOKEN'] ?? '')) !== '';
+    $oauthConfigured = trim((string)($_ENV['GOOGLE_CALENDAR_CLIENT_ID'] ?? '')) !== ''
         && trim((string)($_ENV['GOOGLE_CALENDAR_CLIENT_SECRET'] ?? '')) !== ''
         && trim((string)($_ENV['GOOGLE_CALENDAR_REFRESH_TOKEN'] ?? '')) !== '';
+    $calendarConfigured = trim((string)($_ENV['GOOGLE_CALENDAR_ID'] ?? '')) !== ''
+        && ($bridgeConfigured || $oauthConfigured);
     if ($calendarConfigured) {
         try {
             $sync = new App\Services\CalendarSyncService();

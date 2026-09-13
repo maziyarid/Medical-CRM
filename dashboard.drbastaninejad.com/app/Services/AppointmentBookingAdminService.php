@@ -181,10 +181,14 @@ final class AppointmentBookingAdminService
             'zarinpal_configured' => $env('ZARINPAL_MERCHANT_ID'),
             'vandar_configured' => $env('VANDAR_API_KEY') || $env('VANDAR_API_TOKEN'),
             'sheet_enabled' => (($_ENV['BOOKING_SHEET_WRITE_ENABLED'] ?? '0') === '1'),
-            'sheet_configured' => $env('BOOKING_SHEET_WEBHOOK_URL') && $env('BOOKING_SHEET_SHARED_SECRET'),
+            'sheet_configured' => ($env('BOOKING_SHEET_BRIDGE_URL') && $env('BOOKING_SHEET_BRIDGE_TOKEN'))
+                || ($env('BOOKING_SHEET_WEBHOOK_URL') && $env('BOOKING_SHEET_SHARED_SECRET')),
             'sheet_name' => trim((string)($_ENV['BOOKING_VISIT_SHEET_NAME'] ?? 'ScheduledVisits')) ?: 'ScheduledVisits',
-            'calendar_configured' => $env('GOOGLE_CALENDAR_ID') && $env('GOOGLE_CALENDAR_CLIENT_ID')
-                && $env('GOOGLE_CALENDAR_CLIENT_SECRET') && $env('GOOGLE_CALENDAR_REFRESH_TOKEN'),
+            'google_bridge_configured' => $env('GOOGLE_BRIDGE_URL') && $env('GOOGLE_BRIDGE_TOKEN'),
+            'calendar_configured' => $env('GOOGLE_CALENDAR_ID') && (
+                ($env('GOOGLE_BRIDGE_URL') && $env('GOOGLE_BRIDGE_TOKEN'))
+                || ($env('GOOGLE_CALENDAR_CLIENT_ID') && $env('GOOGLE_CALENDAR_CLIENT_SECRET') && $env('GOOGLE_CALENDAR_REFRESH_TOKEN'))
+            ),
             'future_open_days' => (int)$openDays->fetchColumn(),
             'timezone' => 'Asia/Tehran',
         ];

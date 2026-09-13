@@ -62,6 +62,12 @@ final class AppointmentPatientResolverService
              (uuid, clinic_id, first_name, last_name, mobile, insurance_status, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, "pending", UTC_TIMESTAMP(), UTC_TIMESTAMP())'
         )->execute([$uuid, $clinicId, $first, $last, $mobile]);
-        return (int)$db->lastInsertId();
+        $id = (int)$db->lastInsertId();
+        try {
+            (new PatientRegistrationNotificationService())->notify($id, false, false);
+        } catch (\Throwable $e) {
+            error_log('[AppointmentPatientResolverService] patient registration notification failed: ' . $e->getMessage());
+        }
+        return $id;
     }
 }

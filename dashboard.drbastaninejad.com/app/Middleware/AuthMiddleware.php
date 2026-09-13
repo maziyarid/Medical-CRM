@@ -121,12 +121,13 @@ final class AuthMiddleware
         // staff — from the users table
         $stmt = $db->prepare(
             'SELECT u.id, u.uuid, u.clinic_id, u.full_name, u.mobile, u.is_active, u.deleted_at,
+                    u.activated_at, (COALESCE(LENGTH(u.password_hash), 0) > 0) AS has_password,
                     GROUP_CONCAT(r.name ORDER BY r.id SEPARATOR ",") AS roles
                FROM users u
                LEFT JOIN role_user ru ON ru.user_id = u.id
                LEFT JOIN roles r      ON r.id = ru.role_id
                WHERE u.id = ?
-               GROUP BY u.id, u.uuid, u.clinic_id, u.full_name, u.mobile, u.is_active, u.deleted_at
+               GROUP BY u.id, u.uuid, u.clinic_id, u.full_name, u.mobile, u.is_active, u.deleted_at, u.activated_at, u.password_hash
                LIMIT 1'
         );
         $stmt->execute([$userId]);
@@ -147,6 +148,8 @@ final class AuthMiddleware
             'mobile'    => $row['mobile'],
             'role'      => $primary,
             'roles'     => $roles,
+            'has_password' => (bool)$row['has_password'],
+            'activated_at' => $row['activated_at'],
             'user_type' => 'staff',
         ];
     }

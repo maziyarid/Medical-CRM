@@ -183,7 +183,11 @@ final class SettingsController extends Controller
         $aiOn = (($_ENV['AI_ENABLED'] ?? '0') === '1') && ($youKey || $orKey);
         $emailRecovery = (($_ENV['EMAIL_OTP_ENABLED'] ?? '0') === '1') && $has('MAIL_FROM');
         $bookingSheet = (($_ENV['BOOKING_SHEET_WRITE_ENABLED'] ?? '0') === '1')
-            && $has('BOOKING_SHEET_WEBHOOK_URL') && $has('BOOKING_SHEET_SHARED_SECRET');
+            && (($has('BOOKING_SHEET_BRIDGE_URL') && $has('BOOKING_SHEET_BRIDGE_TOKEN'))
+                || ($has('BOOKING_SHEET_WEBHOOK_URL') && $has('BOOKING_SHEET_SHARED_SECRET')));
+        $googleBridge = $has('GOOGLE_BRIDGE_URL') && $has('GOOGLE_BRIDGE_TOKEN');
+        $googleCalendar = $has('GOOGLE_CALENDAR_ID') && ($googleBridge
+            || ($has('GOOGLE_CALENDAR_CLIENT_ID') && $has('GOOGLE_CALENDAR_CLIENT_SECRET') && $has('GOOGLE_CALENDAR_REFRESH_TOKEN')));
         $bookingEmail = (($_ENV['BOOKING_EMAIL_ENABLED'] ?? '0') === '1') && $has('MAIL_FROM');
         $provider = strtolower(trim((string)($_ENV['AI_PROVIDER'] ?? 'auto')));
 
@@ -194,7 +198,9 @@ final class SettingsController extends Controller
             ['key' => 'openrouter', 'label' => 'OpenRouter / AI', 'configured' => $orKey && $aiOn, 'detail' => (string)($_ENV['OPENROUTER_MODEL'] ?? 'مدل تنظیم نشده')],
             ['key' => 'intake_bridge', 'label' => 'پل پذیرش WorkingVersion', 'configured' => $has('INTAKE_BRIDGE_SECRET'), 'detail' => 'secret فقط سمت سرور'],
             ['key' => 'wordpress_bridge', 'label' => 'پل رزرو WordPress', 'configured' => $has('WORDPRESS_BRIDGE_SECRET'), 'detail' => 'secret فقط سمت سرور'],
-            ['key' => 'booking_sheet', 'label' => 'شیت درخواست نوبت', 'configured' => $bookingSheet, 'detail' => 'وب‌هوک جداگانه Booking؛ secret فقط سمت سرور'],
+            ['key' => 'booking_sheet', 'label' => 'شیت نوبت‌ها', 'configured' => $bookingSheet, 'detail' => 'ScheduledVisits؛ اتصال مستقیم محلی یا Apps Script'],
+            ['key' => 'google_bridge', 'label' => 'پل محلی Google', 'configured' => $googleBridge, 'detail' => 'credential در سرویس محافظت‌شده VPS'],
+            ['key' => 'google_calendar', 'label' => 'Google Calendar', 'configured' => $googleCalendar, 'detail' => $has('GOOGLE_CALENDAR_ID') ? 'شناسه تقویم تنظیم شده' : 'تقویم کلینیک هنوز انتخاب نشده'],
             ['key' => 'booking_email', 'label' => 'ایمیل ثبت درخواست نوبت', 'configured' => $bookingEmail, 'detail' => 'فقط در صورت تکمیل ایمیل بیمار'],
         ];
     }
