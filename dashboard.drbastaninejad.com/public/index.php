@@ -6,40 +6,10 @@ declare(strict_types=1);
  *
  * This is the single PHP entry point for all API requests routed here by
  * .htaccess / LiteSpeed rewrite rules.
- *
- * Responsibility:
- *   1. Define BASE_PATH (the project root one level above public/).
- *   2. Load environment variables from .env (simple key=value parser — no
- *      Composer dependency; compatible with cPanel PHP without Composer).
- *   3. Register the PSR-4 autoloader for the App\ namespace.
- *   4. Set global PHP settings (timezone, error reporting, JSON header).
- *   5. Build the Router, register all route files, dispatch the request.
- *   6. Serialise the controller response to JSON and send it.
- *
- * All errors are caught at the top level and returned as a standard JSON
- * error envelope so the client always gets a parseable response.
- *
- * Deployment note:
- *   Place the project root (the directory containing app/, config/, etc.)
- *   OUTSIDE the web-root.  public/ is the web-root.  .env must live in the
- *   project root and must be chmod 600.
- *
- * cPanel note:
- *   Set the document root for dashboard.drbastaninejad.com to point at
- *   this public/ directory, not the project root.
  */
 
-// ---------------------------------------------------------------------------
-// 1. Paths
-// ---------------------------------------------------------------------------
-define('BASE_PATH', dirname(__DIR__));  // one level up from public/
+define('BASE_PATH', dirname(__DIR__));
 
-// ---------------------------------------------------------------------------
-// 2. Environment loader — parses BASE_PATH/.env if it exists
-//    Supports: KEY=value, KEY="value", KEY='value', # comments, blank lines
-//    Variables are written to $_ENV and putenv() so they are accessible from
-//    both getenv() and $_ENV throughout the application.
-// ---------------------------------------------------------------------------
 (static function (): void {
     $envFile = BASE_PATH . '/.env';
     if (!is_file($envFile)) {
@@ -62,10 +32,8 @@ define('BASE_PATH', dirname(__DIR__));  // one level up from public/
             continue;
         }
 
-        $key   = trim(substr($line, 0, $eqPos));
+        $key = trim(substr($line, 0, $eqPos));
         $value = trim(substr($line, $eqPos + 1));
-
-        // Strip surrounding quotes (single or double)
         if (strlen($value) >= 2 &&
             (($value[0] === '"' && str_ends_with($value, '"')) ||
              ($value[0] === "'" && str_ends_with($value, "'")))) {
@@ -79,30 +47,18 @@ define('BASE_PATH', dirname(__DIR__));  // one level up from public/
     }
 })();
 
-// ---------------------------------------------------------------------------
-// 3. PSR-4 autoloader for the App\ namespace
-//    Follows the convention: App\Controllers\FooController
-//    → BASE_PATH/app/Controllers/FooController.php
-// ---------------------------------------------------------------------------
 spl_autoload_register(static function (string $class): void {
     if (!str_starts_with($class, 'App\\')) {
         return;
     }
-
     $relative = str_replace('\\', DIRECTORY_SEPARATOR, substr($class, 4));
-    $file     = BASE_PATH . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . $relative . '.php';
-
+    $file = BASE_PATH . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . $relative . '.php';
     if (is_file($file)) {
         require_once $file;
     }
 });
 
-// ---------------------------------------------------------------------------
-// 4. Global PHP settings
-// ---------------------------------------------------------------------------
 date_default_timezone_set('UTC');
-
-// Show errors only in development; in production errors go to error_log
 $appEnv = $_ENV['APP_ENV'] ?? 'production';
 if ($appEnv !== 'production') {
     ini_set('display_errors', '1');
@@ -112,7 +68,6 @@ if ($appEnv !== 'production') {
     error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
 }
 
-// All responses from this entry point are JSON
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
@@ -143,19 +98,13 @@ if (in_array($origin, $allowedOrigins, true)) {
 header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, Accept, X-Intake-Bridge-Secret, X-WordPress-Bridge-Secret');
 
-// Respond immediately to pre-flight OPTIONS requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
-// ---------------------------------------------------------------------------
-// 5. Build router, register all route files, dispatch
-// ---------------------------------------------------------------------------
 try {
     $router = new App\Core\Router();
-
-    // Route files use $router as a local variable injected by this require
     foreach ([
         'routes.auth',
         'routes.dashboard',
@@ -175,9 +124,8 @@ try {
         }
     }
 
-    $request  = App\Core\Request::fromGlobals();
+    $request = App\Core\Request::fromGlobals();
     $response = $router->dispatch($request);
-
 } catch (\Throwable $e) {
     error_log('[index.php] Uncaught exception: ' . $e->getMessage()
         . ' in ' . $e->getFile() . ':' . $e->getLine());
@@ -193,19 +141,38 @@ try {
         default => 500,
     };
     $response = [
-        'ok'     => false,
+        'ok' => false,
         'status' => $status,
-        'data'   => null,
+        'data' => null,
         'errors' => [['field' => null, 'message' => $message]],
-        'meta'   => null,
+        'meta' => null,
     ];
 }
 
-// ---------------------------------------------------------------------------
-// 6. Send response
-// ---------------------------------------------------------------------------
+// Controller-directed browser redirects are reserved for payment callbacks.
+// Only the public WordPress hosts are accepted, so a misconfigured environment
+// cannot turn this API into an open redirector.
+if (isset($response['_redirect'])) {
+    $location = (string)$response['_redirect'];
+    $parts = parse_url($location);
+    $host = strtolower((string)($parts['host'] ?? ''));
+    $scheme = strtolower((string)($parts['scheme'] ?? ''));
+    if ($scheme === 'https' && in_array($host, ['drbastaninejad.com', 'www.drbastaninejad.com'], true)) {
+        header_remove('Content-Type');
+        header('Cache-Control: no-store, private');
+        header('Location: ' . $location, true, 303);
+        exit;
+    }
+    error_log('[index.php] rejected unsafe redirect target: ' . $location);
+    $response = [
+        'ok' => false,
+        'status' => 500,
+        'data' => null,
+        'errors' => [['field' => null, 'message' => 'خطای داخلی سرور']],
+        'meta' => null,
+    ];
+}
+
 $httpStatus = (int)($response['status'] ?? 200);
 http_response_code($httpStatus);
-
-// Keep the full documented envelope: {ok,status,data,errors,meta}.
 echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
