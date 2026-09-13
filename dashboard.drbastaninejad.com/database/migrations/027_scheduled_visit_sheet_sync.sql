@@ -10,3 +10,10 @@ ALTER TABLE appointment_booking_requests
     ADD COLUMN sheet_synced_at DATETIME NULL AFTER sheet_sync_status,
     ADD COLUMN sheet_sync_error VARCHAR(500) NULL AFTER sheet_synced_at,
     ADD INDEX idx_booking_sheet_sync (sheet_sync_status, updated_at);
+
+INSERT IGNORE INTO permissions (name, description)
+VALUES ('booking.integrations.manage', 'Manage appointment integration credentials');
+
+INSERT IGNORE INTO permission_role (role_id, permission_id)
+SELECT r.id, p.id FROM roles r JOIN permissions p ON p.name = 'booking.integrations.manage'
+WHERE r.name = 'super_admin';

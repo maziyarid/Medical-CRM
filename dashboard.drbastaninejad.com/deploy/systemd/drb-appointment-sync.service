@@ -1,0 +1,18 @@
+[Unit]
+Description=Dr Bastaninejad appointment hold, Calendar and ScheduledVisits synchronisation
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=drbastaninejad
+Group=drbastaninejad
+WorkingDirectory=/home/drbastaninejad/public_html/dashboard.drbastaninejad.com
+ExecStart=/usr/bin/php /home/drbastaninejad/public_html/dashboard.drbastaninejad.com/bin/calendar-sync.php
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077
+TimeoutStartSec=90
+
+[Install]
+WantedBy=multi-user.target

@@ -157,12 +157,12 @@ final class BookingController extends Controller
         );
         $sameRequest->execute([$uuid]);
         if ($row = $sameRequest->fetch()) {
-            return $this->success([
+            return $this->success(array_merge([
                 'booking_id' => (int)$row['id'], 'status' => $row['status'],
                 'sms_status' => $row['sms_status'], 'sheet_status' => $row['booking_sheet_status'],
                 'email_status' => $row['booking_email_status'], 'idempotent' => true,
                 'cooldown_minutes' => $cooldown,
-            ]);
+            ], $this->patientSessionPayload($mobile)));
         }
 
         // Backend rate limit is authoritative even if WordPress cache/transients are bypassed.
@@ -288,7 +288,10 @@ final class BookingController extends Controller
 
         $emailStatus = 'skipped';
         if ($email !== '') {
-            $emailStatus = (new EmailService())->sendBookingAcknowledgement($email, $firstName) ? 'sent' : 'failed';
+            $emailService = new EmailService();
+            if ($emailService->isConfigured()) {
+                $emailStatus = $emailService->sendBookingAcknowledgement($email, $firstName) ? 'sent' : 'failed';
+            }
         }
         $db->prepare('UPDATE intakes SET booking_email_status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?')
             ->execute([$emailStatus, $bookingId]);
@@ -311,15 +314,33 @@ final class BookingController extends Controller
             $db->prepare('UPDATE intakes SET sms_status = "skipped", updated_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$bookingId]);
         }
 
-        return $this->success([
+        return $this->success(array_merge([
             'booking_id' => $bookingId,
+            'patient_id' => $patientId,
             'status' => 'pending',
             'sms_status' => $smsStatus,
             'sheet_status' => $sheetStatus,
             'email_status' => $emailStatus,
             'idempotent' => false,
             'cooldown_minutes' => $cooldown,
-        ], 201);
+        ], $this->patientSessionPayload($mobile)), 201);
+    }
+
+    /** @return array{patient_session_token:string,patient_session_expires_at:string} */
+    private function patientSessionPayload(string $mobile): array
+    {
+        try {
+            $session = (new OtpService())->issueToken($mobile, 'patient', 'session');
+            return [
+                'patient_session_token' => (string)($session['token'] ?? ''),
+                'patient_session_expires_at' => (string)($session['expires_at'] ?? ''),
+            ];
+        } catch (\Throwable $e) {
+            // The clinical intake is already committed; login bootstrap failure must
+            // not make the browser retry and create a duplicate booking request.
+            error_log('[BookingController] patient session bootstrap failed: ' . $e->getMessage());
+            return ['patient_session_token' => '', 'patient_session_expires_at' => ''];
+        }
     }
 
     public function stats(Request $req): array

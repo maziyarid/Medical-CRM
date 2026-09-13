@@ -7,10 +7,14 @@ use App\Core\Controller;
 use App\Core\Database;
 use App\Core\Request;
 use App\Services\AppointmentAvailabilityAdminService;
+use App\Services\AppointmentBookingAdminService;
 use App\Services\AppointmentBookingGuardService;
+use App\Services\AppointmentPatientResolverService;
+use App\Services\AppointmentIntegrationSettingsService;
 use App\Services\AppointmentPaymentFacadeService;
 use App\Services\AppointmentSchemaBootstrapService;
 use App\Services\AppointmentSlotAvailabilityService;
+use App\Services\ScheduledVisitSheetService;
 use DateTimeImmutable;
 use DateTimeZone;
 use RuntimeException;
@@ -27,7 +31,23 @@ final class AppointmentBookingController extends Controller
         try {
             (new AppointmentSchemaBootstrapService())->ensure();
             $days = (new AppointmentSlotAvailabilityService())->availability($clinicId, $from, $to);
-            return $this->success(['days' => $days, 'timezone' => 'Asia/Tehran']);
+            $enabled = array_filter(array_map('trim', explode(',', strtolower((string)($_ENV['BOOKING_PAYMENT_GATEWAYS'] ?? 'zarinpal,vandar')))));
+            $gateways = [];
+            if (in_array('zarinpal', $enabled, true) && trim((string)($_ENV['ZARINPAL_MERCHANT_ID'] ?? '')) !== '') {
+                $gateways[] = 'zarinpal';
+            }
+            if (in_array('vandar', $enabled, true)
+                && trim((string)($_ENV['VANDAR_API_KEY'] ?? $_ENV['VANDAR_API_TOKEN'] ?? '')) !== '') {
+                $gateways[] = 'vandar';
+            }
+            return $this->success([
+                'days' => $days,
+                'timezone' => 'Asia/Tehran',
+                'payment' => [
+                    'gateways' => $gateways,
+                    'deposit_rials' => max(0, (int)($_ENV['BOOKING_APPOINTMENT_DEPOSIT_RIALS'] ?? 0)),
+                ],
+            ]);
         } catch (RuntimeException $e) {
             return $this->domainError($e);
         }
@@ -58,6 +78,7 @@ final class AppointmentBookingController extends Controller
                 $gateway,
                 trim((string)($req->body['submission_uuid'] ?? '')) ?: null
             );
+            $this->syncSheet((int)$booking['id']);
             return $this->success($booking, 201);
         } catch (RuntimeException $e) {
             return $this->domainError($e);
@@ -75,6 +96,7 @@ final class AppointmentBookingController extends Controller
                 (int)$req->user['id'],
                 (int)$id
             );
+            $this->syncSheet((int)$id);
             return $this->success($result);
         } catch (RuntimeException $e) {
             return $this->domainError($e);
@@ -89,8 +111,19 @@ final class AppointmentBookingController extends Controller
         }
         try {
             $result = (new AppointmentPaymentFacadeService())->verifyCallback($gateway, $req->query);
-            $result['return_url'] = trim((string)($_ENV['BOOKING_PAYMENT_RETURN_URL'] ?? 'https://app.drbastaninejad.com/'));
-            return $this->success($result, $result['verified'] ? 200 : 402);
+            $bookingId = (int)($result['booking']['id'] ?? $result['booking']['booking_id'] ?? 0);
+            if ($bookingId > 0) {
+                $this->syncSheet($bookingId);
+            }
+            $returnBase = trim((string)($_ENV['BOOKING_PAYMENT_RETURN_URL'] ?? 'https://drbastaninejad.com/booking/'));
+            $separator = str_contains($returnBase, '?') ? '&' : '?';
+            $result['return_url'] = $returnBase . $separator . 'payment=' . ($result['verified'] ? 'success' : 'failed');
+            if ($bookingId > 0) {
+                $result['return_url'] .= '&booking=' . $bookingId;
+            }
+            $response = $this->success($result, $result['verified'] ? 200 : 402);
+            $response['_redirect'] = $result['return_url'];
+            return $response;
         } catch (RuntimeException $e) {
             return $this->domainError($e);
         }
@@ -103,7 +136,7 @@ final class AppointmentBookingController extends Controller
         }
         $clinicId = (int)$req->user['clinic_id'];
         $staffId = (int)$req->user['id'];
-        $patientId = (int)($req->body['patient_id'] ?? 0);
+        $patientId = (new AppointmentPatientResolverService())->resolve($clinicId, $req->body);
         $openDayId = (int)($req->body['open_day_id'] ?? 0);
         $startAt = (string)($req->body['start_at'] ?? '');
         $mode = strtolower(trim((string)($req->body['payment_mode'] ?? 'free')));
@@ -119,6 +152,7 @@ final class AppointmentBookingController extends Controller
                     trim((string)($req->body['visit_reason'] ?? '')) ?: null,
                     trim((string)($req->body['notes'] ?? '')) ?: null
                 );
+                $this->syncSheet((int)$booking['id']);
                 return $this->success($booking, 201);
             }
             if (!in_array($mode, ['zarinpal', 'vandar'], true)) {
@@ -128,12 +162,32 @@ final class AppointmentBookingController extends Controller
             if ($amount <= 0) {
                 return $this->error('مبلغ رزرو در سامانه تنظیم نشده است', 503);
             }
-            $booking = $guard->createPatientHold($clinicId, $patientId, $openDayId, $startAt, $amount, $mode);
+            $booking = $guard->createPatientHold(
+                $clinicId, $patientId, $openDayId, $startAt, $amount, $mode, null, 'admin', $staffId
+            );
             $payment = (new AppointmentPaymentFacadeService())->start($clinicId, $patientId, (int)$booking['id']);
-            Database::conn()->prepare(
-                'UPDATE appointment_booking_requests SET source = "admin", receptionist_user_id = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?'
-            )->execute([$staffId, (int)$booking['id']]);
+            $this->syncSheet((int)$booking['id']);
             return $this->success(['booking' => $booking, 'payment' => $payment], 201);
+        } catch (RuntimeException $e) {
+            return $this->domainError($e);
+        }
+    }
+
+    public function reconcilePaidSlot(Request $req, string $id): array
+    {
+        if (($req->user['user_type'] ?? null) !== 'staff') {
+            return $this->error('دسترسی کارکنان الزامی است', 403);
+        }
+        try {
+            $result = (new AppointmentBookingGuardService())->reconcilePaidSlot(
+                (int)$req->user['clinic_id'],
+                (int)$id,
+                (int)$req->user['id'],
+                (int)($req->body['open_day_id'] ?? 0),
+                (string)($req->body['start_at'] ?? '')
+            );
+            $this->syncSheet((int)$id);
+            return $this->success($result);
         } catch (RuntimeException $e) {
             return $this->domainError($e);
         }
@@ -150,6 +204,7 @@ final class AppointmentBookingController extends Controller
                 (int)$id,
                 (int)$req->user['id']
             );
+            $this->syncSheet((int)$id);
             return $this->success($result);
         } catch (RuntimeException $e) {
             return $this->domainError($e);
@@ -173,13 +228,105 @@ final class AppointmentBookingController extends Controller
         }
     }
 
+
+    public function adminBookings(Request $req): array
+    {
+        return $this->success((new AppointmentBookingAdminService())->bookings(
+            (int)$req->user['clinic_id'], $req->query
+        ));
+    }
+
+    public function adminOpenDays(Request $req): array
+    {
+        return $this->success((new AppointmentBookingAdminService())->openDays(
+            (int)$req->user['clinic_id'],
+            trim((string)($req->query['from'] ?? '')),
+            trim((string)($req->query['to'] ?? ''))
+        ));
+    }
+
+    public function adminPayments(Request $req): array
+    {
+        return $this->success((new AppointmentBookingAdminService())->payments(
+            (int)$req->user['clinic_id'], $req->query
+        ));
+    }
+
+    public function integrationStatus(Request $req): array
+    {
+        return $this->success((new AppointmentBookingAdminService())->integrationStatus(
+            (int)$req->user['clinic_id']
+        ));
+    }
+
+    public function updateIntegrationSettings(Request $req): array
+    {
+        try {
+            $updated = (new AppointmentIntegrationSettingsService())->update($req->body);
+            $status = (new AppointmentBookingAdminService())->integrationStatus((int)$req->user['clinic_id']);
+            return $this->success(['update' => $updated, 'status' => $status]);
+        } catch (RuntimeException $e) {
+            return $this->domainError($e);
+        }
+    }
+
+    public function completeFollowup(Request $req, string $id): array
+    {
+        try {
+            $result = (new AppointmentBookingAdminService())->completeFollowup(
+                (int)$req->user['clinic_id'], (int)$id, (int)$req->user['id']
+            );
+            $this->syncSheet((int)$id);
+            return $this->success($result);
+        } catch (RuntimeException $e) {
+            return $this->domainError($e);
+        }
+    }
+
+    public function reconcilePayment(Request $req, string $id): array
+    {
+        try {
+            $result = (new AppointmentPaymentFacadeService())->reconcileAttempt(
+                (int)$req->user['clinic_id'], (int)$id
+            );
+            $bookingId = (int)($result['booking']['id'] ?? $result['booking']['booking_id'] ?? 0);
+            if ($bookingId > 0) {
+                $this->syncSheet($bookingId);
+            }
+            return $this->success($result);
+        } catch (RuntimeException $e) {
+            return $this->domainError($e);
+        }
+    }
+
+    public function syncScheduledVisit(Request $req, string $id): array
+    {
+        $service = new ScheduledVisitSheetService();
+        $service->queue((int)$id);
+        return $this->success(['booking_id' => (int)$id, 'sheet_sync_status' => $service->syncBooking((int)$id)]);
+    }
+
+    private function syncSheet(int $bookingId): void
+    {
+        try {
+            $sheet = new ScheduledVisitSheetService();
+            $sheet->queue($bookingId);
+            $sheet->syncBooking($bookingId);
+        } catch (\Throwable $e) {
+            error_log('[AppointmentBookingController] ScheduledVisits sync failed: ' . $e->getMessage());
+        }
+    }
+
     private function domainError(RuntimeException $e): array
     {
         $message = $e->getMessage();
         $status = match ($message) {
             'booking not found', 'open day not found', 'payment attempt not found', 'patient not found' => 404,
+            'invalid patient mobile', 'invalid patient name', 'patient belongs to another clinic' => 422,
             'slot unavailable', 'daily quota reached', 'open day closed', 'booking hold expired',
-            'paid slot requires reconciliation', 'weekly open-day limit reached', 'monthly open-day limit reached' => 409,
+            'paid slot requires reconciliation', 'booking slot already reserved',
+            'booking is not awaiting paid-slot reconciliation',
+            'weekly open-day limit reached', 'monthly open-day limit reached' => 409,
             'Zarinpal is not configured', 'Vandar is not configured',
             'payment callback base is not configured', 'cURL extension is required for payment gateways',
             'clinic lock timeout', 'appointment schema migration lock timeout' => 503,

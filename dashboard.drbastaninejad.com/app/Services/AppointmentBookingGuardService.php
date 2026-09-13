@@ -35,7 +35,9 @@ final class AppointmentBookingGuardService
         string $requestedStart,
         int $amountRials,
         string $gateway,
-        ?string $submissionUuid = null
+        ?string $submissionUuid = null,
+        string $source = 'online',
+        ?int $receptionistUserId = null
     ): array {
         return $this->withClinicLock($clinicId, function (PDO $db) use (
             $clinicId,
@@ -44,7 +46,9 @@ final class AppointmentBookingGuardService
             $requestedStart,
             $amountRials,
             $gateway,
-            $submissionUuid
+            $submissionUuid,
+            $source,
+            $receptionistUserId
         ): array {
             $this->assertPatientClinic($db, $clinicId, $patientId);
 
@@ -69,7 +73,9 @@ final class AppointmentBookingGuardService
                 $requestedStart,
                 $amountRials,
                 $gateway,
-                $submissionUuid
+                $submissionUuid,
+                $source,
+                $receptionistUserId
             );
             $created['idempotent'] = false;
             return $created;
@@ -110,6 +116,46 @@ final class AppointmentBookingGuardService
                 $requestedStart,
                 $visitReason,
                 $notes
+            );
+        });
+    }
+
+    /** @return array<string,mixed> */
+    public function reconcilePaidSlot(
+        int $clinicId,
+        int $bookingId,
+        int $staffUserId,
+        int $openDayId,
+        string $requestedStart
+    ): array {
+        return $this->withClinicLock($clinicId, function (PDO $db) use (
+            $clinicId, $bookingId, $staffUserId, $openDayId, $requestedStart
+        ): array {
+            $stmt = $db->prepare(
+                'SELECT patient_id, payment_status, confirmation_status, slot_claim_key
+                 FROM appointment_booking_requests WHERE id = ? AND clinic_id = ? LIMIT 1'
+            );
+            $stmt->execute([$bookingId, $clinicId]);
+            $booking = $stmt->fetch();
+            if (!$booking) {
+                throw new RuntimeException('booking not found');
+            }
+            if ((string)$booking['payment_status'] !== 'paid'
+                || (string)$booking['confirmation_status'] !== 'paid_pending_staff') {
+                throw new RuntimeException('booking is not awaiting paid-slot reconciliation');
+            }
+            if ($booking['slot_claim_key'] !== null) {
+                throw new RuntimeException('booking slot already reserved');
+            }
+            $this->assertPatientClinic($db, $clinicId, (int)$booking['patient_id']);
+            $day = $this->openDay($db, $clinicId, $openDayId);
+            $duration = max(1, (int)$day['slot_duration_minutes']);
+            $startUtc = $this->normaliseStart($requestedStart);
+            $this->assertSlotGrid($day, $startUtc);
+            $this->assertNoAppointmentOverlap($db, $clinicId, $startUtc, $duration);
+            $this->assertNoBookingOverlap($db, $clinicId, $startUtc, $duration);
+            return $this->bookings->assignPaidReconciliationSlot(
+                $clinicId, $bookingId, $staffUserId, $openDayId, $requestedStart
             );
         });
     }

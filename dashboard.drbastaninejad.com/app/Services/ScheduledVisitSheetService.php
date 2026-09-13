@@ -116,9 +116,12 @@ final class ScheduledVisitSheetService
     {
         (new AppointmentSchemaBootstrapService())->ensure();
         $limit = max(1, min(100, $limit));
+        $statuses = (($_ENV['BOOKING_SHEET_WRITE_ENABLED'] ?? '0') === '1')
+            ? '("pending","error","skipped")'
+            : '("pending","error")';
         $stmt = Database::conn()->query(
             'SELECT id FROM appointment_booking_requests
-             WHERE sheet_sync_status IN ("pending","error")
+             WHERE sheet_sync_status IN ' . $statuses . '
              ORDER BY updated_at ASC, id ASC LIMIT ' . $limit
         );
         $summary = ['synced' => 0, 'pending' => 0, 'skipped' => 0, 'error' => 0];
@@ -136,8 +139,8 @@ final class ScheduledVisitSheetService
             'SELECT b.id, b.uuid, b.appointment_id, b.patient_id, b.requested_start_at,
                     b.duration_minutes, b.source, b.receptionist_user_id, b.payment_status,
                     b.payment_gateway, b.amount_rials, b.confirmation_status,
-                    b.staff_followup_required, b.open_day_id, b.created_at, b.confirmed_at,
-                    b.updated_at,
+                    b.staff_followup_required, b.followup_completed_at, b.followup_completed_by,
+                    b.open_day_id, b.created_at, b.confirmed_at, b.updated_at,
                     p.first_name, p.last_name, p.mobile,
                     u.full_name AS registered_by_name,
                     GROUP_CONCAT(DISTINCT r.name ORDER BY r.id SEPARATOR ",") AS registered_by_roles,
@@ -158,8 +161,9 @@ final class ScheduledVisitSheetService
              GROUP BY b.id, b.uuid, b.appointment_id, b.patient_id, b.requested_start_at,
                       b.duration_minutes, b.source, b.receptionist_user_id, b.payment_status,
                       b.payment_gateway, b.amount_rials, b.confirmation_status,
-                      b.staff_followup_required, b.open_day_id, b.created_at, b.confirmed_at,
-                      b.updated_at, p.first_name, p.last_name, p.mobile, u.full_name,
+                      b.staff_followup_required, b.followup_completed_at, b.followup_completed_by,
+                      b.open_day_id, b.created_at, b.confirmed_at, b.updated_at,
+                      p.first_name, p.last_name, p.mobile, u.full_name,
                       pa.transaction_ref, pa.verified_at, cel.google_event_id, cel.last_synced_at
              LIMIT 1'
         );
@@ -206,7 +210,10 @@ final class ScheduledVisitSheetService
             'ConfirmedAtUTC' => (string)($row['confirmed_at'] ?? ''),
             'UpdatedAtUTC' => (string)$row['updated_at'],
             'LastSyncedAtUTC' => (string)($row['last_synced_at'] ?? ''),
-            'Notes' => '',
+            'Notes' => $row['followup_completed_at'] !== null
+                ? 'followup_completed_by=' . (int)($row['followup_completed_by'] ?? 0)
+                    . '; followup_completed_at=' . (string)$row['followup_completed_at']
+                : '',
         ];
     }
 

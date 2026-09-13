@@ -141,6 +141,9 @@ final class CalendarSyncService
                     ->execute([(int)$link['id']]);
                 error_log('[CalendarSyncService] pull conflict event ' . $eventId . ': ' . $e->getMessage());
             }
+            if (!empty($link['booking_request_id'])) {
+                (new ScheduledVisitSheetService())->queue((int)$link['booking_request_id']);
+            }
         }
 
         $nextToken = $changes['next_sync_token'];
@@ -228,6 +231,7 @@ final class CalendarSyncService
 
         $event = $this->appointmentEvent($appointment, $row);
         $saved = $this->google->upsertEvent($calendarId, $eventId, $event, $link['google_etag'] ?? null);
+        $bookingId = $this->bookingIdFromPayload((string)$row['payload']);
         $db->prepare(
             'INSERT INTO calendar_event_links
              (clinic_id, appointment_id, booking_request_id, google_calendar_id, google_event_id,
@@ -240,12 +244,15 @@ final class CalendarSyncService
         )->execute([
             $clinicId,
             $appointmentId,
-            $this->bookingIdFromPayload((string)$row['payload']),
+            $bookingId,
             $calendarId,
             (string)($saved['id'] ?? $eventId),
             $saved['etag'] ?? null,
             $this->googleUpdatedToUtc($saved['updated'] ?? null),
         ]);
+        if ($bookingId > 0) {
+            (new ScheduledVisitSheetService())->queue($bookingId);
+        }
     }
 
     /** @return array<string,mixed> */

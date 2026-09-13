@@ -61,13 +61,24 @@ final class AppointmentBookingService
         string $requestedStart,
         int $amountRials,
         string $gateway,
-        ?string $submissionUuid = null
+        ?string $submissionUuid = null,
+        string $source = 'online',
+        ?int $receptionistUserId = null
     ): array {
         if (!in_array($gateway, ['zarinpal', 'vandar'], true)) {
             throw new RuntimeException('invalid payment gateway');
         }
         if ($amountRials <= 0) {
             throw new RuntimeException('invalid payment amount');
+        }
+        if (!in_array($source, ['online', 'admin'], true)) {
+            throw new RuntimeException('invalid booking source');
+        }
+        if ($source === 'admin' && ($receptionistUserId ?? 0) < 1) {
+            throw new RuntimeException('receptionist user is required');
+        }
+        if ($source === 'online') {
+            $receptionistUserId = null;
         }
         $startUtc = $this->normaliseStart($requestedStart);
         $db = Database::conn();
@@ -84,8 +95,8 @@ final class AppointmentBookingService
                 'INSERT INTO appointment_booking_requests
                  (uuid, submission_uuid, clinic_id, patient_id, open_day_id, requested_start_at,
                   duration_minutes, source, payment_gateway, payment_status, confirmation_status,
-                  amount_rials, slot_claim_key, hold_expires_at, staff_followup_required)
-                 VALUES (?, NULLIF(?, ""), ?, ?, ?, ?, ?, "online", ?, "pending", "awaiting_payment", ?, ?,
+                  receptionist_user_id, amount_rials, slot_claim_key, hold_expires_at, staff_followup_required)
+                 VALUES (?, NULLIF(?, ""), ?, ?, ?, ?, ?, ?, ?, "pending", "awaiting_payment", NULLIF(?, 0), ?, ?,
                          DATE_ADD(UTC_TIMESTAMP(), INTERVAL ? MINUTE), 1)'
             );
             $stmt->execute([
@@ -96,7 +107,9 @@ final class AppointmentBookingService
                 $openDayId,
                 $startUtc,
                 (int)$day['slot_duration_minutes'],
+                $source,
                 $gateway,
+                $receptionistUserId ?? 0,
                 $amountRials,
                 $claim,
                 $holdMinutes,
@@ -111,6 +124,8 @@ final class AppointmentBookingService
                 'requested_start_at' => $startUtc,
                 'payment_status' => 'pending',
                 'confirmation_status' => 'awaiting_payment',
+                'source' => $source,
+                'receptionist_user_id' => $receptionistUserId,
                 'hold_minutes' => $holdMinutes,
             ];
         } catch (PDOException $e) {
@@ -221,7 +236,7 @@ final class AppointmentBookingService
             }
             if ((string)$booking['payment_status'] === 'paid') {
                 $db->commit();
-                return ['paid' => true, 'slot_reserved' => $booking['slot_claim_key'] !== null, 'status' => (string)$booking['confirmation_status']];
+                return ['id' => $bookingId, 'booking_id' => $bookingId, 'paid' => true, 'slot_reserved' => $booking['slot_claim_key'] !== null, 'status' => (string)$booking['confirmation_status']];
             }
             if ((string)$booking['payment_gateway'] !== $gateway) {
                 throw new RuntimeException('gateway mismatch');
@@ -244,12 +259,13 @@ final class AppointmentBookingService
             $db->prepare(
                 'UPDATE appointment_booking_requests
                  SET payment_status = "paid", confirmation_status = ?, hold_expires_at = NULL,
-                     staff_followup_required = 1, updated_at = UTC_TIMESTAMP()
+                     staff_followup_required = 1, sheet_sync_status = "pending", sheet_sync_error = NULL,
+                     updated_at = UTC_TIMESTAMP()
                  WHERE id = ?'
             )->execute([$newStatus, $bookingId]);
 
             $db->commit();
-            return ['paid' => true, 'slot_reserved' => $holdActive, 'status' => $newStatus];
+            return ['id' => $bookingId, 'booking_id' => $bookingId, 'paid' => true, 'slot_reserved' => $holdActive, 'status' => $newStatus];
         } catch (\Throwable $e) {
             if ($db->inTransaction()) {
                 $db->rollBack();
@@ -310,7 +326,8 @@ final class AppointmentBookingService
             $db->prepare(
                 'UPDATE appointment_booking_requests
                  SET appointment_id = ?, confirmation_status = "confirmed", receptionist_user_id = COALESCE(receptionist_user_id, ?),
-                     confirmed_at = UTC_TIMESTAMP(), staff_followup_required = 0, updated_at = UTC_TIMESTAMP()
+                     confirmed_at = UTC_TIMESTAMP(), staff_followup_required = 1,
+                     sheet_sync_status = "pending", sheet_sync_error = NULL, updated_at = UTC_TIMESTAMP()
                  WHERE id = ?'
             )->execute([$appointmentId, $staffUserId, $bookingId]);
             $this->enqueueCalendar($db, $clinicId, 'appointment', $appointmentId, 'upsert', [
@@ -321,6 +338,79 @@ final class AppointmentBookingService
             ]);
             $db->commit();
             return ['id' => $bookingId, 'appointment_id' => $appointmentId, 'status' => 'confirmed'];
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /** @return array<string,mixed> */
+    public function assignPaidReconciliationSlot(
+        int $clinicId,
+        int $bookingId,
+        int $staffUserId,
+        int $openDayId,
+        string $requestedStart
+    ): array {
+        $startUtc = $this->normaliseStart($requestedStart);
+        $db = Database::conn();
+        $db->beginTransaction();
+        try {
+            $day = $this->lockOpenDay($db, $clinicId, $openDayId);
+            $this->expireLockedDayHolds($db, $day);
+            $this->assertDayCanAccept($day, $startUtc);
+
+            $stmt = $db->prepare(
+                'SELECT * FROM appointment_booking_requests WHERE id = ? AND clinic_id = ? FOR UPDATE'
+            );
+            $stmt->execute([$bookingId, $clinicId]);
+            $booking = $stmt->fetch();
+            if (!$booking) {
+                throw new RuntimeException('booking not found');
+            }
+            if ((string)$booking['payment_status'] !== 'paid'
+                || (string)$booking['confirmation_status'] !== 'paid_pending_staff') {
+                throw new RuntimeException('booking is not awaiting paid-slot reconciliation');
+            }
+            if ($booking['slot_claim_key'] !== null) {
+                throw new RuntimeException('booking slot already reserved');
+            }
+
+            $duration = (int)$day['slot_duration_minutes'];
+            $this->assertNoAppointmentOverlap($db, $clinicId, $startUtc, $duration);
+            $claim = hash('sha256', $clinicId . '|' . $startUtc);
+            $db->prepare(
+                'UPDATE appointment_booking_requests
+                 SET open_day_id = ?, requested_start_at = ?, duration_minutes = ?, slot_claim_key = ?,
+                     hold_expires_at = NULL, receptionist_user_id = COALESCE(receptionist_user_id, ?),
+                     sheet_sync_status = "pending", sheet_sync_error = NULL, updated_at = UTC_TIMESTAMP()
+                 WHERE id = ?'
+            )->execute([$openDayId, $startUtc, $duration, $claim, $staffUserId, $bookingId]);
+            $db->prepare(
+                'UPDATE appointment_open_days
+                 SET booked_count = booked_count + 1, updated_at = UTC_TIMESTAMP() WHERE id = ?'
+            )->execute([$openDayId]);
+            $db->commit();
+            return [
+                'id' => $bookingId,
+                'booking_id' => $bookingId,
+                'payment_status' => 'paid',
+                'confirmation_status' => 'paid_pending_staff',
+                'slot_reserved' => true,
+                'open_day_id' => $openDayId,
+                'requested_start_at' => $startUtc,
+                'duration_minutes' => $duration,
+            ];
+        } catch (PDOException $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            if ((string)$e->getCode() === '23000') {
+                throw new RuntimeException('slot unavailable', 0, $e);
+            }
+            throw $e;
         } catch (\Throwable $e) {
             if ($db->inTransaction()) {
                 $db->rollBack();
@@ -385,7 +475,8 @@ final class AppointmentBookingService
         $db->prepare(
             "UPDATE appointment_booking_requests
              SET confirmation_status = 'expired', payment_status = IF(payment_status = 'paid', 'paid', 'failed'),
-                 slot_claim_key = NULL, hold_expires_at = NULL, updated_at = UTC_TIMESTAMP()
+                 slot_claim_key = NULL, hold_expires_at = NULL,
+                 sheet_sync_status = 'pending', sheet_sync_error = NULL, updated_at = UTC_TIMESTAMP()
              WHERE id IN ({$placeholders})"
         )->execute($ids);
         $count = count($ids);

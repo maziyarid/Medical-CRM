@@ -48,7 +48,9 @@ final class AppointmentSchemaBootstrapService
                 }
             }
 
+            $this->ensureBookingPermissions($db);
             $this->ensureScheduledVisitSyncSchema($db);
+            $this->ensureFollowupAuditSchema($db);
 
             if (!$this->isReady($db)) {
                 throw new RuntimeException('appointment schema bootstrap incomplete');
@@ -70,7 +72,10 @@ final class AppointmentSchemaBootstrapService
             && $this->columnExists($db, 'appointment_booking_requests', 'sheet_sync_status')
             && $this->columnExists($db, 'appointment_booking_requests', 'sheet_synced_at')
             && $this->columnExists($db, 'appointment_booking_requests', 'sheet_sync_error')
-            && $this->indexExists($db, 'appointment_booking_requests', 'idx_booking_sheet_sync');
+            && $this->indexExists($db, 'appointment_booking_requests', 'idx_booking_sheet_sync')
+            && $this->columnExists($db, 'appointment_booking_requests', 'followup_completed_at')
+            && $this->columnExists($db, 'appointment_booking_requests', 'followup_completed_by')
+            && $this->indexExists($db, 'appointment_booking_requests', 'idx_booking_followup_queue');
     }
 
     private function baseTablesReady(PDO $db): bool
@@ -90,6 +95,25 @@ final class AppointmentSchemaBootstrapService
         );
         $stmt->execute($expected);
         return (int)$stmt->fetchColumn() === count($expected);
+    }
+
+    private function ensureBookingPermissions(PDO $db): void
+    {
+        $db->exec("INSERT IGNORE INTO permissions (name, description) VALUES
+            ('booking.manage', 'View and manage appointment booking requests'),
+            ('booking.availability.manage', 'Manage clinic open days, slots and quotas'),
+            ('booking.payments.reconcile', 'Reconcile appointment payment attempts'),
+            ('calendar.sync.manage', 'Manage Google Calendar synchronisation'),
+            ('booking.integrations.manage', 'Manage appointment integration credentials')");
+        $db->exec("INSERT IGNORE INTO permission_role (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r
+            JOIN permissions p ON p.name IN (
+                'booking.manage','booking.availability.manage','booking.payments.reconcile',
+                'calendar.sync.manage','booking.integrations.manage'
+            ) WHERE r.name = 'super_admin'");
+        $db->exec("INSERT IGNORE INTO permission_role (role_id, permission_id)
+            SELECT r.id, p.id FROM roles r JOIN permissions p ON p.name = 'booking.manage'
+            WHERE r.name IN ('receptionist','doctor')");
     }
 
     private function ensureScheduledVisitSyncSchema(PDO $db): void
@@ -121,6 +145,35 @@ final class AppointmentSchemaBootstrapService
         }
     }
 
+    private function ensureFollowupAuditSchema(PDO $db): void
+    {
+        if (!$this->columnExists($db, 'appointment_booking_requests', 'followup_completed_at')) {
+            $db->exec(
+                'ALTER TABLE appointment_booking_requests
+                 ADD COLUMN followup_completed_at DATETIME NULL AFTER staff_followup_required'
+            );
+        }
+        if (!$this->columnExists($db, 'appointment_booking_requests', 'followup_completed_by')) {
+            $db->exec(
+                'ALTER TABLE appointment_booking_requests
+                 ADD COLUMN followup_completed_by INT UNSIGNED NULL AFTER followup_completed_at'
+            );
+        }
+        if (!$this->indexExists($db, 'appointment_booking_requests', 'idx_booking_followup_queue')) {
+            $db->exec(
+                'ALTER TABLE appointment_booking_requests
+                 ADD INDEX idx_booking_followup_queue (clinic_id, staff_followup_required, confirmation_status)'
+            );
+        }
+        if (!$this->constraintExists($db, 'appointment_booking_requests', 'fk_booking_followup_user')) {
+            $db->exec(
+                'ALTER TABLE appointment_booking_requests
+                 ADD CONSTRAINT fk_booking_followup_user FOREIGN KEY (followup_completed_by)
+                 REFERENCES users(id) ON DELETE SET NULL'
+            );
+        }
+    }
+
     private function columnExists(PDO $db, string $table, string $column): bool
     {
         $stmt = $db->prepare(
@@ -138,6 +191,16 @@ final class AppointmentSchemaBootstrapService
              WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?'
         );
         $stmt->execute([$table, $index]);
+        return (int)$stmt->fetchColumn() > 0;
+    }
+
+    private function constraintExists(PDO $db, string $table, string $constraint): bool
+    {
+        $stmt = $db->prepare(
+            'SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND CONSTRAINT_NAME = ?'
+        );
+        $stmt->execute([$table, $constraint]);
         return (int)$stmt->fetchColumn() > 0;
     }
 
