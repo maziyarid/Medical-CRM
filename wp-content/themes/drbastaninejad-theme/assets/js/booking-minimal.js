@@ -23,6 +23,18 @@
     var r = sum % 11;
     return Number(id[9]) === (r < 2 ? r : 11 - r);
   }
+  function bookingUuid() {
+    var key = 'drb_booking_submission_uuid';
+    var existing = sessionStorage.getItem(key);
+    if (existing) return existing;
+    var value = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() :
+      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 3 | 8);
+        return v.toString(16);
+      });
+    sessionStorage.setItem(key, value);
+    return value;
+  }
   function request(url, body) {
     return fetch(url, {
       method: 'POST', credentials: 'same-origin',
@@ -143,7 +155,7 @@
         birthDateJalali: birth, nationalId: national, mobile: mobile,
         email: form.elements.email.value.trim(), medicalHistory: form.elements.medicalHistory.value.trim(),
         medications: form.elements.medications.value.trim(), doctorRequest: form.elements.doctorRequest.value.trim(),
-        otpToken: verificationToken, language: 'fa'
+        otpToken: verificationToken, language: 'fa', submission_uuid: bookingUuid()
       }).then(function (data) {
         var success = document.createElement('div');
         success.className = 'drb-min-success';
@@ -152,6 +164,7 @@
         var detail = document.createElement('p');
         detail.textContent = data.message || 'این ثبت به معنی نوبت قطعی نیست. همکاران کلینیک برای اعلام و تأیید زمان با شما تماس می‌گیرند.';
         success.appendChild(title); success.appendChild(detail);
+        sessionStorage.removeItem('drb_booking_submission_uuid');
         form.replaceChildren(success);
       }).catch(function (error) { message(error.message, true); submit.disabled = false; });
     });

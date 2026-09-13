@@ -49,9 +49,14 @@ final class GoogleSheetsService
             // Apps Script ContentService replies with HTTP 200 even when the
             // application-level response is a confirmed rejection.
             if (is_array($decoded) && array_key_exists('ok', $decoded) && !$decoded['ok']) {
+                if (!empty($decoded['retryable'])) {
+                    return 'outcome_unknown';
+                }
                 return 'failed_confirmed';
             }
-            return $status >= 400 ? 'failed_confirmed' : 'outcome_unknown';
+            // A transport/server error does not prove whether the write happened.
+              // Only an explicit application rejection is confirmed above.
+              return 'outcome_unknown';
         } catch (\Throwable $e) {
             error_log('[GoogleSheetsService] booking ' . $bookingId . ' outcome unknown: ' . $e->getMessage());
             return 'outcome_unknown';

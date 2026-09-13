@@ -288,7 +288,10 @@ final class BookingController extends Controller
 
         $emailStatus = 'skipped';
         if ($email !== '') {
-            $emailStatus = (new EmailService())->sendBookingAcknowledgement($email, $firstName) ? 'sent' : 'failed';
+            $emailService = new EmailService();
+            $emailStatus = $emailService->isConfigured()
+                ? ($emailService->sendBookingAcknowledgement($email, $firstName) ? 'sent' : 'failed')
+                : 'skipped';
         }
         $db->prepare('UPDATE intakes SET booking_email_status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?')
             ->execute([$emailStatus, $bookingId]);
