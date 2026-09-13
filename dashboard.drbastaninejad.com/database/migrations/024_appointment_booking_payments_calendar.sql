@@ -1,6 +1,11 @@
 -- Migration 024: paid appointment booking, availability and Calendar integration
 -- MySQL remains the transactional source of truth. Google Calendar is an integration
 -- bridge to the clinic's DevExpress desktop scheduler, never the sole booking store.
+--
+-- intake_id intentionally has no foreign key here. Historical installations use
+-- both INT and BIGINT for intakes.id; keeping this link as BIGINT without an FK
+-- makes the additive migration safe across both histories while preserving the
+-- authoritative clinic/patient/open-day/appointment foreign keys.
 
 CREATE TABLE IF NOT EXISTS appointment_open_days (
     id                    INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -30,7 +35,7 @@ CREATE TABLE IF NOT EXISTS appointment_booking_requests (
     submission_uuid        VARCHAR(64) NULL,
     clinic_id              INT UNSIGNED NOT NULL,
     patient_id             INT UNSIGNED NOT NULL,
-    intake_id              INT UNSIGNED NULL,
+    intake_id              BIGINT UNSIGNED NULL,
     open_day_id            INT UNSIGNED NOT NULL,
     appointment_id         INT UNSIGNED NULL,
     requested_start_at     DATETIME NOT NULL,
@@ -58,7 +63,6 @@ CREATE TABLE IF NOT EXISTS appointment_booking_requests (
     KEY idx_booking_hold_expiry (confirmation_status, hold_expires_at),
     CONSTRAINT fk_booking_clinic FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE,
     CONSTRAINT fk_booking_patient FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
-    CONSTRAINT fk_booking_intake FOREIGN KEY (intake_id) REFERENCES intakes(id) ON DELETE SET NULL,
     CONSTRAINT fk_booking_open_day FOREIGN KEY (open_day_id) REFERENCES appointment_open_days(id) ON DELETE RESTRICT,
     CONSTRAINT fk_booking_appointment FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE SET NULL,
     CONSTRAINT fk_booking_receptionist FOREIGN KEY (receptionist_user_id) REFERENCES users(id) ON DELETE SET NULL
