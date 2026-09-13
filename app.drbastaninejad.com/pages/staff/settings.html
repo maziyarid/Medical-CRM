@@ -92,23 +92,26 @@
         </section>
       </div>
 
-      <!-- Panel: Users (RBAC — read-only for now, management is Phase E) -->
+      <!-- Panel: Users (super-admin management) -->
       <div class="settings-panel" id="panel-users" role="tabpanel">
         <section class="panel">
           <div class="panel-header">
-            <div><h3>کاربران و دسترسی‌ها (RBAC)</h3></div>
+            <div><h3>کاربران و دسترسی‌ها</h3><p>ثبت و مدیریت حساب‌های مدیر، پزشک، پذیرش و پرستار</p></div>
           </div>
-          <div class="table-wrap" style="box-shadow:none;border:none">
+          <form id="staff-create-form" style="display:none;grid-template-columns:1.3fr 1fr 1.3fr 1fr auto;gap:.6rem;align-items:end;margin-bottom:1rem" novalidate>
+            <div class="input-group"><label class="form-label required" for="staff-name">نام و نام خانوادگی</label><input class="form-input" id="staff-name" required/></div>
+            <div class="input-group"><label class="form-label required" for="staff-mobile">شماره همراه</label><input class="form-input" id="staff-mobile" type="tel" inputmode="numeric" placeholder="09xxxxxxxxx" required/></div>
+            <div class="input-group"><label class="form-label" for="staff-email">ایمیل</label><input class="form-input" id="staff-email" type="email"/></div>
+            <div class="input-group"><label class="form-label required" for="staff-role">نقش</label><select class="form-select" id="staff-role"><option value="receptionist">پذیرش</option><option value="doctor">پزشک</option><option value="nurse">پرستار</option><option value="super_admin">مدیر کل</option></select></div>
+            <button class="btn btn-primary" id="btn-create-staff" type="submit">ایجاد و دعوت</button>
+          </form>
+          <div id="staff-management-note" class="save-state" style="display:block;margin:.5rem 0 1rem">در حال بررسی سطح دسترسی…</div>
+          <div class="table-wrap" style="box-shadow:none;border:none;overflow:auto">
             <table class="data-table">
-              <thead>
-                <tr><th>کاربر</th><th>نقش</th><th>وضعیت</th></tr>
-              </thead>
-              <tbody id="staff-users-body">
-                <tr><td colspan="3"><div class="skeleton skeleton-line" style="width:70%"></div></td></tr>
-              </tbody>
+              <thead><tr><th>کاربر</th><th>تماس</th><th>نقش</th><th>فعال‌سازی</th><th>وضعیت</th><th>آخرین ورود</th><th>عملیات</th></tr></thead>
+              <tbody id="staff-users-body"><tr><td colspan="7"><div class="skeleton skeleton-line" style="width:70%"></div></td></tr></tbody>
             </table>
           </div>
-          <p class="save-state" style="display:block;margin-top:.75rem">این فهرست از MySQL خوانده می‌شود. تغییر نقش/کاربر فقط پس از تعریف قرارداد مدیریتی RBAC اضافه می‌شود؛ داده ساختگی نمایش داده نمی‌شود.</p>
         </section>
       </div>
 
@@ -160,6 +163,12 @@
       const panel = document.getElementById('panel-' + btn.dataset.panel);
       if (panel) panel.classList.add('active');
     });
+
+    const requestedTab = new URLSearchParams(location.search).get('tab');
+    if (requestedTab) {
+      const requestedButton = document.querySelector(`.settings-tab[data-panel="${CSS.escape(requestedTab)}"]`);
+      if (requestedButton) requestedButton.click();
+    }
 
     // ── Load settings ────────────────────────────────────────────────────────
     let loadedSettings = {};
@@ -217,17 +226,62 @@
       }));
     }
 
+    const ROLE_LABELS = { super_admin:'مدیر کل', doctor:'پزشک', receptionist:'پذیرش', nurse:'پرستار' };
+    let currentStaffUser = null;
+    let staffUsers = [];
+
+    function isSuperAdmin() {
+      const roles = Array.isArray(currentStaffUser?.roles) ? currentStaffUser.roles : [currentStaffUser?.role].filter(Boolean);
+      return roles.includes('super_admin');
+    }
+
     function renderUsers(users) {
+      staffUsers = Array.isArray(users) ? users : [];
       const body = document.getElementById('staff-users-body');
-      if (!Array.isArray(users) || users.length === 0) {
-        body.innerHTML = '<tr><td colspan="3" style="color:var(--muted)">کاربر فعالی در پایگاه داده ثبت نشده است.</td></tr>';
+      const canManage = isSuperAdmin();
+      const form = document.getElementById('staff-create-form');
+      const note = document.getElementById('staff-management-note');
+      form.style.display = canManage ? 'grid' : 'none';
+      note.textContent = canManage
+        ? 'فقط مدیر کل می‌تواند حساب جدید بسازد، نقش را تغییر دهد، حساب را غیرفعال کند یا دعوت را دوباره ارسال کند.'
+        : 'فهرست کاربران فقط خواندنی است. مدیریت حساب‌ها مخصوص مدیر کل است.';
+      if (!staffUsers.length) {
+        body.innerHTML = '<tr><td colspan="7" style="color:var(--muted)">هنوز حساب کارکنان دیگری ثبت نشده است.</td></tr>';
         return;
       }
-      body.innerHTML = users.map(u => `<tr>
-        <td>${escHtml(u.full_name || '')}</td>
-        <td>${escHtml(u.roles || 'بدون نقش')}</td>
-        <td><span class="pill ${u.is_active ? 'success' : 'muted'}">${u.is_active ? 'فعال' : 'غیرفعال'}</span></td>
-      </tr>`).join('');
+      body.innerHTML = staffUsers.map(u => {
+        const role = Array.isArray(u.roles) ? (u.roles[0] || '') : String(u.roles || '').split(',')[0];
+        const roleCell = canManage
+          ? `<select class="form-select staff-role-select" data-user-id="${u.id}" style="min-width:110px">${Object.entries(ROLE_LABELS).map(([key,label])=>`<option value="${key}" ${key===role?'selected':''}>${label}</option>`).join('')}</select>`
+          : escHtml(ROLE_LABELS[role] || role || 'بدون نقش');
+        const actions = canManage ? `<div style="display:flex;gap:.35rem;flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" type="button" data-staff-action="save-role" data-user-id="${u.id}">ذخیره نقش</button>
+          <button class="btn btn-secondary btn-sm" type="button" data-staff-action="toggle-active" data-user-id="${u.id}" data-active="${u.is_active?1:0}">${u.is_active?'غیرفعال‌سازی':'فعال‌سازی'}</button>
+          <button class="btn btn-ghost btn-sm" type="button" data-staff-action="resend" data-user-id="${u.id}">ارسال مجدد دعوت</button>
+        </div>` : '—';
+        return `<tr>
+          <td><strong>${escHtml(u.full_name || '')}</strong></td>
+          <td><div style="direction:ltr;text-align:right">${escHtml(u.mobile || '')}</div><small>${escHtml(u.email || '')}</small></td>
+          <td>${roleCell}</td>
+          <td><span class="pill ${u.activation_status==='active'?'success':'muted'}">${u.activation_status==='active'?'فعال شده':'دعوت شده'}</span></td>
+          <td><span class="pill ${u.is_active?'success':'muted'}">${u.is_active?'فعال':'غیرفعال'}</span></td>
+          <td>${u.last_login_at ? escHtml(u.last_login_at) : '—'}</td>
+          <td>${actions}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function loadStaffUsers() {
+      try {
+        const me = await Staff.me();
+        currentStaffUser = me.data || me;
+        const res = isSuperAdmin() ? await Staff.listStaffAccounts() : { data: loadedSettings.users || [] };
+        renderUsers(res.data || res || []);
+      } catch (err) {
+        if (redirectOn401(err, '../auth/login.html', 'staff')) return;
+        document.getElementById('staff-users-body').innerHTML = '<tr><td colspan="7" style="color:var(--danger)">بارگذاری کاربران انجام نشد.</td></tr>';
+        showToast(err.message || 'خطا در بارگذاری کاربران', 'error');
+      }
     }
 
     function renderIntegrations(items) {
@@ -270,14 +324,61 @@
         renderClinicForm(d);
         renderHours(d.working_hours || []);
         renderEmrTemplates(d.emr_templates || []);
-        renderUsers(d.users || []);
         renderIntegrations(d.integrations || []);
+        await loadStaffUsers();
       } catch (err) {
         if (redirectOn401(err, '../auth/login.html', 'staff')) return;
         renderError(document.getElementById('clinic-form-fields'), err);
         showToast(err.message || 'خطا در بارگذاری تنظیمات', 'error');
       }
     }
+
+    document.getElementById('staff-create-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (!isSuperAdmin()) return;
+      const btn = document.getElementById('btn-create-staff');
+      const body = {
+        full_name: document.getElementById('staff-name').value.trim(),
+        mobile: document.getElementById('staff-mobile').value.trim(),
+        email: document.getElementById('staff-email').value.trim(),
+        role: document.getElementById('staff-role').value,
+      };
+      if (!body.full_name || !body.mobile) { showToast('نام و شماره همراه اجباری است.', 'error'); return; }
+      btn.disabled = true;
+      try {
+        const res = await Staff.createStaffAccount(body);
+        const n = res?.data?.notification || {};
+        const msg = `حساب ایجاد شد. پیامک: ${n.sms==='sent'?'ارسال شد':'ارسال نشد'}، ایمیل: ${n.email==='sent'?'ارسال شد':n.email==='skipped'?'ثبت نشده':'ارسال نشد'}`;
+        showToast(msg, 'success');
+        this.reset();
+        await loadStaffUsers();
+      } catch (err) { showToast(err.message || 'ایجاد حساب انجام نشد.', 'error'); }
+      finally { btn.disabled = false; }
+    });
+
+    document.getElementById('staff-users-body').addEventListener('click', async function(e) {
+      const btn = e.target.closest('[data-staff-action]');
+      if (!btn || !isSuperAdmin()) return;
+      const id = Number(btn.dataset.userId);
+      const action = btn.dataset.staffAction;
+      btn.disabled = true;
+      try {
+        if (action === 'save-role') {
+          const role = document.querySelector(`.staff-role-select[data-user-id="${id}"]`)?.value;
+          await Staff.updateStaffAccount(id, { role });
+          showToast('نقش کاربر به‌روزرسانی شد.', 'success');
+        } else if (action === 'toggle-active') {
+          await Staff.updateStaffAccount(id, { is_active: btn.dataset.active !== '1' });
+          showToast('وضعیت حساب به‌روزرسانی شد.', 'success');
+        } else if (action === 'resend') {
+          const res = await Staff.resendStaffInvite(id);
+          const n = res?.data || {};
+          showToast(`دعوت دوباره ارسال شد. پیامک: ${n.sms==='sent'?'موفق':'ناموفق'}، ایمیل: ${n.email==='sent'?'موفق':n.email==='skipped'?'ثبت نشده':'ناموفق'}`, 'success');
+        }
+        await loadStaffUsers();
+      } catch (err) { showToast(err.message || 'عملیات انجام نشد.', 'error'); }
+      finally { btn.disabled = false; }
+    });
 
     // ── Save clinic info ─────────────────────────────────────────────────────
     document.getElementById('btn-save-clinic').addEventListener('click', async function() {
