@@ -59,6 +59,7 @@
         <button class="settings-tab active" role="tab" aria-selected="true"  data-panel="clinic">اطلاعات کلینیک</button>
         <button class="settings-tab" role="tab" aria-selected="false" data-panel="integrations">یکپارچه‌سازی‌ها</button>
         <button class="settings-tab" role="tab" aria-selected="false" data-panel="users">کاربران و دسترسی</button>
+        <button class="settings-tab" role="tab" aria-selected="false" data-panel="security">امنیت حساب</button>
         <button class="settings-tab" role="tab" aria-selected="false" data-panel="emr-templates">قالب‌های EMR</button>
         <button class="settings-tab" role="tab" aria-selected="false" data-panel="hours">ساعت کاری</button>
       </div>
@@ -102,7 +103,7 @@
             <div class="input-group"><label class="form-label required" for="staff-name">نام و نام خانوادگی</label><input class="form-input" id="staff-name" required/></div>
             <div class="input-group"><label class="form-label required" for="staff-mobile">شماره همراه</label><input class="form-input" id="staff-mobile" type="tel" inputmode="numeric" placeholder="09xxxxxxxxx" required/></div>
             <div class="input-group"><label class="form-label" for="staff-email">ایمیل</label><input class="form-input" id="staff-email" type="email"/></div>
-            <div class="input-group"><label class="form-label required" for="staff-role">نقش</label><select class="form-select" id="staff-role"><option value="receptionist">پذیرش</option><option value="doctor">پزشک</option><option value="nurse">پرستار</option><option value="super_admin">مدیر کل</option></select></div>
+            <div class="input-group"><label class="form-label required" for="staff-role">نقش</label><select class="form-select" id="staff-role"><option value="receptionist">پذیرش</option><option value="doctor">پزشک</option><option value="nurse">پرستار</option><option value="admin">مدیر</option><option value="super_admin">مدیر کل</option></select></div>
             <button class="btn btn-primary" id="btn-create-staff" type="submit">ایجاد و دعوت</button>
           </form>
           <div id="staff-management-note" class="save-state" style="display:block;margin:.5rem 0 1rem">در حال بررسی سطح دسترسی…</div>
@@ -112,6 +113,17 @@
               <tbody id="staff-users-body"><tr><td colspan="7"><div class="skeleton skeleton-line" style="width:70%"></div></td></tr></tbody>
             </table>
           </div>
+        </section>
+      </div>
+
+      <div class="settings-panel" id="panel-security" role="tabpanel">
+        <section class="panel" style="max-width:640px">
+          <div class="panel-header"><div><h3>امنیت حساب</h3><p>تغییر رمز عبور حساب فعلی</p></div></div>
+          <form id="change-password-form" style="display:grid;gap:.75rem;max-width:460px" novalidate>
+            <div class="input-group"><label class="form-label required" for="account-new-password">رمز عبور جدید</label><input class="form-input" id="account-new-password" type="password" minlength="10" autocomplete="new-password" required/><div class="form-hint">حداقل ۱۰ کاراکتر و شامل حداقل یک حرف و یک عدد</div></div>
+            <div class="input-group"><label class="form-label required" for="account-confirm-password">تکرار رمز عبور</label><input class="form-input" id="account-confirm-password" type="password" minlength="10" autocomplete="new-password" required/></div>
+            <div><button class="btn btn-primary" type="submit" id="btn-change-password">تغییر رمز عبور</button></div>
+          </form>
         </section>
       </div>
 
@@ -148,7 +160,7 @@
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
-    import { Staff, renderError, showToast, escHtml, requireAuth, redirectOn401 } from '../../shared/api.js';
+    import { Auth, Staff, renderError, showToast, escHtml, requireAuth, redirectOn401 } from '../../shared/api.js';
     if (!requireAuth('../auth/login.html', 'staff')) { /* redirecting */ }
 
     // ── Tab switching ────────────────────────────────────────────────────────
@@ -226,7 +238,7 @@
       }));
     }
 
-    const ROLE_LABELS = { super_admin:'مدیر کل', doctor:'پزشک', receptionist:'پذیرش', nurse:'پرستار' };
+    const ROLE_LABELS = { super_admin:'مدیر کل', admin:'مدیر', doctor:'پزشک', receptionist:'پذیرش', nurse:'پرستار' };
     let currentStaffUser = null;
     let staffUsers = [];
 
@@ -421,6 +433,20 @@
       } finally {
         this.disabled = false;
       }
+    });
+
+
+    document.getElementById('change-password-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const p=document.getElementById('account-new-password').value;
+      const c=document.getElementById('account-confirm-password').value;
+      const btn=document.getElementById('btn-change-password');
+      if (p.length<10 || !/\d/.test(p) || !/[A-Za-z\u0600-\u06FF]/u.test(p)) { showToast('رمز عبور باید حداقل ۱۰ کاراکتر و شامل حرف و عدد باشد.','error'); return; }
+      if (p!==c) { showToast('تکرار رمز عبور یکسان نیست.','error'); return; }
+      btn.disabled=true;
+      try { await Auth.setStaffPassword(p); this.reset(); showToast('رمز عبور تغییر کرد.','success'); }
+      catch(err) { showToast(err.message || 'تغییر رمز عبور انجام نشد.','error'); }
+      finally { btn.disabled=false; }
     });
 
     loadSettings();

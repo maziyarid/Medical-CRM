@@ -26,6 +26,7 @@ final class StaffSchemaBootstrapService
         try {
             $root = dirname(__DIR__, 2);
             $this->runSqlFile($db, $root . '/database/migrations/029_staff_onboarding_notifications.sql');
+            $this->runSqlFile($db, $root . '/database/migrations/030_add_admin_role.sql');
             $this->ensureInviteForeignKey($db);
             if (!$this->isReady($db)) {
                 throw new RuntimeException('staff schema bootstrap incomplete');
@@ -49,6 +50,9 @@ final class StaffSchemaBootstrapService
         if ((int)$q->fetchColumn() !== 1) return false;
         $q=$db->prepare('SELECT COUNT(*) FROM permissions WHERE name=?');
         $q->execute(['staff.manage']);
+        if ((int)$q->fetchColumn() !== 1) return false;
+        $q=$db->prepare('SELECT COUNT(*) FROM roles WHERE name=?');
+        $q->execute(['admin']);
         return (int)$q->fetchColumn() === 1;
     }
 

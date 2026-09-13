@@ -25,7 +25,7 @@ final class EmailService
         $subject = 'تأیید دریافت درخواست نوبت';
         $body = "{$firstName} عزیز،\nدرخواست نوبت شما دریافت شد؛ این پیام به معنی قطعی‌شدن زمان نوبت نیست. همکاران کلینیک برای اعلام و تأیید زمان با شما تماس می‌گیرند.\n\nورود و راه‌اندازی حساب بیمار با شماره همراه تأییدشده:\n{$loginUrl}";
         $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: ' . $from];
-        return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
+        return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers), '-f' . $from);
     }
 
     public function sendRecoveryOtp(string $email, string $code): bool
@@ -37,7 +37,7 @@ final class EmailService
         $subject = 'کد بازیابی پنل بیمار';
         $body = "کد یکبارمصرف بازیابی حساب شما: {$code}\nاین کد تا ۵ دقیقه معتبر است.\nرمز عبور خود را برای هیچ‌کس ارسال نکنید.";
         $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: ' . $from];
-        return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
+        return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers), '-f' . $from);
     }
 
     public function sendAppointmentReminder(string $email, string $scheduledAt): bool
@@ -56,7 +56,7 @@ final class EmailService
         $subject = 'یادآوری نوبت کلینیک';
         $body = "یادآوری نوبت شما: {$when} به وقت تهران.\nبرای تغییر یا لغو نوبت با کلینیک تماس بگیرید.";
         $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: ' . $from];
-        return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
+        return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers), '-f' . $from);
     }
 
     public function sendStaffInvitation(string $email, string $fullName, string $url, bool $activation = false): bool
@@ -72,7 +72,7 @@ final class EmailService
             $body = "{$fullName} عزیز،\nحساب کارکنان کلینیک شما فعال است. برای ورود از لینک زیر استفاده کنید:\n\n{$url}\n\nرمز عبور و کدهای ورود خود را برای هیچ‌کس ارسال نکنید.";
         }
         $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: ' . $from];
-        return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
+        return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers), '-f' . $from);
     }
 
     public function sendPatientRegistration(string $email, string $firstName, string $loginUrl, bool $withBooking = false): bool
@@ -88,6 +88,6 @@ final class EmailService
         }
         $body .= "\n\nورود به پنل بیمار با شماره همراه تأییدشده:\n{$loginUrl}\n\nبرای امنیت، رمز عبور یا کد یکبارمصرف خود را برای هیچ‌کس ارسال نکنید.";
         $headers = ['Content-Type: text/plain; charset=UTF-8', 'From: ' . $from];
-        return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
+        return @mail($email, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers), '-f' . $from);
     }
 }

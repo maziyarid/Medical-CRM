@@ -9,7 +9,7 @@ use RuntimeException;
 
 final class StaffAccountService
 {
-    private const ROLES = ['super_admin', 'doctor', 'receptionist', 'nurse'];
+    private const ROLES = ['super_admin', 'admin', 'doctor', 'receptionist', 'nurse'];
 
     /** @return array<int,array<string,mixed>> */
     public function list(int $clinicId): array

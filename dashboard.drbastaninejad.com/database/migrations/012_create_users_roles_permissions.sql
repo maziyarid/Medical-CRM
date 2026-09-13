@@ -2,7 +2,7 @@
 -- dashboard.drbastaninejad.com
 --
 -- Supports AuthMiddleware (resolveUser for 'staff') and RbacMiddleware
--- (staffHasPermission). Roles: super_admin, doctor, receptionist, nurse.
+-- (staffHasPermission). Roles: super_admin, admin, doctor, receptionist, nurse.
 -- Permissions are named strings (e.g. 'patients.view', 'emr.edit').
 --
 -- Tables:
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- ── roles ─────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS roles (
     id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    name        VARCHAR(64)  NOT NULL COMMENT 'e.g. super_admin, doctor, receptionist, nurse',
+    name        VARCHAR(64)  NOT NULL COMMENT 'e.g. super_admin, admin, doctor, receptionist, nurse',
     label       VARCHAR(100) NULL     COMMENT 'Persian display label',
     created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

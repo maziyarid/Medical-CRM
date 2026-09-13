@@ -137,7 +137,7 @@ CREATE TABLE IF NOT EXISTS `permission_role` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO `roles` (`name`,`label`) VALUES
-('super_admin','مدیر کل'),('doctor','پزشک'),('receptionist','پذیرش'),('nurse','پرستار');
+('super_admin','مدیر کل'),('admin','مدیر'),('doctor','پزشک'),('receptionist','پذیرش'),('nurse','پرستار');
 
 INSERT IGNORE INTO `permissions` (`name`,`description`) VALUES
 ('dashboard.view','View dashboard'),
@@ -681,3 +681,12 @@ WHERE TABLE_SCHEMA = DATABASE()
     'calendar_event_links','calendar_sync_outbox','calendar_sync_cursors'
   )
 ORDER BY TABLE_NAME;
+
+
+-- Operational admin: broad clinic operations without staff/integration ownership.
+INSERT IGNORE INTO permission_role (role_id, permission_id)
+SELECT r.id, p.id FROM roles r JOIN permissions p ON p.name IN (
+  'dashboard.view','patients.view','patients.manage','appointments.view','appointments.manage','emr.view',
+  'billing.view','billing.manage','tasks.view','tasks.manage','analytics.view','settings.view','settings.manage',
+  'intakes.view','intakes.manage','booking.manage','booking.availability.manage','booking.payments.reconcile'
+) WHERE r.name='admin';

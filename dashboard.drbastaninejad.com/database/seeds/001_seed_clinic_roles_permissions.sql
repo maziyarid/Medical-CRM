@@ -7,7 +7,7 @@ VALUES (1, 'کلینیک دکتر شاهین باستانی‌نژاد', 'Asia/T
 ON DUPLICATE KEY UPDATE id = VALUES(id);
 
 INSERT IGNORE INTO roles (name, label) VALUES
-('super_admin','مدیر کل'),('doctor','پزشک'),('receptionist','پذیرش'),('nurse','پرستار');
+('super_admin','مدیر کل'),('admin','مدیر'),('doctor','پزشک'),('receptionist','پذیرش'),('nurse','پرستار');
 
 INSERT IGNORE INTO permissions (name, description) VALUES
 ('dashboard.view','View dashboard'),
