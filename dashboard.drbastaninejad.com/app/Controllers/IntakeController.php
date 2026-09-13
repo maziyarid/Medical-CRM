@@ -175,6 +175,27 @@ final class IntakeController extends Controller
         ]);
     }
 
+    public function show(Request $req, string $id): array
+    {
+        $intakeId = (int)$id;
+        if ($intakeId < 1) {
+            return $this->error('پذیرش/درخواست نوبت یافت نشد.', 404);
+        }
+        $row = $this->model->findForClinic($intakeId, (int)($req->user['clinic_id'] ?? 1));
+        if (!$row) {
+            return $this->error('پذیرش/درخواست نوبت یافت نشد.', 404);
+        }
+        $raw = json_decode((string)($row['raw_payload'] ?? ''), true);
+        $row['medical_history'] = is_array($raw)
+            ? trim((string)($raw['medical_history'] ?? $raw['medicalHistory'] ?? $row['chief_complaint'] ?? ''))
+            : trim((string)($row['chief_complaint'] ?? ''));
+        $row['medications'] = is_array($raw)
+            ? trim((string)($raw['medications'] ?? ''))
+            : '';
+        unset($row['raw_payload']);
+        return $this->success($row);
+    }
+
     public function updateStatus(Request $req, string $id): array
     {
         $intakeId = (int)$id;

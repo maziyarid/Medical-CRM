@@ -105,7 +105,10 @@ Canonical additive fields:
 On WorkingVersion bridge calls, MySQL commit and Google Sheet delivery are isolated. Sheet failure does not delete the DB row. Intake success SMS is sent only on the bridge completion signal (`_bridge_sheet_status='ok'`); SMS failure updates `sms_status='failed'` and never rolls back the intake.
 
 ### GET `/intakes`
-Staff auth + `intakes.view`. Query: `page`, `per_page`, `status`, `q`, `source_type` (`intake|booking`). Returns the admin review queue including email, visit reason, doctor request, Sheet status, SMS status, source type and review state.
+Staff auth + `intakes.view`. Query: `page`, `per_page`, `status`, `q`, `source_type` (`intake|booking`). Returns the admin review queue including birth date, email, visit reason, doctor request, legacy Sheet status, Booking Sheet status, booking-email status, SMS status, source type and review state.
+
+### GET `/intakes/{id}`
+Staff auth + `intakes.view`. Returns the clinic-scoped review detail. For website bookings this includes `medical_history` and `medications` extracted from the server-side raw payload; the raw payload and OTP grant are never returned.
 
 ### PATCH `/intakes/{id}/status`
 Staff auth + `intakes.manage`. Body:
@@ -120,26 +123,36 @@ Allowed: `pending`, `reviewed`, `converted`, `rejected`.
 
 WordPress remains a marketing UI. These routes require `X-WordPress-Bridge-Secret`; the secret must never be exposed to browser JavaScript.
 
+### POST `/bookings/otp/send`
+Body: `{"mobile":"09XXXXXXXXX"}`. Sends a five-digit OTP through the configured provider chain (TSMS first when auto-detected). Mobile, global and WordPress/IP limits apply.
+
+### POST `/bookings/otp/verify`
+Body: `{"mobile":"09XXXXXXXXX","otp":"12345"}`. Consumes the OTP and returns a separate 30-minute one-time booking grant. Only the SHA-256 grant hash is stored.
+
 ### POST `/bookings`
 Body from the trusted WordPress server:
 
 ```json
 {
   "submission_uuid":"wp-...",
-  "name":"نام بیمار",
+  "first_name":"نام",
+  "last_name":"نام خانوادگی",
+  "birth_date_jalali":"1370/05/12",
+  "national_id":"1234567891",
   "mobile":"09XXXXXXXXX",
   "email":"optional@example.com",
-  "procedure":"نوع خدمت",
-  "message":"توضیحات اختیاری",
-  "cooldown_minutes":30,
-  "sms_template":"optional trusted admin template"
+  "medical_history":"...",
+  "medications":"...",
+  "doctor_request":"...",
+  "otp_token":"64-character one-time booking grant",
+  "cooldown_minutes":30
 }
 ```
 
-The dashboard applies its own same-mobile cooldown, globally upserts `patients.mobile`, creates `intakes.source_type='booking'`, and sends booking confirmation through the existing `SmsProviderChain` after DB commit. Booking SMS failure does not roll back the booking.
+The dashboard validates and consumes the mobile-verification grant inside the booking transaction, applies its own same-mobile cooldown, globally upserts `patients.mobile`, and creates `intakes.source_type='booking'`. After DB commit it appends the exact 19-column row to the separate Booking Sheet, optionally sends the acknowledgement email, and sends a non-guarantee SMS through the existing `SmsProviderChain`. Sheet, email, or SMS failure does not roll back the booking.
 
 ### GET `/bookings/stats`
-Same bridge secret. Returns non-PII counters only: `total`, `last_7_days`, `pending`, `sms_sent`, `sms_failed`.
+Same bridge secret. Returns non-PII counters only: `total`, `last_7_days`, `pending`, `sms_sent`, `sms_failed`, `sheet_submitted`, `sheet_attention`, `email_sent`, `email_failed`.
 
 ## 5. Patient portal
 

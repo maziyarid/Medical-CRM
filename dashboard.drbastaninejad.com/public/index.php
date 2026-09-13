@@ -182,8 +182,16 @@ try {
     error_log('[index.php] Uncaught exception: ' . $e->getMessage()
         . ' in ' . $e->getFile() . ':' . $e->getLine());
 
-    $message = $e->getMessage() === 'Request body too large' ? 'حجم درخواست بیش از حد مجاز است.' : 'خطای داخلی سرور';
-    $status = $e->getMessage() === 'Request body too large' ? 413 : 500;
+    $message = match ($e->getMessage()) {
+        'Request body too large' => 'حجم درخواست بیش از حد مجاز است.',
+        'Malformed JSON' => 'بدنه درخواست JSON نامعتبر است.',
+        default => 'خطای داخلی سرور',
+    };
+    $status = match ($e->getMessage()) {
+        'Request body too large' => 413,
+        'Malformed JSON' => 400,
+        default => 500,
+    };
     $response = [
         'ok'     => false,
         'status' => $status,
