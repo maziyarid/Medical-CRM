@@ -1,0 +1,39 @@
+<!doctype html>
+<html dir="rtl" lang="fa-IR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>فعال‌سازی حساب کارکنان — MΛZ Medical CRM</title>
+  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
+  <link rel="stylesheet" href="../../assets/css/base.css"/>
+  <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <style>
+    .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}.cardx{max-width:440px;width:100%}.brand{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-bottom:1.4rem}.mark{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--evergreen),var(--evergreen-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}.sub{text-align:center;color:var(--muted);font-size:.84rem;line-height:1.8;margin-bottom:1.25rem}.state{padding:.9rem 1rem;border-radius:12px;font-size:.82rem;line-height:1.8;margin:.8rem 0}.state.error{background:#fff1f2;color:#9f1239}.state.success{background:#ecfdf5;color:#166534}.password-wrap{position:relative}.password-wrap button{position:absolute;left:.55rem;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--muted);cursor:pointer}
+  </style>
+</head>
+<body>
+<main class="wrap"><div class="card cardx">
+  <div class="brand"><div class="mark">MΛZ</div><strong>Medical CRM</strong></div>
+  <h1 style="font-size:1.25rem;text-align:center">فعال‌سازی حساب کارکنان</h1>
+  <p class="sub">برای تکمیل فعال‌سازی، یک رمز عبور اختصاصی بسازید. لینک ایمیل یکبارمصرف است و پس از استفاده باطل می‌شود.</p>
+  <div id="invalid-link" class="state error" hidden>لینک فعال‌سازی ناقص یا نامعتبر است. از مدیر کل بخواهید دعوت را دوباره ارسال کند.</div>
+  <form id="activation-form" novalidate>
+    <div class="input-group"><label class="form-label required" for="new-password">رمز عبور جدید</label><div class="password-wrap"><input class="form-input" id="new-password" type="password" autocomplete="new-password" minlength="10" required/><button type="button" data-toggle="#new-password">نمایش</button></div><div class="form-hint">حداقل ۱۰ کاراکتر و شامل حداقل یک حرف و یک عدد</div></div>
+    <div class="input-group"><label class="form-label required" for="confirm-password">تکرار رمز عبور</label><input class="form-input" id="confirm-password" type="password" autocomplete="new-password" minlength="10" required/></div>
+    <div id="form-error" class="state error" hidden></div>
+    <button class="btn btn-primary" id="submit-btn" type="submit" style="width:100%">فعال‌سازی و ورود</button>
+  </form>
+  <div id="success" class="state success" hidden>حساب فعال شد. در حال انتقال به پنل مدیریت…</div>
+</div></main>
+<script type="module">
+const API='https://dashboard.drbastaninejad.com/api/v1';
+const params=new URLSearchParams(location.search); const token=(params.get('token')||'').trim().toLowerCase();
+const form=document.getElementById('activation-form'), invalid=document.getElementById('invalid-link'), err=document.getElementById('form-error'), success=document.getElementById('success'), btn=document.getElementById('submit-btn');
+if(!/^[a-f0-9]{64}$/.test(token)){invalid.hidden=false;form.hidden=true;}
+form.addEventListener('submit',async e=>{e.preventDefault();err.hidden=true;const p=document.getElementById('new-password').value,c=document.getElementById('confirm-password').value;if(p.length<10||!/\d/.test(p)||!/[A-Za-z\u0600-\u06FF]/u.test(p)){err.textContent='رمز عبور باید حداقل ۱۰ کاراکتر و شامل حرف و عدد باشد.';err.hidden=false;return}if(p!==c){err.textContent='تکرار رمز عبور یکسان نیست.';err.hidden=false;return}btn.disabled=true;try{const r=await fetch(API+'/auth/staff/activate',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({activation_token:token,new_password:p})});const data=await r.json();if(!r.ok||data?.ok===false)throw new Error(data?.errors?.[0]?.message||'فعال‌سازی حساب انجام نشد.');const session=data?.data?.session;const sessionToken=session?.token;if(!sessionToken)throw new Error('نشست ورود ایجاد نشد.');sessionStorage.setItem('mz_staff_auth_token',sessionToken);form.hidden=true;success.hidden=false;history.replaceState(null,'',location.pathname);setTimeout(()=>{location.href='../staff/settings.html?tab=users'},700)}catch(x){err.textContent=x.message||'فعال‌سازی حساب انجام نشد.';err.hidden=false}finally{btn.disabled=false}});
+document.querySelectorAll('[data-toggle]').forEach(b=>b.addEventListener('click',()=>{const i=document.querySelector(b.dataset.toggle);if(!i)return;i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'نمایش':'پنهان'}));
+</script>
+</body>
+</html>
