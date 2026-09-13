@@ -31,11 +31,13 @@ final class GoogleCalendarClient
             throw new RuntimeException('Google Calendar update failed: HTTP ' . $update['status']);
         }
         $event['id'] = $eventId;
+        // Do not send sendUpdates=none: Google warns that it can prevent events
+        // propagating to external calendar clients, and this calendar is the
+        // bridge used by the clinic's DevExpress scheduler.
         $insert = $this->api(
             'POST',
             '/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events',
-            $event,
-            ['sendUpdates' => 'none']
+            $event
         );
         if ($insert['status'] < 200 || $insert['status'] >= 300) {
             throw new RuntimeException('Google Calendar insert failed: HTTP ' . $insert['status']);
