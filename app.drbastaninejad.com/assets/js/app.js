@@ -13,6 +13,48 @@
 (function (global) {
   'use strict';
 
+  /* ---------- Product-wide UI layer ---------- */
+  (function mountUiPolishAndRemovePersonalCredit() {
+    var current = document.currentScript && document.currentScript.src;
+    if (current && !document.querySelector('link[data-crm-ui-polish]')) {
+      var href = current.replace(/\/js\/app\.js(?:\?.*)?$/, '/css/ui-polish.css');
+      if (href !== current) {
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        link.setAttribute('data-crm-ui-polish', '1');
+        document.head.appendChild(link);
+      }
+    }
+
+    function scrubPersonalCredits(root) {
+      (root || document).querySelectorAll('.brand-footer').forEach(function (footer) {
+        var hasSignature = footer.querySelector('.maz-sig');
+        var hasPersonalLink = footer.querySelector('a[href*="maziyarid.com"]');
+        if (!hasSignature && !hasPersonalLink) return;
+        footer.innerHTML = '<div class="clinic-footer-text">سامانه داخلی کلینیک دکتر شاهین باستانی‌نژاد</div>';
+      });
+    }
+
+    function start() {
+      scrubPersonalCredits(document);
+      if (!window.MutationObserver) return;
+      var observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (m) {
+          m.addedNodes.forEach(function (node) {
+            if (node.nodeType !== 1) return;
+            if (node.matches && node.matches('.brand-footer')) scrubPersonalCredits(node.parentNode || document);
+            else if (node.querySelector && node.querySelector('.brand-footer')) scrubPersonalCredits(node);
+          });
+        });
+      });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+    else start();
+  }());
+
   /* ---------- Persian-digit normalization ---------- */
   var FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
   var AR = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
@@ -163,12 +205,8 @@
     api: api,
     initSignaturePad: initSignaturePad,
     escHtml: escHtml,
-    version: '1.1.0-production',
+    version: '1.1.1-ui-polish',
     author: 'MAZ//ID'
   };
 
 }(window));
-
-/*
- * End of file — MAZ//ID · © 2026 Maziyar
- */
