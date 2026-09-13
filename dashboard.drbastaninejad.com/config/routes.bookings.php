@@ -3,6 +3,7 @@
 use App\Controllers\AppointmentBookingController;
 use App\Controllers\BookingController;
 use App\Controllers\WordPressAppointmentBridgeController;
+use App\Controllers\WordPressCalendarBridgeController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RbacMiddleware;
 
@@ -22,6 +23,7 @@ $router->post('/api/v1/bookings/v2/setup', [WordPressAppointmentBridgeController
 $router->get('/api/v1/bookings/v2/open-days', [WordPressAppointmentBridgeController::class, 'openDays']);
 $router->post('/api/v1/bookings/v2/open-days', [WordPressAppointmentBridgeController::class, 'saveOpenDay']);
 $router->post('/api/v1/bookings/v2/checkout', [WordPressAppointmentBridgeController::class, 'checkout']);
+$router->post('/api/v1/bookings/v2/calendar-sync', [WordPressCalendarBridgeController::class, 'sync']);
 
 // Appointment-system v2: public capacity view, authenticated patient hold/payment.
 $router->get('/api/v1/appointment-bookings/availability', [AppointmentBookingController::class, 'availability']);
