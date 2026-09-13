@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Database;
-use PDO;
 use Throwable;
 
 /**
@@ -45,7 +44,7 @@ final class AppointmentSystemSetupService
             'zarinpal' => in_array('zarinpal', $enabled, true)
                 && trim((string)($_ENV['ZARINPAL_MERCHANT_ID'] ?? '')) !== '',
             'vandar' => in_array('vandar', $enabled, true)
-                && trim((string)($_ENV['VANDAR_API_TOKEN'] ?? '')) !== '',
+                && trim((string)($_ENV['VANDAR_API_KEY'] ?? '')) !== '',
         ];
 
         $openDays = 0;
