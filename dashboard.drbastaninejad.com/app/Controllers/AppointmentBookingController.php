@@ -85,12 +85,16 @@ final class AppointmentBookingController extends Controller
         if (!in_array($gateway, ['zarinpal', 'vandar'], true)) {
             return $this->error('درگاه پرداخت نامعتبر است', 404);
         }
+
         try {
             $result = (new AppointmentPaymentFacadeService())->verifyCallback($gateway, $req->query);
-            $result['return_url'] = trim((string)($_ENV['BOOKING_PAYMENT_RETURN_URL'] ?? 'https://app.drbastaninejad.com/'));
-            return $this->success($result, $result['verified'] ? 200 : 402);
+            $verified = !empty($result['verified']);
+            $slotReserved = $verified && !empty($result['booking']['slot_reserved']);
+            $state = $verified ? ($slotReserved ? 'success' : 'review') : 'failed';
+            return $this->paymentRedirect($state);
         } catch (RuntimeException $e) {
-            return $this->domainError($e);
+            error_log('[AppointmentBookingController] payment callback failed: ' . $e->getMessage());
+            return $this->paymentRedirect('failed');
         }
     }
 
@@ -169,6 +173,23 @@ final class AppointmentBookingController extends Controller
         } catch (RuntimeException $e) {
             return $this->domainError($e);
         }
+    }
+
+    /** @return array<string,mixed> */
+    private function paymentRedirect(string $state): array
+    {
+        $base = trim((string)($_ENV['BOOKING_PAYMENT_RETURN_URL'] ?? 'https://drbastaninejad.com/booking/'));
+        $parts = parse_url($base);
+        $host = strtolower((string)($parts['host'] ?? ''));
+        $scheme = strtolower((string)($parts['scheme'] ?? ''));
+        if ($scheme !== 'https' || !in_array($host, ['drbastaninejad.com', 'www.drbastaninejad.com'], true)) {
+            $base = 'https://drbastaninejad.com/booking/';
+        }
+        $separator = str_contains($base, '?') ? '&' : '?';
+        return [
+            '_redirect' => $base . $separator . http_build_query(['booking_payment' => $state]),
+            'status' => 303,
+        ];
     }
 
     private function domainError(RuntimeException $e): array
