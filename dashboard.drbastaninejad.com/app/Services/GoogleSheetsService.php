@@ -46,12 +46,18 @@ final class GoogleSheetsService
             if ($status >= 200 && $status < 300 && is_array($decoded) && !empty($decoded['ok'])) {
                 return 'submitted';
             }
-            // Apps Script ContentService replies with HTTP 200 even when the
-            // application-level response is a confirmed rejection.
+            // Apps Script can report transient lock contention as an application-level
+            // retryable response. That does not prove a permanent failure or whether a
+            // previous attempt wrote the row, so keep it reconcilable.
+            if (is_array($decoded) && !empty($decoded['retryable'])) {
+                return 'outcome_unknown';
+            }
+            // ContentService often replies HTTP 200 even for an explicit application rejection.
             if (is_array($decoded) && array_key_exists('ok', $decoded) && !$decoded['ok']) {
                 return 'failed_confirmed';
             }
-            return $status >= 400 ? 'failed_confirmed' : 'outcome_unknown';
+            // Transport/server status alone cannot prove whether the remote write happened.
+            return 'outcome_unknown';
         } catch (\Throwable $e) {
             error_log('[GoogleSheetsService] booking ' . $bookingId . ' outcome unknown: ' . $e->getMessage());
             return 'outcome_unknown';
