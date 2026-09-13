@@ -18,11 +18,13 @@ final class AppointmentBookingGuardService
 {
     private AppointmentBookingService $bookings;
     private DateTimeZone $utc;
+    private DateTimeZone $tehran;
 
     public function __construct(?AppointmentBookingService $bookings = null)
     {
         $this->bookings = $bookings ?? new AppointmentBookingService();
         $this->utc = new DateTimeZone('UTC');
+        $this->tehran = new DateTimeZone('Asia/Tehran');
     }
 
     /** @return array<string,mixed> */
@@ -53,9 +55,12 @@ final class AppointmentBookingGuardService
                 }
             }
 
-            $duration = $this->openDayDuration($db, $clinicId, $openDayId);
+            $day = $this->openDay($db, $clinicId, $openDayId);
+            $duration = max(1, (int)$day['slot_duration_minutes']);
             $startUtc = $this->normaliseStart($requestedStart);
+            $this->assertSlotGrid($day, $startUtc);
             $this->assertNoAppointmentOverlap($db, $clinicId, $startUtc, $duration);
+            $this->assertNoBookingOverlap($db, $clinicId, $startUtc, $duration);
 
             $created = $this->bookings->createPatientHold(
                 $clinicId,
@@ -91,9 +96,12 @@ final class AppointmentBookingGuardService
             $notes
         ): array {
             $this->assertPatientClinic($db, $clinicId, $patientId);
-            $duration = $this->openDayDuration($db, $clinicId, $openDayId);
+            $day = $this->openDay($db, $clinicId, $openDayId);
+            $duration = max(1, (int)$day['slot_duration_minutes']);
             $startUtc = $this->normaliseStart($requestedStart);
+            $this->assertSlotGrid($day, $startUtc);
             $this->assertNoAppointmentOverlap($db, $clinicId, $startUtc, $duration);
+            $this->assertNoBookingOverlap($db, $clinicId, $startUtc, $duration);
             return $this->bookings->createAdminFreeBooking(
                 $clinicId,
                 $patientId,
@@ -165,17 +173,44 @@ final class AppointmentBookingGuardService
         }
     }
 
-    private function openDayDuration(PDO $db, int $clinicId, int $openDayId): int
+    /** @return array<string,mixed> */
+    private function openDay(PDO $db, int $clinicId, int $openDayId): array
     {
         $stmt = $db->prepare(
-            'SELECT slot_duration_minutes FROM appointment_open_days WHERE id = ? AND clinic_id = ? LIMIT 1'
+            'SELECT id, open_date, slot_duration_minutes, opens_at, closes_at, status
+             FROM appointment_open_days WHERE id = ? AND clinic_id = ? LIMIT 1'
         );
         $stmt->execute([$openDayId, $clinicId]);
-        $duration = $stmt->fetchColumn();
-        if ($duration === false) {
+        $day = $stmt->fetch();
+        if (!$day) {
             throw new RuntimeException('open day not found');
         }
-        return max(1, (int)$duration);
+        return $day;
+    }
+
+    private function assertSlotGrid(array $day, string $startUtc): void
+    {
+        if ((string)$day['status'] !== 'open') {
+            throw new RuntimeException('open day closed');
+        }
+        if ($day['opens_at'] === null || $day['closes_at'] === null) {
+            throw new RuntimeException('working hours not configured');
+        }
+
+        $local = (new DateTimeImmutable($startUtc, $this->utc))->setTimezone($this->tehran);
+        if ($local->format('Y-m-d') !== (string)$day['open_date']) {
+            throw new RuntimeException('slot unavailable');
+        }
+        $open = new DateTimeImmutable((string)$day['open_date'] . ' ' . (string)$day['opens_at'], $this->tehran);
+        $close = new DateTimeImmutable((string)$day['open_date'] . ' ' . (string)$day['closes_at'], $this->tehran);
+        $duration = max(1, (int)$day['slot_duration_minutes']);
+        $offsetSeconds = $local->getTimestamp() - $open->getTimestamp();
+        if ($offsetSeconds < 0 || $offsetSeconds % ($duration * 60) !== 0) {
+            throw new RuntimeException('slot unavailable');
+        }
+        if ($local->modify('+' . $duration . ' minutes') > $close) {
+            throw new RuntimeException('slot unavailable');
+        }
     }
 
     private function assertNoAppointmentOverlap(PDO $db, int $clinicId, string $startUtc, int $duration): void
@@ -185,6 +220,24 @@ final class AppointmentBookingGuardService
              WHERE clinic_id = ? AND deleted_at IS NULL AND status IN ("scheduled","confirmed")
                AND ? < DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE)
                AND DATE_ADD(?, INTERVAL ? MINUTE) > scheduled_at
+             LIMIT 1'
+        );
+        $stmt->execute([$clinicId, $startUtc, $startUtc, $duration]);
+        if ($stmt->fetch()) {
+            throw new RuntimeException('slot unavailable');
+        }
+    }
+
+    private function assertNoBookingOverlap(PDO $db, int $clinicId, string $startUtc, int $duration): void
+    {
+        $stmt = $db->prepare(
+            'SELECT id FROM appointment_booking_requests
+             WHERE clinic_id = ? AND slot_claim_key IS NOT NULL
+               AND confirmation_status IN ("holding","awaiting_payment","paid_pending_staff","confirmed")
+               AND (confirmation_status IN ("paid_pending_staff","confirmed")
+                    OR hold_expires_at IS NULL OR hold_expires_at >= UTC_TIMESTAMP())
+               AND ? < DATE_ADD(requested_start_at, INTERVAL duration_minutes MINUTE)
+               AND DATE_ADD(?, INTERVAL ? MINUTE) > requested_start_at
              LIMIT 1'
         );
         $stmt->execute([$clinicId, $startUtc, $startUtc, $duration]);
