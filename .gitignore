@@ -39,3 +39,6 @@ wp-content/uploads/
 wp-content/cache/
 wp-content/upgrade/
 wp-content/backup-db/
+
+__pycache__/
+*.pyc

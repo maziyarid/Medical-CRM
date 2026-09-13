@@ -165,7 +165,9 @@ final class OtpService
             ];
         } else {
             $stmt = $db->prepare(
-                'SELECT u.id, u.uuid, u.full_name, u.mobile, u.clinic_id, r.name AS role_name
+                'SELECT u.id, u.uuid, u.full_name, u.mobile, u.clinic_id,
+                        (COALESCE(LENGTH(u.password_hash), 0) > 0) AS has_password,
+                        u.activated_at, r.name AS role_name
                  FROM users u
                  LEFT JOIN role_user ru ON ru.user_id = u.id
                  LEFT JOIN roles r ON r.id = ru.role_id
@@ -181,7 +183,10 @@ final class OtpService
                 'id' => (int)$user['id'], 'uuid' => $user['uuid'],
                 'name' => $user['full_name'], 'mobile' => $user['mobile'],
                 'clinic_id' => (int)$user['clinic_id'],
-                'role' => $user['role_name'] ?? 'staff', 'user_type' => 'staff',
+                'role' => $user['role_name'] ?? 'staff',
+                'has_password' => (bool)($user['has_password'] ?? false),
+                'activated_at' => $user['activated_at'] ?? null,
+                'user_type' => 'staff',
             ];
         }
 

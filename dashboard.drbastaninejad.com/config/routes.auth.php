@@ -12,6 +12,8 @@ $router->get('/api/v1/health', [HealthController::class, 'show']);
 
 $router->post('/api/v1/auth/otp/send', [OtpController::class, 'send']);
 $router->post('/api/v1/auth/otp/verify', [OtpController::class, 'verify']);
+$router->post('/api/v1/auth/password', [AuthController::class, 'passwordLogin']);
+$router->post('/api/v1/auth/password/set', [AuthController::class, 'setPassword'], [AuthMiddleware::class]);
 $router->post('/api/v1/auth/recovery/request', [RecoveryController::class, 'request']);
 $router->post('/api/v1/auth/recovery/verify', [RecoveryController::class, 'verify']);
 $router->post('/api/v1/auth/recovery/password', [RecoveryController::class, 'setPassword']);

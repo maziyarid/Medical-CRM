@@ -21,6 +21,18 @@ final class GoogleCalendarClient
     /** @return array<string,mixed> */
     public function upsertEvent(string $calendarId, string $eventId, array $event, ?string $etag = null): array
     {
+        if ($this->bridgeConfigured()) {
+            $result = $this->bridge('/calendar/upsert', [
+                'calendar_id' => $calendarId,
+                'event_id' => $eventId,
+                'event' => $event,
+                'etag' => $etag,
+            ]);
+            if (empty($result['ok']) || !is_array($result['event'] ?? null)) {
+                throw new RuntimeException('Google Calendar bridge upsert failed');
+            }
+            return $result['event'];
+        }
         $path = '/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events/' . rawurlencode($eventId);
         $headers = $etag ? ['If-Match: ' . $etag] : [];
         $update = $this->api('PUT', $path, $event, [], $headers);
@@ -47,6 +59,11 @@ final class GoogleCalendarClient
 
     public function deleteEvent(string $calendarId, string $eventId): void
     {
+        if ($this->bridgeConfigured()) {
+            $result = $this->bridge('/calendar/delete', ['calendar_id' => $calendarId, 'event_id' => $eventId]);
+            if (empty($result['ok'])) throw new RuntimeException('Google Calendar bridge delete failed');
+            return;
+        }
         $result = $this->api(
             'DELETE',
             '/calendar/v3/calendars/' . rawurlencode($calendarId) . '/events/' . rawurlencode($eventId)
@@ -61,6 +78,15 @@ final class GoogleCalendarClient
      */
     public function listChanges(string $calendarId, ?string $syncToken): array
     {
+        if ($this->bridgeConfigured()) {
+            $result = $this->bridge('/calendar/changes', ['calendar_id' => $calendarId, 'sync_token' => $syncToken]);
+            if (empty($result['ok'])) throw new RuntimeException('Google Calendar bridge list failed');
+            return [
+                'events' => is_array($result['events'] ?? null) ? $result['events'] : [],
+                'next_sync_token' => isset($result['next_sync_token']) ? (string)$result['next_sync_token'] : null,
+                'reset' => (bool)($result['reset'] ?? false),
+            ];
+        }
         $events = [];
         $pageToken = null;
         do {
@@ -97,6 +123,43 @@ final class GoogleCalendarClient
         } while ($pageToken);
 
         return ['events' => $events, 'next_sync_token' => $nextSyncToken ?? $syncToken, 'reset' => false];
+    }
+
+    private function bridgeConfigured(): bool
+    {
+        $url = rtrim(trim((string)($_ENV['GOOGLE_BRIDGE_URL'] ?? '')), '/');
+        $token = trim((string)($_ENV['GOOGLE_BRIDGE_TOKEN'] ?? ''));
+        return $url !== '' && $token !== ''
+            && (str_starts_with($url, 'http://127.0.0.1:') || str_starts_with($url, 'http://localhost:'));
+    }
+
+    /** @return array<string,mixed> */
+    private function bridge(string $path, array $body): array
+    {
+        if (!$this->bridgeConfigured()) throw new RuntimeException('Google bridge is not configured');
+        if (!function_exists('curl_init')) throw new RuntimeException('cURL extension is required for Google bridge');
+        $url = rtrim((string)$_ENV['GOOGLE_BRIDGE_URL'], '/') . $path;
+        $token = trim((string)$_ENV['GOOGLE_BRIDGE_TOKEN']);
+        $json = json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $json,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Accept: application/json', 'Authorization: Bearer ' . $token],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_TIMEOUT => 20,
+        ]);
+        $raw = curl_exec($ch);
+        $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        if ($raw === false || $status < 200 || $status >= 300) {
+            throw new RuntimeException('Google bridge request failed' . ($error ? ': ' . $error : ' HTTP ' . $status));
+        }
+        $decoded = json_decode((string)$raw, true);
+        return is_array($decoded) ? $decoded : [];
     }
 
     /** @return array{status:int,body:array<string,mixed>} */
