@@ -334,6 +334,20 @@ final class FarazSmsSmsProvider implements SmsProvider
 
 final class TsmsSmsProvider implements SmsProvider
 {
+    /** Error codes documented by the TSMS URL API. */
+    private const ERRORS = [
+        '1'  => 'TSMS server error',
+        '2'  => 'TSMS UDH/message length error',
+        '3'  => 'TSMS invalid destination mobile',
+        '4'  => 'TSMS invalid send parameters',
+        '5'  => 'TSMS empty message',
+        '6'  => 'TSMS empty destination mobile',
+        '7'  => 'TSMS username or password is invalid',
+        '8'  => 'TSMS temporary server error',
+        '9'  => 'TSMS sending service is disabled',
+        '14' => 'TSMS account credit is insufficient',
+    ];
+
     public function sendOtp(string $mobile, string $code): array
     {
         return $this->sendReminder($mobile, 'کد تأیید: ' . $code);
@@ -343,33 +357,121 @@ final class TsmsSmsProvider implements SmsProvider
     {
         $user = trim((string)($_ENV['TSMS_USERNAME'] ?? ''));
         $pass = trim((string)($_ENV['TSMS_PASSWORD'] ?? ''));
-        if ($user === '' || $pass === '') {
-            return ['ok' => false, 'message_id' => null, 'error' => 'TSMS credentials not set'];
+        $from = trim((string)($_ENV['TSMS_FROM'] ?? ''));
+        if ($user === '' || $pass === '' || $from === '') {
+            return ['ok' => false, 'message_id' => null, 'error' => 'TSMS username/password/from are not configured'];
         }
-        $endpoint = trim((string)($_ENV['TSMS_URL'] ?? 'https://www.tsms.ir/tsms/wsrv.ashx'));
-        $body = http_build_query([
-            'action' => 'send',
-            'usr' => $user,
-            'pwd' => $pass,
-            'msg' => $message,
-            'from' => $_ENV['TSMS_FROM'] ?? '',
+
+        // Canonical production contract: TSMS URL API. TSMS_URL is accepted only
+        // as a backwards-compatible fallback for servers that have not renamed it yet.
+        $endpoint = trim((string)($_ENV['TSMS_API_URL'] ?? ''));
+        if ($endpoint === '') {
+            $endpoint = trim((string)($_ENV['TSMS_URL'] ?? ''));
+        }
+        if ($endpoint === '') {
+            $endpoint = 'https://tsms.ir/url/tsmshttp.php';
+        }
+
+        $scheme = strtolower((string)parse_url($endpoint, PHP_URL_SCHEME));
+        $host = strtolower((string)parse_url($endpoint, PHP_URL_HOST));
+        $path = (string)parse_url($endpoint, PHP_URL_PATH);
+        if (!in_array($scheme, ['http', 'https'], true)
+            || !in_array($host, ['tsms.ir', 'www.tsms.ir'], true)
+            || $path !== '/url/tsmshttp.php') {
+            return ['ok' => false, 'message_id' => null, 'error' => 'TSMS_API_URL is invalid'];
+        }
+
+        $query = http_build_query([
+            'from' => $from,
             'to' => $mobile,
-        ]);
-        $http = SmsHttp::post($endpoint, $body, ['Content-Type' => 'application/x-www-form-urlencoded']);
-        if ($http['status'] >= 400) {
+            'username' => $user,
+            'password' => $pass,
+            'message' => trim($message),
+        ], '', '&', PHP_QUERY_RFC3986);
+
+        try {
+            $http = $this->get($endpoint . (str_contains($endpoint, '?') ? '&' : '?') . $query, $scheme);
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message_id' => null, 'error' => $e->getMessage()];
+        }
+
+        if ($http['status'] < 200 || $http['status'] >= 400) {
             return ['ok' => false, 'message_id' => null, 'error' => 'TSMS HTTP ' . $http['status']];
         }
-        $raw = trim($http['body']);
-        if ($raw === '') {
+
+        $raw = preg_replace('/^\xEF\xBB\xBF/', '', $http['body']) ?? $http['body'];
+        $result = trim(html_entity_decode(strip_tags($raw), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        $result = preg_replace('/\s+/u', '', $result) ?? $result;
+        if ($result === '') {
             return ['ok' => false, 'message_id' => null, 'error' => 'TSMS empty response'];
         }
-        if (preg_match('/^-\d+/', $raw) || stripos($raw, 'error') !== false) {
-            return ['ok' => false, 'message_id' => null, 'error' => 'TSMS rejected'];
+        if (isset(self::ERRORS[$result])) {
+            return ['ok' => false, 'message_id' => null, 'error' => self::ERRORS[$result]];
         }
-        if (is_numeric($raw) && (int)$raw <= 0) {
-            return ['ok' => false, 'message_id' => null, 'error' => 'TSMS status ' . $raw];
+        if (str_starts_with($result, '-')) {
+            return ['ok' => false, 'message_id' => null, 'error' => 'TSMS rejected with code ' . $result];
         }
-        return ['ok' => true, 'message_id' => $raw, 'error' => null];
+        if (!preg_match('/^[0-9A-Za-z,._:\-]{1,190}$/', $result)) {
+            return ['ok' => false, 'message_id' => null, 'error' => 'TSMS returned an unrecognised response'];
+        }
+
+        return ['ok' => true, 'message_id' => $result, 'error' => null];
+    }
+
+    /** @return array{status:int,body:string} */
+    private function get(string $url, string $scheme): array
+    {
+        $timeout = 20;
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            if ($ch === false) {
+                throw new \RuntimeException('TSMS HTTP client unavailable');
+            }
+            $protocols = CURLPROTO_HTTPS;
+            if (defined('CURLPROTO_HTTP')) {
+                $protocols |= CURLPROTO_HTTP;
+            }
+            curl_setopt_array($ch, [
+                CURLOPT_HTTPGET => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => $timeout,
+                CURLOPT_TIMEOUT => $timeout,
+                CURLOPT_PROTOCOLS => $protocols,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_SSL_VERIFYHOST => 2,
+                CURLOPT_HTTPHEADER => ['Accept: text/plain,*/*'],
+            ]);
+            $resp = curl_exec($ch);
+            $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $err = curl_error($ch);
+            curl_close($ch);
+            if ($resp === false) {
+                throw new \RuntimeException('TSMS connection failed: ' . $err);
+            }
+            return ['status' => $status, 'body' => (string)$resp];
+        }
+
+        $ctx = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => "Accept: text/plain,*/*\r\n",
+                'timeout' => $timeout,
+                'ignore_errors' => true,
+            ],
+            'ssl' => [
+                'verify_peer' => true,
+                'verify_peer_name' => true,
+            ],
+        ]);
+        $resp = @file_get_contents($url, false, $ctx);
+        if ($resp === false) {
+            throw new \RuntimeException('TSMS connection failed');
+        }
+        $status = 0;
+        if (isset($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $m)) {
+            $status = (int)$m[1];
+        }
+        return ['status' => $status, 'body' => (string)$resp];
     }
 }
 
