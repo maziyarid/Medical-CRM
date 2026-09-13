@@ -30,13 +30,44 @@ final class AppointmentAvailabilityAdminService
         }
 
         $db = Database::conn();
-        $db->beginTransaction();
+        $lockName = 'crm:open-days:' . $clinicId;
+        $lock = $db->prepare('SELECT GET_LOCK(?, 8)');
+        $lock->execute([$lockName]);
+        if ((int)$lock->fetchColumn() !== 1) {
+            throw new RuntimeException('clinic lock timeout');
+        }
+
         try {
+            $db->beginTransaction();
             $existing = $db->prepare(
                 'SELECT * FROM appointment_open_days WHERE clinic_id = ? AND open_date = ? FOR UPDATE'
             );
             $existing->execute([$clinicId, $date]);
             $row = $existing->fetch();
+            $currentId = $row ? (int)$row['id'] : 0;
+
+            if ($status === 'open') {
+                $week = $db->prepare(
+                    'SELECT COUNT(*) FROM appointment_open_days
+                     WHERE clinic_id = ? AND status = "open" AND id <> ?
+                       AND YEARWEEK(open_date, 3) = YEARWEEK(?, 3)'
+                );
+                $week->execute([$clinicId, $currentId, $date]);
+                if ((int)$week->fetchColumn() >= 2) {
+                    throw new RuntimeException('weekly open-day limit reached');
+                }
+
+                $month = $db->prepare(
+                    'SELECT COUNT(*) FROM appointment_open_days
+                     WHERE clinic_id = ? AND status = "open" AND id <> ?
+                       AND YEAR(open_date) = YEAR(?) AND MONTH(open_date) = MONTH(?)'
+                );
+                $month->execute([$clinicId, $currentId, $date, $date]);
+                if ((int)$month->fetchColumn() >= 8) {
+                    throw new RuntimeException('monthly open-day limit reached');
+                }
+            }
+
             if ($row && $capacity < ((int)$row['held_count'] + (int)$row['booked_count'])) {
                 throw new RuntimeException('capacity cannot be below current reservations');
             }
@@ -45,8 +76,8 @@ final class AppointmentAvailabilityAdminService
                     'UPDATE appointment_open_days
                      SET capacity = ?, slot_duration_minutes = ?, opens_at = ?, closes_at = ?, status = ?, updated_at = UTC_TIMESTAMP()
                      WHERE id = ?'
-                )->execute([$capacity, $duration, $opensAt, $closesAt, $status, (int)$row['id']]);
-                $id = (int)$row['id'];
+                )->execute([$capacity, $duration, $opensAt, $closesAt, $status, $currentId]);
+                $id = $currentId;
             } else {
                 $db->prepare(
                     'INSERT INTO appointment_open_days
@@ -62,6 +93,13 @@ final class AppointmentAvailabilityAdminService
                 $db->rollBack();
             }
             throw $e;
+        } finally {
+            try {
+                $release = $db->prepare('SELECT RELEASE_LOCK(?)');
+                $release->execute([$lockName]);
+            } catch (\Throwable $e) {
+                error_log('[AppointmentAvailabilityAdminService] failed to release lock: ' . $e->getMessage());
+            }
         }
     }
 
