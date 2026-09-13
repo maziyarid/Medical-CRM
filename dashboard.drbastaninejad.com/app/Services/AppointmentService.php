@@ -123,7 +123,7 @@ final class AppointmentService
                 if ($appointment->hasRoomConflict($clinicId, $room, $newStart, $newDuration, $appointmentId)) {
                     throw new RuntimeException('room conflict');
                 }
-                $appointment->reschedule($appointmentId, $newStart, $newDuration);
+                $appointment->reschedule($appointmentId, $newStart, $newDuration, $room);
             });
         } catch (RuntimeException $e) {
             return $this->conflictOrLock($e);
@@ -141,17 +141,23 @@ final class AppointmentService
     public function updateStatusLocked(int $clinicId, array $existing, string $status): array
     {
         $appointmentId = (int)$existing['id'];
-        $reactivating = in_array($status, Appointment::OCCUPYING_STATUSES, true)
-            && !in_array((string)$existing['status'], Appointment::OCCUPYING_STATUSES, true);
+        $reactivating = false;
+        $current = $existing;
 
         try {
-            $this->withClinicLock($clinicId, function () use ($clinicId, $existing, $status, $appointmentId, $reactivating): void {
+            $this->withClinicLock($clinicId, function () use ($clinicId, $status, $appointmentId, &$reactivating, &$current): void {
                 $appointment = new Appointment();
+                $current = $appointment->findForClinic($appointmentId, $clinicId);
+                if (!$current) {
+                    throw new RuntimeException('appointment not found');
+                }
+                $reactivating = in_array($status, Appointment::OCCUPYING_STATUSES, true)
+                    && !in_array((string)$current['status'], Appointment::OCCUPYING_STATUSES, true);
                 if ($reactivating) {
-                    $duration = (int)$existing['duration_minutes'];
-                    $start = (string)$existing['scheduled_at'];
-                    $providerId = (int)$existing['provider_id'];
-                    $room = $existing['room'] ?? null;
+                    $duration = (int)$current['duration_minutes'];
+                    $start = (string)$current['scheduled_at'];
+                    $providerId = (int)$current['provider_id'];
+                    $room = $current['room'] ?? null;
                     if ($appointment->hasConflict($clinicId, $providerId, $start, $duration, $appointmentId)) {
                         throw new RuntimeException('provider conflict');
                     }
@@ -170,9 +176,9 @@ final class AppointmentService
         } elseif ($reactivating) {
             (new ReminderService())->scheduleForAppointment(
                 $appointmentId,
-                (int)$existing['patient_id'],
+                (int)$current['patient_id'],
                 $clinicId,
-                (string)$existing['scheduled_at']
+                (string)$current['scheduled_at']
             );
         }
 
@@ -218,6 +224,11 @@ final class AppointmentService
                 'ok' => false,
                 'status' => 503,
                 'message' => 'تقویم در حال به‌روزرسانی است؛ دوباره تلاش کنید',
+            ],
+            'appointment not found' => [
+                'ok' => false,
+                'status' => 404,
+                'message' => 'نوبت موردنظر دیگر در دسترس نیست',
             ],
             default => throw $e,
         };
