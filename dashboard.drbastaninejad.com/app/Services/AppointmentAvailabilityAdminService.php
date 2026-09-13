@@ -21,10 +21,9 @@ final class AppointmentAvailabilityAdminService
         $duration = max(5, min(240, (int)($input['slot_duration_minutes'] ?? 20)));
         $opensAt = $this->timeOrNull($input['opens_at'] ?? null);
         $closesAt = $this->timeOrNull($input['closes_at'] ?? null);
-        if ($status = (string)($input['status'] ?? 'open')) {
-            if (!in_array($status, ['open', 'closed'], true)) {
-                throw new RuntimeException('invalid open-day status');
-            }
+        $status = (string)($input['status'] ?? 'open');
+        if (!in_array($status, ['open', 'closed'], true)) {
+            throw new RuntimeException('invalid open-day status');
         }
         if ($status === 'open' && ($opensAt === null || $closesAt === null)) {
             throw new RuntimeException('working hours are required');
