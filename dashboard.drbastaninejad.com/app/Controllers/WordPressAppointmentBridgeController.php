@@ -106,6 +106,14 @@ final class WordPressAppointmentBridgeController extends Controller
                 throw new RuntimeException('booking intake not found');
             }
 
+            // Idempotency belongs to the selected checkout, not the intake itself.
+            // A retry of the same slot/gateway reuses its hold/payment attempt,
+            // while a later different slot can create a fresh attempt safely.
+            $checkoutSubmission = hash(
+                'sha256',
+                'wp-v2|' . (string)$intake['submission_uuid'] . '|' . $openDayId . '|' . $startAt . '|' . $gateway
+            );
+
             $amount = (int)($_ENV['BOOKING_APPOINTMENT_DEPOSIT_RIALS'] ?? 0);
             $guard = new AppointmentBookingGuardService();
             $booking = $guard->createPatientHold(
@@ -115,7 +123,7 @@ final class WordPressAppointmentBridgeController extends Controller
                 $startAt,
                 $amount,
                 $gateway,
-                (string)$intake['submission_uuid']
+                $checkoutSubmission
             );
 
             $db->prepare(
@@ -193,6 +201,9 @@ final class WordPressAppointmentBridgeController extends Controller
             'clinic lock timeout' => 'تقویم در حال به‌روزرسانی است؛ دوباره تلاش کنید',
             'booking deposit is not configured' => 'مبلغ بیعانه رزرو هنوز تنظیم نشده است',
             'Zarinpal is not configured', 'Vandar is not configured' => 'درگاه پرداخت انتخاب‌شده هنوز آماده نیست',
+            'working hours are required' => 'ساعت شروع و پایان برای روز باز الزامی است',
+            'working hours are invalid' => 'ساعت کاری واردشده معتبر نیست',
+            'invalid open date' => 'تاریخ روز نوبت‌دهی معتبر نیست',
             default => $message,
         };
         return $this->error($public, $status);
