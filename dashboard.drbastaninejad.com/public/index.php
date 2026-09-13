@@ -205,6 +205,12 @@ try {
 // 6. Send response
 // ---------------------------------------------------------------------------
 $httpStatus = (int)($response['status'] ?? 200);
+$redirect = isset($response['_redirect']) ? trim((string)$response['_redirect']) : '';
+if ($redirect !== '' && preg_match('#^https://(?:www\.)?drbastaninejad\.com(?:/|$)#i', $redirect)) {
+    header('Location: ' . $redirect, true, 303);
+    exit;
+}
+unset($response['_redirect']);
 http_response_code($httpStatus);
 
 // Keep the full documented envelope: {ok,status,data,errors,meta}.

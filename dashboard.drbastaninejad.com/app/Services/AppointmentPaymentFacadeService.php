@@ -36,6 +36,27 @@ final class AppointmentPaymentFacadeService
         return $this->payments->verifyCallback($gateway, $callback);
     }
 
+    /** @return array<string,mixed> */
+    public function reconcileAttempt(int $clinicId, int $attemptId): array
+    {
+        $stmt = Database::conn()->prepare(
+            'SELECT a.gateway, a.authority
+             FROM appointment_payment_attempts a
+             JOIN appointment_booking_requests b ON b.id = a.booking_request_id
+             WHERE a.id = ? AND b.clinic_id = ? LIMIT 1'
+        );
+        $stmt->execute([$attemptId, $clinicId]);
+        $attempt = $stmt->fetch();
+        if (!$attempt) {
+            throw new RuntimeException('payment attempt not found');
+        }
+        $authority = trim((string)($attempt['authority'] ?? ''));
+        if ($authority !== '') {
+            $this->releaseExpiredClaimForAttempt((string)$attempt['gateway'], $authority);
+        }
+        return $this->payments->reconcileAttempt($clinicId, $attemptId);
+    }
+
     private function releaseExpiredClaimForAttempt(string $gateway, string $authority): void
     {
         $db = Database::conn();

@@ -32,9 +32,6 @@ final class AppointmentPaymentService
         if (!$booking) {
             throw new RuntimeException('booking not found');
         }
-        if ((string)$booking['source'] !== 'online') {
-            throw new RuntimeException('admin booking cannot start patient payment');
-        }
         if ((string)$booking['payment_status'] === 'paid') {
             throw new RuntimeException('booking is already paid');
         }
@@ -158,12 +155,16 @@ final class AppointmentPaymentService
                 json_encode($verification['raw'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                 (int)$attempt['id'],
             ]);
-            $db->prepare(
-                'UPDATE appointment_booking_requests
-                 SET payment_status = IF(payment_status = "paid", "paid", "failed"), updated_at = UTC_TIMESTAMP()
-                 WHERE id = ?'
-            )->execute([(int)$attempt['booking_request_id']]);
-            return ['verified' => false, 'idempotent' => false, 'code' => $verification['code']];
+            $this->releaseFailedBookingHold((int)$attempt['booking_request_id']);
+            return [
+                'verified' => false,
+                'idempotent' => false,
+                'code' => $verification['code'],
+                'booking' => [
+                    'id' => (int)$attempt['booking_request_id'],
+                    'booking_id' => (int)$attempt['booking_request_id'],
+                ],
+            ];
         }
 
         $reference = (string)($verification['reference'] ?? $authority);
@@ -184,6 +185,31 @@ final class AppointmentPaymentService
             'reference' => $reference,
             'booking' => $state,
         ];
+    }
+
+    /** @return array<string,mixed> */
+    public function reconcileAttempt(int $clinicId, int $attemptId): array
+    {
+        $stmt = Database::conn()->prepare(
+            'SELECT a.gateway, a.authority
+             FROM appointment_payment_attempts a
+             JOIN appointment_booking_requests b ON b.id = a.booking_request_id
+             WHERE a.id = ? AND b.clinic_id = ? LIMIT 1'
+        );
+        $stmt->execute([$attemptId, $clinicId]);
+        $attempt = $stmt->fetch();
+        if (!$attempt) {
+            throw new RuntimeException('payment attempt not found');
+        }
+        $gateway = (string)$attempt['gateway'];
+        $authority = trim((string)($attempt['authority'] ?? ''));
+        if ($authority === '') {
+            throw new RuntimeException('payment authority is missing');
+        }
+        $callback = $gateway === 'zarinpal'
+            ? ['Authority' => $authority, 'Status' => 'OK']
+            : ['checkout_id' => $authority, 'status' => 'SUCCEED'];
+        return $this->verifyCallback($gateway, $callback);
     }
 
     private function gateway(string $name): AppointmentPaymentGateway

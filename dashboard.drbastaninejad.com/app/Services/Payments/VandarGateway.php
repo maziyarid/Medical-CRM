@@ -12,7 +12,7 @@ final class VandarGateway implements AppointmentPaymentGateway
 
     public function __construct(?HttpJsonClient $http = null)
     {
-        $this->apiKey = trim((string)($_ENV['VANDAR_API_KEY'] ?? ''));
+        $this->apiKey = trim((string)($_ENV['VANDAR_API_KEY'] ?? $_ENV['VANDAR_API_TOKEN'] ?? ''));
         $this->http = $http ?? new HttpJsonClient();
     }
 
