@@ -164,7 +164,7 @@ final class WordPressAppointmentBridgeController extends Controller
         if ($gateway === 'zarinpal' && trim((string)($_ENV['ZARINPAL_MERCHANT_ID'] ?? '')) === '') {
             throw new RuntimeException('Zarinpal is not configured');
         }
-        if ($gateway === 'vandar' && trim((string)($_ENV['VANDAR_API_TOKEN'] ?? '')) === '') {
+        if ($gateway === 'vandar' && trim((string)($_ENV['VANDAR_API_KEY'] ?? '')) === '') {
             throw new RuntimeException('Vandar is not configured');
         }
         if (!function_exists('curl_init')) {
