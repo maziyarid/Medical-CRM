@@ -4,12 +4,13 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>ورود کارکنان — MΛZ Medical CRM</title>
+  <title>ورود کارکنان — سامانه مدیریت کلینیک</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
   <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
   <link rel="stylesheet" href="../../assets/css/base.css"/>
   <link rel="stylesheet" href="../../assets/css/states.css"/>
+  <link rel="stylesheet" href="../../assets/css/ui-polish.css?v=20260913"/>
   <style>
     .auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}.auth-card{max-width:440px;width:100%}
     .brand{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-bottom:1.5rem}.brand-mark{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--evergreen),var(--evergreen-dark));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
@@ -22,7 +23,7 @@
 </head>
 <body>
 <main class="auth-wrap"><div class="card auth-card">
-  <div class="brand"><div class="brand-mark">MΛZ</div><div style="font-weight:700">Medical CRM</div></div>
+  <div class="brand"><div class="brand-mark">MΛZ</div><div style="font-weight:700">سامانه مدیریت کلینیک</div></div>
   <h1>ورود کارکنان</h1>
   <p class="sub">ورود فقط برای حساب‌هایی است که مدیر کل قبلاً در سامانه ثبت کرده است.</p>
 
@@ -62,10 +63,10 @@
     <button class="btn btn-primary" style="width:100%" type="submit" id="btn-set-password">ذخیره و ورود</button>
   </form>
 
-  <div class="brand-footer"><div class="maz-sig">M<span class="z">Λ</span>Z <span style="opacity:.5">//</span> ID</div><div>© 2026 دکتر شاهین باستانی‌نژاد — ساخته شده توسط Maziyar</div></div>
+  <div class="brand-footer"><div class="clinic-footer-text">سامانه داخلی کلینیک دکتر شاهین باستانی‌نژاد</div></div>
 </div></main>
 <div id="mz-toast" role="status" aria-live="polite"></div>
-<script src="../../assets/js/app.js"></script>
+<script src="../../assets/js/app.js?v=20260913"></script>
 <script type="module">
 import { Auth, showToast } from '../../shared/api.js';
 const modes=document.getElementById('auth-modes'), modeOtp=document.getElementById('mode-otp'), modePassword=document.getElementById('mode-password'), stepMobile=document.getElementById('step-mobile'), stepOtp=document.getElementById('step-otp'), stepSetPassword=document.getElementById('step-set-password'), otpInputs=[...document.querySelectorAll('#otp input')];
