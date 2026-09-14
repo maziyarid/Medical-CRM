@@ -7,14 +7,16 @@ use RuntimeException;
 
 /**
  * Super-admin-only writer for appointment integration configuration.
- * Secrets remain in the private project .env and are never returned by the API.
+ * Secrets remain in the private deployment-external runtime env and are never returned by the API.
  */
 final class AppointmentIntegrationSettingsService
 {
     /** @param array<string,mixed> $input */
     public function update(array $input): array
     {
-        $envFile = dirname(__DIR__, 2) . '/.env';
+        $envFile = is_file('/home/drbastaninejad/.dashboard.env')
+            ? '/home/drbastaninejad/.dashboard.env'
+            : dirname(__DIR__, 2) . '/.env';
         if (!is_file($envFile) || !is_readable($envFile) || !is_writable($envFile)) {
             throw new RuntimeException('appointment environment file is not writable');
         }
@@ -38,7 +40,6 @@ final class AppointmentIntegrationSettingsService
 
         $this->secret($updates, $input, 'zarinpal_merchant_id', 'ZARINPAL_MERCHANT_ID', 10, 120);
         $this->secret($updates, $input, 'vandar_api_token', 'VANDAR_API_TOKEN', 10, 300);
-        // Legacy admin clients may still send vandar_api_key; store it under the canonical token key.
         if (!array_key_exists('vandar_api_token', $input)) {
             $this->secret($updates, $input, 'vandar_api_key', 'VANDAR_API_TOKEN', 10, 300);
         }
@@ -104,7 +105,7 @@ final class AppointmentIntegrationSettingsService
         }
         $value = trim((string)$input[$inputKey]);
         if ($value === '') {
-            return; // blank means preserve current secret
+            return;
         }
         if (strlen($value) < $min || strlen($value) > $max || preg_match('/[\r\n]/', $value)) {
             throw new RuntimeException('invalid integration credential');
