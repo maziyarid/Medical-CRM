@@ -11,6 +11,10 @@ DirectoryIndex index.html index.php
     RewriteEngine On
     RewriteBase /
 
+    # Preserve Authorization for PHP/cPanel so Bearer auth reaches AuthMiddleware.
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
     RewriteRule ^\.(?!well-known) - [F,L]
 
     RewriteCond %{REQUEST_FILENAME} -f [OR]
