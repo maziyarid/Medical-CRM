@@ -35,13 +35,15 @@ declare(strict_types=1);
 define('BASE_PATH', dirname(__DIR__));  // one level up from public/
 
 // ---------------------------------------------------------------------------
-// 2. Environment loader — parses BASE_PATH/.env if it exists
+// 2. Environment loader — prefer deployment-external runtime configuration.
 //    Supports: KEY=value, KEY="value", KEY='value', # comments, blank lines
 //    Variables are written to $_ENV and putenv() so they are accessible from
 //    both getenv() and $_ENV throughout the application.
 // ---------------------------------------------------------------------------
 (static function (): void {
-    $envFile = BASE_PATH . '/.env';
+    $envFile = is_file('/home/drbastaninejad/.dashboard.env')
+        ? '/home/drbastaninejad/.dashboard.env'
+        : BASE_PATH . '/.env';
     if (!is_file($envFile)) {
         return;
     }
@@ -65,7 +67,6 @@ define('BASE_PATH', dirname(__DIR__));  // one level up from public/
         $key   = trim(substr($line, 0, $eqPos));
         $value = trim(substr($line, $eqPos + 1));
 
-        // Strip surrounding quotes (single or double)
         if (strlen($value) >= 2 &&
             (($value[0] === '"' && str_ends_with($value, '"')) ||
              ($value[0] === "'" && str_ends_with($value, "'")))) {
@@ -79,11 +80,6 @@ define('BASE_PATH', dirname(__DIR__));  // one level up from public/
     }
 })();
 
-// ---------------------------------------------------------------------------
-// 3. PSR-4 autoloader for the App\ namespace
-//    Follows the convention: App\Controllers\FooController
-//    → BASE_PATH/app/Controllers/FooController.php
-// ---------------------------------------------------------------------------
 spl_autoload_register(static function (string $class): void {
     if (!str_starts_with($class, 'App\\')) {
         return;
@@ -97,12 +93,8 @@ spl_autoload_register(static function (string $class): void {
     }
 });
 
-// ---------------------------------------------------------------------------
-// 4. Global PHP settings
-// ---------------------------------------------------------------------------
 date_default_timezone_set('UTC');
 
-// Show errors only in development; in production errors go to error_log
 $appEnv = $_ENV['APP_ENV'] ?? 'production';
 if ($appEnv !== 'production') {
     ini_set('display_errors', '1');
@@ -112,7 +104,6 @@ if ($appEnv !== 'production') {
     error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
 }
 
-// All responses from this entry point are JSON
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
@@ -143,19 +134,14 @@ if (in_array($origin, $allowedOrigins, true)) {
 header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, Accept, X-Intake-Bridge-Secret, X-WordPress-Bridge-Secret');
 
-// Respond immediately to pre-flight OPTIONS requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
-// ---------------------------------------------------------------------------
-// 5. Build router, register all route files, dispatch
-// ---------------------------------------------------------------------------
 try {
     $router = new App\Core\Router();
 
-    // Route files use $router as a local variable injected by this require
     foreach ([
         'routes.auth',
         'routes.dashboard',
@@ -202,9 +188,6 @@ try {
     ];
 }
 
-// ---------------------------------------------------------------------------
-// 6. Send response
-// ---------------------------------------------------------------------------
 $httpStatus = (int)($response['status'] ?? 200);
 $redirect = isset($response['_redirect']) ? trim((string)$response['_redirect']) : '';
 if ($redirect !== '' && preg_match('#^https://(?:www\.)?drbastaninejad\.com(?:/|$)#i', $redirect)) {
@@ -214,5 +197,4 @@ if ($redirect !== '' && preg_match('#^https://(?:www\.)?drbastaninejad\.com(?:/|
 unset($response['_redirect']);
 http_response_code($httpStatus);
 
-// Keep the full documented envelope: {ok,status,data,errors,meta}.
 echo json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
