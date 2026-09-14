@@ -1,15 +1,9 @@
-﻿<!doctype html>
-<!--
-  MΛZ Medical CRM — Calendar / Scheduling
-  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  Data:  ✅ LIVE — wired to GET/POST /api/v1/appointments (dashboard API)
-  Auth:  Staff Bearer token required.
--->
-<html dir="rtl" lang="fa-IR">
+<!doctype html>
+<html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>تقویم — MΛZ Medical CRM</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>تقویم و نوبت‌دهی — CRM کلینیک</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
   <link rel="stylesheet" href="../../assets/css/tokens.css"/>
   <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
@@ -17,373 +11,100 @@
   <link rel="stylesheet" href="../../assets/css/states.css"/>
   <link rel="stylesheet" href="../../assets/css/components.css"/>
   <style>
-    .view-switch{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:3px;gap:2px}
-    .view-switch button{border:none;background:none;padding:.45rem .9rem;border-radius:var(--radius-sm);font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;min-height:36px}
-    .view-switch button.active{background:var(--evergreen-soft);color:var(--evergreen)}
-    .cal-week-grid{display:grid;grid-template-columns:56px repeat(6,1fr);gap:1px;background:var(--border);border-radius:var(--radius-md);overflow:hidden;overflow-x:auto;min-width:640px}
-    .cal-week-grid>div{background:var(--surface);padding:.45rem;min-height:52px;font-size:.78rem}
-    .cal-week-grid .hour{background:var(--porcelain);text-align:center;color:var(--muted);font-weight:600;font-size:.7rem;display:flex;align-items:center;justify-content:center}
-    .cal-week-grid .head{background:var(--porcelain);text-align:center;font-weight:700;padding:.7rem .4rem;font-size:.8rem}
-    .cal-week-grid .head small{display:block;color:var(--muted);font-size:.68rem;font-weight:500}
-    .cal-week-grid .head.today{background:var(--evergreen-soft);color:var(--evergreen)}
-    .appt-block{background:var(--evergreen);color:#fff;padding:.3rem .5rem;border-radius:5px;font-size:.7rem;font-weight:600;margin-bottom:2px;cursor:pointer;transition:opacity var(--transition-fast)}
-    .appt-block:hover{opacity:.85}
-    .appt-block.info{background:var(--info)}
-    .appt-block.warning{background:var(--warning);color:var(--graphite)}
-    .appt-block.error{background:var(--error)}
-    .appt-block.muted{background:var(--muted);opacity:.7}
-    .conflict-banner{display:flex;align-items:center;gap:.75rem;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:var(--radius-md);padding:.75rem 1rem;font-size:.82rem;margin-bottom:1.25rem}
-    .cal-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-    /* New appointment modal */
-    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;align-items:center;justify-content:center;padding:1rem}
-    .modal-overlay.open{display:flex}
-    .modal-box{background:#fff;border-radius:var(--radius);padding:1.5rem;width:100%;max-width:460px;max-height:90vh;overflow-y:auto}
-    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
-    .modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);line-height:1;min-height:36px;min-width:36px}
+    .sched-toolbar{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.sched-toolbar .spacer{flex:1}.view-tabs{display:flex;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}.view-tabs button{border:0;background:#fff;padding:.55rem .85rem;font:inherit;cursor:pointer}.view-tabs button.active{background:#dfeee3;color:#176329;font-weight:800}.ops-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-block:1rem}.card-lite{border:1px solid var(--border);border-radius:18px;background:#fff;padding:1rem}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}.form-field{display:grid;gap:.35rem}.form-field label{font-size:.8rem;font-weight:700}.form-field input,.form-field select,.form-field textarea{border:1px solid var(--border);border-radius:10px;padding:.65rem .75rem;font:inherit;background:#fff}.form-field textarea{min-height:80px}.full{grid-column:1/-1}.calendar-surface{background:#fff;border:1px solid var(--border);border-radius:18px;padding:1rem;min-height:420px}.week-grid{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));overflow:auto;border:1px solid var(--border);border-radius:14px}.week-day{min-height:330px;border-inline-start:1px solid var(--border);padding:.55rem}.week-day:first-child{border:0}.week-day h4{margin:.1rem 0 .65rem;font-size:.83rem}.event-chip{display:block;border:1px solid #b8d7c4;background:#eef8f1;color:#1b5e2c;border-radius:9px;padding:.45rem;margin:.35rem 0;font-size:.76rem;line-height:1.6}.month-grid{display:grid;grid-template-columns:repeat(7,minmax(100px,1fr));border:1px solid var(--border);border-radius:14px;overflow:auto}.month-cell{min-height:115px;padding:.45rem;border-inline-start:1px solid var(--border);border-bottom:1px solid var(--border)}.month-cell .day-number{font-weight:800;font-size:.78rem}.agenda-row{display:grid;grid-template-columns:125px 1fr 120px;gap:.7rem;padding:.75rem;border-bottom:1px solid var(--border);align-items:center}.slot-list{display:flex;gap:.4rem;flex-wrap:wrap;max-height:180px;overflow:auto}.slot-btn{border:1px solid #b8d1c9;background:#f5faf8;color:#1c5d4c;border-radius:9px;padding:.45rem .65rem;cursor:pointer;font:inherit}.slot-btn.active{background:#22765f;color:#fff}.status-pill{display:inline-flex;padding:.2rem .55rem;border-radius:999px;background:#eef1f0;font-size:.72rem}.status-pill.paid,.status-pill.confirmed,.status-pill.free{background:#e3f4e8;color:#176329}.status-pill.failed,.status-pill.expired{background:#fde8e8;color:#9d2d2d}.table-scroll{overflow:auto}.mini-table{width:100%;border-collapse:collapse;min-width:850px}.mini-table th,.mini-table td{padding:.65rem;border-bottom:1px solid var(--border);font-size:.78rem;text-align:right}.modal-mask{position:fixed;inset:0;background:#0006;display:none;align-items:center;justify-content:center;z-index:9999;padding:1rem}.modal-mask.open{display:flex}.modal-box{width:min(700px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:1.1rem}.inline-actions{display:flex;gap:.4rem;flex-wrap:wrap}.staff-chip{font-size:.78rem;color:var(--muted)}.notice{border:1px solid #e7d49f;background:#fff8e6;border-radius:12px;padding:.7rem .85rem;line-height:1.8}.error-text{color:#a72e2e}.success-text{color:#176329}@media(max-width:900px){.ops-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.full{grid-column:auto}.agenda-row{grid-template-columns:1fr}.week-grid,.month-grid{min-width:820px}}
   </style>
 </head>
 <body data-shell="staff" data-nav="calendar">
-  <div class="app-shell">
-    <main class="main">
-
-      <div class="topbar">
-        <div>
-          <h1>تقویم و نوبت‌دهی</h1>
-          <p class="subtitle" id="cal-range-label">در حال بارگذاری…</p>
-        </div>
-        <div class="topbar-actions">
-          <div class="view-switch" role="group" aria-label="نمای تقویم">
-            <button data-view="day">روز</button>
-            <button class="active" data-view="week">هفته</button>
-            <button data-view="month">ماه</button>
-            <button data-view="list">لیست</button>
-          </div>
-          <button class="btn btn-secondary btn-sm" id="prev-btn" aria-label="هفته قبل">‹</button>
-          <button class="btn btn-secondary btn-sm" id="next-btn" aria-label="هفته بعد">›</button>
-          <button class="btn btn-primary btn-sm" id="new-appt-btn">+ نوبت جدید</button>
-        </div>
-      </div>
-
-      <!-- Conflict banner — hidden until conflict detected -->
-      <div class="conflict-banner" id="conflict-banner" hidden role="alert">
-        <span aria-hidden="true">⚠️</span>
-        <span id="conflict-msg"></span>
-        <button class="btn btn-ghost btn-sm" id="conflict-dismiss" style="margin-inline-start:auto">بستن</button>
-      </div>
-
-      <!-- State containers -->
-      <div id="cal-loading" class="state-loading" role="status" aria-live="polite">
-        <div class="skeleton-row"><div class="skeleton skeleton-line" style="width:100%;height:360px;border-radius:var(--radius-md)"></div></div>
-      </div>
-      <div id="cal-error" class="state-error" role="alert" hidden></div>
-      <div id="cal-empty" class="state-empty" hidden>
-        <p>هیچ نوبتی در این بازه وجود ندارد.</p>
-      </div>
-
-      <!-- Week grid -->
-      <section class="panel" id="cal-panel" hidden>
-        <div class="cal-scroll">
-          <div class="cal-week-grid" id="cal-grid" role="grid" aria-label="تقویم هفتگی"></div>
-        </div>
-      </section>
-
-    </main>
-  </div>
-
-  <!-- New appointment modal -->
-  <div class="modal-overlay" id="new-appt-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h2 id="modal-title" style="font-size:1rem">نوبت جدید</h2>
-        <button class="modal-close" id="modal-close" aria-label="بستن">×</button>
-      </div>
-      <div id="modal-error" class="state-error" style="margin-bottom:.75rem" hidden></div>
-      <div class="grid-2" style="gap:1rem">
-        <div class="input-group" style="grid-column:1/-1">
-          <label class="form-label" for="appt-patient-id">شناسه بیمار <span aria-hidden="true" style="color:var(--error)">*</span></label>
-          <input class="form-input" id="appt-patient-id" type="number" placeholder="شناسه عددی بیمار" required/>
-        </div>
-        <div class="input-group" style="grid-column:1/-1">
-          <label class="form-label" for="appt-provider-id">شناسه پزشک <span aria-hidden="true" style="color:var(--error)">*</span></label>
-          <input class="form-input" id="appt-provider-id" type="number" placeholder="شناسه عددی پزشک" required/>
-        </div>
-        <div class="input-group" style="grid-column:1/-1">
-          <label class="form-label" for="appt-at">تاریخ و ساعت <span aria-hidden="true" style="color:var(--error)">*</span></label>
-          <input class="form-input" id="appt-at" type="datetime-local" required/>
-        </div>
-        <div class="input-group">
-          <label class="form-label" for="appt-duration">مدت (دقیقه)</label>
-          <input class="form-input" id="appt-duration" type="number" value="20" min="5" max="480"/>
-        </div>
-        <div class="input-group">
-          <label class="form-label" for="appt-room">اتاق</label>
-          <input class="form-input" id="appt-room" placeholder="اتاق ۱"/>
-        </div>
-        <div class="input-group" style="grid-column:1/-1">
-          <label class="form-label" for="appt-reason">علت مراجعه</label>
-          <input class="form-input" id="appt-reason" placeholder="مشاوره اولیه — رینوپلاستی"/>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.25rem">
-        <button class="btn btn-ghost btn-sm" id="modal-cancel">انصراف</button>
-        <button class="btn btn-primary btn-sm" id="modal-save">
-          <span class="btn-submit-text">ذخیره نوبت</span>
-          <span class="btn-submit-loading" hidden aria-hidden="true">در حال ثبت…</span>
-        </button>
-      </div>
+<div class="app-shell"><main class="main">
+  <div class="topbar">
+    <div><h1>تقویم و نوبت‌دهی</h1><p class="subtitle">رزرو وب‌سایت، نوبت‌های رایگان پذیرش و Google Work Calendar در یک برنامه</p><p class="staff-chip" id="staff-identity"></p></div>
+    <div class="sched-toolbar">
+      <button class="btn btn-primary" id="new-booking">+ نوبت رایگان جدید</button>
+      <button class="btn btn-secondary" id="today-btn">امروز</button>
+      <button class="btn btn-secondary" id="prev-btn">›</button><button class="btn btn-secondary" id="next-btn">‹</button>
+      <div class="view-tabs" id="view-tabs"><button data-view="day">روز</button><button data-view="week" class="active">هفته</button><button data-view="month">ماه</button><button data-view="list">لیست</button></div>
     </div>
   </div>
 
-  <script src="../../assets/js/app.js"></script>
-  <script src="../../assets/js/states.js"></script>
-  <script src="../../assets/js/chrome.js"></script>
-  <script type="module">
-    import { Staff, escHtml, requireAuth, redirectOn401 } from '../../shared/api.js';
-    if (!requireAuth('../auth/login.html', 'staff')) { /* redirecting */ }
+  <div class="ops-grid">
+    <section class="card-lite" id="open-days-card">
+      <h3>روزهای باز و ظرفیت</h3><p class="subtitle">حداکثر ۲ روز در هفته و ۸ روز در ماه؛ زمان‌های Google Calendar خودکار مسدود می‌شوند.</p>
+      <form id="open-day-form" class="form-grid">
+        <div class="form-field"><label>تاریخ</label><input type="date" name="open_date" required></div>
+        <div class="form-field"><label>وضعیت</label><select name="status"><option value="open">باز</option><option value="closed">بسته</option></select></div>
+        <div class="form-field"><label>شروع</label><input type="time" name="opens_at" required></div>
+        <div class="form-field"><label>پایان</label><input type="time" name="closes_at" required></div>
+        <div class="form-field"><label>ظرفیت روز</label><input type="number" name="capacity" min="1" max="200" value="20" required></div>
+        <div class="form-field"><label>طول هر نوبت (دقیقه)</label><input type="number" name="slot_duration_minutes" min="5" max="240" value="20" required></div>
+        <button class="btn btn-primary full" type="submit">ذخیره روز کاری</button>
+      </form><div id="open-days-list" style="margin-top:.8rem"></div>
+    </section>
 
-    // ── State ──────────────────────────────────────────────────────
-    const HOURS = [9,10,11,12,15,16,17,18];
-    const DAYS_FA = ['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه'];
-    let weekOffset = 0; // 0 = current week
+    <section class="card-lite" id="fee-card">
+      <h3>هزینه ویزیت آنلاین</h3><p class="subtitle">فقط رزروهای خودکار وب‌سایت ملزم به پرداخت هستند؛ نوبت‌های ثبت‌شده توسط کارکنان رایگان‌اند.</p>
+      <form id="fee-form" class="form-grid">
+        <div class="form-field full"><label>مبلغ به تومان</label><input type="number" name="amount_tomans" min="1000" step="1000" value="500000" required></div>
+        <button class="btn btn-primary full" type="submit">به‌روزرسانی مبلغ</button>
+      </form><p id="fee-state" class="staff-chip"></p>
+    </section>
+  </div>
 
-    // ── Elements ───────────────────────────────────────────────────
-    const grid        = document.getElementById('cal-grid');
-    const panel       = document.getElementById('cal-panel');
-    const loading     = document.getElementById('cal-loading');
-    const errorEl     = document.getElementById('cal-error');
-    const emptyEl     = document.getElementById('cal-empty');
-    const rangeLabel  = document.getElementById('cal-range-label');
-    const conflictBanner = document.getElementById('conflict-banner');
-    const conflictMsg = document.getElementById('conflict-msg');
-    const modal       = document.getElementById('new-appt-modal');
-    const modalError  = document.getElementById('modal-error');
+  <section class="calendar-surface"><div id="range-label" style="font-weight:800;margin-bottom:.8rem"></div><div id="calendar-view"></div></section>
 
-    // ── Week helpers ────────────────────────────────────────────────
-    function weekStartFor(offset) {
-      const d = new Date();
-      // Saturday = day 6 in JS (0=Sun…6=Sat)
-      const day = d.getDay(); // 0=Sun
-      const diffToSat = (day === 6) ? 0 : (6 - day); // days until Saturday
-      d.setDate(d.getDate() + diffToSat + offset * 7);
-      d.setHours(0,0,0,0);
-      return d;
-    }
+  <section class="card-lite" style="margin-top:1rem">
+    <div class="panel-header"><div><h3>رزروهای وب‌سایت و پذیرش</h3><p>نام ثبت‌کننده/کد کارمند، پرداخت، تأیید، Google Calendar و Sheet</p></div><button class="btn btn-secondary" id="refresh-bookings">تازه‌سازی</button></div>
+    <div class="table-scroll"><table class="mini-table"><thead><tr><th>بیمار</th><th>زمان</th><th>ثبت‌کننده</th><th>منبع</th><th>پرداخت</th><th>تأیید</th><th>Calendar/Sheet</th><th>عملیات</th></tr></thead><tbody id="booking-rows"></tbody></table></div>
+  </section>
+</main></div>
 
-    function isoDate(d) {
-      return d.toISOString().slice(0,10);
-    }
+<div class="modal-mask" id="booking-modal"><div class="modal-box"><div class="panel-header"><h3>ثبت نوبت رایگان توسط کارکنان</h3><button class="btn btn-secondary" type="button" id="close-modal">بستن</button></div>
+  <p class="notice">این مسیر هزینه‌ای از بیمار دریافت نمی‌کند و نام و کد کارمند ثبت‌کننده در CRM و Google Sheet ذخیره می‌شود.</p>
+  <form id="manual-booking-form" class="form-grid">
+    <div class="form-field"><label>نام و نام خانوادگی بیمار</label><input name="full_name" required maxlength="200"></div>
+    <div class="form-field"><label>شماره همراه</label><input name="mobile" required inputmode="tel" placeholder="09xxxxxxxxx"></div>
+    <div class="form-field full"><label>علت مراجعه</label><input name="visit_reason" maxlength="255"></div>
+    <div class="form-field full"><label>زمان آزاد</label><div id="manual-slots" class="slot-list">در حال بارگذاری…</div></div>
+    <button class="btn btn-primary full" type="submit">ثبت نوبت رایگان و قطعی</button>
+  </form><p id="manual-state"></p>
+</div></div>
 
-    function toPersianDigits(n) {
-      return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-    }
-
-    // ── Render ─────────────────────────────────────────────────────
-    async function load() {
-      const start = weekStartFor(weekOffset);
-      // Week: Sat → Thu (6 days)
-      const end = new Date(start);
-      end.setDate(end.getDate() + 6);
-      end.setHours(23,59,59);
-
-      const fromStr = `${isoDate(start)} 00:00:00`;
-      const toStr   = `${isoDate(end)} 23:59:59`;
-
-      // Update range label
-      const startDay = toPersianDigits(start.getDate());
-      const endDay   = toPersianDigits(end.getDate());
-      rangeLabel.textContent = `هفته ${startDay} — ${endDay}`;
-
-      loading.hidden = false;
-      panel.hidden = true;
-      errorEl.hidden = true;
-      emptyEl.hidden = true;
-      conflictBanner.hidden = true;
-
-      let events = [];
-      try {
-        const res = await Staff.listAppointments({ from: fromStr, to: toStr });
-        events = res.data?.events ?? [];
-      } catch (err) {
-        if (redirectOn401(err, '../auth/login.html', 'staff')) return;
-        loading.hidden = true;
-        errorEl.hidden = false;
-        errorEl.textContent = err.message || 'خطا در بارگذاری تقویم';
-        return;
-      }
-
-      loading.hidden = true;
-
-      if (events.length === 0) {
-        emptyEl.hidden = false;
-        panel.hidden = false;
-        renderGrid(start, []);
-        return;
-      }
-
-      panel.hidden = false;
-      renderGrid(start, events);
-
-      // Conflict detection — same provider, overlapping times
-      const byProvider = {};
-      events.forEach(e => {
-        const pid = e.provider_id;
-        if (!byProvider[pid]) byProvider[pid] = [];
-        byProvider[pid].push(e);
-      });
-      let hasConflict = false;
-      Object.values(byProvider).forEach(group => {
-        group.sort((a,b) => new Date(a.start) - new Date(b.start));
-        for (let i = 0; i < group.length - 1; i++) {
-          const aEnd = new Date(group[i].start).getTime() + group[i].duration_minutes * 60000;
-          const bStart = new Date(group[i+1].start).getTime();
-          if (aEnd > bStart) { hasConflict = true; break; }
-        }
-      });
-      if (hasConflict) {
-        conflictMsg.textContent = 'تداخل نوبت شناسایی شد — برخی نوبت‌های این هفته همزمان هستند.';
-        conflictBanner.hidden = false;
-      }
-    }
-
-    function renderGrid(weekStart, events) {
-      // Build day columns: Sat+0 … Sat+5 (Sat–Thu)
-      const days = Array.from({length: 6}, (_, i) => {
-        const d = new Date(weekStart);
-        d.setDate(d.getDate() + i);
-        return d;
-      });
-
-      const today = isoDate(new Date());
-
-      // Map events by dayDate → hourSlot
-      const slotMap = {};
-      events.forEach(e => {
-        const d = new Date(e.start);
-        const key = `${isoDate(d)}:${d.getHours()}`;
-        if (!slotMap[key]) slotMap[key] = [];
-        slotMap[key].push(e);
-      });
-
-      let html = '';
-      // Header row: empty + 6 day headers
-      html += '<div class="head" role="columnheader"></div>';
-      days.forEach((d, i) => {
-        const isToday = isoDate(d) === today;
-        html += `<div class="head${isToday ? ' today' : ''}" role="columnheader">${escHtml(DAYS_FA[i])}<small>${toPersianDigits(d.getDate())}</small></div>`;
-      });
-
-      // Hour rows
-      HOURS.forEach(hr => {
-        html += `<div class="hour" role="rowheader">${toPersianDigits(hr)}</div>`;
-        days.forEach(d => {
-          const key = `${isoDate(d)}:${hr}`;
-          const slot = slotMap[key] || [];
-          let cellHtml = '';
-          slot.forEach(e => {
-            const badge = escHtml(e.badge || 'success');
-            const name = escHtml(e.patient_name || '');
-            const reason = escHtml(e.reason || '');
-            cellHtml += `<div class="appt-block ${badge}" role="button" tabindex="0"
-              data-id="${e.id}" aria-label="${name} — ${reason}">${name}${reason ? ` — ${reason}` : ''}</div>`;
-          });
-          html += `<div role="gridcell">${cellHtml}</div>`;
-        });
-      });
-
-      grid.innerHTML = html;
-
-      // Status-change on click
-      grid.querySelectorAll('.appt-block').forEach(el => {
-        el.addEventListener('click', () => openStatusModal(el.dataset.id));
-      });
-    }
-
-    async function openStatusModal(id) {
-      const status = window.prompt('وضعیت جدید (scheduled / confirmed / cancelled / completed):');
-      if (!status) return;
-      try {
-        await Staff.setAppointmentStatus(Number(id), status);
-        await load();
-      } catch (err) {
-        alert(err.message || 'خطا در تغییر وضعیت');
-      }
-    }
-
-    // ── View switch ─────────────────────────────────────────────────
-    document.querySelectorAll('.view-switch button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.view-switch button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        // Only week view fully rendered; others fall back gracefully
-        if (btn.dataset.view !== 'week') {
-          panel.hidden = false;
-          emptyEl.hidden = false;
-          emptyEl.querySelector('p').textContent = `نمای "${btn.textContent.trim()}" در حال توسعه است — هفتگی فعال.`;
-          btn.closest('.view-switch').querySelector('[data-view="week"]').classList.add('active');
-          btn.classList.remove('active');
-        }
-      });
-    });
-
-    document.getElementById('prev-btn').addEventListener('click', () => { weekOffset--; load(); });
-    document.getElementById('next-btn').addEventListener('click', () => { weekOffset++; load(); });
-
-    document.getElementById('conflict-dismiss').addEventListener('click', () => { conflictBanner.hidden = true; });
-
-    // ── New appointment modal ────────────────────────────────────────
-    document.getElementById('new-appt-btn').addEventListener('click', () => {
-      modalError.hidden = true;
-      modal.classList.add('open');
-    });
-    function closeModal() { modal.classList.remove('open'); }
-    document.getElementById('modal-close').addEventListener('click', closeModal);
-    document.getElementById('modal-cancel').addEventListener('click', closeModal);
-    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-
-    document.getElementById('modal-save').addEventListener('click', async () => {
-      const btn = document.getElementById('modal-save');
-      const saveText = btn.querySelector('.btn-submit-text');
-      const saveLoading = btn.querySelector('.btn-submit-loading');
-
-      const patientId = Number(document.getElementById('appt-patient-id').value);
-      const providerId = Number(document.getElementById('appt-provider-id').value);
-      const scheduledAt = document.getElementById('appt-at').value;
-      const duration = Number(document.getElementById('appt-duration').value) || 20;
-      const room = document.getElementById('appt-room').value.trim();
-      const reason = document.getElementById('appt-reason').value.trim();
-
-      if (!patientId || !providerId || !scheduledAt) {
-        modalError.textContent = 'فیلدهای الزامی را تکمیل کنید.';
-        modalError.hidden = false;
-        return;
-      }
-
-      btn.disabled = true;
-      saveText.hidden = true;
-      saveLoading.hidden = false;
-      modalError.hidden = true;
-
-      try {
-        await Staff.createAppointment({ patient_id: patientId, provider_id: providerId,
-          scheduled_at: scheduledAt.replace('T',' ') + ':00', duration_minutes: duration,
-          room: room || undefined, visit_reason: reason || undefined });
-        closeModal();
-        await load();
-      } catch (err) {
-        if (err.httpStatus === 409) {
-          modalError.textContent = 'تداخل نوبت — این بازه زمانی اشغال است.';
-        } else {
-          modalError.textContent = err.message || 'خطا در ثبت نوبت';
-        }
-        modalError.hidden = false;
-      } finally {
-        btn.disabled = false;
-        saveText.hidden = false;
-        saveLoading.hidden = true;
-      }
-    });
-
-    load();
-  </script>
-</body>
-</html>
+<script src="../../assets/js/app.js"></script><script src="../../assets/js/states.js"></script><script src="../../assets/js/chrome.js"></script>
+<script type="module">
+import {getToken, requireAuth, redirectOn401, escHtml, showToast} from '../../shared/api.js';
+if(!requireAuth('../auth/login.html','staff')) throw new Error('redirecting');
+const API='https://dashboard.drbastaninejad.com/api/v1';
+let me=null, view='week', cursor=new Date(), events=[], availability=[], selectedManual=null;
+const token=()=>getToken('staff');
+async function api(path,opt={}){const r=await fetch(API+path,{...opt,headers:{'Accept':'application/json','Content-Type':'application/json','Authorization':'Bearer '+token(),...(opt.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok||d.ok===false){const e=new Error(d.errors?.[0]?.message||'خطای سرور');e.httpStatus=r.status;throw e;}return d.data??d;}
+const isoDate=d=>d.toISOString().slice(0,10);const pad=n=>String(n).padStart(2,'0');
+function tehranDateLabel(v){try{return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:'Asia/Tehran',weekday:'long',year:'numeric',month:'long',day:'numeric'}).format(v)}catch(_){return isoDate(v)}}
+function dt(s){return new Date(String(s).replace(' ','T')+'Z')}
+function faTime(d){return new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit'}).format(d)}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function range(){const d=new Date(cursor);if(view==='day')return[isoDate(d),isoDate(d)];if(view==='week'){const x=new Date(d);const day=(x.getDay()+1)%7;x.setDate(x.getDate()-day);return[isoDate(x),isoDate(addDays(x,6))];}const first=new Date(d.getFullYear(),d.getMonth(),1),last=new Date(d.getFullYear(),d.getMonth()+1,0);return[isoDate(first),isoDate(last)]}
+function eventDay(e){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).format(dt(e.start))}
+function eventHtml(e){return '<span class="event-chip"><b>'+faTime(dt(e.start))+'</b> '+escHtml(e.patient_name||'')+'<br>'+escHtml(e.reason||'')+'</span>'}
+function renderCalendar(){const [from,to]=range();document.getElementById('range-label').textContent=(view==='day'?tehranDateLabel(cursor):from+' — '+to);const host=document.getElementById('calendar-view');
+ if(view==='day'){const list=events.filter(e=>eventDay(e)===from);host.innerHTML=list.length?list.map(e=>'<div class="agenda-row"><b>'+faTime(dt(e.start))+'</b><div>'+escHtml(e.patient_name)+'<br><small>'+escHtml(e.reason||'')+'</small></div><span class="status-pill '+escHtml(e.status)+'">'+escHtml(e.status)+'</span></div>').join(''):'<p>نوبتی در این روز ثبت نشده است.</p>';return;}
+ if(view==='list'){host.innerHTML=events.length?events.sort((a,b)=>dt(a.start)-dt(b.start)).map(e=>'<div class="agenda-row"><b>'+tehranDateLabel(dt(e.start))+' '+faTime(dt(e.start))+'</b><div>'+escHtml(e.patient_name)+'<br><small>'+escHtml(e.reason||'')+'</small></div><span class="status-pill '+escHtml(e.status)+'">'+escHtml(e.status)+'</span></div>').join(''):'<p>نوبتی در این بازه نیست.</p>';return;}
+ if(view==='week'){let start=new Date(from+'T12:00:00');let html='<div class="week-grid">';for(let i=0;i<7;i++){let d=addDays(start,i),key=isoDate(d),list=events.filter(e=>eventDay(e)===key);html+='<div class="week-day"><h4>'+tehranDateLabel(d)+'</h4>'+list.map(eventHtml).join('')+'</div>';}host.innerHTML=html+'</div>';return;}
+ let first=new Date(from+'T12:00:00'),days=new Date(first.getFullYear(),first.getMonth()+1,0).getDate(),html='<div class="month-grid">';for(let i=1;i<=days;i++){let d=new Date(first.getFullYear(),first.getMonth(),i),key=isoDate(d),list=events.filter(e=>eventDay(e)===key);html+='<div class="month-cell"><div class="day-number">'+new Intl.NumberFormat('fa-IR').format(i)+'</div>'+list.slice(0,3).map(eventHtml).join('')+(list.length>3?'<small>+'+(list.length-3)+'</small>':'')+'</div>';}host.innerHTML=html+'</div>';
+}
+async function loadCalendar(){const [from,to]=range();try{const d=await api('/appointments?from='+encodeURIComponent(from+' 00:00:00')+'&to='+encodeURIComponent(to+' 23:59:59'));events=d.events||[];renderCalendar();}catch(e){if(redirectOn401(e,'../auth/login.html','staff'))return;document.getElementById('calendar-view').innerHTML='<p class="error-text">'+escHtml(e.message)+'</p>';}}
+async function loadAvailability(){try{const d=await fetch(API+'/appointment-bookings/availability',{cache:'no-store'}).then(r=>r.json());availability=(d.data?.days||[]).filter(x=>x.status==='open'&&x.slots?.length);renderManualSlots();}catch(_){availability=[];renderManualSlots();}}
+function renderManualSlots(){const h=document.getElementById('manual-slots');if(!availability.length){h.innerHTML='<span>روز و ساعت آزادی تعریف نشده است.</span>';return;}h.innerHTML=availability.map(day=>day.slots.map(s=>'<button type="button" class="slot-btn" data-day="'+day.id+'" data-start="'+s.start_at+'">'+tehranDateLabel(new Date(day.date+'T12:00:00'))+' — '+s.local_time+'</button>').join('')).join('');h.querySelectorAll('.slot-btn').forEach(b=>b.onclick=()=>{h.querySelectorAll('.slot-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selectedManual={open_day_id:Number(b.dataset.day),start_at:b.dataset.start};});}
+async function loadOpenDays(){try{const rows=await api('/admin/appointment-open-days');document.getElementById('open-days-list').innerHTML=rows.length?rows.map(x=>'<div class="event-chip">'+escHtml(x.open_date)+' | '+escHtml((x.opens_at||'').slice(0,5))+'–'+escHtml((x.closes_at||'').slice(0,5))+' | ظرفیت '+x.capacity+' | باقی‌مانده '+x.remaining+' | '+escHtml(x.status)+'</div>').join(''):'<p>هنوز روز کاری برای رزرو آنلاین تعریف نشده است.</p>';}catch(e){document.getElementById('open-days-card').style.display='none';}}
+async function loadFee(){try{const d=await api('/admin/appointment-fee');document.querySelector('#fee-form [name=amount_tomans]').value=d.amount_tomans||500000;document.getElementById('fee-state').textContent='درگاه فعال: زرین‌پال';}catch(e){document.getElementById('fee-card').style.display='none';}}
+async function loadBookings(){const body=document.getElementById('booking-rows');body.innerHTML='<tr><td colspan="8">در حال بارگذاری…</td></tr>';try{const rows=await api('/admin/appointment-bookings?limit=100');body.innerHTML=rows.length?rows.map(b=>{const who=b.source==='online'?'WEB / بیمار':[(b.receptionist_code||''),(b.receptionist_name||'')].filter(Boolean).join(' — ');let actions='';if(b.confirmation_status==='paid_pending_staff')actions+='<button class="btn btn-secondary btn-sm" data-confirm="'+b.id+'">تأیید</button>';if(b.staff_followup_required)actions+='<button class="btn btn-secondary btn-sm" data-followup="'+b.id+'">پیگیری انجام شد</button>';return '<tr><td>'+escHtml(b.patient_name)+'<br><small>'+escHtml(b.mobile)+'</small></td><td>'+escHtml(b.requested_start_at)+'</td><td>'+escHtml(who)+'</td><td>'+escHtml(b.source)+'</td><td><span class="status-pill '+escHtml(b.payment_status)+'">'+escHtml(b.payment_status)+'</span><br><small>'+new Intl.NumberFormat('fa-IR').format(Math.round((b.amount_rials||0)/10))+' تومان</small></td><td><span class="status-pill '+escHtml(b.confirmation_status)+'">'+escHtml(b.confirmation_status)+'</span></td><td><small>Calendar: '+escHtml(b.calendar_sync_status||'—')+'<br>Sheet: '+escHtml(b.sheet_sync_status||'—')+'</small></td><td><div class="inline-actions">'+actions+'</div></td></tr>'}).join(''):'<tr><td colspan="8">هنوز رزروی ثبت نشده است.</td></tr>';body.querySelectorAll('[data-confirm]').forEach(x=>x.onclick=async()=>{await api('/admin/appointment-bookings/'+x.dataset.confirm+'/confirm',{method:'POST',body:'{}'});await refreshAll();});body.querySelectorAll('[data-followup]').forEach(x=>x.onclick=async()=>{await api('/admin/appointment-bookings/'+x.dataset.followup+'/followup-complete',{method:'POST',body:'{}'});await loadBookings();});}catch(e){body.innerHTML='<tr><td colspan="8" class="error-text">'+escHtml(e.message)+'</td></tr>';}}
+async function refreshAll(){await Promise.all([loadCalendar(),loadAvailability(),loadOpenDays(),loadFee(),loadBookings()]);}
+async function boot(){me=await api('/auth/me');document.getElementById('staff-identity').textContent=[me.name,me.staff_code,me.role].filter(Boolean).join(' — ');await refreshAll();}
+document.getElementById('view-tabs').onclick=e=>{const b=e.target.closest('[data-view]');if(!b)return;view=b.dataset.view;document.querySelectorAll('#view-tabs button').forEach(x=>x.classList.toggle('active',x===b));loadCalendar();};
+document.getElementById('prev-btn').onclick=()=>{cursor=view==='day'?addDays(cursor,-1):view==='week'?addDays(cursor,-7):new Date(cursor.getFullYear(),cursor.getMonth()-1,1);loadCalendar();};document.getElementById('next-btn').onclick=()=>{cursor=view==='day'?addDays(cursor,1):view==='week'?addDays(cursor,7):new Date(cursor.getFullYear(),cursor.getMonth()+1,1);loadCalendar();};document.getElementById('today-btn').onclick=()=>{cursor=new Date();loadCalendar();};
+document.getElementById('new-booking').onclick=()=>{selectedManual=null;document.getElementById('booking-modal').classList.add('open');loadAvailability();};document.getElementById('close-modal').onclick=()=>document.getElementById('booking-modal').classList.remove('open');
+document.getElementById('open-day-form').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),payload=Object.fromEntries(f.entries());payload.capacity=Number(payload.capacity);payload.slot_duration_minutes=Number(payload.slot_duration_minutes);try{await api('/admin/appointment-open-days',{method:'POST',body:JSON.stringify(payload)});showToast('روز کاری ذخیره شد','success');await refreshAll();}catch(err){showToast(err.message,'error');}};
+document.getElementById('fee-form').onsubmit=async e=>{e.preventDefault();const amount=Number(new FormData(e.target).get('amount_tomans'));try{await api('/admin/appointment-fee',{method:'PATCH',body:JSON.stringify({amount_tomans:amount})});showToast('مبلغ ویزیت به‌روزرسانی شد','success');await loadFee();}catch(err){showToast(err.message,'error');}};
+document.getElementById('manual-booking-form').onsubmit=async e=>{e.preventDefault();if(!selectedManual){document.getElementById('manual-state').textContent='یک زمان آزاد را انتخاب کنید.';return;}const f=new FormData(e.target),payload={full_name:String(f.get('full_name')||'').trim(),mobile:String(f.get('mobile')||'').trim(),visit_reason:String(f.get('visit_reason')||'').trim(),open_day_id:selectedManual.open_day_id,start_at:selectedManual.start_at,payment_mode:'free'};try{const d=await api('/admin/appointment-bookings',{method:'POST',body:JSON.stringify(payload)});document.getElementById('manual-state').textContent='نوبت رایگان و قطعی ثبت شد. کد ثبت‌کننده: '+(me.staff_code||'—');e.target.reset();selectedManual=null;await refreshAll();setTimeout(()=>document.getElementById('booking-modal').classList.remove('open'),900);}catch(err){document.getElementById('manual-state').textContent=err.message;}};
+document.getElementById('refresh-bookings').onclick=loadBookings;
+boot().catch(e=>{if(!redirectOn401(e,'../auth/login.html','staff'))showToast(e.message,'error');});
+</script>
+</body></html>
