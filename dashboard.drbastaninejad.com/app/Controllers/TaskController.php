@@ -22,15 +22,15 @@ final class TaskController extends Controller
         $clinicId   = (int)($req->user['clinic_id'] ?? 1);
         $db = Database::conn();
 
-        $where  = 'clinic_id = :clinic';
+        $where  = 't.clinic_id = :clinic';
         $params = [':clinic' => $clinicId];
 
         if (!empty($req->query['status'])) {
-            $where .= ' AND status = :status';
+            $where .= ' AND t.status = :status';
             $params[':status'] = $req->query['status'];
         }
         if (!empty($req->query['assignee_id'])) {
-            $where .= ' AND assignee_id = :assignee';
+            $where .= ' AND t.assignee_id = :assignee';
             $params[':assignee'] = (int)$req->query['assignee_id'];
         }
 

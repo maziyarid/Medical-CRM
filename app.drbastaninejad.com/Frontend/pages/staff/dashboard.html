@@ -56,7 +56,7 @@
 
       <div class="topbar">
         <div>
-          <h1 id="greeting">سلام دکتر باستانی‌نژاد 👋</h1>
+          <h1 id="greeting">داشبورد کلینیک</h1>
           <p class="subtitle" id="date-sub">در حال بارگذاری…</p>
         </div>
         <div class="topbar-actions">
@@ -66,17 +66,6 @@
                   id="btn-new-appt">+ نوبت جدید</button>
         </div>
       </div>
-
-      <!-- ── Deployment-gate banner ── shown until auth middleware is live ── -->
-      <div class="gate-banner" id="deploy-gate" hidden aria-live="polite">
-        <span aria-hidden="true" style="font-size:1.1rem">⚠️</span>
-        <div>
-          <strong>سرور در حال راه‌اندازی است</strong>
-          داده‌های واقعی پس از اجرای SQL نصب پایگاه‌داده و تنظیم AuthMiddleware در دسترس خواهند بود.
-          این صفحه هیچ داده نمونه یا بیمار ساختگی نمایش نمی‌دهد.
-        </div>
-      </div>
-
       <!-- ── KPI grid ── -->
       <div class="kpi-grid" id="kpis" data-state="loading">
 
@@ -204,6 +193,17 @@
       window.location.replace('../auth/login.html');
     }
 
+    async function loadIdentity() {
+      try {
+        const res = await Staff.me();
+        const user = res?.data || {};
+        const name = String(user.name || '').trim();
+        document.getElementById('greeting').textContent = name ? `سلام ${name} 👋` : 'داشبورد کلینیک';
+      } catch (err) {
+        if (err?.httpStatus === 401) window.location.replace('../auth/login.html');
+      }
+    }
+
     // ── Nav buttons ─────────────────────────────────────────────────────────
     document.getElementById('btn-new-intake')
       .addEventListener('click', () => { location.href = '../intake/intake.html'; });
@@ -237,12 +237,6 @@
 
     function toFa(n) {
       return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-    }
-
-    function isDeploymentGate(err) {
-      // 401 is NOT a deployment gate — it means the session expired and the user
-      // must be redirected to login. Only 404/503 indicate the endpoint is not yet live.
-      return err && (err.httpStatus === 404 || err.httpStatus === 503);
     }
 
     // Network-error family produced by api.js classifyNetworkError():
@@ -291,12 +285,6 @@
       } catch (err) {
         if (err.httpStatus === 401) {
           window.location.replace('../auth/login.html');
-        } else if (isDeploymentGate(err)) {
-          document.getElementById('deploy-gate').hidden = false;
-          ['kpi-today', 'kpi-pending', 'kpi-revenue', 'kpi-tasks'].forEach(id => {
-            document.getElementById(id).textContent = '—';
-          });
-          MAZCRM.states.set(kpisHost, 'ready');
         } else {
           document.getElementById('kpi-error-msg').textContent =
             isNetworkError(err) ? err.message : 'خطای سرور — لطفاً دوباره تلاش کنید.';
@@ -346,13 +334,6 @@
       } catch (err) {
         if (err.httpStatus === 401) {
           window.location.replace('../auth/login.html');
-        } else if (isDeploymentGate(err)) {
-          document.getElementById('today-host').innerHTML =
-            '<div class="state-panel state-empty" role="status">' +
-              '<div class="state-icon" aria-hidden="true">⏳</div>' +
-              '<h3>در انتظار استقرار بک‌اند</h3>' +
-              '<p>پس از اجرای مهاجرت‌ها، برنامه امروز اینجا نمایش داده می‌شود.</p>' +
-            '</div>';
         } else {
           document.getElementById('appt-error-msg').textContent =
             isNetworkError(err) ? err.message : 'خطا در بارگذاری نوبت‌ها.';
@@ -413,6 +394,7 @@
     }
 
     // Bootstrap
+    loadIdentity();
     loadDashboard();
     loadAppointments();
     loadIntakeQueue();

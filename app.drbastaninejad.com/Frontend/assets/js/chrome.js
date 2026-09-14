@@ -116,14 +116,29 @@
       '</nav>';
   }
 
-  function renderFooter() {
-    var y = new Date().getFullYear();
-    return '' +
-      '<footer class="brand-footer">' +
-        '<div class="maz-sig">M<span class="z">Λ</span>Z <span style="opacity:.5">//</span> ID</div>' +
-        '<div>ساخته شده توسط <a href="https://maziyarid.com" target="_blank" rel="noopener">Maziyar</a> — © ' + y + ' دکتر شاهین باستانی‌نژاد. تمامی حقوق محفوظ است.</div>' +
-        '<div style="margin-top:4px">MΛZ Medical CRM · v1.0.0-mvp</div>' +
-      '</footer>';
+  function roleLabel(role) {
+    return ({super_admin:'مدیر کل',admin:'مدیر',doctor:'پزشک',receptionist:'منشی',nurse:'پرستار',patient:'بیمار'})[role] || role || 'کارمند';
+  }
+
+  function directToken(scope) {
+    try { return sessionStorage.getItem(scope === 'patient' ? 'mz_patient_auth_token' : 'mz_staff_auth_token'); } catch (e) { return null; }
+  }
+
+  function hydrateIdentity(kind) {
+    var scope = kind === 'patient' ? 'patient' : 'staff';
+    var api = sessionApi();
+    var token = (api && api.token(scope)) || directToken(scope);
+    if (!token) return;
+    fetch('https://dashboard.drbastaninejad.com/api/v1/auth/me', {headers: {'Authorization':'Bearer ' + token, 'Accept':'application/json'}})
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (res) {
+        var user = res && res.ok !== false ? res.data : null; if (!user) return;
+        var who=document.querySelector('.sidebar-user .who'), avatar=document.querySelector('.sidebar-user .avatar-md');
+        var name=user.name || 'حساب کاربری', role=roleLabel(user.role);
+        if(who) who.innerHTML=escapeHtml(name)+'<small>'+escapeHtml(role)+'</small>';
+        if(avatar) avatar.textContent=name.split(' ').filter(Boolean).map(function(w){return w.charAt(0)}).slice(0,2).join('');
+        try{document.dispatchEvent(new CustomEvent('mazcrm:identity-loaded',{detail:user}));}catch(e){}
+      }).catch(function(){});
   }
 
   function mount() {
@@ -158,10 +173,7 @@
         });
       }
     }
-    var main = document.querySelector('.main');
-    if (main && !main.querySelector('.brand-footer')) {
-      main.insertAdjacentHTML('beforeend', renderFooter());
-    }
+    hydrateIdentity(kind);
     // Bottom nav for mobile
     if (!document.querySelector('.bottom-nav')) {
       document.body.insertAdjacentHTML('beforeend', renderBottomNav(kind, active));

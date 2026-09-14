@@ -37,8 +37,11 @@ final class AppointmentSchemaBootstrapService
         }
 
         try {
+            $root = dirname(__DIR__, 2);
+            if (!$this->legacyBookingReady($db)) {
+                $this->runSqlFile($db, $root . '/database/migrations/023_booking_verification_and_sheet_status.sql');
+            }
             if (!$this->baseTablesReady($db)) {
-                $root = dirname(__DIR__, 2);
                 foreach ([
                     $root . '/database/migrations/024_appointment_booking_payments_calendar.sql',
                     $root . '/database/migrations/025_grant_booking_permissions.sql',
@@ -68,7 +71,8 @@ final class AppointmentSchemaBootstrapService
 
     private function isReady(PDO $db): bool
     {
-        return $this->baseTablesReady($db)
+        return $this->legacyBookingReady($db)
+            && $this->baseTablesReady($db)
             && $this->columnExists($db, 'appointment_booking_requests', 'sheet_sync_status')
             && $this->columnExists($db, 'appointment_booking_requests', 'sheet_synced_at')
             && $this->columnExists($db, 'appointment_booking_requests', 'sheet_sync_error')
@@ -76,6 +80,22 @@ final class AppointmentSchemaBootstrapService
             && $this->columnExists($db, 'appointment_booking_requests', 'followup_completed_at')
             && $this->columnExists($db, 'appointment_booking_requests', 'followup_completed_by')
             && $this->indexExists($db, 'appointment_booking_requests', 'idx_booking_followup_queue');
+    }
+
+    private function legacyBookingReady(PDO $db): bool
+    {
+        return $this->tableExists($db, 'booking_verifications')
+            && $this->columnExists($db, 'intakes', 'booking_sheet_status')
+            && $this->columnExists($db, 'intakes', 'booking_email_status');
+    }
+
+    private function tableExists(PDO $db, string $table): bool
+    {
+        $stmt = $db->prepare(
+            'SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?'
+        );
+        $stmt->execute([$table]);
+        return (int)$stmt->fetchColumn() === 1;
     }
 
     private function baseTablesReady(PDO $db): bool
