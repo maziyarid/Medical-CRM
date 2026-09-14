@@ -9,7 +9,9 @@ if (PHP_SAPI !== 'cli') {
 
 define('BASE_PATH', dirname(__DIR__));
 
-$envFile = BASE_PATH . '/.env';
+$envFile = is_file('/home/drbastaninejad/.dashboard.env')
+    ? '/home/drbastaninejad/.dashboard.env'
+    : BASE_PATH . '/.env';
 if (is_file($envFile)) {
     foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
         $line = trim($line);
