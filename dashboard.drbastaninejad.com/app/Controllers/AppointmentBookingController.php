@@ -32,20 +32,24 @@ final class AppointmentBookingController extends Controller
             (new AppointmentSchemaBootstrapService())->ensure();
             $days = (new AppointmentSlotAvailabilityService())->availability($clinicId, $from, $to);
             $enabled = array_filter(array_map('trim', explode(',', strtolower((string)($_ENV['BOOKING_PAYMENT_GATEWAYS'] ?? 'zarinpal,vandar')))));
-            $gateways = [];
+            $configuredGateways = [];
             if (in_array('zarinpal', $enabled, true) && trim((string)($_ENV['ZARINPAL_MERCHANT_ID'] ?? '')) !== '') {
-                $gateways[] = 'zarinpal';
+                $configuredGateways[] = 'zarinpal';
             }
             if (in_array('vandar', $enabled, true)
                 && trim((string)($_ENV['VANDAR_API_KEY'] ?? $_ENV['VANDAR_API_TOKEN'] ?? '')) !== '') {
-                $gateways[] = 'vandar';
+                $configuredGateways[] = 'vandar';
             }
+            $depositRials = max(0, (int)($_ENV['BOOKING_APPOINTMENT_DEPOSIT_RIALS'] ?? 0));
+            $paymentReady = $depositRials > 0 && $configuredGateways !== [];
             return $this->success([
                 'days' => $days,
                 'timezone' => 'Asia/Tehran',
                 'payment' => [
-                    'gateways' => $gateways,
-                    'deposit_rials' => max(0, (int)($_ENV['BOOKING_APPOINTMENT_DEPOSIT_RIALS'] ?? 0)),
+                    'ready' => $paymentReady,
+                    'gateways' => $paymentReady ? $configuredGateways : [],
+                    'configured_gateways' => $configuredGateways,
+                    'deposit_rials' => $depositRials,
                 ],
             ]);
         } catch (RuntimeException $e) {
