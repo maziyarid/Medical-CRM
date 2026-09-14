@@ -9,21 +9,21 @@ use RuntimeException;
 
 final class StaffAccountService
 {
-    private const ROLES = ['super_admin', 'doctor', 'receptionist', 'nurse'];
+    private const ROLES = ['super_admin', 'admin', 'doctor', 'receptionist', 'nurse'];
 
     /** @return array<int,array<string,mixed>> */
     public function list(int $clinicId): array
     {
         (new StaffSchemaBootstrapService())->ensure();
         $stmt = Database::conn()->prepare(
-            'SELECT u.id,u.uuid,u.full_name,u.mobile,u.email,u.is_active,u.invited_at,u.activated_at,u.last_login_at,u.created_at,
+            'SELECT u.id,u.uuid,u.staff_code,u.full_name,u.mobile,u.email,u.is_active,u.invited_at,u.activated_at,u.last_login_at,u.created_at,
                     (u.password_hash IS NOT NULL AND u.password_hash <> "") AS has_password,
                     GROUP_CONCAT(r.name ORDER BY r.id SEPARATOR ",") roles
              FROM users u
              LEFT JOIN role_user ru ON ru.user_id=u.id
              LEFT JOIN roles r ON r.id=ru.role_id
              WHERE u.clinic_id=? AND u.deleted_at IS NULL
-             GROUP BY u.id,u.uuid,u.full_name,u.mobile,u.email,u.is_active,u.invited_at,u.activated_at,u.last_login_at,u.created_at,u.password_hash
+             GROUP BY u.id,u.uuid,u.staff_code,u.full_name,u.mobile,u.email,u.is_active,u.invited_at,u.activated_at,u.last_login_at,u.created_at,u.password_hash
              ORDER BY u.created_at DESC'
         );
         $stmt->execute([$clinicId]);
@@ -68,6 +68,8 @@ final class StaffAccountService
                  VALUES (?,?,?,?,NULLIF(?,""),NULL,?,UTC_TIMESTAMP(),1,UTC_TIMESTAMP(),UTC_TIMESTAMP())'
             )->execute([$uuid, $clinicId, $name, $mobile, $email, $invitedBy]);
             $id = (int)$db->lastInsertId();
+            $staffCode = $this->staffCode($role, $id);
+            $db->prepare('UPDATE users SET staff_code=? WHERE id=?')->execute([$staffCode, $id]);
             $db->prepare('INSERT INTO role_user (user_id,role_id,granted_at) VALUES (?,?,UTC_TIMESTAMP())')->execute([$id, $roleId]);
             $db->commit();
         } catch (\Throwable $e) {
@@ -75,7 +77,7 @@ final class StaffAccountService
             throw $e;
         }
         $notification = $this->notify($id, false);
-        return ['id'=>$id,'uuid'=>$uuid,'full_name'=>$name,'mobile'=>$mobile,'email'=>$email ?: null,'role'=>$role,'activation_status'=>'invited','notification'=>$notification];
+        return ['id'=>$id,'uuid'=>$uuid,'staff_code'=>$staffCode,'full_name'=>$name,'mobile'=>$mobile,'email'=>$email ?: null,'role'=>$role,'activation_status'=>'invited','notification'=>$notification];
     }
 
     /** @return array<string,mixed> */
@@ -118,13 +120,17 @@ final class StaffAccountService
                 $db->prepare('DELETE FROM role_user WHERE user_id=?')->execute([$userId]);
                 $db->prepare('INSERT INTO role_user (user_id,role_id,granted_at) VALUES (?,?,UTC_TIMESTAMP())')->execute([$userId, $rid]);
             }
+            // staff_code is deliberately immutable: audit records keep the same identity even after a role change.
+            if (empty($user['staff_code'])) {
+                $db->prepare('UPDATE users SET staff_code=? WHERE id=?')->execute([$this->staffCode($role, $userId), $userId]);
+            }
             if (!$active) (new OtpService())->revokeAllSessions($userId, 'staff');
             $db->commit();
         } catch (\Throwable $e) {
             if ($db->inTransaction()) $db->rollBack();
             throw $e;
         }
-        return ['id'=>$userId,'updated'=>true,'role'=>$role,'is_active'=>$active];
+        return ['id'=>$userId,'updated'=>true,'role'=>$role,'is_active'=>$active,'staff_code'=>(string)($user['staff_code'] ?: $this->staffCode($role,$userId))];
     }
 
     /** @return array<string,mixed> */
@@ -163,6 +169,8 @@ final class StaffAccountService
                  VALUES (?,?,?,?,NULLIF(?,""),UTC_TIMESTAMP(),NULL,1,UTC_TIMESTAMP(),UTC_TIMESTAMP())'
             )->execute([$uuid, $clinicId, $name, $mobile, $email]);
             $id = (int)$db->lastInsertId();
+            $staffCode = $this->staffCode('super_admin', $id);
+            $db->prepare('UPDATE users SET staff_code=? WHERE id=?')->execute([$staffCode, $id]);
             $db->prepare('INSERT INTO role_user (user_id,role_id,granted_at) VALUES (?,?,UTC_TIMESTAMP())')->execute([$id, $rid]);
             $db->commit();
         } catch (\Throwable $e) {
@@ -170,7 +178,7 @@ final class StaffAccountService
             throw $e;
         }
         $notification = $this->notify($id, false);
-        return ['id'=>$id,'uuid'=>$uuid,'role'=>'super_admin','notification'=>$notification];
+        return ['id'=>$id,'uuid'=>$uuid,'staff_code'=>$staffCode,'role'=>'super_admin','notification'=>$notification];
     }
 
     /** @return array{sms:string,email:string} */
@@ -216,5 +224,18 @@ final class StaffAccountService
         $q = $db->prepare("SELECT COUNT(DISTINCT u.id) FROM users u JOIN role_user ru ON ru.user_id=u.id JOIN roles r ON r.id=ru.role_id WHERE u.clinic_id=? AND u.is_active=1 AND u.deleted_at IS NULL AND r.name='super_admin'");
         $q->execute([$clinicId]);
         return (int)$q->fetchColumn();
+    }
+
+    private function staffCode(string $role, int $id): string
+    {
+        $prefix = match ($role) {
+            'super_admin' => 'SUP',
+            'admin' => 'ADM',
+            'receptionist' => 'REC',
+            'doctor' => 'DOC',
+            'nurse' => 'NUR',
+            default => 'STF',
+        };
+        return $prefix . '-' . str_pad((string)$id, 4, '0', STR_PAD_LEFT);
     }
 }
