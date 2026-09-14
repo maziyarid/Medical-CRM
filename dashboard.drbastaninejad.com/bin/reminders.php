@@ -9,8 +9,10 @@ if (PHP_SAPI !== 'cli') {
 
 define('BASE_PATH', dirname(__DIR__));
 
-// Same minimal .env semantics as public/index.php, without booting HTTP routing.
-$envFile = BASE_PATH . '/.env';
+// Same minimal env semantics as public/index.php, without booting HTTP routing.
+$envFile = is_file('/home/drbastaninejad/.dashboard.env')
+    ? '/home/drbastaninejad/.dashboard.env'
+    : BASE_PATH . '/.env';
 if (is_file($envFile)) {
     $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
     foreach ($lines as $line) {
