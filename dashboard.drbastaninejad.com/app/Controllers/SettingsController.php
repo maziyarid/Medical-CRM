@@ -189,6 +189,9 @@ final class SettingsController extends Controller
         $googleCalendar = $has('GOOGLE_CALENDAR_ID') && ($googleBridge
             || ($has('GOOGLE_CALENDAR_CLIENT_ID') && $has('GOOGLE_CALENDAR_CLIENT_SECRET') && $has('GOOGLE_CALENDAR_REFRESH_TOKEN')));
         $bookingEmail = (($_ENV['BOOKING_EMAIL_ENABLED'] ?? '0') === '1') && $has('MAIL_FROM');
+        $zarinpal = $has('ZARINPAL_MERCHANT_ID')
+            && in_array('zarinpal', array_filter(array_map('trim', explode(',', strtolower((string)($_ENV['BOOKING_PAYMENT_GATEWAYS'] ?? ''))))), true);
+        $depositRials = max(0, (int)($_ENV['BOOKING_APPOINTMENT_DEPOSIT_RIALS'] ?? 0));
         $provider = strtolower(trim((string)($_ENV['AI_PROVIDER'] ?? 'auto')));
 
         return [
@@ -201,6 +204,7 @@ final class SettingsController extends Controller
             ['key' => 'booking_sheet', 'label' => 'شیت نوبت‌ها', 'configured' => $bookingSheet, 'detail' => 'ScheduledVisits؛ اتصال مستقیم محلی یا Apps Script'],
             ['key' => 'google_bridge', 'label' => 'پل محلی Google', 'configured' => $googleBridge, 'detail' => 'credential در سرویس محافظت‌شده VPS'],
             ['key' => 'google_calendar', 'label' => 'Google Calendar', 'configured' => $googleCalendar, 'detail' => $has('GOOGLE_CALENDAR_ID') ? 'شناسه تقویم تنظیم شده' : 'تقویم کلینیک هنوز انتخاب نشده'],
+            ['key' => 'zarinpal', 'label' => 'درگاه زرین‌پال', 'configured' => $zarinpal, 'detail' => $zarinpal ? ($depositRials > 0 ? 'درگاه و مبلغ بیعانه آماده پرداخت است' : 'شناسه پذیرنده متصل است؛ مبلغ بیعانه هنوز تنظیم نشده') : 'شناسه پذیرنده تنظیم نشده'],
             ['key' => 'booking_email', 'label' => 'ایمیل ثبت درخواست نوبت', 'configured' => $bookingEmail, 'detail' => 'فقط در صورت تکمیل ایمیل بیمار'],
         ];
     }
