@@ -25,9 +25,7 @@ final class AppointmentSlotAvailabilityService
     public function availability(int $clinicId, string $fromDate, string $toDate): array
     {
         $days = (new AppointmentBookingService())->availability($clinicId, $fromDate, $toDate);
-        if (!$days) {
-            return [];
-        }
+        if (!$days) return [];
 
         $rangeStart = new DateTimeImmutable($fromDate . ' 00:00:00', $this->tehran);
         $rangeEnd = (new DateTimeImmutable($toDate . ' 00:00:00', $this->tehran))->modify('+1 day');
@@ -46,24 +44,17 @@ final class AppointmentSlotAvailabilityService
     /** @param array<int,array{start:int,end:int}> $blocked @return array<int,array<string,mixed>> */
     private function slotsForDay(array $day, array $blocked): array
     {
-        if (($day['status'] ?? '') !== 'open' || (int)($day['remaining'] ?? 0) <= 0) {
-            return [];
-        }
-        if (empty($day['opens_at']) || empty($day['closes_at'])) {
-            return [];
-        }
+        if (($day['status'] ?? '') !== 'open' || (int)($day['remaining'] ?? 0) <= 0) return [];
+        if (empty($day['opens_at']) || empty($day['closes_at'])) return [];
 
         $duration = max(1, (int)$day['slot_duration_minutes']);
         $cursor = new DateTimeImmutable($day['date'] . ' ' . $day['opens_at'], $this->tehran);
         $close = new DateTimeImmutable($day['date'] . ' ' . $day['closes_at'], $this->tehran);
         $step = new DateInterval('PT' . $duration . 'M');
         $slots = [];
-
         while ($cursor < $close) {
             $end = $cursor->add($step);
-            if ($end > $close) {
-                break;
-            }
+            if ($end > $close) break;
             $startTs = $cursor->setTimezone($this->utc)->getTimestamp();
             $endTs = $end->setTimezone($this->utc)->getTimestamp();
             if (!$this->overlaps($startTs, $endTs, $blocked)) {
@@ -85,7 +76,6 @@ final class AppointmentSlotAvailabilityService
     {
         $db = Database::conn();
         $ranges = [];
-
         $appointments = $db->prepare(
             'SELECT scheduled_at, duration_minutes FROM appointments
              WHERE clinic_id = ? AND deleted_at IS NULL AND status IN ("scheduled","confirmed")
@@ -93,9 +83,7 @@ final class AppointmentSlotAvailabilityService
                AND DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?'
         );
         $appointments->execute([$clinicId, $toUtc, $fromUtc]);
-        foreach ($appointments->fetchAll() as $row) {
-            $ranges[] = $this->range((string)$row['scheduled_at'], (int)$row['duration_minutes']);
-        }
+        foreach ($appointments->fetchAll() as $row) $ranges[] = $this->range((string)$row['scheduled_at'], (int)$row['duration_minutes']);
 
         $holds = $db->prepare(
             'SELECT requested_start_at, duration_minutes FROM appointment_booking_requests
@@ -105,35 +93,42 @@ final class AppointmentSlotAvailabilityService
                AND DATE_ADD(requested_start_at, INTERVAL duration_minutes MINUTE) > ?'
         );
         $holds->execute([$clinicId, $toUtc, $fromUtc]);
-        foreach ($holds->fetchAll() as $row) {
-            $ranges[] = $this->range((string)$row['requested_start_at'], (int)$row['duration_minutes']);
-        }
+        foreach ($holds->fetchAll() as $row) $ranges[] = $this->range((string)$row['requested_start_at'], (int)$row['duration_minutes']);
 
+        // Work Calendar is part of availability, not only an output mirror.
+        // External clinic meetings therefore block patient/staff booking slots too.
+        $calendarId = trim((string)($_ENV['GOOGLE_CALENDAR_ID'] ?? ''));
+        if ($calendarId !== '') {
+            try {
+                $google = new GoogleCalendarClient();
+                $from = (new DateTimeImmutable($fromUtc, $this->utc))->format(DateTimeInterface::RFC3339);
+                $to = (new DateTimeImmutable($toUtc, $this->utc))->format(DateTimeInterface::RFC3339);
+                foreach ($google->busyRanges($calendarId, $from, $to) as $busy) {
+                    $start = (new DateTimeImmutable($busy['start']))->getTimestamp();
+                    $end = (new DateTimeImmutable($busy['end']))->getTimestamp();
+                    if ($end > $start) $ranges[] = ['start' => $start, 'end' => $end];
+                }
+            } catch (\Throwable $e) {
+                error_log('[AppointmentSlotAvailabilityService] Calendar availability failed: ' . $e->getMessage());
+                // Fail closed rather than advertise a possibly double-booked time.
+                throw new RuntimeException('calendar availability unavailable');
+            }
+        }
         return $ranges;
     }
 
     /** @return array{start:int,end:int} */
     private function range(string $startUtc, int $duration): array
     {
-        try {
-            $start = new DateTimeImmutable($startUtc, $this->utc);
-        } catch (\Throwable) {
-            throw new RuntimeException('invalid stored appointment time');
-        }
-        return [
-            'start' => $start->getTimestamp(),
-            'end' => $start->modify('+' . max(1, $duration) . ' minutes')->getTimestamp(),
-        ];
+        try { $start = new DateTimeImmutable($startUtc, $this->utc); }
+        catch (\Throwable) { throw new RuntimeException('invalid stored appointment time'); }
+        return ['start'=>$start->getTimestamp(),'end'=>$start->modify('+' . max(1, $duration) . ' minutes')->getTimestamp()];
     }
 
     /** @param array<int,array{start:int,end:int}> $blocked */
     private function overlaps(int $start, int $end, array $blocked): bool
     {
-        foreach ($blocked as $range) {
-            if ($start < $range['end'] && $end > $range['start']) {
-                return true;
-            }
-        }
+        foreach ($blocked as $range) if ($start < $range['end'] && $end > $range['start']) return true;
         return false;
     }
 }
