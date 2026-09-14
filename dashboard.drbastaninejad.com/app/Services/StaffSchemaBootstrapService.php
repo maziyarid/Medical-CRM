@@ -25,7 +25,13 @@ final class StaffSchemaBootstrapService
         }
         try {
             $root = dirname(__DIR__, 2);
-            $this->runSqlFile($db, $root . '/database/migrations/029_staff_onboarding_notifications.sql');
+            foreach ([
+                '029_staff_onboarding_notifications.sql',
+                '030_operational_admin_rbac.sql',
+                '031_staff_codes.sql',
+            ] as $migration) {
+                $this->runSqlFile($db, $root . '/database/migrations/' . $migration);
+            }
             $this->ensureInviteForeignKey($db);
             if (!$this->isReady($db)) {
                 throw new RuntimeException('staff schema bootstrap incomplete');
@@ -39,7 +45,7 @@ final class StaffSchemaBootstrapService
     private function isReady(PDO $db): bool
     {
         foreach ([
-            ['users','invited_by'],['users','invited_at'],['users','activated_at'],['users','last_login_at'],
+            ['users','invited_by'],['users','invited_at'],['users','activated_at'],['users','last_login_at'],['users','staff_code'],
             ['patients','registration_sms_status'],['patients','registration_email_status'],['patients','registration_notified_at'],
         ] as [$table,$column]) {
             if (!$this->columnExists($db,$table,$column)) return false;
@@ -47,8 +53,13 @@ final class StaffSchemaBootstrapService
         $q=$db->prepare('SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?');
         $q->execute(['staff_login_attempts']);
         if ((int)$q->fetchColumn() !== 1) return false;
-        $q=$db->prepare('SELECT COUNT(*) FROM permissions WHERE name=?');
-        $q->execute(['staff.manage']);
+        foreach (['staff.manage','booking.fee.manage'] as $permission) {
+            $q=$db->prepare('SELECT COUNT(*) FROM permissions WHERE name=?');
+            $q->execute([$permission]);
+            if ((int)$q->fetchColumn() !== 1) return false;
+        }
+        $q=$db->prepare('SELECT COUNT(*) FROM roles WHERE name=?');
+        $q->execute(['admin']);
         return (int)$q->fetchColumn() === 1;
     }
 
