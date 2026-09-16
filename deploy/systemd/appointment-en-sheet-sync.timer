@@ -1,0 +1,12 @@
+[Unit]
+Description=Run English appointment sheet sync every minute
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=1min
+AccuracySec=10s
+Persistent=true
+Unit=appointment-en-sheet-sync.service
+
+[Install]
+WantedBy=timers.target

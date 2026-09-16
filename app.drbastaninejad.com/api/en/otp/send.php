@@ -1,0 +1,3 @@
+<?php
+declare(strict_types=1);require dirname(__DIR__).'/_bootstrap.php';
+try{$d=request_json(50000);$country=App\InternationalSecurity::country((string)($d['country']??''));$p=App\InternationalSecurity::phone((string)($d['phone']??''),$country);$local=App\InternationalSecurity::iranLocalMobile($p);if($local===null)throw new RuntimeException('SMS verification is not available for this international number. Use device verification instead.');$r=(new App\OtpService())->send($local,client_ip());$r['message']='Verification code sent.';json_response($r);}catch(Throwable $e){app_log('otp_send_en_error',['error'=>$e->getMessage()]);json_response(['success'=>false,'message'=>$e->getMessage()],422);}

@@ -1,0 +1,12 @@
+[Unit]
+Description=Sync English appointment intake to SmartFormat
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/srv/maziyar-wp-mcp
+Environment=GOOGLE_APPLICATION_CREDENTIALS=/srv/maziyar-gsc-mcp/credentials/service-account.json
+ExecStart=/srv/maziyar-wp-mcp/.venv/bin/python /srv/maziyar-wp-mcp/deploy/appointment_en_sheet_worker.py
+Nice=10

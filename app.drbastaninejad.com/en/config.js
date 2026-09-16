@@ -1,0 +1,11 @@
+window.TAJ_EN_CONFIG=Object.freeze({
+  HEALTH_URL:'/api/en/health.php',
+  OTP_SEND_URL:'/api/en/otp/send.php',
+  OTP_VERIFY_URL:'/api/en/otp/verify.php',
+  DEVICE_REGISTER_OPTIONS_URL:'/api/en/device/register-options.php',
+  DEVICE_REGISTER_URL:'/api/en/device/register.php',
+  DEVICE_ASSERT_OPTIONS_URL:'/api/en/device/assert-options.php',
+  DEVICE_ASSERT_URL:'/api/en/device/assert.php',
+  SUBMIT_URL:'/api/en/intake/submit.php',
+  VERIFIED_SESSION_TTL_SECONDS:1800
+});

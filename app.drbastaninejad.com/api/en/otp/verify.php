@@ -1,0 +1,3 @@
+<?php
+declare(strict_types=1);require dirname(__DIR__).'/_bootstrap.php';
+try{$d=request_json(50000);$country=App\InternationalSecurity::country((string)($d['country']??''));$p=App\InternationalSecurity::phone((string)($d['phone']??''),$country);$local=App\InternationalSecurity::iranLocalMobile($p);if($local===null)throw new RuntimeException('This number uses device verification.');$r=(new App\OtpService())->verify($local,(string)($d['token']??''),(string)($d['code']??''));$r['message']='Phone number verified.';json_response($r);}catch(Throwable $e){app_log('otp_verify_en_error',['error'=>$e->getMessage()]);json_response(['success'=>false,'message'=>$e->getMessage()],422);}

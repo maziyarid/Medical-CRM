@@ -4,12 +4,6 @@ const BOOKING_HEADERS = Object.freeze([
   'HomeAd', 'Description', 'IsTransfer', 'drugs', 'difficult', 'morefmob'
 ]);
 
-const ENGLISH_BOOKING_HEADERS = Object.freeze([
-  'FirstName', 'LastName', 'FatherName', 'TavalodDay', 'TavalodMonth', 'TavalodYear',
-  'HomeTel', 'Mobile', 'Mobile2', 'CodeAshnaei', 'CodeBimeh', 'CodeMeli', 'CodeJob',
-  'HomeAd', 'Description', 'IsTransfer', 'drugs', 'difficult', 'morefmob', 'Country'
-]);
-
 const SCHEDULED_VISIT_HEADERS = Object.freeze([
   'VisitUUID', 'BookingID', 'AppointmentID', 'PatientID', 'PatientName', 'Mobile',
   'ScheduledAtTehran', 'DurationMinutes', 'BookingSource', 'RegistrationChannel',
@@ -85,29 +79,21 @@ function englishBookingAppend_(body, props) {
   if (!/^[A-Za-z0-9._:-]{1,64}$/.test(submissionUuid)) {
     return json_({ok: false, error: 'invalid_submission_uuid'});
   }
-
-  const sheet = englishBookingSheet_(props, body.sheet_name);
-  assertHeaders_(sheet, ENGLISH_BOOKING_HEADERS);
-
+  const sheet = bookingSheet_(props);
+  assertHeaders_(sheet, BOOKING_HEADERS);
   const prior = sheet.createDeveloperMetadataFinder()
     .withKey('english_submission_uuid').withValue(submissionUuid).find();
   if (prior.length) {
     const location = prior[0].getLocation().getRange();
-    return json_({
-      ok: true,
-      idempotent: true,
-      row: location ? location.getRow() : null,
-      action: 'english_booking_append'
-    });
+    return json_({ok: true, idempotent: true, row: location ? location.getRow() : null, action: 'english_booking_append'});
   }
-
   const row = body.row || {};
-  const values = ENGLISH_BOOKING_HEADERS.map(function (header) {
+  const values = BOOKING_HEADERS.map(function (header) {
     const value = Object.prototype.hasOwnProperty.call(row, header) ? row[header] : '';
     return safeCell_(value);
   });
   const nextRow = Math.max(2, sheet.getLastRow() + 1);
-  const target = sheet.getRange(nextRow, 1, 1, ENGLISH_BOOKING_HEADERS.length);
+  const target = sheet.getRange(nextRow, 1, 1, BOOKING_HEADERS.length);
   target.setValues([values]);
   target.addDeveloperMetadata('english_submission_uuid', submissionUuid, SpreadsheetApp.DeveloperMetadataVisibility.PROJECT);
   SpreadsheetApp.flush();
@@ -165,14 +151,7 @@ function setupBookingSheet() {
 }
 
 function setupEnglishBookingSheet() {
-  const props = PropertiesService.getScriptProperties();
-  const sheet = englishBookingSheet_(props, null);
-  if (sheet.getLastRow() === 0) {
-    sheet.getRange(1, 1, 1, ENGLISH_BOOKING_HEADERS.length).setValues([ENGLISH_BOOKING_HEADERS]);
-    sheet.setFrozenRows(1);
-  }
-  assertHeaders_(sheet, ENGLISH_BOOKING_HEADERS);
-  return {spreadsheetId: sheet.getParent().getId(), sheetName: sheet.getName()};
+  return setupBookingSheet();
 }
 
 function setupScheduledVisitsSheet() {
@@ -192,19 +171,6 @@ function bookingSheet_(props) {
   if (!spreadsheetId) throw new Error('SPREADSHEET_ID is not configured');
   const sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName(sheetName);
   if (!sheet) throw new Error('Configured sheet was not found');
-  return sheet;
-}
-
-function englishBookingSheet_(props, requestedName) {
-  const spreadsheetId = String(props.getProperty('SPREADSHEET_ID') || '').trim();
-  const configuredName = String(props.getProperty('ENGLISH_SHEET_NAME') || 'Appointments_EN').trim();
-  const requested = String(requestedName || configuredName).trim();
-  if (!spreadsheetId) throw new Error('SPREADSHEET_ID is not configured');
-  if (!configuredName || requested !== configuredName) {
-    throw new Error('English booking sheet name is not permitted');
-  }
-  const sheet = SpreadsheetApp.openById(spreadsheetId).getSheetByName(configuredName);
-  if (!sheet) throw new Error('English booking sheet was not found');
   return sheet;
 }
 
