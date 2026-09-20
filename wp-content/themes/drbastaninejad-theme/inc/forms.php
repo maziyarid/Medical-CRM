@@ -251,12 +251,6 @@ function drb_process_submission( WP_REST_Request $request, $kind ) {
     }
     if ( ! empty( $data['website'] ) ) return new WP_Error( 'spam', drb_form_error_message( 'درخواست نامعتبر است.' ), array( 'status' => 400 ) );
 
-    $ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
-    $rate_key = 'drb_rate_' . md5( $ip . '|' . $kind );
-    $count = (int) get_transient( $rate_key );
-    if ( $count >= 5 ) return new WP_Error( 'rate_limited', drb_form_error_message( 'تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.' ), array( 'status' => 429 ) );
-    set_transient( $rate_key, $count + 1, 10 * MINUTE_IN_SECONDS );
-
     $first_name = sanitize_text_field( $data['firstName'] ?? $data['first_name'] ?? '' );
     $last_name = sanitize_text_field( $data['lastName'] ?? $data['last_name'] ?? '' );
     $name   = sanitize_text_field( $data['name'] ?? $data['fullName'] ?? trim( $first_name . ' ' . $last_name ) );
@@ -310,9 +304,9 @@ function drb_process_submission( WP_REST_Request $request, $kind ) {
             if ( ! drb_is_valid_national_id( $national_id ) ) {
                 return new WP_Error( 'national_id_required', drb_form_error_message( 'کد ملی معتبر نیست.' ), array( 'status' => 422 ) );
             }
-            if ( mb_strlen( $medical ) < 2 || mb_strlen( $medications ) < 2 || mb_strlen( $doctor_request ) < 2 ) {
-                return new WP_Error( 'medical_fields_required', drb_form_error_message( 'تاریخچه پزشکی، داروهای مصرفی و درخواست از دکتر الزامی است؛ اگر موردی ندارید «ندارم» بنویسید.' ), array( 'status' => 422 ) );
-            }
+            // Medical history, medications and a free-text doctor request are
+            // collected later in the clinical intake when needed; they are not
+            // prerequisites for reserving an appointment.
             if ( ! preg_match( '/^[a-f0-9]{64}$/', $otp_token ) ) {
                 return new WP_Error( 'otp_required', drb_form_error_message( 'تأیید شماره همراه الزامی است.' ), array( 'status' => 422 ) );
             }
@@ -324,6 +318,16 @@ function drb_process_submission( WP_REST_Request $request, $kind ) {
         }
         return drb_proxy_appointment_to_dashboard( $data, $name, $mobile, $email, $procedure );
     }
+
+    // Keep contact-form abuse protection isolated per validated mobile number.
+    // Do not key public traffic by REMOTE_ADDR: behind the reverse proxy it is
+    // shared by unrelated patients and can lock the entire clinic booking flow.
+    $rate_key = 'drb_contact_rate_' . hash( 'sha256', $mobile );
+    $count = (int) get_transient( $rate_key );
+    if ( $count >= 5 ) {
+        return new WP_Error( 'rate_limited', drb_form_error_message( 'تعداد درخواست‌ها بیش از حد مجاز است. کمی بعد دوباره تلاش کنید.' ), array( 'status' => 429 ) );
+    }
+    set_transient( $rate_key, $count + 1, 10 * MINUTE_IN_SECONDS );
 
     // General contact messages may remain in WordPress. Clinical booking data may not.
     $allowed = array( 'name', 'fullName', 'phone', 'email', 'subject', 'message' );
