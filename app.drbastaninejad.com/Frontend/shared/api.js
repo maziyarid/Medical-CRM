@@ -510,6 +510,18 @@ export const Staff = {
     return staffRequest('GET', `/patients/${id}`);
   },
 
+  async listBookingBlacklist() {
+    return staffRequest('GET', '/admin/booking-blacklist');
+  },
+
+  async addBookingBlacklist(body) {
+    return staffRequest('POST', '/admin/booking-blacklist', body);
+  },
+
+  async removeBookingBlacklist(id) {
+    return staffRequest('DELETE', `/admin/booking-blacklist/${id}`);
+  },
+
   // ── Appointments ──────────────────────────────────────────────────
 
   /**
