@@ -32,6 +32,14 @@
     }
     .pagination .pg-btn.active { background:var(--evergreen); color:#fff; border-color:var(--evergreen); }
     .pagination .pg-btn:disabled { opacity:.4; cursor:default; }
+    .booking-block-btn {
+      width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center;
+      border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface);
+      cursor:pointer; color:var(--muted); transition:.15s ease;
+    }
+    .booking-block-btn:hover { color:var(--error); border-color:var(--error); }
+    .booking-block-btn.is-blocked { color:var(--error); border-color:var(--error); background:rgba(180,35,24,.06); }
+    .booking-block-btn svg { width:18px; height:18px; }
   </style>
 </head>
 <body data-shell="staff" data-nav="patients">
@@ -80,15 +88,15 @@
               <thead>
                 <tr>
                   <th>بیمار</th><th>شماره همراه</th><th>کد ملی</th>
-                  <th>نوبت‌های آتی</th><th>آخرین مراجعه</th><th>بیمه</th><th></th>
+                  <th>نوبت‌های آتی</th><th>آخرین مراجعه</th><th>بیمه</th><th>رزرو</th><th></th>
                 </tr>
               </thead>
               <tbody>
-                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner"></div></td></tr>
-                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:94%"></div></td></tr>
-                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:88%"></div></td></tr>
-                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:96%"></div></td></tr>
-                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:82%"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="8"><div class="skeleton tr-skeleton-inner"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="8"><div class="skeleton tr-skeleton-inner" style="width:94%"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="8"><div class="skeleton tr-skeleton-inner" style="width:88%"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="8"><div class="skeleton tr-skeleton-inner" style="width:96%"></div></td></tr>
+                <tr class="tr-skeleton"><td colspan="8"><div class="skeleton tr-skeleton-inner" style="width:82%"></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -113,7 +121,7 @@
         <!-- Empty state -->
         <div class="slot-empty">
           <div class="state-panel state-empty" role="status">
-            <div class="state-icon" aria-hidden="true">🌿</div>
+            <div class="state-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg></div>
             <h3>بیماری یافت نشد</h3>
             <p>معیار جست‌وجو را تغییر دهید یا بیمار جدید اضافه کنید.</p>
           </div>
@@ -122,7 +130,7 @@
         <!-- Error state -->
         <div class="slot-error">
           <div class="state-panel state-error" role="alert">
-            <div class="state-icon" aria-hidden="true">⚠️</div>
+            <div class="state-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 9v5"/><path d="M12 17h.01"/></svg></div>
             <h3>بارگذاری لیست بیماران ناموفق بود</h3>
             <p id="patients-error-msg">لطفاً دوباره تلاش کنید.</p>
             <div class="state-actions">
@@ -142,7 +150,7 @@
   <script src="../../assets/js/states.js"></script>
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
-    import { Staff, isAuthenticated } from '../../shared/api.js';
+    import { Staff, isAuthenticated, showToast } from '../../shared/api.js';
 
     // Network-error family from api.js classifyNetworkError().
     function isNetworkError(err) {
@@ -197,7 +205,7 @@
       const tbody = document.getElementById('tbody');
       if (!rows.length) {
         tbody.innerHTML =
-          '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">' +
+          '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)">' +
             'هیچ نتیجه‌ای یافت نشد.' +
           '</td></tr>';
         return;
@@ -212,6 +220,9 @@
         const upcoming   = p.upcoming_count != null ? toFa(p.upcoming_count) : '—';
         // last_visit is UTC datetime — convert to Jalali for display
         const lastVisit  = p.last_visit ? esc(toJalaliDate(p.last_visit)) : '—';
+        const blocked = Boolean(p.booking_blocked);
+        const blockTitle = blocked ? 'حذف از لیست سیاه رزرو' : 'افزودن به لیست سیاه رزرو';
+        const blockIcon = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m8 8 8 8"/></svg>';
         return '<tr>' +
           '<td><div style="display:flex;gap:.6rem;align-items:center;">' +
             '<span class="avatar-md" aria-hidden="true">' + esc(initials) + '</span>' +
@@ -222,6 +233,10 @@
           '<td>' + upcoming + '</td>' +
           '<td>' + lastVisit + '</td>' +
           '<td>' + insurancePill(p.insurance_status) + '</td>' +
+          '<td><button type="button" class="booking-block-btn' + (blocked ? ' is-blocked' : '') +
+            '" data-block-patient="' + encodeURIComponent(p.id) + '" data-blacklist-id="' +
+            (p.booking_blacklist_id || '') + '" aria-label="' + blockTitle + '" title="' + blockTitle + '">' +
+            blockIcon + '</button></td>' +
           '<td><a class="btn btn-ghost btn-sm" href="patient-detail.html?id=' +
             encodeURIComponent(p.id) + '">مشاهده →</a></td>' +
         '</tr>';
@@ -332,6 +347,33 @@
 
     document.getElementById('patients-retry-btn')
       .addEventListener('click', () => loadPatients());
+
+    document.getElementById('tbody').addEventListener('click', async (event) => {
+      const btn = event.target.closest('[data-block-patient]');
+      if (!btn) return;
+      const patientId = Number(btn.dataset.blockPatient);
+      const blacklistId = Number(btn.dataset.blacklistId || 0);
+      const blocked = blacklistId > 0;
+      const question = blocked
+        ? 'این بیمار از لیست سیاه رزرو خارج شود؟'
+        : 'این بیمار به لیست سیاه رزرو اضافه شود؟ پس از آن امکان رزرو آنلاین نخواهد داشت.';
+      if (!window.confirm(question)) return;
+
+      btn.disabled = true;
+      try {
+        if (blocked) {
+          await Staff.removeBookingBlacklist(blacklistId);
+          showToast('بیمار از لیست سیاه رزرو خارج شد.', 'success');
+        } else {
+          await Staff.addBookingBlacklist({ patient_id: patientId });
+          showToast('بیمار به لیست سیاه رزرو اضافه شد.', 'success');
+        }
+        await loadPatients();
+      } catch (err) {
+        btn.disabled = false;
+        showToast(err?.message || 'تغییر وضعیت لیست سیاه انجام نشد.', 'error', 6000);
+      }
+    });
 
     // ── Bootstrap ─────────────────────────────────────────────────────────────
     loadPatients();
