@@ -282,6 +282,9 @@ function drb_process_submission( WP_REST_Request $request, $kind ) {
         return new WP_Error( 'email_required', drb_form_error_message( 'برای رزرو بین‌المللی وارد کردن ایمیل معتبر الزامی است.' ), array( 'status' => 422 ) );
     }
     if ( $email && ! is_email( $email ) ) return new WP_Error( 'invalid_email', drb_form_error_message( 'ایمیل معتبر نیست.' ), array( 'status' => 422 ) );
+    if ( 'contact' === $kind && ! is_email( $email ) ) {
+        return new WP_Error( 'email_required', drb_form_error_message( 'وارد کردن ایمیل معتبر برای ارسال پیام الزامی است.' ), array( 'status' => 422 ) );
+    }
 
     if ( 'appointment' === $kind ) {
         $to_latin = static function( $value ) {
@@ -340,9 +343,49 @@ function drb_process_submission( WP_REST_Request $request, $kind ) {
     update_post_meta( $post_id, '_drb_submission_type', 'contact' );
     update_post_meta( $post_id, '_drb_phone', $mobile );
     if ( $email ) update_post_meta( $post_id, '_drb_email', $email );
+    $crm_sync = drb_proxy_contact_to_dashboard( (int) $post_id, $name, $mobile, $email, $clean );
+    if ( is_wp_error( $crm_sync ) ) {
+        error_log( '[DRB contact] CRM sync failed for submission ' . (int) $post_id . ': ' . $crm_sync->get_error_message() );
+    }
+    // Keep the existing admin email as a safety copy; the CRM is the operational inbox.
     wp_mail( get_option( 'admin_email' ), 'پیام تماس جدید: ' . $name, wp_strip_all_tags( $body ) );
     do_action( 'drb_submission_created', $post_id, 'contact', $clean );
     return new WP_REST_Response( array( 'success' => true, 'message' => drb_form_error_message( 'پیام شما با موفقیت ثبت شد.' ), 'submissionId' => $post_id ), 201 );
+}
+
+
+function drb_proxy_contact_to_dashboard( $post_id, $name, $mobile, $email, array $clean ) {
+    $secret = drb_booking_bridge_secret();
+    if ( '' === $secret ) {
+        return new WP_Error( 'contact_bridge_unconfigured', 'اتصال CRM برای پیام تماس پیکربندی نشده است.' );
+    }
+    $payload = array(
+        'external_key' => 'wp-contact:' . absint( $post_id ),
+        'name'         => sanitize_text_field( $name ),
+        'phone'        => sanitize_text_field( $mobile ),
+        'email'        => sanitize_email( $email ),
+        'subject'      => sanitize_text_field( $clean['subject'] ?? 'پیام از وب‌سایت' ),
+        'message'      => sanitize_textarea_field( $clean['message'] ?? '' ),
+    );
+    $response = wp_remote_post( drb_dashboard_api_base() . '/communications/contact', array(
+        'timeout' => 8,
+        'headers' => array(
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+            'X-WordPress-Bridge-Secret' => $secret,
+        ),
+        'body' => wp_json_encode( $payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ),
+    ) );
+    if ( is_wp_error( $response ) ) return $response;
+    $status = (int) wp_remote_retrieve_response_code( $response );
+    $decoded = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+    if ( $status < 200 || $status >= 300 || ! is_array( $decoded ) || empty( $decoded['ok'] ) ) {
+        $message = is_array( $decoded ) ? (string) ( $decoded['errors'][0]['message'] ?? 'ثبت پیام در CRM انجام نشد.' ) : 'ثبت پیام در CRM انجام نشد.';
+        return new WP_Error( 'contact_bridge_rejected', $message );
+    }
+    $thread_id = absint( $decoded['data']['thread_id'] ?? 0 );
+    if ( $thread_id > 0 ) update_post_meta( $post_id, '_drb_crm_thread_id', $thread_id );
+    return $decoded['data'] ?? array();
 }
 
 function drb_proxy_appointment_to_dashboard( array $data, $name, $mobile, $email, $procedure ) {

@@ -167,7 +167,7 @@
       if(!validNationalId(national)){setInlineStatus(nationalStatus,'کد ملی معتبر نیست.','error');return;}
       setInlineStatus(nationalStatus,'در حال بررسی شرایط رزرو…','');
       nationalEligibilityTimer=setTimeout(function(){
-        v2Post('/eligibility',{nationalId:national}).then(function(res){
+        v2Post('/eligibility',{nationalId:national,mobile:normaliseMobile(mobileInput.value)}).then(function(res){
           var d=(res&&res.data)||{};
           if(d.eligible===false){
             nationalEligible=false;
@@ -203,7 +203,7 @@
       panel.innerHTML='<div class="drb-patient-time-head"><strong>'+faDate(iso)+'</strong><small>'+faNum(day.slots.length)+' زمان آزاد</small></div><div class="drb-min-slot-buttons">'+day.slots.map(function(slot){return '<button type="button" class="drb-min-slot" data-day="'+day.id+'" data-start="'+slot.start_at+'">'+faNum(slot.local_time)+'</button>';}).join('')+'</div>';
       panel.querySelectorAll('.drb-min-slot').forEach(function(btn){
         if(previousStart && btn.dataset.start===previousStart){btn.classList.add('is-selected');selectedSlot={openDayId:Number(btn.dataset.day),startAt:btn.dataset.start};}
-        btn.addEventListener('click',function(){panel.querySelectorAll('.drb-min-slot').forEach(function(x){x.classList.remove('is-selected');});btn.classList.add('is-selected');selectedSlot={openDayId:Number(btn.dataset.day),startAt:btn.dataset.start};selectedDateIso=iso;message('تاریخ و ساعت انتخاب شد.',false);});
+        btn.addEventListener('click',function(){panel.querySelectorAll('.drb-min-slot').forEach(function(x){x.classList.remove('is-selected');});btn.classList.add('is-selected');selectedSlot={openDayId:Number(btn.dataset.day),startAt:btn.dataset.start};selectedDateIso=iso;message('تاریخ و ساعت انتخاب شد.',false);if(typeof window.drbTrack==='function')window.drbTrack('booking_slot_selected',{page_path:location.pathname,form_type:'booking',step:'slot'});});
       });
     }
     function renderPatientCalendar(preserveStart){
@@ -279,22 +279,30 @@
     }
 
     var params=new URLSearchParams(location.search); var pay=params.get('payment');
-    if(pay==='success'){var ref=params.get('ref');message('پرداخت با موفقیت تأیید شد و نوبت شما ثبت گردید.'+(ref?' کد پیگیری: '+ref:''),false);}
-    else if(pay==='failed') message('پرداخت تأیید نشد. در صورت کسر وجه، وضعیت توسط کلینیک قابل بررسی است.',true);
+    if(pay==='success'){var ref=params.get('ref');message('پرداخت با موفقیت تأیید شد و نوبت شما ثبت گردید.'+(ref?' کد پیگیری: '+ref:''),false);if(typeof window.drbTrack==='function')window.drbTrack('booking_payment_result',{page_path:location.pathname,form_type:'booking',payment_status:'success',result:'success'});}
+    else if(pay==='failed'){message('پرداخت تأیید نشد. در صورت کسر وجه، وضعیت توسط کلینیک قابل بررسی است.',true);if(typeof window.drbTrack==='function')window.drbTrack('booking_payment_result',{page_path:location.pathname,form_type:'booking',payment_status:'failed',result:'failed'});}
 
     initBirthSelectors();
     nationalInput.addEventListener('input',checkNationalEligibility);
-    mobileInput.addEventListener('input',resetVerification);
-    form.querySelector('[data-otp-send]').addEventListener('click',function(){var mobile=normaliseMobile(mobileInput.value);if(!/^09\d{9}$/.test(mobile))return message('شماره همراه معتبر وارد کنید.',true);this.disabled=true;message('در حال ارسال کد…',false);var b=this;request(api.otpSend,{mobile:mobile}).then(function(data){codeBox.hidden=false;form.elements.otp.focus();message(data.message||'کد تأیید ارسال شد.',false);}).catch(function(e){message(e.message,true);}).finally(function(){b.disabled=false;});});
-    form.querySelector('[data-otp-verify]').addEventListener('click',function(){var mobile=normaliseMobile(mobileInput.value),otp=digits(form.elements.otp.value).replace(/\D/g,'');if(!/^\d{5}$/.test(otp))return message('کد پنج‌رقمی را وارد کنید.',true);this.disabled=true;var b=this;message('در حال تأیید شماره…',false);request(api.otpVerify,{mobile:mobile,otp:otp}).then(function(data){verificationToken=data.verificationToken||'';verifiedMobile=mobile;if(!verificationToken)throw new Error('توکن تأیید دریافت نشد.');badge.textContent='تأیید شد';badge.className='is-verified';message('شماره همراه تأیید شد.',false);}).catch(function(e){resetVerification();message(e.message,true);}).finally(function(){b.disabled=false;});});
+    mobileInput.addEventListener('input',function(){
+      resetVerification();
+      var national=digits(nationalInput.value).replace(/\D/g,'');
+      if(validNationalId(national))checkNationalEligibility();
+    });
+    form.querySelector('[data-otp-send]').addEventListener('click',function(){var mobile=normaliseMobile(mobileInput.value);if(!/^09\d{9}$/.test(mobile))return message('شماره همراه معتبر وارد کنید.',true);if(typeof window.drbTrack==='function')window.drbTrack('booking_otp_requested',{page_path:location.pathname,form_type:'booking',step:'otp'});this.disabled=true;message('در حال ارسال کد…',false);var b=this;request(api.otpSend,{mobile:mobile}).then(function(data){codeBox.hidden=false;form.elements.otp.focus();message(data.message||'کد تأیید ارسال شد.',false);}).catch(function(e){message(e.message,true);}).finally(function(){b.disabled=false;});});
+    form.querySelector('[data-otp-verify]').addEventListener('click',function(){var mobile=normaliseMobile(mobileInput.value),otp=digits(form.elements.otp.value).replace(/\D/g,'');if(!/^\d{5}$/.test(otp))return message('کد پنج‌رقمی را وارد کنید.',true);this.disabled=true;var b=this;message('در حال تأیید شماره…',false);request(api.otpVerify,{mobile:mobile,otp:otp}).then(function(data){verificationToken=data.verificationToken||'';verifiedMobile=mobile;if(!verificationToken)throw new Error('توکن تأیید دریافت نشد.');badge.textContent='تأیید شد';badge.className='is-verified';return v2Post('/recover',{mobile:mobile,verificationToken:verificationToken}).then(function(res){var d=(res&&res.data)||{};if(d.found){verificationToken='';enterResumeMode(d);message('شماره همراه تأیید شد و درخواست قبلی شما بازیابی گردید.',false);}else message('شماره همراه تأیید شد.',false);});}).catch(function(e){resetVerification();message(e.message,true);}).finally(function(){b.disabled=false;});});
 
     function startPayment(){
+      if(typeof window.drbTrack==='function')window.drbTrack('booking_payment_start',{page_path:location.pathname,form_type:'booking',step:'payment'});
       submit.disabled=true; message('در حال اتصال به زرین‌پال…',false);
       return v2Post('/payment',{sessionToken:patientSessionToken,bookingId:heldBookingId}).then(function(res){var url=res.data&&res.data.redirect_url;if(!url)throw new Error('آدرس درگاه پرداخت دریافت نشد.');location.assign(url);}).catch(function(e){message(e.message+' برای تلاش دوباره همین دکمه را بزنید.',true);submit.disabled=false;throw e;});
     }
 
+    var bookingStarted=false;
+    form.addEventListener('focusin',function(){if(bookingStarted)return;bookingStarted=true;if(typeof window.drbTrack==='function')window.drbTrack('booking_form_start',{page_path:location.pathname,form_type:'booking',step:'start'});});
     form.addEventListener('submit',function(event){
       event.preventDefault();
+      if(typeof window.drbTrack==='function')window.drbTrack('booking_submit_attempt',{page_path:location.pathname,form_type:'booking',step:'submit'});
       if(patientSessionToken&&heldBookingId){startPayment().catch(function(){});return;}
       var mobile=normaliseMobile(mobileInput.value),national=digits(form.elements.nationalId.value).replace(/\D/g,''),birth=birthValue();
       if(!resumeMode){

@@ -34,6 +34,42 @@ final class BookingFinalisationService
         return $rows;
     }
 
+    /**
+     * Resolve the unfinished booking intake that is allowed to create a patient hold.
+     * A caller-supplied id is treated only as a preference and is revalidated.
+     */
+    public function resolveUnfinishedIntake(int $clinicId, int $patientId, int $preferredIntakeId = 0): int
+    {
+        if ($clinicId < 1 || $patientId < 1) throw new RuntimeException('booking intake required');
+        $db = Database::conn();
+
+        if ($preferredIntakeId > 0) {
+            $stmt = $db->prepare(
+                'SELECT id FROM intakes
+                 WHERE id=? AND clinic_id=? AND patient_id=? AND source_type="booking"
+                   AND deleted_at IS NULL AND status<>"rejected"
+                   AND appointment_booking_request_id IS NULL
+                 LIMIT 1'
+            );
+            $stmt->execute([$preferredIntakeId,$clinicId,$patientId]);
+            $id=(int)($stmt->fetchColumn()?:0);
+            if ($id > 0) return $id;
+            throw new RuntimeException('booking intake mismatch');
+        }
+
+        $stmt = $db->prepare(
+            'SELECT id FROM intakes
+             WHERE clinic_id=? AND patient_id=? AND source_type="booking"
+               AND deleted_at IS NULL AND status<>"rejected"
+               AND appointment_booking_request_id IS NULL
+             ORDER BY id DESC LIMIT 1'
+        );
+        $stmt->execute([$clinicId,$patientId]);
+        $id=(int)($stmt->fetchColumn()?:0);
+        if ($id < 1) throw new RuntimeException('booking intake required');
+        return $id;
+    }
+
     /** @param array<int,int|string> $ids @return array<string,mixed> */
     public function notify(int $clinicId, int $staffId, array $ids): array
     {
@@ -72,25 +108,11 @@ final class BookingFinalisationService
         if ((new BookingBlacklistService())->isIntakeBlocked($clinicId,$intakeId,(int)$row['patient_id'])) {
             return ['id'=>$intakeId,'status'=>'skipped'];
         }
-        $raw = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
-        $hash = hash('sha256', $raw);
-        $db->beginTransaction();
-        try {
-            $db->prepare('UPDATE booking_resume_tokens SET used_at = UTC_TIMESTAMP() WHERE intake_id = ? AND used_at IS NULL')->execute([$intakeId]);
-            $db->prepare(
-                'INSERT INTO booking_resume_tokens (clinic_id, intake_id, patient_id, token_hash, created_by, expires_at)
-                 VALUES (?, ?, ?, ?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 72 HOUR))'
-            )->execute([$clinicId, $intakeId, (int)$row['patient_id'], $hash, $staffId]);
-            $db->commit();
-        } catch (\Throwable $e) {
-            if ($db->inTransaction()) $db->rollBack();
-            throw $e;
-        }
-        $url = 'https://drbastaninejad.com/booking/?resume=' . rawurlencode($raw);
+        // No new SMS resume token is created here. Patients return to the booking page manually and, after OTP verification, the latest unfinished request is recovered by mobile number. Existing historical resume tokens remain valid for backward compatibility.
         $name = trim((string)($row['first_name'] ?? ''));
         $message = ($name !== '' ? $name . " عزیز،\n" : '')
             . "درخواست نوبت شما در کلینیک دکتر باستانی‌نژاد ثبت شده اما هنوز نهایی نشده است.\n"
-            . "برای انتخاب تاریخ و ساعت آزاد و نهایی‌سازی نوبت وارد لینک زیر شوید:\n" . $url;
+            . "برای انتخاب تاریخ و ساعت آزاد و تکمیل نوبت، لطفاً به بخش نوبت‌دهی سایت دکتر باستانی‌نژاد مراجعه کنید و با همان شماره همراه ادامه دهید.";
         $sms = (new SmsProviderChain())->sendMessage((string)$row['mobile'], $message);
         $status = !empty($sms['ok']) ? 'sent' : 'failed';
         $db->prepare(
@@ -115,7 +137,7 @@ final class BookingFinalisationService
         try {
             $stmt = $db->prepare(
                 'SELECT t.id token_id, t.intake_id, t.patient_id, t.expires_at, t.used_at,
-                        i.clinic_id, i.first_name, i.last_name, i.mobile
+                        i.clinic_id, i.first_name, i.last_name, i.mobile, i.appointment_booking_request_id
                  FROM booking_resume_tokens t JOIN intakes i ON i.id = t.intake_id
                  WHERE t.token_hash = ? FOR UPDATE'
             );
@@ -125,6 +147,9 @@ final class BookingFinalisationService
                 throw new RuntimeException('resume token expired');
             }
             if ((int)$row['patient_id'] < 1) throw new RuntimeException('patient not found');
+            if ((int)($row['appointment_booking_request_id'] ?? 0) > 0) {
+                throw new RuntimeException('resume token expired');
+            }
             if ((new BookingBlacklistService())->isIntakeBlocked(
                 (int)$row['clinic_id'], (int)$row['intake_id'], (int)$row['patient_id']
             )) throw new RuntimeException('booking blocked');
@@ -149,18 +174,60 @@ final class BookingFinalisationService
 
     public function linkBooking(int $clinicId, int $patientId, int $intakeId, int $bookingId): void
     {
-        if ($intakeId < 1 || $bookingId < 1) return;
-        $stmt = Database::conn()->prepare(
-            'UPDATE intakes SET appointment_booking_request_id = ?, finalization_status = "scheduled", updated_at = UTC_TIMESTAMP()
-             WHERE id = ? AND clinic_id = ? AND patient_id = ? AND source_type = "booking" AND deleted_at IS NULL'
-        );
-        $stmt->execute([$bookingId, $intakeId, $clinicId, $patientId]);
-        if ($stmt->rowCount() < 1) throw new RuntimeException('booking intake mismatch');
+        if ($intakeId < 1 || $bookingId < 1) throw new RuntimeException('booking intake mismatch');
+
         $db = Database::conn();
-        $db->prepare('UPDATE appointment_booking_requests SET intake_id = ? WHERE id = ? AND clinic_id = ? AND patient_id = ?')
-            ->execute([$intakeId, $bookingId, $clinicId, $patientId]);
-        // The completion link becomes single-use once the requested slot is actually held.
-        $db->prepare('UPDATE booking_resume_tokens SET used_at = COALESCE(used_at, UTC_TIMESTAMP()) WHERE intake_id = ? AND clinic_id = ? AND patient_id = ? AND used_at IS NULL')
-            ->execute([$intakeId, $clinicId, $patientId]);
+        $db->beginTransaction();
+        try {
+            $intakeStmt = $db->prepare(
+                'SELECT id,appointment_booking_request_id
+                 FROM intakes
+                 WHERE id=? AND clinic_id=? AND patient_id=? AND source_type="booking"
+                   AND deleted_at IS NULL AND status<>"rejected"
+                 FOR UPDATE'
+            );
+            $intakeStmt->execute([$intakeId,$clinicId,$patientId]);
+            $intake=$intakeStmt->fetch();
+            if (!$intake) throw new RuntimeException('booking intake mismatch');
+
+            $existingBooking=(int)($intake['appointment_booking_request_id']??0);
+            if ($existingBooking > 0 && $existingBooking !== $bookingId) {
+                throw new RuntimeException('booking intake already linked');
+            }
+
+            $bookingStmt=$db->prepare(
+                'SELECT id,intake_id FROM appointment_booking_requests
+                 WHERE id=? AND clinic_id=? AND patient_id=? FOR UPDATE'
+            );
+            $bookingStmt->execute([$bookingId,$clinicId,$patientId]);
+            $booking=$bookingStmt->fetch();
+            if (!$booking) throw new RuntimeException('booking not found');
+
+            $existingIntake=(int)($booking['intake_id']??0);
+            if ($existingIntake > 0 && $existingIntake !== $intakeId) {
+                throw new RuntimeException('booking intake mismatch');
+            }
+
+            $db->prepare(
+                'UPDATE intakes
+                 SET appointment_booking_request_id=?,finalization_status="scheduled",updated_at=UTC_TIMESTAMP()
+                 WHERE id=? AND clinic_id=? AND patient_id=?'
+            )->execute([$bookingId,$intakeId,$clinicId,$patientId]);
+
+            $db->prepare(
+                'UPDATE appointment_booking_requests SET intake_id=? WHERE id=? AND clinic_id=? AND patient_id=?'
+            )->execute([$intakeId,$bookingId,$clinicId,$patientId]);
+
+            $db->prepare(
+                'UPDATE booking_resume_tokens
+                 SET used_at=COALESCE(used_at,UTC_TIMESTAMP())
+                 WHERE intake_id=? AND clinic_id=? AND patient_id=? AND used_at IS NULL'
+            )->execute([$intakeId,$clinicId,$patientId]);
+
+            $db->commit();
+        } catch (\Throwable $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            throw $e;
+        }
     }
 }

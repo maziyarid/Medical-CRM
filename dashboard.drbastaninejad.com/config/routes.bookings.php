@@ -14,6 +14,7 @@ $router->post('/api/v1/bookings', [BookingController::class, 'store']);
 $router->post('/api/v1/bookings/otp/send', [BookingController::class, 'sendOtp']);
 $router->post('/api/v1/bookings/otp/verify', [BookingController::class, 'verifyOtp']);
 $router->post('/api/v1/bookings/session', [BookingSessionController::class, 'create']);
+$router->post('/api/v1/bookings/recover', [BookingSessionController::class, 'recover']);
 $router->post('/api/v1/bookings/resume', [BookingSessionController::class, 'resume']);
 $router->get('/api/v1/bookings/stats', [BookingController::class, 'stats']);
 $router->post('/api/v1/bookings/eligibility', [BookingController::class, 'eligibility']);

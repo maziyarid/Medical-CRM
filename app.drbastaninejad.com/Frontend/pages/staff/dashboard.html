@@ -1,403 +1,275 @@
 <!doctype html>
-<!--
-  MΛZ Medical CRM — Staff Dashboard (Production-wired)
-  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  API:  GET /api/v1/dashboard/overview  ✅ LIVE (dashboard.drbastaninejad.com)
-        Response shape: { metrics[4], timeline[] } — see docs/API_CONTRACT.md §GET /dashboard/overview
-  Envelope: "ok" (not "success") — see shared/api.js Staff namespace
-  Note: Requires Bearer token. The deployment gate
-        (migrations 001-007 not run on live DB) means this page will show
-        the "deployment gate" state until migrations run.
-        The data-state host pattern is used; states.css drives visibility.
--->
 <html dir="rtl" lang="fa-IR">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>داشبورد — MΛZ Medical CRM</title>
-  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
-  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
-  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
-  <link rel="stylesheet" href="../../assets/css/base.css"/>
-  <link rel="stylesheet" href="../../assets/css/states.css"/>
-  <link rel="stylesheet" href="../../assets/css/components.css"/>
-  <style>
-    /* KPI skeleton sizing */
-    .kpi-skeleton { height: 88px; border-radius: var(--radius); }
-    /* Appointment skeleton row */
-    .appt-skeleton { height: 68px; border-radius: var(--radius-md); margin-bottom: .6rem; }
-    /* Deployment-gate notice */
-    .gate-banner {
-      display: flex; align-items: flex-start; gap: .75rem;
-      background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
-      border-radius: var(--radius); padding: 1rem 1.25rem;
-      font-size: .82rem; line-height: 1.7; margin-bottom: 1.25rem;
-    }
-    .gate-banner strong { display: block; margin-bottom: .25rem; font-size: .88rem; }
-    /* Hide all state slots by default; states.css + data-state makes them visible */
-    [data-state] .slot-loading,
-    [data-state] .slot-ready,
-    [data-state] .slot-error { display: none !important; }
-    [data-state="loading"] .slot-loading { display: block !important; }
-    [data-state="ready"]   .slot-ready   { display: block !important; }
-    [data-state="error"]   .slot-error   { display: block !important; }
-    /* KPI value placeholder while loading */
-    .kpi-value.loading { color: transparent; background: var(--skeleton-bg); border-radius: 4px;
-      animation: skeleton-shimmer 1.4s ease-in-out infinite; min-width: 2rem; display: inline-block; }
-    @keyframes skeleton-shimmer {
-      0%   { background-position: -400px 0; }
-      100% { background-position: 400px 0; }
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#0d7657"/>
+<title>داشبورد — CRM پزشکی دکتر باستانی‌نژاد</title>
+<link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=20260920g"/>
+<link rel="stylesheet" href="../../assets/css/tokens-extended.css?v=20260920g"/>
+<link rel="stylesheet" href="../../assets/css/base.css?v=20260920g"/>
+<link rel="stylesheet" href="../../assets/css/states.css?v=20260920g"/>
+<link rel="stylesheet" href="../../assets/css/components.css?v=20260920g"/>
+<link rel="stylesheet" href="../../assets/css/ui-polish.css?v=20260920g"/>
+<style>
+.dashboard-v2{max-width:1680px;margin:0 auto}
+.dash-top{display:flex;gap:1rem;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.dash-top .date-chip{display:flex;align-items:center;gap:.45rem;border:1px solid #dbe7df;background:#fff;border-radius:13px;padding:.58rem .8rem;color:#4b6558;font-size:.78rem;white-space:nowrap}.date-chip-copy{display:grid;gap:.08rem}.date-chip-copy b{font-size:.82rem;color:#244f40}.date-chip-copy small{font-size:.62rem;color:#819087;font-weight:600}
+.dash-search{flex:1;max-width:680px;position:relative}
+.dash-search input{width:100%;height:46px;border:1px solid #dbe6df;border-radius:14px;background:#fff;padding:0 2.65rem 0 3rem;font:inherit;color:#29473a;box-shadow:0 5px 18px rgba(24,54,39,.035);transition:border-color .15s,box-shadow .15s}
+.dash-search input:focus{outline:none;border-color:#7fb49a;box-shadow:0 0 0 3px rgba(13,118,87,.09),0 8px 22px rgba(24,54,39,.055)}
+.dash-search>.search-icon{position:absolute;right:.9rem;top:23px;transform:translateY(-50%);width:18px;color:#667d70;pointer-events:none}
+.search-clear{position:absolute;left:.55rem;top:23px;transform:translateY(-50%);width:31px;height:31px;border:0;border-radius:9px;background:#f1f6f3;color:#61756a;cursor:pointer;font:inherit;display:grid;place-items:center}
+.search-clear[hidden]{display:none}.search-clear:hover{background:#e3f1e8;color:#0a7050}
+.search-results{position:absolute;z-index:60;top:52px;inset-inline:0;background:#fff;border:1px solid #dbe6df;border-radius:14px;box-shadow:0 22px 55px rgba(24,55,40,.16);overflow:hidden;display:none}
+.search-results.open{display:block}.search-results a{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.78rem .9rem;text-decoration:none;color:#314d40;border-bottom:1px solid #edf1ee;font-size:.78rem}.search-results a:last-child{border:0}.search-results a:hover,.search-results a.active{background:#f1f8f4}.search-results small{color:#7e8c84}.search-results .search-state{padding:.85rem .9rem;color:#718078;font-size:.75rem}.search-results .search-name{font-weight:850}.search-results .search-meta{display:flex;gap:.45rem;align-items:center;color:#718078;font-size:.67rem}
+.kpi-v2{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.8rem;margin-bottom:.85rem}
+.kpi2{background:#fff;border:1px solid #dfe8e2;border-radius:17px;padding:1rem;display:flex;align-items:center;gap:.8rem;min-height:104px;box-shadow:0 8px 24px rgba(24,54,39,.045)}
+.kpi2 .ico{width:47px;height:47px;border-radius:50%;display:grid;place-items:center;flex:none}.kpi2 .ico svg{width:22px;height:22px}
+.kpi2.green .ico{background:#e2f5e9;color:#08714f}.kpi2.amber .ico{background:#fff0d7;color:#ad6d00}.kpi2.red .ico{background:#fee9e9;color:#cb3131}.kpi2.blue .ico{background:#e6efff;color:#355ddd}.kpi2.purple .ico{background:#eeeaff;color:#6040d8}
+.kpi2 span{display:block;color:#62756b;font-size:.72rem}.kpi2 strong{display:block;font-size:1.35rem;color:#183e31;margin-top:.12rem}.kpi2 small{display:block;color:#8a978f;font-size:.65rem;margin-top:.2rem}
+.quick-v2{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:.85rem}.quick-v2 a{display:flex;align-items:center;justify-content:center;gap:.75rem;min-height:72px;background:#fff;border:1px solid #dce8e0;border-radius:15px;text-decoration:none;color:#214b3b;font-weight:900}.quick-v2 a.primary{background:linear-gradient(135deg,#0d7657,#07885e);color:#fff;border:0}.quick-v2 svg{width:25px;height:25px}.quick-v2 small{display:block;color:#7d8a82;font-size:.62rem;font-weight:600;margin-top:.15rem}.quick-v2 .primary small{color:rgba(255,255,255,.78)}
+.dash-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(320px,.85fr);gap:.85rem;margin-bottom:.85rem}.dash-bottom{display:grid;grid-template-columns:.8fr 1fr 1fr 1fr;gap:.85rem}
+.dash-card{background:#fff;border:1px solid #dfe8e2;border-radius:17px;box-shadow:0 8px 24px rgba(24,54,39,.045);overflow:hidden}.dash-card-h{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.05rem;border-bottom:1px solid #e9efeb}.dash-card-h h2{font-size:1rem;margin:0;color:#173d31}.dash-card-h a{font-size:.7rem;color:#0a6f50;text-decoration:none;font-weight:800}.dash-card-body{padding:.2rem 1rem .7rem}
+.dash-table{width:100%;border-collapse:collapse;font-size:.72rem}.dash-table th{padding:.65rem .45rem;color:#62756c;font-size:.66rem;border-bottom:1px solid #e5ece7;text-align:right;white-space:nowrap}.dash-table td{padding:.68rem .45rem;border-bottom:1px solid #eef2ef;color:#314b3f}.dash-table tr:last-child td{border-bottom:0}.dash-table strong{font-size:.75rem}
+.badge2{display:inline-flex;align-items:center;gap:.25rem;padding:.28rem .55rem;border-radius:999px;font-size:.62rem;font-weight:900;white-space:nowrap}.badge2.ok{background:#e1f5e8;color:#087149}.badge2.warn{background:#fff1d9;color:#a86a00}.badge2.bad{background:#fee8e8;color:#bc2626}.badge2.info{background:#e8f0ff;color:#365cb5}.badge2.muted{background:#edf1ee;color:#65756d}
+.att-list{padding:.25rem .9rem .65rem}.att-item{display:grid;grid-template-columns:38px minmax(0,1fr) 20px;align-items:center;gap:.65rem;padding:.75rem .2rem;border-bottom:1px solid #edf1ee;color:#314b3f;text-decoration:none}.att-item:last-child{border:0}.att-count{width:34px;height:34px;border-radius:10px;background:#fff0e9;color:#c2442d;display:grid;place-items:center;font-weight:900}.att-item strong{display:block;font-size:.77rem}.att-item small{display:block;color:#7c8982;font-size:.64rem;margin-top:.18rem;line-height:1.5}.att-arrow{color:#9aa59e}
+.cap-row{display:grid;grid-template-columns:60px 1fr 52px;gap:.5rem;align-items:center;padding:.5rem .2rem}.cap-row span{font-size:.7rem}.bar{height:9px;background:#e7f1eb;border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#26a570,#58c696);border-radius:999px}
+.empty-v2{padding:1.35rem;text-align:center;color:#7d8982;font-size:.75rem}.error-v2{padding:1.1rem;color:#a83a2f;background:#fff1ee;border-radius:12px;margin:.6rem}
+.footer-brand{display:flex;justify-content:center;align-items:center;gap:.5rem;margin:1rem 0 .15rem;color:#718078;font-size:.67rem}.footer-brand img{width:25px;height:25px}.footer-brand a{color:#0b5a70;text-decoration:none;font-weight:900}
+@media(max-width:1180px){.kpi-v2{grid-template-columns:repeat(3,1fr)}.dash-grid{grid-template-columns:1fr}.dash-bottom{grid-template-columns:1fr 1fr}.quick-v2{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.dash-top{align-items:stretch;flex-direction:column}.dash-search{max-width:none}.kpi-v2{grid-template-columns:1fr 1fr}.quick-v2,.dash-bottom{grid-template-columns:1fr}.dash-card{overflow:auto}.dash-table{min-width:620px}}
+@media(max-width:480px){.kpi-v2{grid-template-columns:1fr}}
+</style>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+<link rel="alternate icon" href="/favicon.ico"/>
 </head>
 <body data-shell="staff" data-nav="dashboard">
-  <div class="app-shell">
-    <main class="main" id="dashboard-main">
-
-      <div class="topbar">
-        <div>
-          <h1 id="greeting">داشبورد کلینیک</h1>
-          <p class="subtitle" id="date-sub">در حال بارگذاری…</p>
-        </div>
-        <div class="topbar-actions">
-          <button class="btn btn-secondary btn-sm" type="button"
-                  id="btn-new-intake">+ پذیرش جدید</button>
-          <button class="btn btn-primary btn-sm" type="button"
-                  id="btn-new-appt">+ نوبت جدید</button>
-        </div>
-      </div>
-      <!-- ── KPI grid ── -->
-      <div class="kpi-grid" id="kpis" data-state="loading">
-
-        <div class="slot-loading">
-          <div class="kpi-grid" aria-hidden="true">
-            <div class="skeleton kpi-skeleton"></div>
-            <div class="skeleton kpi-skeleton"></div>
-            <div class="skeleton kpi-skeleton"></div>
-            <div class="skeleton kpi-skeleton"></div>
-          </div>
-        </div>
-
-        <div class="slot-ready">
-          <div class="kpi-grid">
-            <div class="kpi-card" role="button" tabindex="0" data-href="calendar.html">
-              <div class="kpi-label">نوبت‌های امروز</div>
-              <div class="kpi-value" id="kpi-today">—</div>
-              <div class="kpi-delta up" id="kpi-today-delta"></div>
-            </div>
-            <div class="kpi-card" role="button" tabindex="0" data-href="patients.html">
-              <div class="kpi-label">پذیرش‌های در انتظار</div>
-              <div class="kpi-value" id="kpi-pending">—</div>
-              <div class="kpi-delta">نیاز به بررسی</div>
-            </div>
-            <div class="kpi-card" role="button" tabindex="0" data-href="billing.html">
-              <div class="kpi-label">درآمد امروز (تومان)</div>
-              <div class="kpi-value" id="kpi-revenue">—</div>
-              <div class="kpi-delta up" id="kpi-revenue-delta"></div>
-            </div>
-            <div class="kpi-card" role="button" tabindex="0" data-href="tasks.html">
-              <div class="kpi-label">وظایف باز</div>
-              <div class="kpi-value" id="kpi-tasks">—</div>
-              <div class="kpi-delta">وظایف باز</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="slot-error">
-          <div class="state-panel state-error" role="alert">
-            <div class="state-icon" aria-hidden="true">⚠️</div>
-            <h3>بارگذاری KPI ناموفق بود</h3>
-            <p id="kpi-error-msg">لطفاً صفحه را رفرش کنید.</p>
-            <div class="state-actions">
-              <button type="button" class="btn btn-secondary btn-sm"
-                      id="kpi-retry-btn">تلاش مجدد</button>
-            </div>
-          </div>
-        </div>
-      </div><!-- /.kpi-grid wrapper -->
-
-      <div class="grid-main">
-        <!-- Today's schedule -->
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <h3>برنامه امروز</h3>
-              <p>مرتب‌شده بر اساس ساعت نوبت</p>
-            </div>
-            <a href="calendar.html" class="btn btn-ghost btn-sm">مشاهده تقویم ←</a>
-          </div>
-
-          <div id="today-host" data-state="loading">
-
-            <!-- loading -->
-            <div class="slot-loading" aria-hidden="true">
-              <div class="skeleton appt-skeleton"></div>
-              <div class="skeleton appt-skeleton" style="width:90%"></div>
-              <div class="skeleton appt-skeleton" style="width:80%"></div>
-            </div>
-
-            <!-- ready -->
-            <div class="slot-ready">
-              <div id="today-list" role="list"></div>
-            </div>
-
-            <!-- error -->
-            <div class="slot-error">
-              <div class="state-panel state-error" role="alert">
-                <h3>خطا در بارگذاری برنامه</h3>
-                <p id="appt-error-msg"></p>
-                <div class="state-actions">
-                  <button type="button" class="btn btn-secondary btn-sm"
-                          id="appt-retry-btn">تلاش مجدد</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Needs attention -->
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <h3>نیازمند توجه</h3>
-              <p>موارد ثبت‌نشده یا در حال انتظار</p>
-            </div>
-          </div>
-          <div id="attention-list">
-            <div class="state-panel state-empty" role="status">
-              <p>موارد نیازمند توجه از API بارگذاری می‌شوند.</p>
-            </div>
-          </div>
-        </section>
-      </div><!-- /.grid-main -->
-
-      <section class="panel" id="intake-review-panel" style="margin-top:1.25rem">
-        <div class="panel-header">
-          <div><h3>پذیرش و درخواست‌های نوبت ورودی</h3><p>صف بررسی مشترک WorkingVersion و رزرو WordPress</p></div>
-          <button class="btn btn-secondary btn-sm" type="button" id="intake-refresh">تازه‌سازی</button>
-        </div>
-        <div id="intake-review-host"><p style="color:var(--muted)">در حال بارگذاری…</p></div>
-      </section>
-
-    </main>
+<div class="app-shell">
+<main class="main dashboard-v2">
+  <div class="dash-top">
+    <div class="date-chip" id="today-date" title="زمان تهران؛ ساعت سرور با ntp.time.ir کنترل می‌شود">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+      <span class="date-chip-copy"><b id="today-label">در حال دریافت زمان…</b><small id="tehran-clock">--:--:-- · وقت تهران</small></span>
+    </div>
+    <div class="dash-search" role="search">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="global-search" type="search" inputmode="search" autocomplete="off" spellcheck="false"
+        aria-label="جست‌وجوی بیمار" aria-autocomplete="list" aria-controls="search-results" aria-expanded="false"
+        placeholder="نام، شماره موبایل یا کد ملی بیمار…"/>
+      <button class="search-clear" id="global-search-clear" type="button" aria-label="پاک کردن جست‌وجو" hidden>×</button>
+      <div class="search-results" id="search-results" role="listbox" aria-label="نتایج جست‌وجوی بیمار"></div>
+    </div>
   </div>
 
-  <script src="../../assets/js/app.js"></script>
-  <script src="../../assets/js/states.js"></script>
-  <script src="../../assets/js/chrome.js"></script>
-  <script type="module">
-    import { Staff, isAuthenticated, showToast, escHtml } from '../../shared/api.js';
+  <section class="kpi-v2" id="kpi-grid" aria-label="خلاصه امروز">
+    <article class="kpi2 green"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg></div><div><span>نوبت‌های امروز</span><strong id="kpi-appts">—</strong><small>نوبت‌های فعال امروز</small></div></article>
+    <article class="kpi2 amber"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></div><div><span>در انتظار تأیید</span><strong id="kpi-pending">—</strong><small>نیازمند اقدام کارکنان</small></div></article>
+    <article class="kpi2 red"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M8 15h.01"/></svg></div><div><span>پرداخت‌های نیازمند بررسی</span><strong id="kpi-payments">—</strong><small>تراکنش‌های امروز</small></div></article>
+    <article class="kpi2 blue"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20V7"/></svg></div><div><span>درآمد امروز</span><strong id="kpi-revenue">—</strong><small>پرداخت‌های تأییدشده</small></div></article>
+    <article class="kpi2 purple"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6M18 8v6M15 11h6"/></svg></div><div><span>بیماران جدید</span><strong id="kpi-patients">—</strong><small>ثبت‌شده امروز</small></div></article>
+    <article class="kpi2 green"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div><div><span>پیام‌های خوانده‌نشده</span><strong id="kpi-messages">—</strong><small>ایمیل و فرم تماس</small></div></article>
+  </section>
 
-    // ── Auth guard ──────────────────────────────────────────────────────────
-    if (!isAuthenticated('staff')) {
-      window.location.replace('../auth/login.html');
+  <nav class="quick-v2" aria-label="اقدامات سریع">
+    <a class="primary" href="calendar.html#new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg><div>ثبت نوبت جدید<small>نوبت‌دهی سریع</small></div></a>
+    <a href="../intake/intake.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="4"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6M18 8v6M15 11h6"/></svg><div>پذیرش بیمار<small>ثبت و تکمیل اطلاعات</small></div></a>
+    <a href="calendar.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg><div>مشاهده تقویم<small>برنامه و نوبت‌ها</small></div></a>
+    <a href="communications.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><div>پیام‌ها و ایمیل‌ها<small>صندوق تماس و پاسخ مستقیم</small></div></a>
+  </nav>
+
+  <div class="dash-grid">
+    <section class="dash-card">
+      <header class="dash-card-h"><h2>برنامه امروز</h2><a href="calendar.html">نمایش همه ←</a></header>
+      <div class="dash-card-body" id="today-card"><div class="empty-v2">در حال بارگذاری…</div></div>
+    </section>
+    <section class="dash-card">
+      <header class="dash-card-h"><h2>اقدامات فوری امروز</h2><a href="tasks.html">نمایش همه ←</a></header>
+      <div id="attention-card" class="att-list"><div class="empty-v2">در حال بارگذاری…</div></div>
+    </section>
+  </div>
+
+  <div class="dash-bottom">
+    <section class="dash-card">
+      <header class="dash-card-h"><h2>ظرفیت روزهای آینده</h2><a href="calendar.html">تقویم ←</a></header>
+      <div class="dash-card-body" id="capacity-card"><div class="empty-v2">در حال بارگذاری…</div></div>
+    </section>
+    <section class="dash-card">
+      <header class="dash-card-h"><h2>درخواست‌های وب‌سایت</h2><a href="../intake/intake.html">نمایش همه ←</a></header>
+      <div class="dash-card-body" id="requests-card"><div class="empty-v2">در حال بارگذاری…</div></div>
+    </section>
+    <section class="dash-card">
+      <header class="dash-card-h"><h2>تراکنش‌های اخیر</h2><a href="payment-attempts.html">نمایش همه ←</a></header>
+      <div class="dash-card-body" id="tx-card"><div class="empty-v2">در حال بارگذاری…</div></div>
+    </section>
+    <section class="dash-card">
+      <header class="dash-card-h"><h2>پیام‌های اخیر</h2><a href="communications.html">صندوق پیام‌ها ←</a></header>
+      <div class="dash-card-body" id="messages-card"><div class="empty-v2">در حال بارگذاری…</div></div>
+    </section>
+  </div>
+
+  <div class="footer-brand"><img src="../../assets/img/smarteb-mark.svg" alt=""/><span>طراحی و توسعه توسط <strong>اسمارت طب</strong> · <a href="https://smarteb.ir/" target="_blank" rel="noopener">smarteb.ir</a></span></div>
+</main>
+</div>
+
+<script src="../../assets/js/app.js?v=20260920j"></script>
+<script src="../../assets/js/chrome.js?v=20260920j"></script>
+<script type="module">
+import { Staff, isAuthenticated, escHtml, normalizePersianDigits } from '../../shared/api.js?v=20260920j';
+if(!isAuthenticated('staff')) location.replace('../auth/login.html');
+
+const fa=n=>new Intl.NumberFormat('fa-IR').format(Number(n||0));
+const toman=r=>fa(Math.round(Number(r||0)/10))+' تومان';
+const safe=v=>escHtml(String(v??''));
+const statusFa={
+  paid:'پرداخت شده',pending:'در انتظار',failed:'ناموفق',verified:'پرداخت شده',initiated:'در انتظار',redirected:'ارسال به درگاه',
+  confirmed:'تأیید شده',paid_pending_staff:'در انتظار تأیید',awaiting_payment:'در انتظار پرداخت',
+  holding:'در حال رزرو',free:'رایگان',cancelled:'لغو شده',expired:'منقضی شده',
+  reviewed:'بررسی شده',converted:'تبدیل شده',rejected:'رد شده'
+};
+function badgeClass(v){
+  if(['paid','verified','confirmed','converted'].includes(v)) return 'ok';
+  if(['failed','cancelled','expired','rejected'].includes(v)) return 'bad';
+  if(['pending','initiated','paid_pending_staff','awaiting_payment','holding'].includes(v)) return 'warn';
+  return 'info';
+}
+function sourceFa(v){return ({online:'وب‌سایت',admin:'پذیرش'})[v]||v||'—'}
+function weekday(date){
+  try{return new Intl.DateTimeFormat('fa-IR',{weekday:'long',timeZone:'Asia/Tehran'}).format(new Date(date+'T12:00:00+03:30'))}catch{return date}
+}
+let serverClockOffset=0;
+function renderClock(){
+  const now=new Date(Date.now()+serverClockOffset);
+  try{
+    document.getElementById('today-label').textContent='امروز '+new Intl.DateTimeFormat('fa-IR-u-ca-persian',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Tehran'}).format(now);
+    document.getElementById('tehran-clock').textContent=new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(now)+' · وقت تهران';
+  }catch{
+    document.getElementById('today-label').textContent='امروز';
+    document.getElementById('tehran-clock').textContent='وقت تهران';
+  }
+}
+async function syncClock(){
+  try{
+    const r=await Staff.getSystemTime(),d=r?.data||r||{};
+    const server=Date.parse(d.utc||'');
+    if(Number.isFinite(server))serverClockOffset=server-Date.now();
+  }catch(_){}
+  renderClock();
+}
+function renderToday(rows){
+  const h=document.getElementById('today-card');
+  if(!rows.length){h.innerHTML='<div class="empty-v2">برای امروز نوبت فعالی ثبت نشده است.</div>';return}
+  h.innerHTML='<table class="dash-table"><thead><tr><th>بیمار</th><th>ساعت</th><th>منبع</th><th>پرداخت</th><th>وضعیت</th></tr></thead><tbody>'+
+    rows.slice(0,8).map(x=>'<tr><td><strong>'+safe(x.patient)+'</strong><br><small dir="ltr">'+safe(x.mobile)+'</small></td><td>'+safe(x.time)+'</td><td>'+safe(sourceFa(x.source))+'</td><td><span class="badge2 '+badgeClass(x.payment_status)+'">'+safe(statusFa[x.payment_status]||x.payment_status)+'</span></td><td><span class="badge2 '+badgeClass(x.status)+'">'+safe(statusFa[x.status]||x.status)+'</span></td></tr>').join('')+
+    '</tbody></table>';
+}
+function renderAttention(rows){
+  const h=document.getElementById('attention-card');
+  if(!rows.length){h.innerHTML='<div class="empty-v2">مورد فوری ثبت‌شده‌ای وجود ندارد.</div>';return}
+  h.innerHTML=rows.slice(0,6).map(x=>'<a class="att-item" href="'+safe(x.href||'#')+'"><span class="att-count">'+fa(x.count)+'</span><span><strong>'+safe(x.title)+'</strong><small>'+safe(x.description)+'</small></span><span class="att-arrow">‹</span></a>').join('');
+}
+function renderCapacity(rows){
+  const h=document.getElementById('capacity-card');
+  if(!rows.length){h.innerHTML='<div class="empty-v2">برای روزهای آینده هنوز ظرفیت فعالی تنظیم نشده است.</div>';return}
+  h.innerHTML=rows.map(x=>'<div class="cap-row"><span>'+safe(weekday(x.date))+'</span><div class="bar"><i style="width:'+Math.max(0,Math.min(100,Number(x.percent||0)))+'%"></i></div><span>'+fa(x.used)+' / '+fa(x.capacity)+'</span></div>').join('');
+}
+function renderRequests(rows){
+  const h=document.getElementById('requests-card');
+  if(!rows.length){h.innerHTML='<div class="empty-v2">درخواست جدیدی ثبت نشده است.</div>';return}
+  h.innerHTML='<table class="dash-table"><thead><tr><th>بیمار</th><th>نوع درخواست</th><th>زمان</th><th>وضعیت</th></tr></thead><tbody>'+
+    rows.slice(0,5).map(x=>'<tr><td>'+safe(x.patient||'—')+'</td><td>'+safe(x.type||'درخواست نوبت')+'</td><td>'+safe(x.time||'—')+'</td><td><span class="badge2 '+badgeClass(x.status)+'">'+safe(statusFa[x.status]||x.status||'—')+'</span></td></tr>').join('')+'</tbody></table>';
+}
+function renderTransactions(rows){
+  const h=document.getElementById('tx-card');
+  if(!rows.length){h.innerHTML='<div class="empty-v2">تراکنش جدیدی ثبت نشده است.</div>';return}
+  h.innerHTML='<table class="dash-table"><thead><tr><th>بیمار</th><th>مبلغ</th><th>وضعیت</th><th>زمان</th></tr></thead><tbody>'+
+    rows.slice(0,5).map(x=>'<tr><td>'+safe(x.patient)+'</td><td>'+toman(x.amount_rials)+'</td><td><span class="badge2 '+badgeClass(x.status)+'">'+safe(statusFa[x.status]||x.status)+'</span></td><td>'+safe(x.time)+'</td></tr>').join('')+'</tbody></table>';
+}
+
+function renderMessages(rows){
+  const h=document.getElementById('messages-card');
+  if(!rows.length){h.innerHTML='<div class="empty-v2">پیام تازه‌ای ثبت نشده است.</div>';return}
+  h.innerHTML=rows.slice(0,5).map(x=>{
+    const who=safe(x.contact_name||x.contact_email||x.contact_phone||'بدون نام');
+    const subject=safe(x.subject||'بدون موضوع');
+    const unread=Number(x.unread_count||0)>0;
+    return '<a class="att-item" href="communications.html?thread='+encodeURIComponent(x.id)+'"><span class="att-count">'+(unread?fa(x.unread_count):'✓')+'</span><span><strong>'+who+'</strong><small>'+subject+'</small></span><span class="att-arrow">‹</span></a>';
+  }).join('');
+}
+async function loadCommunications(){
+  try{
+    const r=await Staff.listCommunications({page:1,per_page:5}),d=r?.data||r||{},s=d.summary||{};
+    document.getElementById('kpi-messages').textContent=fa(s.unread_messages||0);
+    renderMessages(d.rows||[]);
+  }catch(e){
+    if(e?.httpStatus===401){location.replace('../auth/login.html');return}
+    document.getElementById('kpi-messages').textContent='—';
+    document.getElementById('messages-card').innerHTML='<div class="error-v2">دریافت پیام‌ها انجام نشد.</div>';
+  }
+}
+async function load(){
+  try{
+    const r=await Staff.getOverview(),d=r?.data||{},s=d.summary||{};
+    document.getElementById('kpi-appts').textContent=fa(s.appointments_today);
+    document.getElementById('kpi-pending').textContent=fa(s.pending_confirmation);
+    document.getElementById('kpi-payments').textContent=fa(s.payments_need_review);
+    document.getElementById('kpi-revenue').textContent=toman(s.revenue_today_rials);
+    document.getElementById('kpi-patients').textContent=fa(s.new_patients_today);
+    renderToday(d.today||[]);renderAttention(d.attention||[]);renderCapacity(d.capacity||[]);
+    renderRequests(d.website_requests||[]);renderTransactions(d.recent_transactions||[]);
+  }catch(e){
+    if(e?.httpStatus===401){location.replace('../auth/login.html');return}
+    document.querySelectorAll('#today-card,#attention-card,#capacity-card,#requests-card,#tx-card').forEach(x=>x.innerHTML='<div class="error-v2">دریافت اطلاعات داشبورد انجام نشد. لطفاً دوباره تلاش کنید.</div>');
+  }
+}
+let searchTimer=null,searchSeq=0,searchIndex=-1;
+const input=document.getElementById('global-search'),box=document.getElementById('search-results'),clearSearch=document.getElementById('global-search-clear');
+function normaliseSearch(v){return normalizePersianDigits(String(v||'')).replace(/\s+/g,' ').trim()}
+function closeSearch(){box.classList.remove('open');box.innerHTML='';input.setAttribute('aria-expanded','false');searchIndex=-1}
+function openSearch(){box.classList.add('open');input.setAttribute('aria-expanded','true')}
+function searchLinks(){return [...box.querySelectorAll('a[data-result]')]}
+function selectSearch(i){const a=searchLinks();if(!a.length)return;searchIndex=(i+a.length)%a.length;a.forEach((x,j)=>x.classList.toggle('active',j===searchIndex));a[searchIndex].scrollIntoView({block:'nearest'})}
+async function runPatientSearch(raw){
+  const q=normaliseSearch(raw),seq=++searchSeq;
+  clearSearch.hidden=!raw.length;
+  if(q.length<2){closeSearch();return}
+  box.innerHTML='<div class="search-state">در حال جست‌وجو…</div>';openSearch();
+  try{
+    const r=await Staff.listPatients({q,page:1,per_page:7});
+    if(seq!==searchSeq)return;
+    const rows=r?.data?.rows||[];
+    if(!rows.length){
+      box.innerHTML='<div class="search-state">بیماری با این عبارت پیدا نشد.</div><a data-result href="patients.html?q='+encodeURIComponent(q)+'"><span class="search-name">جست‌وجوی پیشرفته در بیماران</span><small>نمایش صفحه بیماران</small></a>';
+      openSearch();return;
     }
-
-    async function loadIdentity() {
-      try {
-        const res = await Staff.me();
-        const user = res?.data || {};
-        const name = String(user.name || '').trim();
-        document.getElementById('greeting').textContent = name ? `سلام ${name} 👋` : 'داشبورد کلینیک';
-      } catch (err) {
-        if (err?.httpStatus === 401) window.location.replace('../auth/login.html');
-      }
-    }
-
-    // ── Nav buttons ─────────────────────────────────────────────────────────
-    document.getElementById('btn-new-intake')
-      .addEventListener('click', () => { location.href = '../intake/intake.html'; });
-    document.getElementById('btn-new-appt')
-      .addEventListener('click', () => { location.href = 'calendar.html'; });
-
-    // ── KPI card keyboard/click nav ──────────────────────────────────────────
-    document.querySelectorAll('.kpi-card[data-href]').forEach(card => {
-      card.addEventListener('click', () => { location.href = card.dataset.href; });
-      card.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') location.href = card.dataset.href;
-      });
-    });
-
-    // ── Retry buttons ────────────────────────────────────────────────────────
-    document.getElementById('kpi-retry-btn')
-      .addEventListener('click', loadDashboard);
-    document.getElementById('appt-retry-btn')
-      .addEventListener('click', loadAppointments);
-    document.getElementById('intake-refresh').addEventListener('click', loadIntakeQueue);
-
-    // ── Jalali date for subtitle ─────────────────────────────────────────────
-    (function () {
-      try {
-        const jd = new Intl.DateTimeFormat('fa-IR', {
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        }).format(new Date());
-        document.getElementById('date-sub').textContent = jd;
-      } catch { /* Intl not available — leave placeholder */ }
-    }());
-
-    function toFa(n) {
-      return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-    }
-
-    // Network-error family produced by api.js classifyNetworkError():
-    // NETWORK_ERROR, SSL_ERROR, DNS_ERROR, TIMEOUT_ERROR. Any of these means the
-    // dashboard could not be reached, and err.message already carries an
-    // actionable Persian hint — show it verbatim rather than a generic fallback.
-    function isNetworkError(err) {
-      return err && ['NETWORK_ERROR', 'SSL_ERROR', 'DNS_ERROR', 'TIMEOUT_ERROR'].includes(err.code);
-    }
-
-    // ── KPI / overview loader ────────────────────────────────────────────────
-    // Endpoint: GET /api/v1/dashboard/overview (dashboard.drbastaninejad.com)
-    // Contract: data.metrics[4], data.attention[], data.today[]
-    async function loadDashboard() {
-      const kpisHost = document.getElementById('kpis');
-      MAZCRM.states.set(kpisHost, 'loading');
-      try {
-        const res = await Staff.getOverview();
-        // metrics[] is always 4 items in fixed order:
-        // 0: today appointments, 1: pending intakes, 2: revenue today, 3: open tasks
-        const m = res.data?.metrics ?? [];
-        document.getElementById('kpi-today').textContent   = MAZCRM.escHtml(m[0]?.value ?? '—');
-        document.getElementById('kpi-pending').textContent = MAZCRM.escHtml(m[1]?.value ?? '—');
-        document.getElementById('kpi-revenue').textContent = MAZCRM.escHtml(m[2]?.value ?? '—');
-        document.getElementById('kpi-tasks').textContent   = MAZCRM.escHtml(m[3]?.value ?? '—');
-
-        // Update attention list from API data
-        const attention = res.data?.attention ?? [];
-        const attEl = document.getElementById('attention-list');
-        if (attention.length) {
-          attEl.innerHTML = attention.map(a =>
-            '<div style="display:flex;justify-content:space-between;align-items:center;' +
-            'padding:.75rem;background:var(--warning-soft);border-radius:var(--radius-md);margin-bottom:.5rem;">' +
-              '<div>' +
-                '<div style="font-weight:600;font-size:.9rem">' + MAZCRM.escHtml(a.title || a.patient || 'سامانه') + '</div>' +
-                '<div style="font-size:.78rem;color:var(--muted)">' + MAZCRM.escHtml(a.item) + '</div>' +
-              '</div>' +
-              '<span class="pill ' + MAZCRM.escHtml(a.badge) + '">' + MAZCRM.escHtml(a.status) + '</span>' +
-            '</div>'
-          ).join('');
-        } else {
-          attEl.innerHTML = '<div class="state-panel state-empty" role="status"><p>مورد فوری ثبت‌شده‌ای وجود ندارد.</p></div>';
-        }
-
-        MAZCRM.states.set(kpisHost, 'ready');
-      } catch (err) {
-        if (err.httpStatus === 401) {
-          window.location.replace('../auth/login.html');
-        } else {
-          document.getElementById('kpi-error-msg').textContent =
-            isNetworkError(err) ? err.message : 'خطای سرور — لطفاً دوباره تلاش کنید.';
-          MAZCRM.states.set(kpisHost, 'error');
-        }
-      }
-    }
-
-    // ── Today's schedule loader ──────────────────────────────────────────────
-    // Reads data.today[] from the GET /dashboard/overview response.
-    async function loadAppointments() {
-      const host = document.getElementById('today-host');
-      MAZCRM.states.set(host, 'loading');
-      try {
-        const res = await Staff.getOverview();
-        const list = (res.data?.today ?? []).slice(0, 10);
-        const statusMap = {
-          confirmed:  ['evergreen', 'تأیید شده'],
-          scheduled:  ['info',      'در انتظار تأیید'],
-          completed:  ['muted',     'انجام‌شده'],
-          cancelled:  ['muted',     'لغو شده'],
-        };
-        const container = document.getElementById('today-list');
-        if (!list.length) {
-          container.innerHTML =
-            '<div class="state-panel state-empty" role="status">' +
-              '<div class="state-icon" aria-hidden="true">🌿</div>' +
-              '<h3>برنامه‌ای برای امروز ثبت نشده</h3>' +
-            '</div>';
-        } else {
-          container.innerHTML = list.map(a => {
-            const st = statusMap[a.status] || ['muted', MAZCRM.escHtml(a.status) || '—'];
-            return '<div role="listitem" style="display:flex;align-items:center;gap:1rem;' +
-              'padding:.9rem 0;border-bottom:1px solid var(--border);">' +
-              '<div style="min-width:0;flex:1">' +
-                '<strong style="font-size:.9rem;display:block">' +
-                  MAZCRM.escHtml(a.title || a.patient || 'سامانه') +
-                  (a.reason && a.reason !== '—' ? ' — ' + MAZCRM.escHtml(a.reason) : '') +
-                '</strong>' +
-                (a.time ? '<span style="font-size:.78rem;color:var(--muted)">ساعت ' + MAZCRM.escHtml(a.time) + '</span>' : '') +
-              '</div>' +
-              '<span class="pill ' + st[0] + '">' + st[1] + '</span>' +
-            '</div>';
-          }).join('');
-        }
-        MAZCRM.states.set(host, 'ready');
-      } catch (err) {
-        if (err.httpStatus === 401) {
-          window.location.replace('../auth/login.html');
-        } else {
-          document.getElementById('appt-error-msg').textContent =
-            isNetworkError(err) ? err.message : 'خطا در بارگذاری نوبت‌ها.';
-          MAZCRM.states.set(host, 'error');
-        }
-      }
-    }
-
-    function statusLabel(value) {
-      return ({ pending:'در انتظار', reviewed:'بررسی شد', converted:'تبدیل شد', rejected:'رد شد',
-                ok:'موفق', sent:'ارسال شد', failed:'ناموفق', skipped:'رد شد/لازم نیست' })[value] || value || '—';
-    }
-
-    async function loadIntakeQueue() {
-      const host = document.getElementById('intake-review-host');
-      host.innerHTML = '<p style="color:var(--muted)">در حال بارگذاری…</p>';
-      try {
-        const res = await Staff.listIntakes({ page: 1, per_page: 30 });
-        const rows = Array.isArray(res.data) ? res.data : [];
-        if (!rows.length) {
-          host.innerHTML = '<div class="state-panel state-empty"><p>پذیرش یا رزرو در انتظار نمایش وجود ندارد.</p></div>';
-          return;
-        }
-        host.innerHTML = '<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem">' +
-          '<thead><tr><th>بیمار</th><th>منبع</th><th>ایمیل</th><th>علت/درخواست</th><th>Sheet</th><th>SMS</th><th>وضعیت</th><th>اقدام</th></tr></thead>' +
-          '<tbody>' + rows.map(r => {
-            const detail = [r.visit_reason, r.doctor_request].filter(Boolean).join(' — ');
-            return '<tr style="border-top:1px solid var(--border)">' +
-              '<td style="padding:.65rem">' + escHtml((r.first_name||'')+' '+(r.last_name||'')) + '<br><span dir="ltr">' + escHtml(r.mobile||'') + '</span></td>' +
-              '<td style="padding:.65rem">' + escHtml(r.source_type === 'booking' ? 'رزرو وب‌سایت' : 'پذیرش') + '</td>' +
-              '<td style="padding:.65rem">' + escHtml(r.email||'—') + '</td>' +
-              '<td style="padding:.65rem;max-width:280px;white-space:normal">' + escHtml(detail||r.chief_complaint||'—') + '</td>' +
-              '<td style="padding:.65rem">' + escHtml(statusLabel(r.sheets_sync_status)) + '</td>' +
-              '<td style="padding:.65rem">' + escHtml(statusLabel(r.sms_status)) + '</td>' +
-              '<td style="padding:.65rem">' + escHtml(statusLabel(r.status)) + '</td>' +
-              '<td style="padding:.65rem;white-space:nowrap">' +
-                '<button class="btn btn-ghost btn-sm intake-action" data-id="'+Number(r.id)+'" data-status="reviewed">بررسی شد</button> ' +
-                '<button class="btn btn-ghost btn-sm intake-action" data-id="'+Number(r.id)+'" data-status="converted">تبدیل</button> ' +
-                '<button class="btn btn-ghost btn-sm intake-action" data-id="'+Number(r.id)+'" data-status="rejected">رد</button>' +
-              '</td></tr>';
-          }).join('') + '</tbody></table></div>';
-        host.querySelectorAll('.intake-action').forEach(btn => btn.addEventListener('click', async () => {
-          btn.disabled = true;
-          try {
-            await Staff.updateIntakeStatus(Number(btn.dataset.id), btn.dataset.status);
-            showToast('وضعیت ثبت شد.', 'success');
-            await loadIntakeQueue();
-          } catch (err) {
-            if (err.httpStatus === 401) { window.location.replace('../auth/login.html'); return; }
-            showToast(err.message || 'ثبت وضعیت انجام نشد.', 'error');
-            btn.disabled = false;
-          }
-        }));
-      } catch (err) {
-        if (err.httpStatus === 401) { window.location.replace('../auth/login.html'); return; }
-        host.innerHTML = '<div class="state-panel state-error"><p>' + escHtml(err.message || 'بارگذاری صف بررسی انجام نشد.') + '</p></div>';
-      }
-    }
-
-    // Bootstrap
-    loadIdentity();
-    loadDashboard();
-    loadAppointments();
-    loadIntakeQueue();
-  </script>
+    box.innerHTML=rows.map(x=>{
+      const name=safe(x.name||((x.first_name||'')+' '+(x.last_name||''))||'بدون نام');
+      const mobile=safe(x.mobile||'');
+      const nid=String(x.national_id||''),last=nid?('کد ملی •••• '+safe(nid.slice(-4))):'';
+      return '<a data-result role="option" href="patient-detail.html?id='+encodeURIComponent(x.id)+'"><span><span class="search-name">'+name+'</span><span class="search-meta"><bdi dir="ltr">'+mobile+'</bdi>'+(last?'<span>'+last+'</span>':'')+'</span></span><small>مشاهده پرونده</small></a>';
+    }).join('')+'<a data-result href="patients.html?q='+encodeURIComponent(q)+'"><span class="search-name">نمایش همه نتایج</span><small>صفحه بیماران</small></a>';
+    searchIndex=-1;openSearch();
+  }catch(e){
+    if(seq!==searchSeq)return;
+    box.innerHTML='<div class="search-state">جست‌وجو انجام نشد. دوباره تلاش کنید.</div>';openSearch();
+  }
+}
+input.addEventListener('input',()=>{clearTimeout(searchTimer);const raw=input.value;clearSearch.hidden=!raw.length;searchTimer=setTimeout(()=>runPatientSearch(raw),220)});
+input.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeSearch();input.blur();return}
+  if(e.key==='ArrowDown'){e.preventDefault();selectSearch(searchIndex+1);return}
+  if(e.key==='ArrowUp'){e.preventDefault();selectSearch(searchIndex-1);return}
+  if(e.key==='Enter'){
+    const a=searchLinks(),target=searchIndex>=0?a[searchIndex]:a[0];
+    if(target){e.preventDefault();location.href=target.href}
+  }
+});
+clearSearch.onclick=()=>{clearTimeout(searchTimer);searchSeq++;input.value='';clearSearch.hidden=true;closeSearch();input.focus()};
+document.addEventListener('click',e=>{if(!e.target.closest('.dash-search'))closeSearch()});
+syncClock();renderClock();load();loadCommunications();
+setInterval(renderClock,1000);
+setInterval(()=>{if(!document.hidden){load();loadCommunications();syncClock()}},60000);
+</script>
 </body>
 </html>

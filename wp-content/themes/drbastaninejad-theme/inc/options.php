@@ -8,7 +8,7 @@ function drb_theme_option_defaults() {
         'doctor_title' => 'جراح و متخصص گوش، گلو و بینی؛ جراح پلاستیک بینی',
         'phones' => "۰۲۱۸۶۰۸۷۲۵۰\n۰۲۱۸۸۲۰۵۶۰۶\n۰۹۹۱۲۴۹۶۶۵۹",
         'address' => 'تهران، خیابان نلسون ماندلا، خیابان صانعی، ساختمان نور، پلاک ۱، واحد ۶',
-        'clinic_hours' => 'شنبه تا سه‌شنبه، از ساعت ۱۵:۰۰ تا ۱۸:۰۰',
+        'clinic_hours' => 'شنبه و سه‌شنبه، از ساعت ۱۵:۰۰ تا ۱۸:۰۰',
         'admission_notice' => 'پذیرش فقط در بازه اعلام‌شده انجام می‌شود و مراجعینی که بعد از ساعت ۱۸:۰۰ در مطب حضور یابند، به هیچ‌وجه پذیرش نخواهند شد.',
         'revision_notice' => 'بررسی جراحی ترمیمی فقط پس از گذشت کامل ۲۴ ماه (۲ سال) از جراحی قبلی انجام می‌شود.',
         'whatsapp' => 'https://wa.me/989912496659',
@@ -20,6 +20,7 @@ function drb_theme_option_defaults() {
         'default_social_image' => '',
         'google_analytics_enabled' => 1,
         'google_analytics_id' => 'G-7MMJ2J4TY7',
+        'google_tag_manager_id' => 'GTM-MLW45C32',
         'clarity_enabled' => 1,
         'clarity_id' => 'xzserqjwxc',
     );
@@ -40,6 +41,8 @@ function drb_sanitize_theme_options( $input ) {
             $output[ $key ] = empty( $value ) ? 0 : 1;
         } elseif ( 'google_analytics_id' === $key ) {
             $output[ $key ] = preg_match( '/^G-[A-Z0-9]+$/', (string) $value ) ? strtoupper( $value ) : '';
+        } elseif ( 'google_tag_manager_id' === $key ) {
+            $output[ $key ] = preg_match( '/^GTM-[A-Z0-9]+$/', strtoupper( (string) $value ) ) ? strtoupper( (string) $value ) : '';
         } elseif ( 'clarity_id' === $key ) {
             $output[ $key ] = preg_match( '/^[a-z0-9]+$/', (string) $value ) ? strtolower( $value ) : '';
         } elseif ( in_array( $key, array( 'phones', 'address', 'admission_notice', 'revision_notice' ), true ) ) {
@@ -75,6 +78,7 @@ function drb_render_theme_options_page() {
         'youtube' => array( 'یوتیوب', 'url' ), 'aparat' => array( 'آپارات', 'url' ),
         'default_social_image' => array( 'تصویر پیش‌فرض شبکه‌های اجتماعی', 'url' ),
         'google_analytics_id' => array( 'شناسه Google Analytics', 'text' ),
+        'google_tag_manager_id' => array( 'شناسه Google Tag Manager (اختیاری)', 'text' ),
         'clarity_id' => array( 'شناسه Microsoft Clarity', 'text' ),
     );
     ?>

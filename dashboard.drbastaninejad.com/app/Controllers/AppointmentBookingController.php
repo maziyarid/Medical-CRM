@@ -68,12 +68,19 @@ final class AppointmentBookingController extends Controller
         }
         $clinicId = (int)$req->user['clinic_id'];
         $patientId = (int)$req->user['id'];
-        $intakeId = (int)($req->body['intake_id'] ?? 0);
+        try {
+            $intakeId = (new BookingFinalisationService())->resolveUnfinishedIntake(
+                $clinicId,
+                $patientId,
+                (int)($req->body['intake_id'] ?? 0)
+            );
+        } catch (RuntimeException $e) {
+            return $this->domainError($e);
+        }
         $blacklist = new BookingBlacklistService();
-        $blocked = $intakeId > 0
-            ? $blacklist->isIntakeBlocked($clinicId,$intakeId,$patientId)
-            : $blacklist->isPatientBlocked($clinicId,$patientId);
-        if ($blocked) return $this->error('شما واجد شرایط نیستید.', 403);
+        if ($blacklist->isIntakeBlocked($clinicId,$intakeId,$patientId)) {
+            return $this->error('شما واجد شرایط نیستید.', 403);
+        }
         $gateway = strtolower(trim((string)($req->body['gateway'] ?? '')));
         $enabled = array_filter(array_map('trim', explode(',', strtolower((string)($_ENV['BOOKING_PAYMENT_GATEWAYS'] ?? 'zarinpal,vandar')))));
         if (!in_array($gateway, $enabled, true)) {
@@ -97,9 +104,6 @@ final class AppointmentBookingController extends Controller
                 null,
                 $intakeId ?: null
             );
-            if ($intakeId > 0) {
-                (new BookingFinalisationService())->linkBooking($clinicId, $patientId, $intakeId, (int)$booking['id']);
-            }
             $this->syncSheet((int)$booking['id']);
             return $this->success($booking, 201);
         } catch (RuntimeException $e) {
@@ -449,6 +453,7 @@ final class AppointmentBookingController extends Controller
             'booking not found', 'open day not found', 'payment attempt not found', 'patient not found' => 404,
             'invalid patient mobile', 'invalid patient name', 'patient belongs to another clinic' => 422,
             'slot unavailable', 'daily quota reached', 'open day closed', 'booking hold expired',
+            'booking intake required', 'booking intake mismatch', 'booking intake already linked',
             'paid slot requires reconciliation', 'booking slot already reserved',
             'booking is not awaiting paid-slot reconciliation',
             'weekly open-day limit reached', 'monthly open-day limit reached',
@@ -462,6 +467,8 @@ final class AppointmentBookingController extends Controller
             'slot unavailable' => 'این زمان دیگر در دسترس نیست',
             'daily quota reached' => 'ظرفیت این روز تکمیل شده است',
             'booking hold expired' => 'مهلت نگهداری این زمان تمام شده است؛ دوباره زمان را انتخاب کنید',
+            'booking intake required' => 'برای ادامه رزرو، درخواست نوبت معتبر یافت نشد. لطفاً فرم نوبت را دوباره تکمیل کنید.',
+            'booking intake mismatch', 'booking intake already linked' => 'این درخواست نوبت دیگر قابل استفاده نیست. لطفاً درخواست جدید ثبت کنید.',
             'paid slot requires reconciliation' => 'پرداخت ثبت شده اما زمان نیاز به بررسی پذیرش دارد',
             'weekly open-day limit reached' => 'حداکثر دو روز کاری در این هفته قابل تنظیم است',
             'monthly open-day limit reached' => 'حداکثر هشت روز کاری در این ماه قابل تنظیم است',

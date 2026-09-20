@@ -1,7 +1,6 @@
 <!doctype html>
 <!--
-  MΛZ Medical CRM — Settings
-  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
+  CRM پزشکی دکتر باستانی‌نژاد — Settings
   Data:  ✅ Wired to GET/PATCH /api/v1/settings/clinic (Staff API, Phase D)
   Auth:  Staff Bearer token required.
 -->
@@ -9,13 +8,14 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>تنظیمات — MΛZ Medical CRM</title>
+  <title>تنظیمات — CRM پزشکی دکتر باستانی‌نژاد</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
-  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
-  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
-  <link rel="stylesheet" href="../../assets/css/base.css"/>
-  <link rel="stylesheet" href="../../assets/css/states.css"/>
-  <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <link rel="stylesheet" href="../../assets/css/tokens.css?v=20260920j"/>
+  <link rel="stylesheet" href="../../assets/css/tokens-extended.css?v=20260920j"/>
+  <link rel="stylesheet" href="../../assets/css/base.css?v=20260920j"/>
+  <link rel="stylesheet" href="../../assets/css/states.css?v=20260920j"/>
+  <link rel="stylesheet" href="../../assets/css/components.css?v=20260920j"/>
+<link rel="stylesheet" href="../../assets/css/ui-polish.css?v=20260920j"/>
   <style>
     .settings-tabs {
       display: flex; gap: .25rem; border-bottom: 1px solid var(--border);
@@ -41,7 +41,14 @@
     .save-state { font-size: .78rem; color: var(--muted); margin-top: .5rem; text-align: center; min-height: 1.4rem; }
     .save-state.success { color: var(--evergreen); }
     .save-state.error   { color: var(--error); }
-  </style>
+  .settings-panel > .panel{width:100%;box-sizing:border-box;max-width:none}
+.settings-panel.active{display:block;max-width:1180px;margin-inline:auto}
+@media(min-width:1200px){.settings-panel > .panel{margin-inline:0}}
+.email-settings-panel{max-width:none!important}.email-settings-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,.9fr);gap:1rem;align-items:start}.email-form{display:grid;gap:.85rem}.field-help{display:block;margin-top:.28rem;color:var(--muted);font-size:.72rem;line-height:1.7}.email-toggle{display:flex;align-items:center;gap:.7rem;padding:.8rem .9rem;border:1px solid var(--border);border-radius:12px;background:var(--porcelain);cursor:pointer}.email-toggle input{width:18px;height:18px}.email-toggle strong,.email-toggle small{display:block}.email-toggle small{margin-top:.18rem;color:var(--muted);font-size:.72rem}.email-form-actions{display:flex;justify-content:flex-end;gap:.55rem;flex-wrap:wrap}.email-preview-wrap{position:sticky;top:1rem;border:1px solid var(--border);border-radius:16px;overflow:hidden;background:#f4f8f6;min-width:0}.email-preview-head{display:flex;justify-content:space-between;align-items:center;gap:.7rem;padding:.75rem .85rem;border-bottom:1px solid var(--border);background:#fff}.email-preview-head strong{font-size:.85rem}.email-preview-head small{color:var(--muted);font-size:.68rem}.email-preview-wrap iframe{display:block;width:100%;height:640px;border:0;background:#f3f7f5}
+@media(max-width:980px){.email-settings-grid{grid-template-columns:1fr}.email-preview-wrap{position:static}.email-preview-wrap iframe{height:560px}}
+</style>
+<link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+<link rel="alternate icon" href="/favicon.ico"/>
 </head>
 <body data-shell="staff" data-nav="settings">
   <div class="app-shell">
@@ -60,12 +67,13 @@
         <button class="settings-tab" role="tab" aria-selected="false" data-panel="integrations">یکپارچه‌سازی‌ها</button>
         <button class="settings-tab" role="tab" aria-selected="false" data-panel="users">کاربران و دسترسی</button>
         <button class="settings-tab" role="tab" aria-selected="false" data-panel="emr-templates">قالب‌های EMR</button>
+        <button class="settings-tab" role="tab" aria-selected="false" data-panel="email">ایمیل و پاسخ خودکار</button>
         <button class="settings-tab" role="tab" aria-selected="false" data-panel="hours">ساعت کاری</button>
       </div>
 
       <!-- Panel: Clinic info -->
       <div class="settings-panel active" id="panel-clinic" role="tabpanel">
-        <section class="panel" style="max-width:640px">
+        <section class="panel" style="max-width:1120px">
           <div class="panel-header">
             <div><h3>اطلاعات کلینیک</h3><p>این اطلاعات در سایت و فرم پذیرش نمایش داده می‌شود.</p></div>
           </div>
@@ -81,8 +89,8 @@
 
       <!-- Panel: Integrations (static — keys are env-managed) -->
       <div class="settings-panel" id="panel-integrations" role="tabpanel">
-        <section class="panel" style="max-width:640px">
-          <div class="panel-header"><div><h3>یکپارچه‌سازی‌ها</h3><p>سرویس‌های خارجی متصل به CRM</p></div></div>
+        <section class="panel" style="max-width:1120px">
+          <div class="panel-header"><div><h3>یکپارچه‌سازی‌ها</h3><p>سرویس‌های متصل به سامانه</p></div></div>
           <div id="integration-status-list">
             <div class="skeleton skeleton-line" style="width:80%;margin:.5rem 0"></div>
           </div>
@@ -102,7 +110,7 @@
             <div class="input-group"><label class="form-label required" for="staff-name">نام و نام خانوادگی</label><input class="form-input" id="staff-name" required/></div>
             <div class="input-group"><label class="form-label required" for="staff-mobile">شماره همراه</label><input class="form-input" id="staff-mobile" type="tel" inputmode="numeric" placeholder="09xxxxxxxxx" required/></div>
             <div class="input-group"><label class="form-label" for="staff-email">ایمیل</label><input class="form-input" id="staff-email" type="email"/></div>
-            <div class="input-group"><label class="form-label required" for="staff-role">نقش</label><select class="form-select" id="staff-role"><option value="receptionist">پذیرش</option><option value="doctor">پزشک</option><option value="nurse">پرستار</option><option value="super_admin">مدیر کل</option></select></div>
+            <div class="input-group"><label class="form-label required" for="staff-role">نقش</label><select class="form-select" id="staff-role"><option value="receptionist">پذیرش</option><option value="doctor">پزشک</option><option value="nurse">پرستار</option><option value="admin">مدیر</option><option value="super_admin">مدیر کل</option></select></div>
             <button class="btn btn-primary" id="btn-create-staff" type="submit">ایجاد و دعوت</button>
           </form>
           <div id="staff-management-note" class="save-state" style="display:block;margin:.5rem 0 1rem">در حال بررسی سطح دسترسی…</div>
@@ -117,7 +125,7 @@
 
       <!-- Panel: EMR Templates (read-only listing from settings endpoint) -->
       <div class="settings-panel" id="panel-emr-templates" role="tabpanel">
-        <section class="panel" style="max-width:640px">
+        <section class="panel" style="max-width:1120px">
           <div class="panel-header">
             <div><h3>قالب‌های EMR</h3><p>قالب‌های تخصصی پرونده الکترونیک</p></div>
           </div>
@@ -127,9 +135,73 @@
         </section>
       </div>
 
+
+      <!-- Panel: Email & automatic response -->
+      <div class="settings-panel" id="panel-email" role="tabpanel">
+        <section class="panel email-settings-panel">
+          <div class="panel-header">
+            <div><h3>ایمیل و پاسخ خودکار</h3><p>صندوق تماس، پاسخ خودکار و امضای ایمیل‌های ارسالی از پنل</p></div>
+            <a class="btn btn-secondary btn-sm" href="communications.html">باز کردن صندوق پیام‌ها</a>
+          </div>
+          <div class="email-settings-grid">
+            <div class="email-form">
+              <div class="input-group">
+                <label class="form-label" for="email-inbox">نشانی صندوق تماس</label>
+                <input class="form-input" id="email-inbox" dir="ltr" readonly value="contact@drbastaninejad.com"/>
+                <small class="field-help">پاسخ کاربران به این نشانی وارد صندوق پیام‌های CRM می‌شود.</small>
+              </div>
+              <div class="input-group">
+                <label class="form-label" for="email-from-name">نام فرستنده</label>
+                <input class="form-input" id="email-from-name" maxlength="190"/>
+              </div>
+              <label class="email-toggle"><input id="email-auto-enabled" type="checkbox"><span><strong>پاسخ خودکار فعال باشد</strong><small>فقط برای پیام‌های جدیدی که ایمیل معتبر دارند.</small></span></label>
+              <div class="input-group">
+                <label class="form-label" for="email-auto-subject">موضوع پاسخ خودکار</label>
+                <input class="form-input" id="email-auto-subject" maxlength="255"/>
+              </div>
+              <div class="input-group">
+                <label class="form-label" for="email-auto-body">متن پاسخ خودکار</label>
+                <textarea class="form-textarea" id="email-auto-body" rows="5" maxlength="4000"></textarea>
+              </div>
+              <div class="input-group">
+                <label class="form-label" for="email-signature">امضا</label>
+                <textarea class="form-textarea" id="email-signature" rows="3" maxlength="2000"></textarea>
+              </div>
+              <div class="input-group">
+                <label class="form-label" for="email-booking-url">نشانی فرم رزرو نوبت</label>
+                <input class="form-input" id="email-booking-url" dir="ltr" type="url" maxlength="500"/>
+              </div>
+              <div class="grid-2">
+                <div class="input-group">
+                  <label class="form-label" for="email-footer-phone">شماره‌های تماس در پایین ایمیل</label>
+                  <input class="form-input" id="email-footer-phone" maxlength="255"/>
+                </div>
+                <div class="input-group">
+                  <label class="form-label" for="email-last-sync">آخرین همگام‌سازی صندوق</label>
+                  <input class="form-input" id="email-last-sync" readonly/>
+                </div>
+              </div>
+              <div class="input-group">
+                <label class="form-label" for="email-footer-address">آدرس در پایین ایمیل</label>
+                <textarea class="form-textarea" id="email-footer-address" rows="2" maxlength="500"></textarea>
+              </div>
+              <div class="email-form-actions">
+                <button class="btn btn-primary" id="btn-save-email" type="button">ذخیره تنظیمات ایمیل</button>
+                <button class="btn btn-secondary" id="btn-refresh-email-preview" type="button">تازه‌سازی پیش‌نمایش</button>
+              </div>
+              <p class="save-state" id="email-save-state"></p>
+            </div>
+            <div class="email-preview-wrap">
+              <div class="email-preview-head"><strong>پیش‌نمایش ایمیل</strong><small>همان قالبی که برای پاسخ خودکار استفاده می‌شود.</small></div>
+              <iframe id="email-preview" title="پیش‌نمایش قالب ایمیل" sandbox="" loading="lazy"></iframe>
+            </div>
+          </div>
+        </section>
+      </div>
+
       <!-- Panel: Working Hours -->
       <div class="settings-panel" id="panel-hours" role="tabpanel">
-        <section class="panel" style="max-width:640px">
+        <section class="panel" style="max-width:1120px">
           <div class="panel-header"><div><h3>ساعت کاری کلینیک</h3><p>روزهای فعال و بازه زمانی</p></div></div>
           <div id="hours-list" style="display:flex;flex-direction:column;gap:.75rem">
             <div class="skeleton skeleton-line" style="width:80%;margin:.5rem 0"></div>
@@ -144,11 +216,11 @@
     </main>
   </div>
 
-  <script src="../../assets/js/app.js"></script>
-  <script src="../../assets/js/states.js"></script>
-  <script src="../../assets/js/chrome.js"></script>
+  <script src="../../assets/js/app.js?v=20260920j"></script>
+  <script src="../../assets/js/states.js?v=20260920j"></script>
+  <script src="../../assets/js/chrome.js?v=20260920j"></script>
   <script type="module">
-    import { Staff, renderError, showToast, escHtml, requireAuth, redirectOn401 } from '../../shared/api.js';
+    import { Staff, renderError, showToast, escHtml, requireAuth, redirectOn401 } from '../../shared/api.js?v=20260920j';
     if (!requireAuth('../auth/login.html', 'staff')) { /* redirecting */ }
 
     // ── Tab switching ────────────────────────────────────────────────────────
@@ -226,7 +298,7 @@
       }));
     }
 
-    const ROLE_LABELS = { super_admin:'مدیر کل', doctor:'پزشک', receptionist:'پذیرش', nurse:'پرستار' };
+    const ROLE_LABELS = { super_admin:'مدیر کل', admin:'مدیر', doctor:'پزشک', receptionist:'پذیرش', nurse:'پرستار' };
     let currentStaffUser = null;
     let staffUsers = [];
 
@@ -313,6 +385,59 @@
         </li>`).join('');
     }
 
+
+    let loadedEmailSettings = {};
+
+    function fmtTehran(v) {
+      if (!v) return 'هنوز همگام‌سازی نشده';
+      try {
+        return new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+          timeZone:'Asia/Tehran', dateStyle:'medium', timeStyle:'short'
+        }).format(new Date(String(v).replace(' ','T') + (String(v).includes('T') ? '' : 'Z')));
+      } catch (_) { return String(v); }
+    }
+
+    function renderEmailSettings(s) {
+      loadedEmailSettings = s || {};
+      document.getElementById('email-inbox').value = s.inbox_email || 'contact@drbastaninejad.com';
+      document.getElementById('email-from-name').value = s.from_name || '';
+      document.getElementById('email-auto-enabled').checked = Boolean(s.auto_response_enabled);
+      document.getElementById('email-auto-subject').value = s.auto_response_subject || '';
+      document.getElementById('email-auto-body').value = s.auto_response_body || '';
+      document.getElementById('email-signature').value = s.signature_text || '';
+      document.getElementById('email-booking-url').value = s.booking_url || '';
+      document.getElementById('email-footer-phone').value = s.footer_phone || '';
+      document.getElementById('email-footer-address').value = s.footer_address || '';
+      document.getElementById('email-last-sync').value = fmtTehran(s.last_inbox_sync_at);
+      const preview = document.getElementById('email-preview');
+      preview.srcdoc = s.preview_html || '<!doctype html><html lang="fa" dir="rtl"><body style="font-family:Tahoma;padding:2rem">پیش‌نمایش در دسترس نیست.</body></html>';
+    }
+
+    async function loadEmailSettings() {
+      const state = document.getElementById('email-save-state');
+      try {
+        const res = await Staff.getCommunicationSettings();
+        renderEmailSettings(res.data || res || {});
+        if (state) { state.textContent = ''; state.className = 'save-state'; }
+      } catch (err) {
+        if (redirectOn401(err, '../auth/login.html', 'staff')) return;
+        if (state) { state.textContent = err.message || 'دریافت تنظیمات ایمیل انجام نشد.'; state.className = 'save-state error'; }
+      }
+    }
+
+    function collectEmailSettings() {
+      return {
+        from_name: document.getElementById('email-from-name').value.trim(),
+        auto_response_enabled: document.getElementById('email-auto-enabled').checked,
+        auto_response_subject: document.getElementById('email-auto-subject').value.trim(),
+        auto_response_body: document.getElementById('email-auto-body').value.trim(),
+        signature_text: document.getElementById('email-signature').value.trim(),
+        booking_url: document.getElementById('email-booking-url').value.trim(),
+        footer_phone: document.getElementById('email-footer-phone').value.trim(),
+        footer_address: document.getElementById('email-footer-address').value.trim(),
+      };
+    }
+
     async function loadSettings() {
       try {
         const res = await Staff.getClinicSettings();
@@ -325,7 +450,7 @@
         renderHours(d.working_hours || []);
         renderEmrTemplates(d.emr_templates || []);
         renderIntegrations(d.integrations || []);
-        await loadStaffUsers();
+        await Promise.all([loadStaffUsers(), loadEmailSettings()]);
       } catch (err) {
         if (redirectOn401(err, '../auth/login.html', 'staff')) return;
         renderError(document.getElementById('clinic-form-fields'), err);
@@ -401,6 +526,40 @@
       } finally {
         this.disabled = false;
       }
+    });
+
+
+    // ── Email & automatic response ───────────────────────────────────────────
+    document.getElementById('btn-save-email').addEventListener('click', async function() {
+      const state = document.getElementById('email-save-state');
+      const body = collectEmailSettings();
+      if (!body.from_name || !body.auto_response_subject || !body.auto_response_body) {
+        state.textContent = 'نام فرستنده، موضوع و متن پاسخ خودکار را کامل کنید.';
+        state.className = 'save-state error';
+        return;
+      }
+      this.disabled = true;
+      state.textContent = 'در حال ذخیره…';
+      state.className = 'save-state';
+      try {
+        const res = await Staff.updateCommunicationSettings(body);
+        renderEmailSettings(res.data || res || {});
+        state.textContent = '✓ تنظیمات ایمیل ذخیره شد.';
+        state.className = 'save-state success';
+        showToast('تنظیمات ایمیل ذخیره شد.', 'success');
+      } catch (err) {
+        state.textContent = err.message || 'ذخیره تنظیمات ایمیل انجام نشد.';
+        state.className = 'save-state error';
+        showToast(err.message || 'ذخیره تنظیمات ایمیل انجام نشد.', 'error');
+      } finally {
+        this.disabled = false;
+      }
+    });
+
+    document.getElementById('btn-refresh-email-preview').addEventListener('click', async function() {
+      this.disabled = true;
+      try { await loadEmailSettings(); }
+      finally { this.disabled = false; }
     });
 
     // ── Save hours (sends current rendered values) ───────────────────────────

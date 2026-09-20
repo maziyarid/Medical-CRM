@@ -38,6 +38,11 @@ $router->post('/api/v1/patients/{id}/blacklist', [BookingBlacklistController::cl
     fn() => new RbacMiddleware('patients.manage'),
 ]);
 
+$router->delete('/api/v1/patients/{id}/blacklist', [BookingBlacklistController::class, 'unblockPatient'], [
+    AuthMiddleware::class,
+    fn() => new RbacMiddleware('patients.manage'),
+]);
+
 $router->post('/api/v1/patients/{id}/sms', [PatientController::class, 'sendSms'], [
     AuthMiddleware::class,
     fn() => new RbacMiddleware('patients.manage'),

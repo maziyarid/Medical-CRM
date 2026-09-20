@@ -1,12 +1,9 @@
 /**
  * ============================================================================
- *  MΛZ Medical CRM — API Adapter
+ *  Smart Teb Medical CRM — API Adapter
  *  Client / Product: Dr. Shahin Bastaninejad Multi-Specialty Medical Platform
  * ----------------------------------------------------------------------------
  *  Project : Medical CRM (app.drbastaninejad.com)
- *  Author  : MAZ//ID (Maziyar)
- *  Contact : maziyarid@gmail.com — https://maziyarid.com
- *  License : Proprietary — © 2026 Maziyar / Dr. Shahin Bastaninejad
  *  Version : 1.0.0  ·  27 July 2026
  * ============================================================================
  *
@@ -522,6 +519,10 @@ export const Staff = {
     return staffRequest('POST', `/patients/${id}/blacklist`, { reason });
   },
 
+  async unblockPatient(id) {
+    return staffRequest('DELETE', `/patients/${id}/blacklist`, {});
+  },
+
   async listBookingBlacklist() {
     return staffRequest('GET', '/admin/booking-blacklist');
   },
@@ -725,6 +726,68 @@ export const Staff = {
     return staffRequest('DELETE', `/tasks/${id}`);
   },
 
+  // ── Communications / email inbox ────────────────────────────────
+
+  async listCommunications(params = {}) {
+    const qs = new URLSearchParams();
+    for (const [key, value] of Object.entries(params || {})) {
+      if (value !== undefined && value !== null && value !== '') qs.set(key, String(value));
+    }
+    return staffRequest('GET', '/communications' + (qs.toString() ? '?' + qs.toString() : ''));
+  },
+
+  async getCommunicationSummary() {
+    return staffRequest('GET', '/communications/summary');
+  },
+
+  async getCommunication(id) {
+    return staffRequest('GET', `/communications/${id}`);
+  },
+
+  async listCommunicationLabels() {
+    return staffRequest('GET', '/communications/labels');
+  },
+
+  async createCommunicationLabel(name, color_key = 'green') {
+    return staffRequest('POST', '/communications/labels', { name, color_key });
+  },
+
+  async deleteCommunicationLabel(id) {
+    return staffRequest('DELETE', `/communications/labels/${id}`);
+  },
+
+  async updateCommunicationMeta(id, body) {
+    return staffRequest('PATCH', `/communications/${id}/meta`, body);
+  },
+
+  async markCommunicationRead(id) {
+    return staffRequest('PATCH', `/communications/${id}/read`, {});
+  },
+
+  async updateCommunicationStatus(id, status) {
+    return staffRequest('PATCH', `/communications/${id}/status`, { status });
+  },
+
+  async replyCommunication(id, body) {
+    return staffRequest('POST', `/communications/${id}/reply`, { body });
+  },
+
+  async syncCommunications() {
+    return staffRequest('POST', '/communications/sync', {});
+  },
+
+  async getCommunicationSettings() {
+    return staffRequest('GET', '/communications/settings');
+  },
+
+  async updateCommunicationSettings(body) {
+    return staffRequest('PATCH', '/communications/settings', body);
+  },
+
+  async getSystemTime() {
+    return staffRequest('GET', '/system/time');
+  },
+
   // ── Settings ──────────────────────────────────────────────────────
 
   /**
@@ -920,6 +983,6 @@ export function redirectOn401(err, loginPath = '../auth/login.html', scope = 'pa
 
 /*
  * ============================================================================
- *  End of file — MAZ//ID
+ * End of file — Smart Teb
  * ============================================================================
  */

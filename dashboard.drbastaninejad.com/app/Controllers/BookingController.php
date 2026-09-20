@@ -68,8 +68,9 @@ final class BookingController extends Controller
             return $this->error('دسترسی پل رزرو معتبر نیست.', 401);
         }
         $identifier=(string)($req->body['national_id']??$req->body['passport_number']??'');
+        $mobile=ValidatorService::normalizeMobile(trim((string)($req->body['mobile']??'')));
         $clinicId=(int)($_ENV['DEFAULT_CLINIC_ID']??1);
-        $blocked=(new BookingBlacklistService())->isBlocked($clinicId,$identifier);
+        $blocked=(new BookingBlacklistService())->isBlockedAny($clinicId,$identifier,$mobile);
         return $this->success([
             'eligible'=>!$blocked,
             'message'=>$blocked?'شما واجد شرایط نیستید.':'',
@@ -155,7 +156,7 @@ final class BookingController extends Controller
 
         $clinicId = (int)($_ENV['DEFAULT_CLINIC_ID'] ?? 1);
         $identifier = $nationalId !== '' ? $nationalId : trim((string)($req->body['passport_number'] ?? ''));
-        if ((new BookingBlacklistService())->isBlocked($clinicId, $identifier)) {
+        if ((new BookingBlacklistService())->isBlockedAny($clinicId, $identifier, $mobile)) {
             return $this->error('شما واجد شرایط نیستید.', 403);
         }
         if (!$isInternational) {
@@ -319,13 +320,9 @@ final class BookingController extends Controller
             ->execute([$emailStatus, $bookingId]);
 
         if ($this->shouldSendBookingSms($mobile, $isInternational)) {
-            $bookingUrl = 'https://drbastaninejad.com/booking/';
-            $template = trim((string)($_ENV['BOOKING_SMS_TEMPLATE'] ?? "{name} عزیز، درخواست نوبت شما ثبت شد. برای انتخاب تاریخ و ساعت آزاد و پرداخت هزینه ویزیت، فرایند را در صفحه نوبت‌دهی تکمیل کنید: {booking_url}"));
-            $template = mb_substr($template, 0, 800);
-            $sms = (new SmsProviderChain())->sendMessage($mobile, strtr($template, [
-                '{name}' => $firstName,
-                '{booking_url}' => $bookingUrl,
-            ]));
+            $messageText = ($firstName !== '' ? $firstName . ' عزیز، ' : '')
+                . 'درخواست نوبت شما ثبت شد. برای انتخاب تاریخ و ساعت آزاد و تکمیل رزرو، لطفاً فرایند را در بخش نوبت‌دهی سایت دکتر باستانی‌نژاد ادامه دهید.';
+            $sms = (new SmsProviderChain())->sendMessage($mobile, mb_substr($messageText, 0, 800));
             $smsStatus = !empty($sms['ok']) ? 'sent' : 'failed';
             $this->recordSmsResult($db, $bookingId, $smsStatus, $sms);
             if ($smsStatus !== 'sent') {

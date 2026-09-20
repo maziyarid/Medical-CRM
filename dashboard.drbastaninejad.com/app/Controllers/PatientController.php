@@ -39,9 +39,11 @@ final class PatientController extends Controller
 
         $result = $this->patients->search($clinicId, $q, $page, $perPage, $insuranceStatus);
         $blacklist = new BookingBlacklistService();
-        $rows = array_map(static function (array $r) use ($blacklist, $clinicId): array {
+        $blockedPatients = $blacklist->blockedPatientIds($clinicId, $result['rows']);
+        $rows = array_map(static function (array $r) use ($blockedPatients): array {
+            $patientId=(int)$r['id'];
             return [
-                'id' => (int)$r['id'],
+                'id' => $patientId,
                 'name' => trim((string)$r['first_name'] . ' ' . (string)$r['last_name']),
                 'first_name' => (string)$r['first_name'],
                 'last_name' => (string)$r['last_name'],
@@ -50,7 +52,7 @@ final class PatientController extends Controller
                 'insurance_status' => $r['insurance_status'],
                 'last_visit' => $r['last_visit'],
                 'upcoming_count' => (int)$r['upcoming_count'],
-                'booking_blocked' => !empty($r['national_id']) && $blacklist->isBlocked($clinicId, (string)$r['national_id']),
+                'booking_blocked' => !empty($blockedPatients[$patientId]),
             ];
         }, $result['rows']);
 
@@ -197,6 +199,7 @@ final class PatientController extends Controller
         $message = match ($e->getMessage()) {
             'patient not found' => 'بیمار یافت نشد',
             'invalid SMS message' => 'متن پیامک باید بین ۱ تا ۷۰۰ نویسه باشد',
+            'SMS links are not allowed' => 'برای افزایش احتمال تحویل پیامک، لینک یا نشانی وب را از متن حذف کنید',
             'no patients selected' => 'هیچ بیماری انتخاب نشده است',
             'too many patients selected' => 'حداکثر ۲۰۰ بیمار را هم‌زمان انتخاب کنید',
             default => 'ارسال پیامک انجام نشد',

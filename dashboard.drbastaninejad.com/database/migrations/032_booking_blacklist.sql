@@ -1,6 +1,6 @@
--- Migration 031: appointment-booking blacklist.
+-- Migration 032: appointment-booking blacklist.
 -- Store only a one-way identifier hash plus the last four characters for staff display.
--- Runtime BookingBlacklistService::ensureSchema() mirrors this definition for file-only deployments.
+-- Schema creation is deployment-owned; runtime requests must never execute DDL.
 
 CREATE TABLE IF NOT EXISTS booking_blacklist (
     id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS booking_blacklist (
     identifier_last4  VARCHAR(4) NOT NULL,
     patient_name      VARCHAR(200) NOT NULL DEFAULT '',
     reason            VARCHAR(500) NOT NULL DEFAULT '',
+    source            VARCHAR(30) NOT NULL DEFAULT 'manual',
     created_by        BIGINT UNSIGNED NULL,
     created_at        DATETIME NOT NULL,
     PRIMARY KEY (id),
