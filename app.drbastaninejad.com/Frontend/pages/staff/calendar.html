@@ -55,6 +55,37 @@
     <div class="panel-header"><div><h3>رزروهای وب‌سایت و پذیرش</h3><p>نام ثبت‌کننده/کد کارمند، پرداخت، تأیید، Google Calendar و Sheet</p></div><button class="btn btn-secondary" id="refresh-bookings">تازه‌سازی</button></div>
     <div class="table-scroll"><table class="mini-table"><thead><tr><th>بیمار</th><th>زمان</th><th>ثبت‌کننده</th><th>منبع</th><th>پرداخت</th><th>تأیید</th><th>Calendar/Sheet</th><th>عملیات</th></tr></thead><tbody id="booking-rows"></tbody></table></div>
   </section>
+
+  <section class="card-lite" id="blacklist-card" style="margin-top:1rem">
+    <div class="panel-header">
+      <div><h3>لیست سیاه رزرو</h3><p>کد ملی یا شماره گذرنامه فرد را ثبت کنید تا امکان رزرو آنلاین و ثبت نوبت جدید برای او مسدود شود.</p></div>
+      <button class="btn btn-secondary" type="button" id="refresh-blacklist">تازه‌سازی</button>
+    </div>
+    <form id="blacklist-form" class="form-grid" style="margin-bottom:1rem">
+      <div class="form-field">
+        <label>نوع شناسه</label>
+        <select name="identifier_type" required><option value="national_id">کد ملی</option><option value="passport">شماره گذرنامه</option></select>
+      </div>
+      <div class="form-field">
+        <label>کد ملی / شماره گذرنامه</label>
+        <input name="identifier" required maxlength="32" autocomplete="off" placeholder="شناسه را وارد کنید">
+      </div>
+      <div class="form-field">
+        <label>دلیل داخلی (اختیاری)</label>
+        <input name="reason" maxlength="500" placeholder="فقط برای کارکنان قابل مشاهده است">
+      </div>
+      <div class="form-field" style="align-self:end">
+        <button class="btn btn-primary full" type="submit">افزودن به لیست سیاه</button>
+      </div>
+    </form>
+    <p id="blacklist-state" class="staff-chip" aria-live="polite"></p>
+    <div class="table-scroll">
+      <table class="mini-table" aria-label="لیست سیاه رزرو">
+        <thead><tr><th>بیمار</th><th>شناسه</th><th>نوع</th><th>دلیل</th><th>تاریخ ثبت</th><th>عملیات</th></tr></thead>
+        <tbody id="blacklist-rows"></tbody>
+      </table>
+    </div>
+  </section>
 </main></div>
 
 <div class="modal-mask" id="booking-modal"><div class="modal-box"><div class="panel-header"><h3>ثبت نوبت رایگان توسط کارکنان</h3><button class="btn btn-secondary" type="button" id="close-modal">بستن</button></div>
@@ -95,10 +126,36 @@ async function loadAvailability(){try{const d=await fetch(API+'/appointment-book
 function renderManualSlots(){const h=document.getElementById('manual-slots');if(!availability.length){h.innerHTML='<span>روز و ساعت آزادی تعریف نشده است.</span>';return;}h.innerHTML=availability.map(day=>day.slots.map(s=>'<button type="button" class="slot-btn" data-day="'+day.id+'" data-start="'+s.start_at+'">'+tehranDateLabel(new Date(day.date+'T12:00:00'))+' — '+s.local_time+'</button>').join('')).join('');h.querySelectorAll('.slot-btn').forEach(b=>b.onclick=()=>{h.querySelectorAll('.slot-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selectedManual={open_day_id:Number(b.dataset.day),start_at:b.dataset.start};});}
 async function loadOpenDays(){try{const rows=await api('/admin/appointment-open-days');document.getElementById('open-days-list').innerHTML=rows.length?rows.map(x=>'<div class="event-chip">'+escHtml(x.open_date)+' | '+escHtml((x.opens_at||'').slice(0,5))+'–'+escHtml((x.closes_at||'').slice(0,5))+' | ظرفیت '+x.capacity+' | باقی‌مانده '+x.remaining+' | '+escHtml(x.status)+'</div>').join(''):'<p>هنوز روز کاری برای رزرو آنلاین تعریف نشده است.</p>';}catch(e){document.getElementById('open-days-card').style.display='none';}}
 async function loadFee(){try{const d=await api('/admin/appointment-fee');document.querySelector('#fee-form [name=amount_tomans]').value=d.amount_tomans||500000;document.getElementById('fee-state').textContent='درگاه فعال: زرین‌پال';}catch(e){document.getElementById('fee-card').style.display='none';}}
-async function loadBookings(){const body=document.getElementById('booking-rows');body.innerHTML='<tr><td colspan="8">در حال بارگذاری…</td></tr>';try{const rows=await api('/admin/appointment-bookings?limit=100');body.innerHTML=rows.length?rows.map(b=>{const who=b.source==='online'?'WEB / بیمار':[(b.receptionist_code||''),(b.receptionist_name||'')].filter(Boolean).join(' — ');let actions='';if(b.confirmation_status==='paid_pending_staff')actions+='<button class="btn btn-secondary btn-sm" data-confirm="'+b.id+'">تأیید</button>';if(b.staff_followup_required)actions+='<button class="btn btn-secondary btn-sm" data-followup="'+b.id+'">پیگیری انجام شد</button>';return '<tr><td>'+escHtml(b.patient_name)+'<br><small>'+escHtml(b.mobile)+'</small></td><td>'+escHtml(b.requested_start_at)+'</td><td>'+escHtml(who)+'</td><td>'+escHtml(b.source)+'</td><td><span class="status-pill '+escHtml(b.payment_status)+'">'+escHtml(b.payment_status)+'</span><br><small>'+new Intl.NumberFormat('fa-IR').format(Math.round((b.amount_rials||0)/10))+' تومان</small></td><td><span class="status-pill '+escHtml(b.confirmation_status)+'">'+escHtml(b.confirmation_status)+'</span></td><td><small>Calendar: '+escHtml(b.calendar_sync_status||'—')+'<br>Sheet: '+escHtml(b.sheet_sync_status||'—')+'</small></td><td><div class="inline-actions">'+actions+'</div></td></tr>'}).join(''):'<tr><td colspan="8">هنوز رزروی ثبت نشده است.</td></tr>';body.querySelectorAll('[data-confirm]').forEach(x=>x.onclick=async()=>{await api('/admin/appointment-bookings/'+x.dataset.confirm+'/confirm',{method:'POST',body:'{}'});await refreshAll();});body.querySelectorAll('[data-followup]').forEach(x=>x.onclick=async()=>{await api('/admin/appointment-bookings/'+x.dataset.followup+'/followup-complete',{method:'POST',body:'{}'});await loadBookings();});}catch(e){body.innerHTML='<tr><td colspan="8" class="error-text">'+escHtml(e.message)+'</td></tr>';}}
-async function refreshAll(){await Promise.all([loadCalendar(),loadAvailability(),loadOpenDays(),loadFee(),loadBookings()]);}
+async function loadBlacklist(){
+  const body=document.getElementById('blacklist-rows'),state=document.getElementById('blacklist-state');
+  body.innerHTML='<tr><td colspan="6">در حال بارگذاری…</td></tr>';state.textContent='';
+  try{
+    const rows=await api('/admin/booking-blacklist');
+    body.innerHTML=rows.length?rows.map(x=>'<tr><td>'+escHtml(x.patient_name||'—')+'</td><td style="direction:ltr;text-align:right">'+escHtml(x.identifier_masked||'—')+'</td><td>'+(x.identifier_type==='national_id'?'کد ملی':'گذرنامه')+'</td><td>'+escHtml(x.reason||'—')+'</td><td>'+escHtml(x.created_at||'—')+'</td><td><button type="button" class="btn btn-secondary btn-sm" data-blacklist-remove="'+x.id+'" aria-label="حذف از لیست سیاه" title="حذف از لیست سیاه"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 8 8 8"/></svg></button></td></tr>').join(''):'<tr><td colspan="6">لیست سیاه خالی است.</td></tr>';
+    body.querySelectorAll('[data-blacklist-remove]').forEach(btn=>btn.onclick=async()=>{
+      if(!confirm('این فرد از لیست سیاه رزرو خارج شود؟'))return;
+      btn.disabled=true;
+      try{await api('/admin/booking-blacklist/'+btn.dataset.blacklistRemove,{method:'DELETE'});showToast('فرد از لیست سیاه رزرو خارج شد.','success');await loadBlacklist();}
+      catch(e){btn.disabled=false;showToast(e.message||'حذف از لیست سیاه انجام نشد.','error',6000);}
+    });
+  }catch(e){body.innerHTML='<tr><td colspan="6" class="error-text">'+escHtml(e.message||'خطای سرور')+'</td></tr>';}
+}
+async function loadBookings(){const body=document.getElementById('booking-rows');body.innerHTML='<tr><td colspan="8">در حال بارگذاری…</td></tr>';try{const rows=await api('/admin/appointment-bookings?limit=100');body.innerHTML=rows.length?rows.map(b=>{const who=b.source==='online'?'WEB / بیمار':[(b.receptionist_code||''),(b.receptionist_name||'')].filter(Boolean).join(' — ');let actions='';if(b.confirmation_status==='paid_pending_staff')actions+='<button class="btn btn-secondary btn-sm" data-confirm="'+b.id+'">تأیید</button>';if(b.staff_followup_required)actions+='<button class="btn btn-secondary btn-sm" data-followup="'+b.id+'">بررسی</button>';return '<tr><td>'+escHtml(b.patient_name)+'<br><small>'+escHtml(b.mobile)+'</small></td><td>'+escHtml(b.requested_start_at)+'</td><td>'+escHtml(who)+'</td><td>'+escHtml(b.source)+'</td><td><span class="status-pill '+escHtml(b.payment_status)+'">'+escHtml(b.payment_status)+'</span><br><small>'+new Intl.NumberFormat('fa-IR').format(Math.round((b.amount_rials||0)/10))+' تومان</small></td><td><span class="status-pill '+escHtml(b.confirmation_status)+'">'+escHtml(b.confirmation_status)+'</span></td><td><small>Calendar: '+escHtml(b.calendar_sync_status||'—')+'<br>Sheet: '+escHtml(b.sheet_sync_status||'—')+'</small></td><td><div class="inline-actions">'+actions+'</div></td></tr>'}).join(''):'<tr><td colspan="8">هنوز رزروی ثبت نشده است.</td></tr>';body.querySelectorAll('[data-confirm]').forEach(x=>x.onclick=async()=>{await api('/admin/appointment-bookings/'+x.dataset.confirm+'/confirm',{method:'POST',body:'{}'});await refreshAll();});body.querySelectorAll('[data-followup]').forEach(x=>x.onclick=async()=>{await api('/admin/appointment-bookings/'+x.dataset.followup+'/followup-complete',{method:'POST',body:'{}'});await loadBookings();});}catch(e){body.innerHTML='<tr><td colspan="8" class="error-text">'+escHtml(e.message)+'</td></tr>';}}
+async function refreshAll(){await Promise.all([loadCalendar(),loadAvailability(),loadOpenDays(),loadFee(),loadBookings(),loadBlacklist()]);}
 async function boot(){me=await api('/auth/me');document.getElementById('staff-identity').textContent=[me.name,me.staff_code,me.role].filter(Boolean).join(' — ');await refreshAll();}
 document.getElementById('view-tabs').onclick=e=>{const b=e.target.closest('[data-view]');if(!b)return;view=b.dataset.view;document.querySelectorAll('#view-tabs button').forEach(x=>x.classList.toggle('active',x===b));loadCalendar();};
+document.getElementById('refresh-blacklist').onclick=loadBlacklist;
+document.getElementById('blacklist-form').onsubmit=async e=>{
+  e.preventDefault();
+  const form=e.target,submit=form.querySelector('[type=submit]'),state=document.getElementById('blacklist-state');
+  const payload=Object.fromEntries(new FormData(form).entries());
+  submit.disabled=true;state.textContent='در حال ثبت…';
+  try{
+    await api('/admin/booking-blacklist',{method:'POST',body:JSON.stringify(payload)});
+    form.reset();state.textContent='به لیست سیاه اضافه شد.';showToast('شناسه به لیست سیاه رزرو اضافه شد.','success');await loadBlacklist();
+  }catch(err){state.textContent=err.message||'ثبت انجام نشد.';showToast(state.textContent,'error',6000);}
+  finally{submit.disabled=false;}
+};
 document.getElementById('prev-btn').onclick=()=>{cursor=view==='day'?addDays(cursor,-1):view==='week'?addDays(cursor,-7):new Date(cursor.getFullYear(),cursor.getMonth()-1,1);loadCalendar();};document.getElementById('next-btn').onclick=()=>{cursor=view==='day'?addDays(cursor,1):view==='week'?addDays(cursor,7):new Date(cursor.getFullYear(),cursor.getMonth()+1,1);loadCalendar();};document.getElementById('today-btn').onclick=()=>{cursor=new Date();loadCalendar();};
 document.getElementById('new-booking').onclick=()=>{selectedManual=null;document.getElementById('booking-modal').classList.add('open');loadAvailability();};document.getElementById('close-modal').onclick=()=>document.getElementById('booking-modal').classList.remove('open');
 document.getElementById('open-day-form').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),payload=Object.fromEntries(f.entries());payload.capacity=Number(payload.capacity);payload.slot_duration_minutes=Number(payload.slot_duration_minutes);try{await api('/admin/appointment-open-days',{method:'POST',body:JSON.stringify(payload)});showToast('روز کاری ذخیره شد','success');await refreshAll();}catch(err){showToast(err.message,'error');}};
