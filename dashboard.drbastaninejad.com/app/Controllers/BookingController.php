@@ -181,8 +181,7 @@ final class BookingController extends Controller
             $errors[] = ['field' => 'national_id', 'message' => 'کد ملی معتبر نیست'];
         }
         if (!$isInternational && ValidatorService::isValidJalaliDate($birthDateJalali)) {
-            $birthGregorian = ValidatorService::jalaliToGregorian($birthDateJalali);
-            $bookingAge = ValidatorService::ageFromGregorianDate($birthGregorian);
+            $bookingAge = ValidatorService::ageFromJalaliDate($birthDateJalali);
             if ($bookingAge === null || $bookingAge < 18 || $bookingAge > 45) {
                 $errors[] = ['field' => 'birth_date_jalali', 'message' => 'شما واجد شرایط نیستید.'];
             }
