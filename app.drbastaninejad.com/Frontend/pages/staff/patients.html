@@ -1,340 +1,48 @@
-﻿<!doctype html>
-<!--
-  MΛZ Medical CRM — Patient Master Index
-  Author: MAZ//ID (Maziyar) · © 2026 Maziyar / Dr. Shahin Bastaninejad
-  API:  GET /api/v1/patients  ✅ LIVE (dashboard.drbastaninejad.com, Phase D)
-  Contract: dashboard.drbastaninejad.com/docs/API_CONTRACT.md §GET /api/v1/patients
-  Response shape: { ok:true, data:{ rows[], total, page, per_page } }
-  Envelope: "ok" — see shared/api.js Staff.listPatients()
-  Note: Staff Bearer token required. 401 → login.html. 403 → errors/403.html.
--->
+<!doctype html>
 <html dir="rtl" lang="fa-IR">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>بیماران — MΛZ Medical CRM</title>
-  <link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg"/>
-  <link rel="stylesheet" href="../../assets/css/tokens.css"/>
-  <link rel="stylesheet" href="../../assets/css/tokens-extended.css"/>
-  <link rel="stylesheet" href="../../assets/css/base.css"/>
-  <link rel="stylesheet" href="../../assets/css/states.css"/>
-  <link rel="stylesheet" href="../../assets/css/components.css"/>
-  <style>
-    .tr-skeleton td { padding: 0 !important; border: none !important; }
-    .tr-skeleton-inner {
-      height: 52px; border-radius: var(--radius-md); margin: .3rem .75rem;
-    }
-    .pagination { display:flex; gap:.4rem; justify-content:center; margin-top:1.25rem; flex-wrap:wrap; }
-    .pagination .pg-btn {
-      min-width:36px; height:36px; padding:0 .6rem;
-      border:1px solid var(--border); background:var(--surface);
-      border-radius:var(--radius-md); font-size:.85rem; cursor:pointer;
-    }
-    .pagination .pg-btn.active { background:var(--evergreen); color:#fff; border-color:var(--evergreen); }
-    .pagination .pg-btn:disabled { opacity:.4; cursor:default; }
-  </style>
-</head>
-<body data-shell="staff" data-nav="patients">
-  <div class="app-shell">
-    <main class="main">
-
-      <div class="topbar">
-        <div>
-          <h1>بیماران</h1>
-          <p class="subtitle">فهرست کامل بیماران ثبت‌شده — قابل جست‌وجو و فیلترپذیر.</p>
-        </div>
-        <div class="topbar-actions">
-          <button class="btn btn-primary btn-sm" id="btn-add-patient">+ افزودن بیمار</button>
-        </div>
-      </div>
-
-      <!-- Search / filter bar -->
-      <section class="panel" style="padding:1rem 1.5rem;margin-bottom:1.25rem;"
-               aria-label="جست‌وجو و فیلتر بیماران">
-        <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
-          <input class="form-input" id="search-input"
-                 type="search"
-                 placeholder="جست‌وجو در نام، شماره یا کد ملی…"
-                 style="flex:1;min-width:240px"
-                 aria-label="جست‌وجوی بیمار"
-                 autocomplete="off"/>
-          <select class="form-select" id="filter-insurance" style="max-width:200px"
-                  aria-label="فیلتر وضعیت بیمه">
-            <option value="">همه وضعیت بیمه</option>
-            <option value="active">بیمه فعال</option>
-            <option value="inactive">بیمه غیرفعال</option>
-            <option value="pending">در انتظار</option>
-            <option value="unknown">نامشخص</option>
-          </select>
-          <button class="btn btn-secondary btn-sm" id="btn-search">جست‌وجو</button>
-        </div>
-      </section>
-
-      <!-- Table host with data-state -->
-      <div id="table-host" data-state="loading">
-
-        <!-- Loading state -->
-        <div class="slot-loading" aria-hidden="true">
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>بیمار</th><th>شماره همراه</th><th>کد ملی</th>
-                  <th>نوبت‌های آتی</th><th>آخرین مراجعه</th><th>بیمه</th><th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner"></div></td></tr>
-                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:94%"></div></td></tr>
-                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:88%"></div></td></tr>
-                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:96%"></div></td></tr>
-                <tr class="tr-skeleton"><td colspan="7"><div class="skeleton tr-skeleton-inner" style="width:82%"></div></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Ready state -->
-        <div class="slot-ready">
-          <div class="table-wrap">
-            <table class="data-table" id="patients-table" aria-live="polite" aria-label="لیست بیماران">
-              <thead>
-                <tr>
-                  <th>بیمار</th><th>شماره همراه</th><th>کد ملی</th>
-                  <th>نوبت‌های آتی</th><th>آخرین مراجعه</th><th>بیمه</th><th></th>
-                </tr>
-              </thead>
-              <tbody id="tbody"></tbody>
-            </table>
-          </div>
-          <div id="pagination-wrap" class="pagination" role="navigation" aria-label="صفحات"></div>
-        </div>
-
-        <!-- Empty state -->
-        <div class="slot-empty">
-          <div class="state-panel state-empty" role="status">
-            <div class="state-icon" aria-hidden="true">🌿</div>
-            <h3>بیماری یافت نشد</h3>
-            <p>معیار جست‌وجو را تغییر دهید یا بیمار جدید اضافه کنید.</p>
-          </div>
-        </div>
-
-        <!-- Error state -->
-        <div class="slot-error">
-          <div class="state-panel state-error" role="alert">
-            <div class="state-icon" aria-hidden="true">⚠️</div>
-            <h3>بارگذاری لیست بیماران ناموفق بود</h3>
-            <p id="patients-error-msg">لطفاً دوباره تلاش کنید.</p>
-            <div class="state-actions">
-              <button type="button" class="btn btn-secondary btn-sm"
-                      id="patients-retry-btn">تلاش مجدد</button>
-            </div>
-          </div>
-        </div>
-
-      </div><!-- /#table-host -->
-
-    </main>
-  </div>
-
-  <script src="../../assets/js/app.js"></script>
-  <script src="../../assets/js/jalali.js"></script>
-  <script src="../../assets/js/states.js"></script>
-  <script src="../../assets/js/chrome.js"></script>
-  <script type="module">
-    import { Staff, isAuthenticated } from '../../shared/api.js';
-
-    // Network-error family from api.js classifyNetworkError().
-    function isNetworkError(err) {
-      return err && ['NETWORK_ERROR', 'SSL_ERROR', 'DNS_ERROR', 'TIMEOUT_ERROR'].includes(err.code);
-    }
-
-    // ── Auth guard ───────────────────────────────────────────────────────────
-    if (!isAuthenticated('staff')) {
-      window.location.replace('../auth/login.html');
-    }
-
-    // ── Nav button ────────────────────────────────────────────────────────────
-    document.getElementById('btn-add-patient')
-      .addEventListener('click', () => { location.href = '../intake/intake.html'; });
-
-    // ── Pagination state ──────────────────────────────────────────────────────
-    const state = { q: '', insurance: '', page: 1, total: 0, per_page: 20 };
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-    const esc = MAZCRM.escHtml;
-
-    function toFa(n) {
-      return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-    }
-
-    /** Convert UTC DATETIME string to Jalali numeric, fallback to ISO date. */
-    function toJalaliDate(dateStr) {
-      if (!dateStr) return '—';
-      try {
-        const d = new Date(String(dateStr).replace(' ', 'T'));
-        if (isNaN(d.getTime())) return String(dateStr).substring(0, 10);
-        return Jalali.formatNumeric(d);
-      } catch (_) {
-        return String(dateStr).substring(0, 10);
-      }
-    }
-
-    // Insurance status — contract enum: active | inactive | pending | unknown
-    const INSURANCE_MAP = {
-      active:   ['evergreen', 'بیمه فعال'],
-      inactive: ['error',     'بیمه غیرفعال'],
-      pending:  ['warning',   'در انتظار'],
-      unknown:  ['muted',     'نامشخص'],
-    };
-    function insurancePill(s) {
-      const m = INSURANCE_MAP[s] || ['muted', esc(s) || '—'];
-      return '<span class="pill ' + m[0] + '">' + m[1] + '</span>';
-    }
-
-    // ── Render rows ───────────────────────────────────────────────────────────
-    function renderRows(rows) {
-      const tbody = document.getElementById('tbody');
-      if (!rows.length) {
-        tbody.innerHTML =
-          '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">' +
-            'هیچ نتیجه‌ای یافت نشد.' +
-          '</td></tr>';
-        return;
-      }
-      tbody.innerHTML = rows.map(p => {
-        // Contract: name (full string), mobile, national_id, insurance_status, last_visit, upcoming_count
-        const nameStr    = esc(p.name || '—');
-        const initials   = (p.name || '')
-          .split(' ').map(w => w.charAt(0)).slice(0, 2).join('');
-        const mobile     = esc(p.mobile || '—');
-        const natId      = esc(p.national_id || '—');
-        const upcoming   = p.upcoming_count != null ? toFa(p.upcoming_count) : '—';
-        // last_visit is UTC datetime — convert to Jalali for display
-        const lastVisit  = p.last_visit ? esc(toJalaliDate(p.last_visit)) : '—';
-        return '<tr>' +
-          '<td><div style="display:flex;gap:.6rem;align-items:center;">' +
-            '<span class="avatar-md" aria-hidden="true">' + esc(initials) + '</span>' +
-            '<strong>' + nameStr + '</strong>' +
-          '</div></td>' +
-          '<td style="direction:ltr;text-align:right">' + mobile + '</td>' +
-          '<td style="direction:ltr;text-align:right">' + natId + '</td>' +
-          '<td>' + upcoming + '</td>' +
-          '<td>' + lastVisit + '</td>' +
-          '<td>' + insurancePill(p.insurance_status) + '</td>' +
-          '<td><a class="btn btn-ghost btn-sm" href="patient-detail.html?id=' +
-            encodeURIComponent(p.id) + '">مشاهده →</a></td>' +
-        '</tr>';
-      }).join('');
-    }
-
-    // ── Pagination bar ────────────────────────────────────────────────────────
-    function renderPagination() {
-      const wrap = document.getElementById('pagination-wrap');
-      const pages = Math.ceil(state.total / state.per_page) || 1;
-      if (pages <= 1) { wrap.innerHTML = ''; return; }
-      let html = '<button class="pg-btn" id="pg-prev" aria-label="صفحه قبل"' +
-        (state.page <= 1 ? ' disabled' : '') + '>‹</button>';
-      const lo = Math.max(1, state.page - 2);
-      const hi = Math.min(pages, state.page + 2);
-      if (lo > 1) html += '<button class="pg-btn" data-p="1">۱</button>';
-      if (lo > 2) html += '<span style="padding:.4rem">…</span>';
-      for (let i = lo; i <= hi; i++) {
-        html += '<button class="pg-btn' + (i === state.page ? ' active' : '') +
-          '" data-p="' + i + '">' + toFa(i) + '</button>';
-      }
-      if (hi < pages - 1) html += '<span style="padding:.4rem">…</span>';
-      if (hi < pages) html += '<button class="pg-btn" data-p="' + pages + '">' + toFa(pages) + '</button>';
-      html += '<button class="pg-btn" id="pg-next" aria-label="صفحه بعد"' +
-        (state.page >= pages ? ' disabled' : '') + '>›</button>';
-      wrap.innerHTML = html;
-      wrap.querySelectorAll('[data-p]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          state.page = Number(btn.dataset.p);
-          loadPatients();
-        });
-      });
-      const prev = document.getElementById('pg-prev');
-      const next = document.getElementById('pg-next');
-      if (prev) prev.addEventListener('click', () => { state.page--; loadPatients(); });
-      if (next) next.addEventListener('click', () => { state.page++; loadPatients(); });
-    }
-
-    // ── Main loader ───────────────────────────────────────────────────────────
-    async function loadPatients() {
-      const host = document.getElementById('table-host');
-      MAZCRM.states.set(host, 'loading');
-      try {
-        const params = { q: state.q, page: state.page, per_page: state.per_page };
-        // Pass insurance_status filter when set — PatientController.index() supports it
-        if (state.insurance) params.insurance_status = state.insurance;
-        const res = await Staff.listPatients(params);
-        const d = res.data || {};
-        const rows = d.rows ?? [];
-        state.total    = d.total    ?? rows.length;
-        state.per_page = d.per_page ?? state.per_page;
-
-        if (!rows.length) {
-          MAZCRM.states.set(host, 'empty');
-          return;
-        }
-        renderRows(rows);
-        renderPagination();
-        MAZCRM.states.set(host, 'ready');
-      } catch (err) {
-        if (err.httpStatus === 401) {
-          window.location.replace('../auth/login.html');
-        } else if (err.httpStatus === 403) {
-          window.location.replace('../errors/403.html');
-        } else if (err.httpStatus === 404 || err.httpStatus === 503) {
-          // Deployment gate — endpoint not yet reachable
-          document.getElementById('table-host').innerHTML =
-            '<div class="state-panel state-empty" role="status">' +
-              '<div class="state-icon" aria-hidden="true">⏳</div>' +
-              '<h3>در انتظار استقرار بک‌اند</h3>' +
-              '<p>لیست بیماران پس از اجرای مهاجرت‌ها و استقرار بک‌اند در دسترس خواهد بود.</p>' +
-            '</div>';
-        } else {
-          document.getElementById('patients-error-msg').textContent =
-            isNetworkError(err) ? err.message : 'خطای سرور — لطفاً دوباره تلاش کنید.';
-          MAZCRM.states.set(host, 'error');
-        }
-      }
-    }
-
-    // ── Search / filter wiring ────────────────────────────────────────────────
-    const searchInput     = document.getElementById('search-input');
-    const filterInsurance = document.getElementById('filter-insurance');
-    let debounceTimer;
-
-    searchInput.addEventListener('input', () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        state.q    = searchInput.value.trim()
-          .replace(/[\u06F0-\u06F9]/g, d => d.charCodeAt(0) - 0x06F0)
-          .replace(/[\u0660-\u0669]/g, d => d.charCodeAt(0) - 0x0660);
-        state.page = 1;
-        loadPatients();
-      }, 350);
-    });
-
-    filterInsurance.addEventListener('change', () => {
-      state.insurance = filterInsurance.value;
-      state.page = 1;
-      loadPatients();
-    });
-
-    document.getElementById('btn-search').addEventListener('click', () => {
-      state.q    = searchInput.value.trim();
-      state.page = 1;
-      loadPatients();
-    });
-
-    document.getElementById('patients-retry-btn')
-      .addEventListener('click', () => loadPatients());
-
-    // ── Bootstrap ─────────────────────────────────────────────────────────────
-    loadPatients();
-  </script>
-</body>
-</html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>بیماران — MΛZ Medical CRM</title>
+<link rel="icon" type="image/svg+xml" href="../../assets/img/favicon.svg">
+<link rel="stylesheet" href="../../assets/css/tokens.css"><link rel="stylesheet" href="../../assets/css/tokens-extended.css"><link rel="stylesheet" href="../../assets/css/base.css"><link rel="stylesheet" href="../../assets/css/states.css"><link rel="stylesheet" href="../../assets/css/components.css">
+<style>
+.main{max-width:1500px}.bulkbar{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;padding:.75rem 1rem;margin-bottom:.75rem;background:#f6faf7;border:1px solid var(--border);border-radius:14px}.bulkbar .spacer{flex:1}.action-set{display:flex;gap:.3rem;align-items:center;flex-wrap:wrap}.icon-btn{width:34px;height:34px;display:inline-grid;place-items:center;border:1px solid var(--border);border-radius:9px;background:#fff;cursor:pointer;font-size:1rem;text-decoration:none}.icon-btn:hover{background:#edf7f0;border-color:#a9cbb4}.action-icon{width:18px;height:18px;display:block;pointer-events:none}.icon-btn.danger{color:#b42318}.icon-btn:disabled{opacity:.45;cursor:wait}.selection-count{font-size:.8rem;color:var(--muted)}.toast{min-height:1.5rem;font-size:.8rem;font-weight:700}.toast.ok{color:#176329}.toast.bad{color:#b42318}.data-table th:first-child,.data-table td:first-child{width:42px;text-align:center}.pagination{display:flex;gap:.4rem;justify-content:center;margin-top:1.25rem;flex-wrap:wrap}.pg-btn{min-width:36px;height:36px;border:1px solid var(--border);background:#fff;border-radius:9px;cursor:pointer}.pg-btn.active{background:var(--evergreen);color:#fff}@media(max-width:850px){.data-table{min-width:980px}.bulkbar button{flex:1}}
+</style></head>
+<body data-shell="staff" data-nav="patients"><div class="app-shell"><main class="main">
+<div class="topbar"><div><h1>بیماران</h1><p class="subtitle">مدیریت پرونده، ویرایش، بایگانی و ارسال مستقیم یا گروهی پیامک</p></div><div><button class="btn btn-primary btn-sm" id="btn-add-patient">+ افزودن بیمار</button></div></div>
+<section class="panel" style="padding:1rem 1.5rem;margin-bottom:1rem"><div style="display:flex;gap:.75rem;flex-wrap:wrap"><input class="form-input" id="search-input" type="search" placeholder="جست‌وجو در نام، شماره یا کد ملی…" style="flex:1;min-width:240px"><select class="form-select" id="filter-insurance"><option value="">همه وضعیت بیمه</option><option value="active">بیمه فعال</option><option value="inactive">بیمه غیرفعال</option><option value="pending">در انتظار</option><option value="unknown">نامشخص</option></select><button class="btn btn-secondary btn-sm" id="btn-search">جست‌وجو</button></div></section>
+<div class="bulkbar"><label><input type="checkbox" id="select-all"> انتخاب همه این صفحه</label><button class="btn btn-primary btn-sm" id="bulk-sms"><svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path><path d="M8 9h8M8 13h5"></path></svg> <span>ارسال پیامک گروهی</span></button><span class="selection-count" id="selection-count">۰ بیمار انتخاب شده</span><span class="spacer"></span><span class="toast" id="action-state"></span></div>
+<div id="table-host" data-state="loading"><div class="slot-loading"><div class="state-panel">در حال بارگذاری…</div></div><div class="slot-ready"><div class="table-wrap"><table class="data-table"><thead><tr><th><input type="checkbox" id="select-all-head" aria-label="انتخاب همه"></th><th>بیمار</th><th>شماره همراه</th><th>کد ملی</th><th>نوبت‌های آتی</th><th>آخرین مراجعه</th><th>بیمه</th><th>عملیات</th></tr></thead><tbody id="tbody"></tbody></table></div><div id="pagination-wrap" class="pagination"></div></div><div class="slot-empty"><div class="state-panel state-empty"><h3>بیماری یافت نشد</h3></div></div><div class="slot-error"><div class="state-panel state-error"><h3>بارگذاری ناموفق بود</h3><p id="patients-error-msg"></p><button id="patients-retry-btn">تلاش مجدد</button></div></div></div>
+</main></div>
+<script src="../../assets/js/app.js"></script><script src="../../assets/js/jalali.js"></script><script src="../../assets/js/states.js"></script><script src="../../assets/js/chrome.js"></script>
+<script type="module">
+import {Staff,isAuthenticated} from '../../shared/api.js';
+if(!isAuthenticated('staff'))location.replace('../auth/login.html');
+const state={q:'',insurance:'',page:1,total:0,per_page:20,rows:[]},esc=MAZCRM.escHtml,fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]),out=document.getElementById('action-state');
+const ICON_PATHS={
+  view:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle>',
+  edit:'<path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path>',
+  trash:'<path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path><path d="M10 11v5M14 11v5"></path>',
+  sms:'<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path><path d="M8 9h8M8 13h5"></path>',
+  check:'<circle cx="12" cy="12" r="9"></circle><path d="m8 12 2.5 2.5L16 9"></path>',
+  block:'<circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6 18.4 18.4"></path>'
+};
+function icon(name){return '<svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICON_PATHS[name]||'')+'</svg>';}
+function flash(m,b=false){out.textContent=m;out.className='toast '+(b?'bad':'ok')}
+function date(v){if(!v)return'—';try{return Jalali.formatNumeric(new Date(String(v).replace(' ','T')))}catch(_){return String(v).slice(0,10)}}
+const ins={active:['evergreen','بیمه فعال'],inactive:['error','بیمه غیرفعال'],pending:['warning','در انتظار'],unknown:['muted','نامشخص']};
+function pill(v){const x=ins[v]||['muted','—'];return '<span class="pill '+x[0]+'">'+x[1]+'</span>'}
+function selected(){return [...document.querySelectorAll('.patient-check:checked')].map(x=>Number(x.value))}
+function syncChecks(){const n=selected().length,all=state.rows.length>0&&n===state.rows.length;document.getElementById('selection-count').textContent=fa(n)+' بیمار انتخاب شده';document.getElementById('select-all').checked=all;document.getElementById('select-all-head').checked=all}
+function actions(p){const blocked=!!p.booking_blocked;return '<div class="action-set"><a class="icon-btn" href="patient-detail.html?id='+encodeURIComponent(p.id)+'" title="مشاهده" aria-label="مشاهده">'+icon('view')+'</a><button class="icon-btn" data-edit="'+p.id+'" title="ویرایش" aria-label="ویرایش">'+icon('edit')+'</button><button class="icon-btn" data-sms="'+p.id+'" title="ارسال پیامک" aria-label="ارسال پیامک">'+icon('sms')+'</button><button class="icon-btn danger" data-block="'+p.id+'" title="'+(blocked?'رزرو آنلاین این بیمار مسدود است':'مسدود کردن رزرو آنلاین')+'" aria-label="'+(blocked?'رزرو آنلاین مسدود است':'مسدود کردن رزرو آنلاین')+'" '+(blocked?'disabled aria-disabled="true"':'')+'>'+icon('block')+'</button><button class="icon-btn danger" data-delete="'+p.id+'" title="حذف" aria-label="حذف">'+icon('trash')+'</button></div>'}
+function render(rows){state.rows=rows;const b=document.getElementById('tbody');b.innerHTML=rows.map(p=>'<tr><td><input class="patient-check" type="checkbox" value="'+p.id+'"></td><td><strong>'+esc(p.name||'—')+'</strong></td><td dir="ltr">'+esc(p.mobile||'—')+'</td><td dir="ltr">'+esc(p.national_id||'—')+'</td><td>'+fa(p.upcoming_count??0)+'</td><td>'+esc(date(p.last_visit))+'</td><td>'+pill(p.insurance_status)+'</td><td>'+actions(p)+'</td></tr>').join('');b.querySelectorAll('.patient-check').forEach(x=>x.onchange=syncChecks);b.querySelectorAll('[data-edit]').forEach(x=>x.onclick=()=>edit(Number(x.dataset.edit),x));b.querySelectorAll('[data-sms]').forEach(x=>x.onclick=()=>sms(Number(x.dataset.sms),x));b.querySelectorAll('[data-block]:not([disabled])').forEach(x=>x.onclick=()=>blockBooking(Number(x.dataset.block),x));b.querySelectorAll('[data-delete]').forEach(x=>x.onclick=()=>remove(Number(x.dataset.delete),x));syncChecks()}
+function row(id){return state.rows.find(x=>Number(x.id)===id)}
+async function edit(id,b){const p=row(id),first=prompt('نام بیمار:',p.first_name||'');if(first===null)return;const last=prompt('نام خانوادگی:',p.last_name||'');if(last===null)return;const mobile=prompt('شماره همراه:',p.mobile||'');if(mobile===null)return;b.disabled=true;try{const r=await Staff.updatePatient(id,{first_name:first.trim(),last_name:last.trim(),mobile:mobile.trim()}),ok=r.data?.sms?.status==='sent';flash(ok?'ویرایش انجام و پیامک ارسال شد.':'ویرایش انجام شد؛ پیامک ناموفق بود.',!ok);await load()}catch(e){flash(e.raw?.errors?.[0]?.message||e.message,true)}finally{b.disabled=false}}
+async function sms(id,b){const m=prompt('متن پیامک برای '+(row(id)?.name||'بیمار')+':','');if(m===null||!m.trim())return;b.disabled=true;try{const r=await Staff.sendPatientSms(id,m.trim()),ok=r.data?.status==='sent';flash(ok?'پیامک ارسال شد.':'ارسال پیامک ناموفق بود.',!ok)}catch(e){flash(e.raw?.errors?.[0]?.message||e.message,true)}finally{b.disabled=false}}
+async function blockBooking(id,b){const p=row(id);if(!p?.national_id)return flash('برای این بیمار کد ملی ثبت نشده است.',true);if(!confirm('رزرو آنلاین برای '+(p.name||'این بیمار')+' مسدود شود؟'))return;const reason=prompt('علت مسدودسازی (اختیاری):','مسدود توسط پذیرش');if(reason===null)return;b.disabled=true;try{await Staff.blockPatient(id,reason.trim());flash('رزرو آنلاین این بیمار مسدود شد.');await load()}catch(e){flash(e.raw?.errors?.[0]?.message||e.message,true)}finally{b.disabled=false}}
+async function remove(id,b){if(!confirm('بیمار از فهرست فعال حذف شود؟ پیامک اطلاع‌رسانی فوراً ارسال می‌شود.'))return;b.disabled=true;try{const r=await Staff.deletePatient(id),ok=r.data?.sms?.status==='sent';flash(ok?'بیمار بایگانی و پیامک ارسال شد.':'بیمار بایگانی شد؛ پیامک ناموفق بود.',!ok);await load()}catch(e){flash(e.raw?.errors?.[0]?.message||e.message,true)}finally{b.disabled=false}}
+async function bulk(){const ids=selected();if(!ids.length)return flash('حداقل یک بیمار انتخاب کنید.',true);const m=prompt('متن پیامک گروهی:','');if(m===null||!m.trim())return;const b=document.getElementById('bulk-sms');b.disabled=true;try{const r=await Staff.sendBulkPatientSms(ids,m.trim()),d=r.data||{};flash(fa(d.sent||0)+' پیامک ارسال شد'+(d.failed?' و '+fa(d.failed)+' مورد ناموفق بود.':'.'),Number(d.failed)>0)}catch(e){flash(e.raw?.errors?.[0]?.message||e.message,true)}finally{b.disabled=false}}
+function pages(){const w=document.getElementById('pagination-wrap'),n=Math.ceil(state.total/state.per_page)||1;w.innerHTML=n<=1?'':Array.from({length:n},(_,i)=>i+1).slice(Math.max(0,state.page-3),state.page+2).map(i=>'<button class="pg-btn'+(i===state.page?' active':'')+'" data-p="'+i+'">'+fa(i)+'</button>').join('');w.querySelectorAll('[data-p]').forEach(x=>x.onclick=()=>{state.page=Number(x.dataset.p);load()})}
+async function load(){const h=document.getElementById('table-host');MAZCRM.states.set(h,'loading');try{const p={q:state.q,page:state.page,per_page:state.per_page};if(state.insurance)p.insurance_status=state.insurance;const r=await Staff.listPatients(p),d=r.data||{},rows=d.rows||[];state.total=d.total??rows.length;state.per_page=d.per_page??20;if(!rows.length){state.rows=[];MAZCRM.states.set(h,'empty');syncChecks();return}render(rows);pages();MAZCRM.states.set(h,'ready')}catch(e){if(e.httpStatus===401)location.replace('../auth/login.html');else{document.getElementById('patients-error-msg').textContent=e.message||'خطای سرور';MAZCRM.states.set(h,'error')}}}
+['select-all','select-all-head'].forEach(id=>document.getElementById(id).onchange=e=>{document.querySelectorAll('.patient-check').forEach(x=>x.checked=e.target.checked);syncChecks()});document.getElementById('bulk-sms').onclick=bulk;document.getElementById('btn-add-patient').onclick=()=>location.href='../intake/intake.html';const q=document.getElementById('search-input');let t;q.oninput=()=>{clearTimeout(t);t=setTimeout(()=>{state.q=q.value.trim();state.page=1;load()},350)};document.getElementById('btn-search').onclick=()=>{state.q=q.value.trim();state.page=1;load()};document.getElementById('filter-insurance').onchange=e=>{state.insurance=e.target.value;state.page=1;load()};document.getElementById('patients-retry-btn').onclick=load;load();
+</script></body></html>
