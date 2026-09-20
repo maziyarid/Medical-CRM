@@ -144,34 +144,129 @@ final class ValidatorService
             return '';
         }
 
-        [$_, $jy, $jm, $jd] = array_map('intval', $m);
-
-        // Algorithmic Jalali → Julian Day Number
-        $jy  += 1595;
-        $days = -355779
-              + 365 * $jy
-              + (int)(($jy / 33) * 8 + ($jy % 33 + 3) / 4 + ($jy % 33 + 16) / 32)
-              + $jd
-              + ($jm < 7 ? ($jm - 1) * 31 : ($jm - 7) * 30 + 186);
-
-        // Julian Day Number → Gregorian
-        $gy = (int)(($days - 122122) / 365.25);
-        $days2 = $days - (int)(365.25 * $gy + 122122.1);
-        if ($days2 < 1) {
-            $gy--;
-            $days2 = $days - (int)(365.25 * $gy + 122122.1);
+        $jy = (int)$m[1];
+        $jm = (int)$m[2];
+        $jd = (int)$m[3];
+        if (!self::isValidJalaliDate($jalali)) {
+            return '';
         }
+
+        $jy += 1595;
+        $days = -355668
+              + (365 * $jy)
+              + (intdiv($jy, 33) * 8)
+              + intdiv(($jy % 33) + 3, 4)
+              + $jd
+              + ($jm < 7 ? (($jm - 1) * 31) : ((($jm - 7) * 30) + 186));
+
+        $gy = 400 * intdiv($days, 146097);
+        $days %= 146097;
+
+        if ($days > 36524) {
+            $days--;
+            $gy += 100 * intdiv($days, 36524);
+            $days %= 36524;
+            if ($days >= 365) {
+                $days++;
+            }
+        }
+
+        $gy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $gy += intdiv($days - 1, 365);
+            $days = ($days - 1) % 365;
+        }
+
+        $gd = $days + 1;
+        $monthDays = [
+            0, 31,
+            (($gy % 4 === 0 && $gy % 100 !== 0) || $gy % 400 === 0) ? 29 : 28,
+            31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+        ];
 
         $gm = 1;
-        $daysInMonth = [0, 31, 28 + ($gy % 4 === 0 && ($gy % 100 !== 0 || $gy % 400 === 0) ? 1 : 0),
-                        31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-        while ($days2 > $daysInMonth[$gm]) {
-            $days2 -= $daysInMonth[$gm];
+        while ($gm <= 12 && $gd > $monthDays[$gm]) {
+            $gd -= $monthDays[$gm];
             $gm++;
         }
-        $gd = $days2;
+        if ($gm > 12) {
+            return '';
+        }
 
         return sprintf('%04d-%02d-%02d', $gy, $gm, $gd);
+    }
+
+    /**
+     * Calculate completed age directly in the Persian calendar.
+     */
+    public static function ageFromJalaliDate(string $jalali): ?int
+    {
+        $jalali = self::normalizePersianDigits($jalali);
+        $jalali = str_replace('-', '/', $jalali);
+        if (!self::isValidJalaliDate($jalali)) {
+            return null;
+        }
+        if (!preg_match('/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/', $jalali, $m)) {
+            return null;
+        }
+
+        $birthY = (int)$m[1];
+        $birthM = (int)$m[2];
+        $birthD = (int)$m[3];
+
+        $today = new \DateTimeImmutable('today', new \DateTimeZone('Asia/Tehran'));
+        [$todayY, $todayM, $todayD] = self::gregorianToJalali(
+            (int)$today->format('Y'),
+            (int)$today->format('n'),
+            (int)$today->format('j')
+        );
+
+        $age = $todayY - $birthY;
+        if ($todayM < $birthM || ($todayM === $birthM && $todayD < $birthD)) {
+            $age--;
+        }
+        return $age >= 0 ? $age : null;
+    }
+
+    public static function gregorianToJalali(int $gy, int $gm, int $gd): array
+    {
+        $gdm = [0,31,59,90,120,151,181,212,243,273,304,334];
+        if ($gy > 1600) {
+            $jy = 979;
+            $gy -= 1600;
+        } else {
+            $jy = 0;
+            $gy -= 621;
+        }
+
+        $gy2 = $gm > 2 ? $gy + 1 : $gy;
+        $days = (365 * $gy)
+              + intdiv($gy2 + 3, 4)
+              - intdiv($gy2 + 99, 100)
+              + intdiv($gy2 + 399, 400)
+              - 80 + $gd + $gdm[$gm - 1];
+
+        $jy += 33 * intdiv($days, 12053);
+        $days %= 12053;
+        $jy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $jy += intdiv($days - 1, 365);
+            $days = ($days - 1) % 365;
+        }
+
+        if ($days < 186) {
+            $jm = 1 + intdiv($days, 31);
+            $jd = 1 + ($days % 31);
+        } else {
+            $jm = 7 + intdiv($days - 186, 30);
+            $jd = 1 + (($days - 186) % 30);
+        }
+
+        return [$jy, $jm, $jd];
     }
 
     // -------------------------------------------------------------------------
