@@ -140,58 +140,65 @@ final class ValidatorService
         $jalali = self::normalizePersianDigits($jalali);
         $jalali = str_replace('-', '/', $jalali);
 
-        if (!preg_match('/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/', $jalali, $m)) {
+        if (!preg_match('/^(\\d{4})\\/(\\d{1,2})\\/(\\d{1,2})$/', $jalali, $m)) {
             return '';
         }
 
-        [$_, $jy, $jm, $jd] = array_map('intval', $m);
-
-        // Algorithmic Jalali → Julian Day Number
-        $jy  += 1595;
-        $days = -355779
-              + 365 * $jy
-              + (int)(($jy / 33) * 8 + ($jy % 33 + 3) / 4 + ($jy % 33 + 16) / 32)
-              + $jd
-              + ($jm < 7 ? ($jm - 1) * 31 : ($jm - 7) * 30 + 186);
-
-        // Julian Day Number → Gregorian
-        $gy = (int)(($days - 122122) / 365.25);
-        $days2 = $days - (int)(365.25 * $gy + 122122.1);
-        if ($days2 < 1) {
-            $gy--;
-            $days2 = $days - (int)(365.25 * $gy + 122122.1);
+        $jy = (int)$m[1];
+        $jm = (int)$m[2];
+        $jd = (int)$m[3];
+        if (!self::isValidJalaliDate($jalali)) {
+            return '';
         }
+
+        // Standard arithmetic Jalali -> Gregorian conversion.
+        // This keeps the conversion deterministic and does not depend on server locale.
+        $jy += 1595;
+        $days = -355668
+              + (365 * $jy)
+              + (intdiv($jy, 33) * 8)
+              + intdiv(($jy % 33) + 3, 4)
+              + $jd
+              + ($jm < 7 ? (($jm - 1) * 31) : ((($jm - 7) * 30) + 186));
+
+        $gy = 400 * intdiv($days, 146097);
+        $days %= 146097;
+
+        if ($days > 36524) {
+            $days--;
+            $gy += 100 * intdiv($days, 36524);
+            $days %= 36524;
+            if ($days >= 365) {
+                $days++;
+            }
+        }
+
+        $gy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $gy += intdiv($days - 1, 365);
+            $days = ($days - 1) % 365;
+        }
+
+        $gd = $days + 1;
+        $monthDays = [
+            0,
+            31,
+            (($gy % 4 === 0 && $gy % 100 !== 0) || $gy % 400 === 0) ? 29 : 28,
+            31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+        ];
 
         $gm = 1;
-        $daysInMonth = [0, 31, 28 + ($gy % 4 === 0 && ($gy % 100 !== 0 || $gy % 400 === 0) ? 1 : 0),
-                        31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-        while ($days2 > $daysInMonth[$gm]) {
-            $days2 -= $daysInMonth[$gm];
+        while ($gm <= 12 && $gd > $monthDays[$gm]) {
+            $gd -= $monthDays[$gm];
             $gm++;
         }
-        $gd = $days2;
+        if ($gm > 12) {
+            return '';
+        }
 
         return sprintf('%04d-%02d-%02d', $gy, $gm, $gd);
-    }
-
-    /**
-     * Return age in completed years for a Gregorian Y-m-d birth date.
-     * Uses Tehran's calendar day so a patient on their birthday is handled consistently.
-     */
-    public static function ageFromGregorianDate(string $date): ?int
-    {
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            return null;
-        }
-        try {
-            $tz = new \DateTimeZone('Asia/Tehran');
-            $birth = new \DateTimeImmutable($date . ' 00:00:00', $tz);
-            $today = new \DateTimeImmutable('today', $tz);
-            if ($birth > $today) return null;
-            return $birth->diff($today)->y;
-        } catch (\Throwable $e) {
-            return null;
-        }
     }
 
     // -------------------------------------------------------------------------
