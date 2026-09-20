@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Database;
 use App\Core\Request;
+use App\Services\BookingBlacklistService;
 use App\Services\BookingSheetRowBuilder;
 use App\Services\BookingVerificationService;
 use App\Services\EmailService;
@@ -61,6 +62,68 @@ final class BookingController extends Controller
         return $this->success((new BookingVerificationService())->issue($mobile));
     }
 
+    public function eligibility(Request $req): array
+    {
+        if (!$this->authorised($req)) {
+            return $this->error('دسترسی پل رزرو معتبر نیست.', 401);
+        }
+        $identifier = trim((string)($req->body['national_id'] ?? $req->body['passport_number'] ?? $req->body['identifier'] ?? ''));
+        $type = trim((string)($req->body['identifier_type'] ?? '')) ?: null;
+        if ($identifier === '') {
+            return $this->validationError([['field' => 'identifier', 'message' => 'شناسه معتبر الزامی است']]);
+        }
+        try {
+            $blocked = (new BookingBlacklistService())->isBlocked(
+                (int)($_ENV['DEFAULT_CLINIC_ID'] ?? 1),
+                $identifier,
+                $type
+            );
+        } catch (\RuntimeException $e) {
+            return $this->validationError([['field' => 'identifier', 'message' => 'شناسه معتبر نیست']]);
+        }
+        return $this->success([
+            'eligible' => !$blocked,
+            'message' => $blocked ? 'شما واجد شرایط نیستید.' : '',
+        ]);
+    }
+
+    public function blacklistIndex(Request $req): array
+    {
+        return $this->success((new BookingBlacklistService())->listing((int)($req->user['clinic_id'] ?? 1)));
+    }
+
+    public function blacklistStore(Request $req): array
+    {
+        try {
+            $row = (new BookingBlacklistService())->add(
+                (int)($req->user['clinic_id'] ?? 1),
+                (int)($req->user['id'] ?? 0),
+                $req->body
+            );
+            return $this->success($row, 201);
+        } catch (\RuntimeException $e) {
+            $message = match ($e->getMessage()) {
+                'patient not found' => 'بیمار یافت نشد.',
+                'patient identifier missing' => 'برای این بیمار کد ملی ثبت نشده است؛ شناسه را در بخش لیست سیاه وارد کنید.',
+                'invalid national id' => 'کد ملی معتبر نیست.',
+                'invalid passport' => 'شماره گذرنامه معتبر نیست.',
+                default => 'افزودن به لیست سیاه انجام نشد.',
+            };
+            return $this->error($message, 422);
+        }
+    }
+
+    public function blacklistDelete(Request $req, string $id): array
+    {
+        $removed = (new BookingBlacklistService())->remove(
+            (int)($req->user['clinic_id'] ?? 1),
+            (int)($req->user['id'] ?? 0),
+            (int)$id
+        );
+        if (!$removed) return $this->error('رکورد لیست سیاه یافت نشد.', 404);
+        return $this->success(['id' => (int)$id, 'removed' => true]);
+    }
+
     public function store(Request $req): array
     {
         if (!$this->authorised($req)) {
@@ -78,6 +141,7 @@ final class BookingController extends Controller
         $birthDateJalali = ValidatorService::normalizePersianDigits(trim((string)($req->body['birth_date_jalali'] ?? '')));
         $birthDateJalali = str_replace('-', '/', $birthDateJalali);
         $nationalId = ValidatorService::normalizePersianDigits(trim((string)($req->body['national_id'] ?? '')));
+        $passportNumber = trim((string)($req->body['passport_number'] ?? $req->body['passportNumber'] ?? ''));
         $medicalHistory = trim((string)($req->body['medical_history'] ?? ''));
         $medications = trim((string)($req->body['medications'] ?? ''));
         $doctorRequest = trim((string)($req->body['doctor_request'] ?? $message));
@@ -116,13 +180,26 @@ final class BookingController extends Controller
         if (!$isInternational && !ValidatorService::isValidNationalId($nationalId)) {
             $errors[] = ['field' => 'national_id', 'message' => 'کد ملی معتبر نیست'];
         }
+        if (!$isInternational && ValidatorService::isValidJalaliDate($birthDateJalali)) {
+            $birthGregorian = ValidatorService::jalaliToGregorian($birthDateJalali);
+            $bookingAge = ValidatorService::ageFromGregorianDate($birthGregorian);
+            if ($bookingAge === null || $bookingAge < 18 || $bookingAge > 45) {
+                $errors[] = ['field' => 'birth_date_jalali', 'message' => 'شما واجد شرایط نیستید.'];
+            }
+        }
+        if ($isInternational) {
+            $bookingAge = (int)ValidatorService::normalizePersianDigits((string)($req->body['age'] ?? '0'));
+            if ($bookingAge < 18 || $bookingAge > 45) {
+                $errors[] = ['field' => 'age', 'message' => 'شما واجد شرایط نیستید.'];
+            }
+        }
         foreach ([
             'medical_history' => $medicalHistory,
             'medications' => $medications,
             'doctor_request' => $doctorRequest,
         ] as $field => $value) {
-            if (!$isInternational && (mb_strlen($value) < 2 || mb_strlen($value) > 2000)) {
-                $errors[] = ['field' => $field, 'message' => 'این فیلد باید بین ۲ تا ۲۰۰۰ کاراکتر باشد'];
+            if (mb_strlen($value) > 2000) {
+                $errors[] = ['field' => $field, 'message' => 'این فیلد حداکثر ۲۰۰۰ کاراکتر است'];
             }
         }
         if (!$isInternational && !preg_match('/^[a-f0-9]{64}$/', $verificationToken)) {
@@ -144,8 +221,22 @@ final class BookingController extends Controller
             return $this->validationError($errors);
         }
 
-        $db = Database::conn();
         $clinicId = (int)($_ENV['DEFAULT_CLINIC_ID'] ?? 1);
+        $blacklistIdentifier = $isInternational ? $passportNumber : $nationalId;
+        if ($blacklistIdentifier !== '') {
+            try {
+                $blacklistType = $isInternational ? 'passport' : 'national_id';
+                if ((new BookingBlacklistService())->isBlocked($clinicId, $blacklistIdentifier, $blacklistType)) {
+                    return $this->error('شما واجد شرایط نیستید.', 422);
+                }
+            } catch (\RuntimeException $e) {
+                if ($isInternational) {
+                    return $this->validationError([['field' => 'passport_number', 'message' => 'شماره گذرنامه معتبر نیست']]);
+                }
+            }
+        }
+
+        $db = Database::conn();
         // The API is authoritative for abuse controls; the bridge cannot lower this value.
         $cooldown = max(1, min(1440, (int)($_ENV['BOOKING_COOLDOWN_MINUTES'] ?? 30)));
 
