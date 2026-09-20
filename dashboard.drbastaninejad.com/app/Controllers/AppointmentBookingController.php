@@ -9,6 +9,7 @@ use App\Core\Request;
 use App\Services\AppointmentAvailabilityAdminService;
 use App\Services\AppointmentBookingAdminService;
 use App\Services\AppointmentBookingGuardService;
+use App\Services\BookingBlacklistService;
 use App\Services\AppointmentPatientResolverService;
 use App\Services\AppointmentIntegrationSettingsService;
 use App\Services\AppointmentPaymentFacadeService;
@@ -63,6 +64,9 @@ final class AppointmentBookingController extends Controller
             return $this->error('ورود بیمار برای رزرو آنلاین الزامی است', 403);
         }
         $clinicId = (int)$req->user['clinic_id'];
+        if ((new BookingBlacklistService())->isPatientBlocked($clinicId, (int)$req->user['id'])) {
+            return $this->error('شما واجد شرایط نیستید.', 422);
+        }
         $gateway = strtolower(trim((string)($req->body['gateway'] ?? '')));
         $enabled = array_filter(array_map('trim', explode(',', strtolower((string)($_ENV['BOOKING_PAYMENT_GATEWAYS'] ?? 'zarinpal,vandar')))));
         if (!in_array($gateway, $enabled, true)) {
@@ -95,9 +99,14 @@ final class AppointmentBookingController extends Controller
             return $this->error('ورود بیمار برای پرداخت الزامی است', 403);
         }
         try {
+            $clinicId = (int)$req->user['clinic_id'];
+            $patientId = (int)$req->user['id'];
+            if ((new BookingBlacklistService())->isPatientBlocked($clinicId, $patientId)) {
+                return $this->error('شما واجد شرایط نیستید.', 422);
+            }
             $result = (new AppointmentPaymentFacadeService())->start(
-                (int)$req->user['clinic_id'],
-                (int)$req->user['id'],
+                $clinicId,
+                $patientId,
                 (int)$id
             );
             $this->syncSheet((int)$id);
@@ -141,6 +150,9 @@ final class AppointmentBookingController extends Controller
         $clinicId = (int)$req->user['clinic_id'];
         $staffId = (int)$req->user['id'];
         $patientId = (new AppointmentPatientResolverService())->resolve($clinicId, $req->body);
+        if ((new BookingBlacklistService())->isPatientBlocked($clinicId, $patientId)) {
+            return $this->error('این بیمار در لیست سیاه رزرو قرار دارد.', 409);
+        }
         $openDayId = (int)($req->body['open_day_id'] ?? 0);
         $startAt = (string)($req->body['start_at'] ?? '');
         $mode = strtolower(trim((string)($req->body['payment_mode'] ?? 'free')));
