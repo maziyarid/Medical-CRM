@@ -7,6 +7,7 @@ use App\Core\Controller;
 use App\Core\Request;
 use App\Models\Patient;
 use App\Validators\ValidatorService;
+use App\Services\BookingBlacklistService;
 use App\Services\PatientService;
 
 /**
@@ -41,8 +42,12 @@ final class PatientController extends Controller
         }
 
         $result = $this->patients->search($clinicId, $q, $page, $perPage, $insuranceStatus);
+        $blacklist = (new BookingBlacklistService())->flagsForPatients(
+            $clinicId,
+            array_column($result['rows'], 'id')
+        );
 
-        $rows = array_map(function ($r) {
+        $rows = array_map(function ($r) use ($blacklist) {
             return [
                 'id' => (int)$r['id'],
                 'name' => trim($r['first_name'] . ' ' . $r['last_name']),
@@ -51,6 +56,8 @@ final class PatientController extends Controller
                 'insurance_status' => $r['insurance_status'],
                 'last_visit' => $r['last_visit'],
                 'upcoming_count' => (int)$r['upcoming_count'],
+                'booking_blocked' => isset($blacklist[(int)$r['id']]),
+                'booking_blacklist_id' => $blacklist[(int)$r['id']] ?? null,
             ];
         }, $result['rows']);
 
