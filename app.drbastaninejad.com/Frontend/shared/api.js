@@ -510,6 +510,38 @@ export const Staff = {
     return staffRequest('GET', `/patients/${id}`);
   },
 
+  async updatePatient(id, body) {
+    return staffRequest('PUT', `/patients/${id}`, body);
+  },
+
+  async deletePatient(id) {
+    return staffRequest('DELETE', `/patients/${id}`, {});
+  },
+
+  async blockPatient(id, reason = '') {
+    return staffRequest('POST', `/patients/${id}/blacklist`, { reason });
+  },
+
+  async listBookingBlacklist() {
+    return staffRequest('GET', '/admin/booking-blacklist');
+  },
+
+  async addBookingBlacklist(body) {
+    return staffRequest('POST', '/admin/booking-blacklist', body);
+  },
+
+  async removeBookingBlacklist(id) {
+    return staffRequest('DELETE', `/admin/booking-blacklist/${id}`, {});
+  },
+
+  async sendPatientSms(id, message) {
+    return staffRequest('POST', `/patients/${id}/sms`, { message });
+  },
+
+  async sendBulkPatientSms(patientIds, message) {
+    return staffRequest('POST', '/patients/bulk-sms', { patient_ids: patientIds, message });
+  },
+
   // ── Appointments ──────────────────────────────────────────────────
 
   /**
