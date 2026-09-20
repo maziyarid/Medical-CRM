@@ -201,4 +201,25 @@ final class ValidatorServiceTest extends TestCase
             'invalid returns empty' => ['not-a-date', ''],
         ];
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ageFromGregorianDate
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function testAgeFromGregorianDateHandlesEligibilityBoundaries(): void
+    {
+        $today = new \DateTimeImmutable('today', new \DateTimeZone('Asia/Tehran'));
+
+        $this->assertSame(18, ValidatorService::ageFromGregorianDate($today->modify('-18 years')->format('Y-m-d')));
+        $this->assertSame(45, ValidatorService::ageFromGregorianDate($today->modify('-45 years')->format('Y-m-d')));
+        $this->assertSame(17, ValidatorService::ageFromGregorianDate($today->modify('-17 years')->format('Y-m-d')));
+        $this->assertSame(46, ValidatorService::ageFromGregorianDate($today->modify('-46 years')->format('Y-m-d')));
+    }
+
+    public function testAgeFromGregorianDateRejectsFutureAndInvalidDates(): void
+    {
+        $today = new \DateTimeImmutable('today', new \DateTimeZone('Asia/Tehran'));
+        $this->assertNull(ValidatorService::ageFromGregorianDate($today->modify('+1 day')->format('Y-m-d')));
+        $this->assertNull(ValidatorService::ageFromGregorianDate('not-a-date'));
+    }
 }
