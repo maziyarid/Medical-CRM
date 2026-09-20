@@ -174,6 +174,26 @@ final class ValidatorService
         return sprintf('%04d-%02d-%02d', $gy, $gm, $gd);
     }
 
+    /**
+     * Return age in completed years for a Gregorian Y-m-d birth date.
+     * Uses Tehran's calendar day so a patient on their birthday is handled consistently.
+     */
+    public static function ageFromGregorianDate(string $date): ?int
+    {
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return null;
+        }
+        try {
+            $tz = new \DateTimeZone('Asia/Tehran');
+            $birth = new \DateTimeImmutable($date . ' 00:00:00', $tz);
+            $today = new \DateTimeImmutable('today', $tz);
+            if ($birth > $today) return null;
+            return $birth->diff($today)->y;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
