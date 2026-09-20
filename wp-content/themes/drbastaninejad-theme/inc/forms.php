@@ -19,8 +19,57 @@ function drb_register_form_routes() {
         'callback' => function( WP_REST_Request $request ) { return drb_proxy_booking_otp( $request, 'verify' ); },
         'permission_callback' => '__return_true',
     ) );
+    register_rest_route( 'drb/v1', '/booking-eligibility', array(
+        'methods' => WP_REST_Server::CREATABLE,
+        'callback' => 'drb_proxy_booking_eligibility',
+        'permission_callback' => '__return_true',
+    ) );
 }
 add_action( 'rest_api_init', 'drb_register_form_routes' );
+
+function drb_proxy_booking_eligibility( WP_REST_Request $request ) {
+    if ( ! drb_verify_public_form_nonce( $request ) ) {
+        return new WP_Error( 'invalid_nonce', drb_form_error_message( 'نشست فرم منقضی شده است. صفحه را تازه‌سازی کنید.' ), array( 'status' => 403 ) );
+    }
+    $data = (array) $request->get_json_params();
+    $has_passport = empty( $data['nationalId'] ) && ! empty( $data['passportNumber'] );
+    $identifier = preg_replace( '/[^A-Za-z0-9]/', '', drb_ascii_digits( (string) ( $data['nationalId'] ?? $data['passportNumber'] ?? '' ) ) );
+    if ( strlen( $identifier ) < 6 || strlen( $identifier ) > 32 ) {
+        return new WP_Error( 'invalid_identifier', drb_form_error_message( 'کد ملی یا شماره گذرنامه معتبر نیست.' ), array( 'status' => 422 ) );
+    }
+    $secret = drb_booking_bridge_secret();
+    if ( '' === $secret ) {
+        return new WP_Error( 'booking_bridge_unconfigured', drb_form_error_message( 'بررسی شرایط پذیرش موقتاً در دسترس نیست.' ), array( 'status' => 503 ) );
+    }
+    $response = wp_remote_post( drb_dashboard_api_base() . '/bookings/eligibility', array(
+        'timeout' => 12,
+        'redirection' => 0,
+        'sslverify' => true,
+        'reject_unsafe_urls' => true,
+        'headers' => array(
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json; charset=utf-8',
+            'X-WordPress-Bridge-Secret' => $secret,
+        ),
+        'body' => wp_json_encode( array(
+            $has_passport ? 'passport_number' : 'national_id' => $identifier,
+            'identifier_type' => $has_passport ? 'passport' : 'national_id',
+        ) ),
+    ) );
+    if ( is_wp_error( $response ) ) {
+        return new WP_Error( 'eligibility_unavailable', drb_form_error_message( 'بررسی شرایط پذیرش انجام نشد؛ دوباره تلاش کنید.' ), array( 'status' => 503 ) );
+    }
+    $status = (int) wp_remote_retrieve_response_code( $response );
+    $decoded = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+    if ( 200 !== $status || ! is_array( $decoded ) || empty( $decoded['ok'] ) ) {
+        return new WP_Error( 'eligibility_failed', drb_form_error_message( 'بررسی شرایط پذیرش انجام نشد؛ دوباره تلاش کنید.' ), array( 'status' => 502 ) );
+    }
+    return new WP_REST_Response( array(
+        'success' => true,
+        'eligible' => ! empty( $decoded['data']['eligible'] ),
+        'message' => sanitize_text_field( (string) ( $decoded['data']['message'] ?? '' ) ),
+    ), 200 );
+}
 
 function drb_proxy_booking_otp( WP_REST_Request $request, $action ) {
     if ( ! drb_verify_public_form_nonce( $request ) ) {
@@ -371,6 +420,7 @@ function drb_proxy_appointment_to_dashboard( array $data, $name, $mobile, $email
         'message' => sanitize_textarea_field( $data['message'] ?? $data['notes'] ?? '' ),
         'birth_date_jalali' => sanitize_text_field( $data['birthDateJalali'] ?? $data['birth_date_jalali'] ?? '' ),
         'national_id' => sanitize_text_field( $data['nationalId'] ?? $data['national_id'] ?? '' ),
+        'passport_number' => sanitize_text_field( $data['passportNumber'] ?? $data['passport_number'] ?? '' ),
         'medical_history' => sanitize_textarea_field( $data['medicalHistory'] ?? $data['medical_history'] ?? '' ),
         'medications' => sanitize_textarea_field( $data['medications'] ?? '' ),
         'doctor_request' => sanitize_textarea_field( $data['doctorRequest'] ?? $data['doctor_request'] ?? '' ),
