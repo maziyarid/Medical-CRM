@@ -201,6 +201,87 @@ final class ValidatorService
         return sprintf('%04d-%02d-%02d', $gy, $gm, $gd);
     }
 
+    /**
+     * Calculate completed age directly in the Persian calendar.
+     * The patient's Jalali birthday is compared with today's Jalali date in Tehran.
+     */
+    public static function ageFromJalaliDate(string $jalali): ?int
+    {
+        $jalali = self::normalizePersianDigits($jalali);
+        $jalali = str_replace('-', '/', $jalali);
+        if (!self::isValidJalaliDate($jalali)) {
+            return null;
+        }
+        if (!preg_match('/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/', $jalali, $m)) {
+            return null;
+        }
+
+        $birthY = (int)$m[1];
+        $birthM = (int)$m[2];
+        $birthD = (int)$m[3];
+
+        $tz = new \DateTimeZone('Asia/Tehran');
+        $today = new \DateTimeImmutable('today', $tz);
+        [$todayY, $todayM, $todayD] = self::gregorianToJalali(
+            (int)$today->format('Y'),
+            (int)$today->format('n'),
+            (int)$today->format('j')
+        );
+
+        $age = $todayY - $birthY;
+        if ($todayM < $birthM || ($todayM === $birthM && $todayD < $birthD)) {
+            $age--;
+        }
+
+        return $age >= 0 ? $age : null;
+    }
+
+    /**
+     * Convert Gregorian Y/M/D to Jalali [Y, M, D].
+     * Used to derive today's Tehran date for Persian-calendar age calculations.
+     */
+    public static function gregorianToJalali(int $gy, int $gm, int $gd): array
+    {
+        $gdm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+
+        if ($gy > 1600) {
+            $jy = 979;
+            $gy -= 1600;
+        } else {
+            $jy = 0;
+            $gy -= 621;
+        }
+
+        $gy2 = $gm > 2 ? $gy + 1 : $gy;
+        $days = (365 * $gy)
+              + intdiv($gy2 + 3, 4)
+              - intdiv($gy2 + 99, 100)
+              + intdiv($gy2 + 399, 400)
+              - 80
+              + $gd
+              + $gdm[$gm - 1];
+
+        $jy += 33 * intdiv($days, 12053);
+        $days %= 12053;
+        $jy += 4 * intdiv($days, 1461);
+        $days %= 1461;
+
+        if ($days > 365) {
+            $jy += intdiv($days - 1, 365);
+            $days = ($days - 1) % 365;
+        }
+
+        if ($days < 186) {
+            $jm = 1 + intdiv($days, 31);
+            $jd = 1 + ($days % 31);
+        } else {
+            $jm = 7 + intdiv($days - 186, 30);
+            $jd = 1 + (($days - 186) % 30);
+        }
+
+        return [$jy, $jm, $jd];
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
