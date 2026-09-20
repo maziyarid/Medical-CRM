@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Core\Database;
 use App\Core\Request;
+use App\Services\BookingBlacklistService;
 use App\Services\OtpService;
 use App\Validators\ValidatorService;
 
@@ -24,14 +25,18 @@ final class BookingSessionController extends Controller
             return $this->error('درخواست ادامه رزرو معتبر نیست.', 422);
         }
         $stmt = Database::conn()->prepare(
-            'SELECT patient_id FROM intakes
+            'SELECT patient_id, clinic_id FROM intakes
              WHERE id = ? AND mobile = ? AND source_type = "booking" AND deleted_at IS NULL
                AND created_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 30 MINUTE)
              LIMIT 1'
         );
         $stmt->execute([$bookingId, $mobile]);
-        if (!$stmt->fetchColumn()) {
+        $booking = $stmt->fetch();
+        if (!$booking) {
             return $this->error('نشست ادامه رزرو منقضی یا نامعتبر است.', 410);
+        }
+        if ((new BookingBlacklistService())->isPatientBlocked((int)$booking['clinic_id'], (int)$booking['patient_id'])) {
+            return $this->error('شما واجد شرایط نیستید.', 422);
         }
         try {
             $session = (new OtpService())->issueToken($mobile, 'patient', 'session');
