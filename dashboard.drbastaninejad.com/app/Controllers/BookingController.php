@@ -8,6 +8,7 @@ use App\Core\Database;
 use App\Core\Request;
 use App\Services\BookingSheetRowBuilder;
 use App\Services\BookingVerificationService;
+use App\Services\BookingBlacklistService;
 use App\Services\EmailService;
 use App\Services\GoogleSheetsService;
 use App\Services\OtpService;
@@ -59,6 +60,20 @@ final class BookingController extends Controller
             return $this->error('کد تأیید نامعتبر است.', $result === 'locked' ? 429 : 401);
         }
         return $this->success((new BookingVerificationService())->issue($mobile));
+    }
+
+    public function eligibility(Request $req): array
+    {
+        if (!$this->authorised($req)) {
+            return $this->error('دسترسی پل رزرو معتبر نیست.', 401);
+        }
+        $identifier=(string)($req->body['national_id']??$req->body['passport_number']??'');
+        $clinicId=(int)($_ENV['DEFAULT_CLINIC_ID']??1);
+        $blocked=(new BookingBlacklistService())->isBlocked($clinicId,$identifier);
+        return $this->success([
+            'eligible'=>!$blocked,
+            'message'=>$blocked?'شما واجد شرایط نیستید.':'',
+        ]);
     }
 
     public function store(Request $req): array
@@ -116,15 +131,9 @@ final class BookingController extends Controller
         if (!$isInternational && !ValidatorService::isValidNationalId($nationalId)) {
             $errors[] = ['field' => 'national_id', 'message' => 'کد ملی معتبر نیست'];
         }
-        foreach ([
-            'medical_history' => $medicalHistory,
-            'medications' => $medications,
-            'doctor_request' => $doctorRequest,
-        ] as $field => $value) {
-            if (!$isInternational && (mb_strlen($value) < 2 || mb_strlen($value) > 2000)) {
-                $errors[] = ['field' => $field, 'message' => 'این فیلد باید بین ۲ تا ۲۰۰۰ کاراکتر باشد'];
-            }
-        }
+        // Clinical history, current medications and free-text doctor request
+        // are optional at booking time. They can be completed later in the
+        // patient intake/clinical record without blocking appointment creation.
         if (!$isInternational && !preg_match('/^[a-f0-9]{64}$/', $verificationToken)) {
             $errors[] = ['field' => 'otp_token', 'message' => 'تأیید شماره همراه الزامی است'];
         }
@@ -144,8 +153,19 @@ final class BookingController extends Controller
             return $this->validationError($errors);
         }
 
-        $db = Database::conn();
         $clinicId = (int)($_ENV['DEFAULT_CLINIC_ID'] ?? 1);
+        $identifier = $nationalId !== '' ? $nationalId : trim((string)($req->body['passport_number'] ?? ''));
+        if ((new BookingBlacklistService())->isBlocked($clinicId, $identifier)) {
+            return $this->error('شما واجد شرایط نیستید.', 403);
+        }
+        if (!$isInternational) {
+            $age = ValidatorService::ageFromJalaliDate($birthDateJalali);
+            if ($age === null || $age < 18 || $age > 45) {
+                return $this->error('شما واجد شرایط نیستید. پذیرش فقط برای سنین ۱۸ تا ۴۵ سال انجام می‌شود.', 422);
+            }
+        }
+
+        $db = Database::conn();
         // The API is authoritative for abuse controls; the bridge cannot lower this value.
         $cooldown = max(1, min(1440, (int)($_ENV['BOOKING_COOLDOWN_MINUTES'] ?? 30)));
 
@@ -289,44 +309,41 @@ final class BookingController extends Controller
 
         $emailStatus = 'skipped';
         $smsStatus = 'skipped';
-        if ($patientCreated) {
-            try {
-                $registration = (new \App\Services\PatientRegistrationNotificationService())->notify($patientId, true, false);
-                $emailStatus = (string)($registration['email'] ?? 'skipped');
-                $smsStatus = (string)($registration['sms'] ?? 'failed');
-            } catch (\Throwable $e) {
-                error_log('[BookingController] patient registration notification failed for booking ' . $bookingId . ': ' . $e->getMessage());
-                $emailStatus = 'failed';
-                $smsStatus = 'failed';
+        if ($email !== '') {
+            $emailService = new EmailService();
+            if ($emailService->isConfigured()) {
+                $emailStatus = $emailService->sendBookingAcknowledgement($email, $firstName) ? 'sent' : 'failed';
             }
-            $db->prepare('UPDATE intakes SET booking_email_status = ?, sms_status = ?, sms_sent_at = IF(? = "sent", UTC_TIMESTAMP(), NULL), updated_at = UTC_TIMESTAMP() WHERE id = ?')
-                ->execute([$emailStatus, $smsStatus, $smsStatus, $bookingId]);
-        } else {
-            if ($email !== '') {
-                $emailService = new EmailService();
-                if ($emailService->isConfigured()) {
-                    $emailStatus = $emailService->sendBookingAcknowledgement($email, $firstName) ? 'sent' : 'failed';
-                }
-            }
-            $db->prepare('UPDATE intakes SET booking_email_status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?')
-                ->execute([$emailStatus, $bookingId]);
+        }
+        $db->prepare('UPDATE intakes SET booking_email_status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?')
+            ->execute([$emailStatus, $bookingId]);
 
-            if ($this->shouldSendBookingSms($mobile, $isInternational)) {
-                $loginUrl = trim((string)($_ENV['PATIENT_LOGIN_URL'] ?? 'https://app.drbastaninejad.com/Frontend/pages/auth/patient-login.html'));
-                $template = trim((string)($_ENV['BOOKING_SMS_TEMPLATE'] ?? "درخواست نوبت شما دریافت شد؛ زمان نوبت هنوز قطعی نیست. همکاران کلینیک برای اعلام و تأیید زمان تماس می‌گیرند. پنل بیمار: {login_url}"));
-                $template = mb_substr($template, 0, 800);
-                $sms = (new SmsProviderChain())->sendMessage($mobile, strtr($template, [
-                    '{name}' => $firstName,
-                    '{login_url}' => $loginUrl,
-                ]));
-                $smsStatus = !empty($sms['ok']) ? 'sent' : 'failed';
-                $this->recordSmsResult($db, $bookingId, $smsStatus, $sms);
-                if ($smsStatus !== 'sent') {
-                    error_log('[BookingController] booking SMS failed for booking ' . $bookingId . ' provider=' . ($sms['provider'] ?? 'none') . ' error=' . ($sms['error'] ?? 'unknown'));
-                }
-            } else {
-                $db->prepare('UPDATE intakes SET sms_status = "skipped", updated_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$bookingId]);
+        if ($this->shouldSendBookingSms($mobile, $isInternational)) {
+            $bookingUrl = 'https://drbastaninejad.com/booking/';
+            $template = trim((string)($_ENV['BOOKING_SMS_TEMPLATE'] ?? "{name} عزیز، درخواست نوبت شما ثبت شد. برای انتخاب تاریخ و ساعت آزاد و پرداخت هزینه ویزیت، فرایند را در صفحه نوبت‌دهی تکمیل کنید: {booking_url}"));
+            $template = mb_substr($template, 0, 800);
+            $sms = (new SmsProviderChain())->sendMessage($mobile, strtr($template, [
+                '{name}' => $firstName,
+                '{booking_url}' => $bookingUrl,
+            ]));
+            $smsStatus = !empty($sms['ok']) ? 'sent' : 'failed';
+            $this->recordSmsResult($db, $bookingId, $smsStatus, $sms);
+            if ($smsStatus !== 'sent') {
+                error_log('[BookingController] booking SMS failed for booking ' . $bookingId . ' provider=' . ($sms['provider'] ?? 'none') . ' error=' . ($sms['error'] ?? 'unknown'));
             }
+        } else {
+            $db->prepare('UPDATE intakes SET sms_status = "skipped", updated_at = UTC_TIMESTAMP() WHERE id = ?')->execute([$bookingId]);
+        }
+
+        try {
+            (new \App\Services\StaffPushNotificationService())->sendToClinic(
+                $clinicId,
+                'درخواست نوبت جدید',
+                trim($firstName . ' ' . $lastName) . ' درخواست نوبت جدید ثبت کرده است.',
+                '/Frontend/pages/staff/calendar.html?pending=1'
+            );
+        } catch (\Throwable $e) {
+            error_log('[BookingController] staff push failed: ' . $e->getMessage());
         }
 
         return $this->success(array_merge([
