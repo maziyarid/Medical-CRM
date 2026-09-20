@@ -12,6 +12,7 @@ use App\Middleware\RbacMiddleware;
 $router->post('/api/v1/bookings', [BookingController::class, 'store']);
 $router->post('/api/v1/bookings/otp/send', [BookingController::class, 'sendOtp']);
 $router->post('/api/v1/bookings/otp/verify', [BookingController::class, 'verifyOtp']);
+$router->post('/api/v1/bookings/eligibility', [BookingController::class, 'eligibility']);
 $router->post('/api/v1/bookings/session', [BookingSessionController::class, 'create']);
 $router->get('/api/v1/bookings/stats', [BookingController::class, 'stats']);
 
@@ -25,6 +26,9 @@ $router->post('/api/v1/admin/appointment-bookings/{id}/reconcile-slot', [Appoint
 $router->post('/api/v1/admin/appointment-bookings/{id}/confirm', [AppointmentBookingController::class, 'confirm'], [AuthMiddleware::class, fn() => new RbacMiddleware('booking.manage')]);
 $router->post('/api/v1/admin/appointment-open-days', [AppointmentBookingController::class, 'saveOpenDay'], [AuthMiddleware::class, fn() => new RbacMiddleware('booking.availability.manage')]);
 $router->get('/api/v1/admin/appointment-bookings', [AppointmentBookingController::class, 'adminBookings'], [AuthMiddleware::class, fn() => new RbacMiddleware('booking.manage')]);
+$router->get('/api/v1/admin/booking-blacklist', [BookingController::class, 'blacklistIndex'], [AuthMiddleware::class, fn() => new RbacMiddleware('booking.manage')]);
+$router->post('/api/v1/admin/booking-blacklist', [BookingController::class, 'blacklistStore'], [AuthMiddleware::class, fn() => new RbacMiddleware('booking.manage')]);
+$router->delete('/api/v1/admin/booking-blacklist/{id}', [BookingController::class, 'blacklistDelete'], [AuthMiddleware::class, fn() => new RbacMiddleware('booking.manage')]);
 $router->get('/api/v1/admin/appointment-open-days', [AppointmentBookingController::class, 'adminOpenDays'], [AuthMiddleware::class, fn() => new RbacMiddleware('booking.manage')]);
 $router->get('/api/v1/admin/appointment-payments', [AppointmentBookingController::class, 'adminPayments'], [AuthMiddleware::class, fn() => new RbacMiddleware('booking.payments.reconcile')]);
 $router->get('/api/v1/admin/appointment-integrations', [AppointmentBookingController::class, 'integrationStatus'], [AuthMiddleware::class, fn() => new RbacMiddleware('booking.availability.manage')]);
