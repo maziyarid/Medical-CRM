@@ -5,7 +5,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'DRB_CONTENT_POLICY_VERSION', '4.6.0' );
 
 function drb_policy_clinic_hours() {
-    return 'شنبه تا سه‌شنبه، از ساعت ۱۵:۰۰ تا ۱۸:۰۰';
+    return 'شنبه و سه‌شنبه، از ساعت ۱۵:۰۰ تا ۱۸:۰۰';
 }
 
 function drb_policy_admission_notice() {
@@ -252,11 +252,13 @@ function drb_render_borderless_favicons() {
 }
 add_action( 'wp_head', 'drb_render_borderless_favicons', 99 );
 
-function drb_booking_uses_smarteb_site_icon() {
-    if ( is_page( 'booking' ) ) {
-        // Remove the global WordPress doctor icon on the booking product so
-        // browsers receive a single, unambiguous Smart Teb identity.
-        remove_action( 'wp_head', 'wp_site_icon', 99 );
-    }
+function drb_use_contextual_site_icons() {
+    if ( is_admin() ) return;
+
+    // WordPress's global site-icon tags use long-lived, unversioned attachment
+    // URLs. Remove them on the public frontend so browsers see one unambiguous
+    // identity only: Dr. Bastaninejad on the medical website, Smart Teb on the
+    // booking product.
+    remove_action( 'wp_head', 'wp_site_icon', 99 );
 }
-add_action( 'wp', 'drb_booking_uses_smarteb_site_icon', 20 );
+add_action( 'wp', 'drb_use_contextual_site_icons', 20 );
