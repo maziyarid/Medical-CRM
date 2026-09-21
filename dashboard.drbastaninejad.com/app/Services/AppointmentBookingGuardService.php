@@ -37,7 +37,9 @@ final class AppointmentBookingGuardService
         string $gateway,
         ?string $submissionUuid = null,
         string $source = 'online',
-        ?int $receptionistUserId = null
+        ?int $receptionistUserId = null,
+        ?int $holdMinutesOverride = null,
+        ?int $intakeId = null
     ): array {
         return $this->withClinicLock($clinicId, function (PDO $db) use (
             $clinicId,
@@ -48,9 +50,14 @@ final class AppointmentBookingGuardService
             $gateway,
             $submissionUuid,
             $source,
-            $receptionistUserId
+            $receptionistUserId,
+            $holdMinutesOverride,
+            $intakeId
         ): array {
             $this->assertPatientClinic($db, $clinicId, $patientId);
+            if (($intakeId ?? 0) > 0) {
+                $this->assertIntakePatient($db, $clinicId, $patientId, (int)$intakeId);
+            }
 
             if ($submissionUuid !== null && $submissionUuid !== '') {
                 $existing = $this->existingSubmission($db, $clinicId, $patientId, $submissionUuid);
@@ -75,8 +82,19 @@ final class AppointmentBookingGuardService
                 $gateway,
                 $submissionUuid,
                 $source,
-                $receptionistUserId
+                $receptionistUserId,
+                $holdMinutesOverride,
+                $intakeId
             );
+            if (($intakeId ?? 0) > 0) {
+                (new BookingFinalisationService())->linkBooking(
+                    $clinicId,
+                    $patientId,
+                    (int)$intakeId,
+                    (int)$created['id']
+                );
+                $created['intake_id']=(int)$intakeId;
+            }
             $created['idempotent'] = false;
             return $created;
         });
@@ -116,6 +134,33 @@ final class AppointmentBookingGuardService
                 $requestedStart,
                 $visitReason,
                 $notes
+            );
+        });
+    }
+
+    /** @return array<string,mixed> */
+    public function createAdminCashBooking(
+        int $clinicId,
+        int $patientId,
+        int $staffUserId,
+        int $openDayId,
+        string $requestedStart,
+        int $amountRials,
+        ?string $visitReason = null,
+        ?string $notes = null
+    ): array {
+        return $this->withClinicLock($clinicId, function (PDO $db) use (
+            $clinicId,$patientId,$staffUserId,$openDayId,$requestedStart,$amountRials,$visitReason,$notes
+        ): array {
+            $this->assertPatientClinic($db, $clinicId, $patientId);
+            $day = $this->openDay($db, $clinicId, $openDayId);
+            $duration = max(1, (int)$day['slot_duration_minutes']);
+            $startUtc = $this->normaliseStart($requestedStart);
+            $this->assertSlotGrid($day, $startUtc);
+            $this->assertNoAppointmentOverlap($db, $clinicId, $startUtc, $duration);
+            $this->assertNoBookingOverlap($db, $clinicId, $startUtc, $duration);
+            return $this->bookings->createAdminCashBooking(
+                $clinicId,$patientId,$staffUserId,$openDayId,$requestedStart,$amountRials,$visitReason,$notes
             );
         });
     }
@@ -217,6 +262,13 @@ final class AppointmentBookingGuardService
         if (!$stmt->fetchColumn()) {
             throw new RuntimeException('patient not found');
         }
+    }
+
+    private function assertIntakePatient(PDO $db, int $clinicId, int $patientId, int $intakeId): void
+    {
+        $stmt = $db->prepare('SELECT id FROM intakes WHERE id = ? AND clinic_id = ? AND patient_id = ? AND source_type = "booking" AND deleted_at IS NULL AND status <> "rejected" AND appointment_booking_request_id IS NULL LIMIT 1');
+        $stmt->execute([$intakeId, $clinicId, $patientId]);
+        if (!$stmt->fetchColumn()) throw new RuntimeException('booking intake mismatch');
     }
 
     /** @return array<string,mixed> */

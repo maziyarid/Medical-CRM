@@ -5,7 +5,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'DRB_CONTENT_POLICY_VERSION', '4.6.0' );
 
 function drb_policy_clinic_hours() {
-    return 'شنبه تا سه‌شنبه، از ساعت ۱۵:۰۰ تا ۱۸:۰۰';
+    return 'شنبه و سه‌شنبه، از ساعت ۱۵:۰۰ تا ۱۸:۰۰';
 }
 
 function drb_policy_admission_notice() {
@@ -227,12 +227,38 @@ function drb_enqueue_patient_guide() {
 add_action( 'wp_enqueue_scripts', 'drb_enqueue_patient_guide', 30 );
 
 function drb_render_borderless_favicons() {
+    $is_booking_system = is_page( 'booking' );
+
+    if ( $is_booking_system ) {
+        // Booking/appointment is part of the Smart Teb product surface.
+        ?>
+        <link rel="icon" type="image/svg+xml" sizes="any" href="https://app.drbastaninejad.com/Frontend/assets/img/favicon.svg">
+        <link rel="alternate icon" href="https://app.drbastaninejad.com/favicon.ico">
+        <link rel="apple-touch-icon" sizes="180x180" href="https://app.drbastaninejad.com/Frontend/assets/img/pwa/apple-touch-icon.png">
+        <?php
+        return;
+    }
+
+    // The public medical website keeps Dr Bastaninejad's own identity.
     $base = trailingslashit( DRB_THEME_URI ) . 'assets/dist6/';
+    $file = trailingslashit( DRB_THEME_DIR ) . 'assets/dist6/favicon-192.png';
+    $version = is_file( $file ) ? (string) filemtime( $file ) : DRB_THEME_VERSION;
     ?>
-    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo esc_url( $base . 'favicon-16.png?v=' . DRB_THEME_VERSION ); ?>">
-    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo esc_url( $base . 'favicon-32.png?v=' . DRB_THEME_VERSION ); ?>">
-    <link rel="icon" type="image/png" sizes="192x192" href="<?php echo esc_url( $base . 'favicon-192.png?v=' . DRB_THEME_VERSION ); ?>">
-    <link rel="apple-touch-icon" sizes="192x192" href="<?php echo esc_url( $base . 'favicon-192.png?v=' . DRB_THEME_VERSION ); ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo esc_url( $base . 'favicon-16.png?v=' . $version ); ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo esc_url( $base . 'favicon-32.png?v=' . $version ); ?>">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?php echo esc_url( $base . 'favicon-192.png?v=' . $version ); ?>">
+    <link rel="apple-touch-icon" sizes="192x192" href="<?php echo esc_url( $base . 'favicon-192.png?v=' . $version ); ?>">
     <?php
 }
 add_action( 'wp_head', 'drb_render_borderless_favicons', 99 );
+
+function drb_use_contextual_site_icons() {
+    if ( is_admin() ) return;
+
+    // WordPress's global site-icon tags use long-lived, unversioned attachment
+    // URLs. Remove them on the public frontend so browsers see one unambiguous
+    // identity only: Dr. Bastaninejad on the medical website, Smart Teb on the
+    // booking product.
+    remove_action( 'wp_head', 'wp_site_icon', 99 );
+}
+add_action( 'wp', 'drb_use_contextual_site_icons', 20 );

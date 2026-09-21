@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>پیام‌ها و ایمیل‌ها — CRM پزشکی</title>
+<link rel="icon" type="image/svg+xml" href="/Frontend/assets/img/favicon.svg">
+<link rel="alternate icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="../../assets/css/tokens.css?v=20260920m">
+<link rel="stylesheet" href="../../assets/css/base.css?v=20260920m">
+<link rel="stylesheet" href="../../assets/css/components.css?v=20260920m">
+<link rel="stylesheet" href="../../assets/css/ui-polish.css?v=20260920m">
+<style>
+.main{max-width:1580px}
+.mail-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.8rem}
+.mail-head h1{font-size:1.45rem;margin:0;color:#173d31}.mail-head p{margin:.25rem 0 0;color:#73827a;font-size:.76rem}
+.mail-head-actions{display:flex;gap:.45rem;flex-wrap:wrap}
+.mbtn{height:40px;border:1px solid #d7e4dc;border-radius:11px;background:#fff;color:#245642;padding:0 .8rem;font:inherit;font-size:.75rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;text-decoration:none}
+.mbtn.primary{background:#0d7657;color:#fff;border-color:#0d7657}.mbtn:disabled{opacity:.55;cursor:not-allowed}.mbtn svg{width:16px;height:16px}
+.mail-search{position:relative;margin-bottom:.75rem}.mail-search input{width:100%;height:46px;border:1px solid #dce7e0;border-radius:14px;background:#fff;padding:0 2.6rem 0 .85rem;font:inherit;font-size:.8rem;box-shadow:0 7px 22px #173c2c08;box-sizing:border-box}.mail-search svg{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);width:17px;height:17px;color:#73827a}
+.mail-layout{display:grid;grid-template-columns:210px minmax(340px,420px) minmax(430px,1fr);gap:.7rem;align-items:stretch;min-height:680px}
+.mail-nav,.thread-panel,.reader{background:#fff;border:1px solid #dfe8e2;border-radius:17px;overflow:hidden;box-shadow:0 8px 22px #173c2c08}
+.mail-nav{padding:.65rem;align-self:start}.nav-title{font-size:.68rem;color:#829088;font-weight:800;padding:.35rem .55rem .45rem}.mail-filter{width:100%;height:40px;border:0;border-radius:10px;background:transparent;color:#40584e;font:inherit;font-size:.75rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:0 .65rem;cursor:pointer;text-align:right}.mail-filter:hover{background:#f4f8f5}.mail-filter.active{background:#e7f3ec;color:#0b714f;font-weight:900}.mail-filter span:first-child{display:flex;align-items:center;gap:.55rem}.mail-filter svg{width:16px;height:16px}.mail-count{font-size:.65rem;color:#7f8e87}.nav-sep{height:1px;background:#edf1ef;margin:.55rem .35rem}.labels-head{display:flex;justify-content:space-between;align-items:center;padding:.25rem .5rem .35rem}.labels-head strong{font-size:.7rem;color:#60736a}.icon-btn{width:31px;height:31px;border:0;border-radius:9px;background:transparent;color:#62766c;display:grid;place-items:center;cursor:pointer}.icon-btn:hover{background:#eff5f1}.icon-btn svg{width:16px;height:16px}.label-nav{display:grid;gap:.12rem}.label-filter{width:100%;border:0;border-radius:9px;background:transparent;padding:.48rem .62rem;display:flex;align-items:center;justify-content:space-between;font:inherit;font-size:.71rem;color:#566c62;cursor:pointer}.label-filter:hover,.label-filter.active{background:#f1f6f3}.label-name{display:flex;align-items:center;gap:.45rem;min-width:0}.label-dot{width:8px;height:8px;border-radius:50%;background:#66a989;flex:0 0 auto}.label-dot.blue{background:#5b88d8}.label-dot.amber{background:#d3a13a}.label-dot.purple{background:#8d70c6}.label-dot.red{background:#d26059}.label-dot.gray{background:#8a9690}
+.label-create{display:none;padding:.55rem;border-top:1px solid #edf1ef;margin-top:.4rem}.label-create.open{display:grid;gap:.45rem}.label-create input,.label-create select{height:36px;border:1px solid #dce6df;border-radius:9px;padding:0 .55rem;font:inherit;font-size:.7rem;background:#fff}.label-create-actions{display:flex;gap:.35rem}.label-create-actions .mbtn{height:34px;font-size:.68rem;flex:1;justify-content:center}
+.thread-panel{display:flex;flex-direction:column;min-width:0}.thread-toolbar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.65rem .75rem;border-bottom:1px solid #e8efeb;background:#fbfcfb}.thread-toolbar strong{font-size:.78rem;color:#244a3d}.thread-toolbar small{font-size:.64rem;color:#839088}
+.thread-list{overflow:auto;max-height:760px;min-height:620px}.thread-row{display:grid;grid-template-columns:34px minmax(0,1fr);gap:.35rem;border:0;border-bottom:1px solid #edf1ef;background:#fff;width:100%;padding:.68rem .6rem;text-align:right;font:inherit;cursor:pointer}.thread-row:hover{background:#f7faf8}.thread-row.active{background:#edf7f1}.thread-row.unread{background:#fbfefc}.thread-row.unread .who,.thread-row.unread .subject{font-weight:900;color:#153e30}.star{border:0;background:transparent;color:#adb7b2;width:31px;height:31px;border-radius:50%;display:grid;place-items:center;cursor:pointer;padding:0}.star:hover{background:#edf3ef}.star.on{color:#c99213}.star svg{width:17px;height:17px}.star.on svg{fill:currentColor}.thread-main{min-width:0}.thread-line{display:flex;align-items:center;justify-content:space-between;gap:.5rem}.who{font-size:.76rem;color:#315247;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.when{font-size:.59rem;color:#8a9791;white-space:nowrap}.subject{font-size:.7rem;color:#4d6259;margin-top:.16rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.preview{font-size:.65rem;color:#89938e;margin-top:.18rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row-meta{display:flex;gap:.25rem;flex-wrap:wrap;margin-top:.32rem}.mini-chip{display:inline-flex;align-items:center;border-radius:999px;padding:.12rem .4rem;background:#eef3f0;color:#67786f;font-size:.56rem;font-weight:800}.mini-chip.source{background:#e8f1fb;color:#456b91}.mini-chip.unread{background:#e7f5eb;color:#1a6b3b}.mini-label{display:inline-flex;align-items:center;gap:.25rem;border-radius:999px;padding:.12rem .4rem;background:#f0f4f2;color:#586e63;font-size:.56rem}.mini-label:before{content:"";width:6px;height:6px;border-radius:50%;background:#66a989}.mini-label.blue:before{background:#5b88d8}.mini-label.amber:before{background:#d3a13a}.mini-label.purple:before{background:#8d70c6}.mini-label.red:before{background:#d26059}.mini-label.gray:before{background:#8a9690}
+.reader{display:flex;flex-direction:column;min-width:0}.reader-empty{min-height:650px;display:grid;place-items:center;text-align:center;color:#819087;padding:2rem}.reader-empty svg{width:56px;height:56px;color:#b1c1b9;margin-bottom:.7rem}.reader-empty strong{display:block;color:#4b6559;margin-bottom:.3rem}
+.reader-head{padding:.8rem .95rem;border-bottom:1px solid #e5ece8;background:#fff}.reader-title-line{display:flex;align-items:flex-start;justify-content:space-between;gap:.7rem}.reader-title h2{font-size:1rem;margin:0;color:#183f32}.reader-title p{margin:.25rem 0 0;color:#73847a;font-size:.66rem;line-height:1.8}.reader-tools{display:flex;align-items:center;gap:.3rem}.reader-options{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-top:.7rem}.reader-options label{display:grid;gap:.22rem;color:#728178;font-size:.6rem;font-weight:800}.reader-options select{height:36px;border:1px solid #dce6df;border-radius:9px;background:#fff;font:inherit;font-size:.68rem;padding:0 .5rem}.thread-labels{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.55rem}.label-toggle{border:1px solid #dce6df;background:#fff;border-radius:999px;padding:.24rem .55rem;font:inherit;font-size:.61rem;color:#5c6f66;cursor:pointer}.label-toggle.on{background:#edf6f1;border-color:#bfdcca;color:#176247;font-weight:900}
+.messages{padding:.9rem;display:grid;gap:.7rem;overflow:auto;max-height:430px;background:#fafcfb;flex:1}.message{max-width:min(82%,760px);border:1px solid #dfe8e3;border-radius:15px;padding:.75rem .85rem;background:#fff;box-shadow:0 3px 12px #163a2d08}.message.inbound{justify-self:start;border-top-right-radius:5px}.message.outbound{justify-self:end;background:#eaf6ef;border-color:#cce3d5;border-top-left-radius:5px}.message.failed{border-color:#ecc1bc;background:#fff5f4}.message-top{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.35rem}.message-top strong{font-size:.69rem;color:#355449}.message-top small{font-size:.57rem;color:#8a9690;direction:ltr}.message-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:2;font-size:.76rem;color:#29473d}.delivery{font-size:.56rem;margin-top:.3rem;color:#7c8a83}
+.compose{border-top:1px solid #e3ebe7;padding:.75rem .85rem;background:#fff}.compose textarea{width:100%;min-height:92px;resize:vertical;border:1px solid #d9e5de;border-radius:12px;padding:.7rem .75rem;font:inherit;font-size:.75rem;line-height:1.9;box-sizing:border-box}.compose-footer{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-top:.5rem}.compose-footer small{color:#74857b;font-size:.61rem;line-height:1.7}.compose-state{min-height:1rem;font-size:.62rem;margin-top:.3rem}.compose-state.ok{color:#176329}.compose-state.err{color:#a53731}.empty-list{padding:2rem 1rem;text-align:center;color:#7d8c84;font-size:.72rem}
+@media(max-width:1250px){.mail-layout{grid-template-columns:180px 340px minmax(380px,1fr)}}
+@media(max-width:1020px){.mail-layout{grid-template-columns:190px minmax(0,1fr)}.reader{grid-column:1/-1}.thread-list{max-height:480px;min-height:380px}}
+@media(max-width:720px){.mail-head{align-items:flex-start;flex-direction:column}.mail-layout{grid-template-columns:1fr}.mail-nav{display:flex;overflow:auto;gap:.3rem;padding:.45rem}.mail-filter{min-width:max-content;width:auto}.nav-title,.nav-sep,.labels-head,.label-nav,.label-create{display:none}.thread-list{min-height:360px}.reader{grid-column:auto}.reader-options{grid-template-columns:1fr}.message{max-width:94%}}
+</style>
+</head>
+<body data-shell="staff" data-nav="communications">
+<div class="app-shell"><main class="main">
+<header class="mail-head">
+  <div><h1>پیام‌ها و ایمیل‌ها</h1><p>صندوق تماس کلینیک، ایمیل‌ها و پاسخ‌های کارکنان در یک محیط ساده و قابل پیگیری</p></div>
+  <div class="mail-head-actions">
+    <a class="mbtn" href="settings.html?tab=email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 1 1-14 0"/></svg>تنظیمات ایمیل</a>
+    <button class="mbtn primary" id="sync-mail" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.2 9A7 7 0 0 0 6.1 6.8M5.8 15A7 7 0 0 0 17.9 17.2"/></svg>تازه‌سازی</button>
+  </div>
+</header>
+
+<div class="mail-search">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+  <input id="mail-q" type="search" autocomplete="off" placeholder="جست‌وجو در نام، ایمیل، شماره تماس یا موضوع…">
+</div>
+
+<div class="mail-layout">
+  <aside class="mail-nav" aria-label="فیلترهای صندوق">
+    <div class="nav-title">صندوق‌ها</div>
+    <button class="mail-filter active" data-filter="all"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="m4 7 8 6 8-6"/></svg>همه پیام‌ها</span><b class="mail-count" id="nav-all">—</b></button>
+    <button class="mail-filter" data-filter="unread"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>خوانده‌نشده</span><b class="mail-count" id="nav-unread">—</b></button>
+    <button class="mail-filter" data-filter="starred"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/></svg>ستاره‌دار</span><b class="mail-count" id="nav-starred">—</b></button>
+    <button class="mail-filter" data-filter="website"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14 0 18M12 3c-3 3.5-3 14 0 18"/></svg>فرم وب‌سایت</span><b class="mail-count" id="nav-web">—</b></button>
+    <button class="mail-filter" data-filter="email"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>ایمیل مستقیم</span><b class="mail-count" id="nav-email">—</b></button>
+    <button class="mail-filter" data-filter="closed"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5v14"/></svg>بسته‌شده</span></button>
+    <div class="nav-sep"></div>
+    <div class="labels-head"><strong>برچسب‌ها</strong><button class="icon-btn" id="show-label-create" type="button" title="ساخت برچسب"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div class="label-nav" id="label-nav"></div>
+    <form class="label-create" id="label-create">
+      <input id="new-label-name" maxlength="80" placeholder="نام برچسب">
+      <select id="new-label-color"><option value="green">سبز</option><option value="blue">آبی</option><option value="amber">طلایی</option><option value="purple">بنفش</option><option value="red">قرمز</option><option value="gray">خاکستری</option></select>
+      <div class="label-create-actions"><button class="mbtn primary" type="submit">ساخت</button><button class="mbtn" id="cancel-label-create" type="button">لغو</button></div>
+    </form>
+  </aside>
+
+  <section class="thread-panel">
+    <div class="thread-toolbar"><strong id="list-title">همه پیام‌ها</strong><small id="thread-count">در حال دریافت…</small></div>
+    <div class="thread-list" id="thread-list"><div class="empty-list">در حال بارگذاری…</div></div>
+  </section>
+
+  <section class="reader" id="reader">
+    <div class="reader-empty"><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><strong>یک پیام را انتخاب کنید</strong><span>جزئیات، دسته‌بندی، برچسب‌ها و پاسخ در این بخش نمایش داده می‌شود.</span></div></div>
+  </section>
+</div>
+</main></div>
+
+<script src="../../assets/js/app.js?v=20260920m"></script>
+<script src="../../assets/js/chrome.js?v=20260920m"></script>
+<script type="module">
+import {Staff,requireAuth,escHtml,redirectOn401,showToast} from '../../shared/api.js?v=20260920m';
+if(!requireAuth('../auth/login.html','staff')) throw new Error('redirecting');
+
+const E=v=>escHtml(String(v??'')),fa=n=>new Intl.NumberFormat('fa-IR').format(Number(n||0));
+const ICON_STAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/></svg>';
+let threads=[],labels=[],selectedId=Number(new URLSearchParams(location.search).get('thread')||0);
+let activeFilter='all',activeLabel=0,searchTimer=null,loadSeq=0;
+
+function dt(v){
+  if(!v)return'—';
+  try{return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{timeZone:'Asia/Tehran',dateStyle:'medium',timeStyle:'short'}).format(new Date(String(v).replace(' ','T')+'Z'))}
+  catch{return String(v)}
+}
+function sourceFa(v){return ({contact_form:'فرم وب‌سایت',email:'ایمیل مستقیم',gmail_archive:'آرشیو جیمیل'}[v]||'ایمیل')}
+function statusFa(v){return ({open:'باز',closed:'بسته',spam:'هرزنامه'}[v]||v||'—')}
+function categoryFa(v){return ({contact:'تماس عمومی',appointment:'رزرو و نوبت',followup:'پیگیری',system:'سیستمی',other:'سایر'}[v]||'تماس عمومی')}
+function deliveryFa(v){
+  return ({received:'دریافت‌شده',sent:'ارسال‌شده',auto_sent:'پاسخ خودکار ارسال شد',failed:'ارسال ناموفق'}[v]||v||'ثبت‌شده')
+}
+function labelClass(c){return ['green','blue','amber','purple','red','gray'].includes(c)?c:'green'}
+function currentParams(){
+  const p={q:document.getElementById('mail-q').value.trim(),page:1,per_page:80};
+  if(activeFilter==='unread')p.unread=1;
+  if(activeFilter==='starred')p.starred=1;
+  if(activeFilter==='website')p.source='contact_form';
+  if(activeFilter==='email')p.source='email';
+  if(activeFilter==='closed')p.status='closed';
+  if(activeLabel)p.label_id=activeLabel;
+  return p;
+}
+function titleForFilter(){
+  if(activeLabel){const l=labels.find(x=>Number(x.id)===Number(activeLabel));return l?'برچسب: '+l.name:'برچسب'}
+  return ({all:'همه پیام‌ها',unread:'خوانده‌نشده‌ها',starred:'ستاره‌دارها',website:'فرم وب‌سایت',email:'ایمیل مستقیم',closed:'بسته‌شده‌ها'}[activeFilter]||'پیام‌ها');
+}
+function updateCounts(s={}){
+  document.getElementById('nav-all').textContent=fa(s.total||0);
+  document.getElementById('nav-unread').textContent=fa(s.unread_messages||0);
+  document.getElementById('nav-starred').textContent=fa(s.starred_threads||0);
+  document.getElementById('nav-web').textContent=fa(s.website_threads||0);
+  document.getElementById('nav-email').textContent=fa(s.email_threads||0);
+}
+function renderLabelsNav(){
+  const host=document.getElementById('label-nav');
+  host.innerHTML=labels.map(l=>'<button class="label-filter '+(Number(activeLabel)===Number(l.id)?'active':'')+'" type="button" data-label-filter="'+l.id+'"><span class="label-name"><i class="label-dot '+E(labelClass(l.color_key))+'"></i><span>'+E(l.name)+'</span></span><small>'+fa(l.usage_count||0)+'</small></button>').join('')||'<div class="empty-list" style="padding:.5rem">برچسبی ثبت نشده است.</div>';
+  host.querySelectorAll('[data-label-filter]').forEach(b=>b.onclick=()=>{activeLabel=Number(b.dataset.labelFilter);activeFilter='all';syncFilterUI();loadThreads(false)});
+}
+function syncFilterUI(){
+  document.querySelectorAll('.mail-filter').forEach(b=>b.classList.toggle('active',!activeLabel&&b.dataset.filter===activeFilter));
+  renderLabelsNav();
+  document.getElementById('list-title').textContent=titleForFilter();
+}
+function renderList(){
+  const host=document.getElementById('thread-list');
+  document.getElementById('thread-count').textContent=fa(threads.length)+' مورد';
+  if(!threads.length){host.innerHTML='<div class="empty-list"><strong>پیامی پیدا نشد.</strong><br><small>فیلتر یا عبارت جست‌وجو را تغییر دهید.</small></div>';return}
+  host.innerHTML=threads.map(x=>{
+    const chips=(x.labels||[]).slice(0,2).map(l=>'<span class="mini-label '+E(labelClass(l.color_key))+'">'+E(l.name)+'</span>').join('');
+    const preview=String(x.last_body||'').replace(/\s+/g,' ').trim().slice(0,115);
+    return '<div class="thread-row '+(Number(x.id)===Number(selectedId)?'active ':'')+(Number(x.unread_count)>0?'unread':'')+'" data-open-thread="'+x.id+'">'+
+      '<button class="star '+(x.is_starred?'on':'')+'" type="button" data-star-thread="'+x.id+'" data-star="'+(x.is_starred?1:0)+'" aria-label="ستاره">'+ICON_STAR+'</button>'+
+      '<div class="thread-main"><div class="thread-line"><span class="who">'+E(x.contact_name||x.contact_email||x.contact_phone||'بدون نام')+'</span><span class="when">'+E(dt(x.last_message_at))+'</span></div>'+
+      '<div class="subject">'+E(x.subject||'بدون موضوع')+'</div><div class="preview">'+E(preview)+'</div><div class="row-meta"><span class="mini-chip source">'+E(sourceFa(x.source))+'</span>'+(Number(x.unread_count)>0?'<span class="mini-chip unread">'+fa(x.unread_count)+' جدید</span>':'')+chips+'</div></div></div>';
+  }).join('');
+  host.querySelectorAll('[data-open-thread]').forEach(row=>row.onclick=e=>{if(e.target.closest('[data-star-thread]'))return;openThread(Number(row.dataset.openThread))});
+  host.querySelectorAll('[data-star-thread]').forEach(b=>b.onclick=async e=>{
+    e.stopPropagation();const id=Number(b.dataset.starThread),next=b.dataset.star!=='1';b.disabled=true;
+    try{await Staff.updateCommunicationMeta(id,{is_starred:next});await loadThreads(true);if(selectedId===id)await openThread(id,false)}
+    catch(err){showToast(err.message||'تغییر ستاره انجام نشد.','error')}
+  });
+}
+async function loadLabels(){
+  try{const r=await Staff.listCommunicationLabels();labels=(r?.data?.rows||r?.rows||[]);renderLabelsNav()}
+  catch(err){labels=[];renderLabelsNav()}
+}
+async function loadThreads(openFirst=true){
+  const seq=++loadSeq;
+  try{
+    const r=await Staff.listCommunications(currentParams()),d=r?.data||r||{};
+    if(seq!==loadSeq)return;
+    threads=d.rows||[];updateCounts(d.summary||{});renderList();syncFilterUI();
+    if(openFirst&&threads.length){
+      const target=selectedId&&threads.some(x=>Number(x.id)===selectedId)?selectedId:Number(threads[0].id);
+      await openThread(target,false);
+    }else if(selectedId&&!threads.some(x=>Number(x.id)===selectedId)){
+      selectedId=0;renderEmpty();
+    }
+  }catch(err){
+    if(redirectOn401(err,'../auth/login.html','staff'))return;
+    document.getElementById('thread-list').innerHTML='<div class="empty-list">دریافت پیام‌ها انجام نشد.<br><small>'+E(err.message||'دوباره تلاش کنید.')+'</small></div>';
+  }
+}
+function renderEmpty(){
+  document.getElementById('reader').innerHTML='<div class="reader-empty"><div><strong>یک پیام را انتخاب کنید</strong><span>جزئیات و پاسخ اینجا نمایش داده می‌شود.</span></div></div>';
+}
+function messageHtml(m){
+  const out=m.direction==='outbound',failed=m.delivery_status==='failed';
+  return '<article class="message '+(out?'outbound':'inbound')+(failed?' failed':'')+'"><div class="message-top"><strong>'+E(out?(m.sender_name||'کلینیک'):(m.sender_name||m.sender_email||'فرستنده'))+'</strong><small>'+E(dt(m.created_at))+'</small></div><div class="message-body">'+E(m.body_text||'')+'</div><div class="delivery">'+E(deliveryFa(m.delivery_status))+'</div></article>';
+}
+function threadLabelButtons(t){
+  const current=new Set((t.labels||[]).map(x=>Number(x.id)));
+  return labels.map(l=>'<button class="label-toggle '+(current.has(Number(l.id))?'on':'')+'" type="button" data-thread-label="'+l.id+'">'+E(l.name)+'</button>').join('');
+}
+async function openThread(id,markRead=true){
+  selectedId=id;renderList();
+  const reader=document.getElementById('reader');
+  reader.innerHTML='<div class="reader-empty">در حال دریافت گفت‌وگو…</div>';
+  try{
+    const r=await Staff.getCommunication(id),d=r?.data||r,t=d.thread||{},messages=d.messages||[];
+    const hasEmail=Boolean(t.contact_email);
+    reader.innerHTML='<div class="reader-head"><div class="reader-title-line"><div class="reader-title"><h2>'+E(t.subject||'بدون موضوع')+'</h2><p><strong>'+E(t.contact_name||'بدون نام')+'</strong>'+(t.contact_email?' · <bdi dir="ltr">'+E(t.contact_email)+'</bdi>':'')+(t.contact_phone?' · <bdi dir="ltr">'+E(t.contact_phone)+'</bdi>':'')+'<br>'+E(sourceFa(t.source))+' · '+E(dt(t.last_message_at))+'</p></div><div class="reader-tools"><button class="star '+(t.is_starred?'on':'')+'" id="reader-star" type="button" title="ستاره">'+ICON_STAR+'</button></div></div>'+
+      '<div class="reader-options"><label>وضعیت<select id="thread-status"><option value="open" '+(t.status==='open'?'selected':'')+'>باز</option><option value="closed" '+(t.status==='closed'?'selected':'')+'>بسته</option><option value="spam" '+(t.status==='spam'?'selected':'')+'>هرزنامه</option></select></label><label>دسته‌بندی<select id="thread-category"><option value="contact" '+(t.category==='contact'?'selected':'')+'>تماس عمومی</option><option value="appointment" '+(t.category==='appointment'?'selected':'')+'>رزرو و نوبت</option><option value="followup" '+(t.category==='followup'?'selected':'')+'>پیگیری</option><option value="other" '+(t.category==='other'?'selected':'')+'>سایر</option></select></label></div>'+
+      '<div class="thread-labels" id="thread-labels">'+threadLabelButtons(t)+'</div></div>'+
+      '<div class="messages" id="messages">'+(messages.length?messages.map(messageHtml).join(''):'<div class="empty-list">محتوایی ثبت نشده است.</div>')+'</div>'+
+      '<form class="compose" id="reply-form"><textarea id="reply-body" maxlength="10000" placeholder="پاسخ را بنویسید…" '+(!hasEmail?'disabled':'')+'></textarea><div class="compose-footer"><small>'+(hasEmail?'پاسخ به <bdi dir="ltr">'+E(t.contact_email)+'</bdi> ایمیل می‌شود.':'این پیام قدیمی ایمیل ثبت‌شده ندارد؛ پاسخ ایمیلی ممکن نیست.')+'</small><button class="mbtn primary" id="send-reply" type="submit" '+(!hasEmail?'disabled':'')+'>ارسال پاسخ</button></div><div class="compose-state" id="compose-state"></div></form>';
+    const box=document.getElementById('messages');box.scrollTop=box.scrollHeight;
+    document.getElementById('reader-star').onclick=async()=>{
+      try{await Staff.updateCommunicationMeta(id,{is_starred:!Boolean(t.is_starred)});await loadThreads(false);await openThread(id,false)}
+      catch(err){showToast(err.message||'تغییر ستاره انجام نشد.','error')}
+    };
+    document.getElementById('thread-status').onchange=async e=>{
+      try{await Staff.updateCommunicationStatus(id,e.target.value);await loadThreads(false)}
+      catch(err){showToast(err.message||'تغییر وضعیت انجام نشد.','error')}
+    };
+    document.getElementById('thread-category').onchange=async e=>{
+      try{await Staff.updateCommunicationMeta(id,{category:e.target.value});await loadThreads(false)}
+      catch(err){showToast(err.message||'تغییر دسته‌بندی انجام نشد.','error')}
+    };
+    document.querySelectorAll('[data-thread-label]').forEach(b=>b.onclick=async()=>{
+      const current=new Set((t.labels||[]).map(x=>Number(x.id))),lid=Number(b.dataset.threadLabel);
+      current.has(lid)?current.delete(lid):current.add(lid);
+      try{await Staff.updateCommunicationMeta(id,{label_ids:[...current]});await loadLabels();await loadThreads(false);await openThread(id,false)}
+      catch(err){showToast(err.message||'تغییر برچسب انجام نشد.','error')}
+    });
+    document.getElementById('reply-form').onsubmit=async e=>{
+      e.preventDefault();const body=document.getElementById('reply-body').value.trim(),btn=document.getElementById('send-reply'),state=document.getElementById('compose-state');
+      if(!body){state.textContent='متن پاسخ را وارد کنید.';state.className='compose-state err';return}
+      btn.disabled=true;state.textContent='در حال ارسال…';state.className='compose-state';
+      try{const rr=await Staff.replyCommunication(id,body),rd=rr?.data||rr||{};if(!rd.sent)throw new Error('ارسال ایمیل تأیید نشد.');state.textContent='پاسخ ارسال شد.';state.className='compose-state ok';await loadLabels();await loadThreads(false);await openThread(id,false)}
+      catch(err){state.textContent=err.message||'ارسال پاسخ انجام نشد.';state.className='compose-state err'}
+      finally{btn.disabled=false}
+    };
+    if(markRead&&Number(t.unread_count)>0){await Staff.markCommunicationRead(id).catch(()=>{});await loadThreads(false)}
+  }catch(err){
+    if(redirectOn401(err,'../auth/login.html','staff'))return;
+    reader.innerHTML='<div class="reader-empty">دریافت گفت‌وگو انجام نشد.<br><small>'+E(err.message||'دوباره تلاش کنید.')+'</small></div>';
+  }
+}
+
+document.querySelectorAll('.mail-filter').forEach(b=>b.onclick=()=>{activeFilter=b.dataset.filter;activeLabel=0;selectedId=0;syncFilterUI();loadThreads(true)});
+document.getElementById('mail-q').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{selectedId=0;loadThreads(true)},220)});
+document.getElementById('show-label-create').onclick=()=>document.getElementById('label-create').classList.add('open');
+document.getElementById('cancel-label-create').onclick=()=>document.getElementById('label-create').classList.remove('open');
+document.getElementById('label-create').onsubmit=async e=>{
+  e.preventDefault();const name=document.getElementById('new-label-name').value.trim(),color=document.getElementById('new-label-color').value;
+  if(!name)return;
+  try{await Staff.createCommunicationLabel(name,color);document.getElementById('new-label-name').value='';document.getElementById('label-create').classList.remove('open');await loadLabels();showToast('برچسب ساخته شد.','success')}
+  catch(err){showToast(err.message||'ساخت برچسب انجام نشد.','error')}
+};
+document.getElementById('sync-mail').onclick=async e=>{
+  e.currentTarget.disabled=true;
+  try{const r=await Staff.syncCommunications(),d=r?.data||r||{};showToast(Number(d.processed)>0?fa(d.processed)+' ایمیل جدید دریافت شد.':'صندوق به‌روز است.','success');await loadLabels();await loadThreads(false)}
+  catch(err){showToast(err.message||'تازه‌سازی صندوق انجام نشد.','error')}
+  finally{e.currentTarget.disabled=false}
+};
+
+await loadLabels();
+await loadThreads(true);
+setInterval(()=>{if(!document.hidden)loadThreads(false)},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadThreads(false)});
+</script>
+</body>
+</html>

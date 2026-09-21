@@ -79,8 +79,8 @@
       '<div class="drb-min-grid">' +
       field('نام *','firstName','text','required maxlength="100" autocomplete="given-name"') +
       field('نام خانوادگی *','lastName','text','required maxlength="100" autocomplete="family-name"') +
-      '<label class="drb-min-field drb-min-birth-field"><span>تاریخ تولد شمسی *</span><span class="drb-min-birth-selects"><select name="birthDay" required aria-label="روز تولد"><option value="">روز</option></select><select name="birthMonth" required aria-label="ماه تولد"><option value="">ماه</option></select><select name="birthYear" required aria-label="سال تولد"><option value="">سال</option></select></span><input name="birthDateJalali" type="hidden" value=""><small>روز، ماه و سال تولد را جداگانه انتخاب کنید.</small></label>' +
-      field('کد ملی *','nationalId','text','required inputmode="numeric" maxlength="10" autocomplete="off"') + '</div>' +
+      '<label class="drb-min-field drb-min-birth-field"><span>تاریخ تولد شمسی *</span><span class="drb-min-birth-selects"><select name="birthDay" required aria-label="روز تولد"><option value="">روز</option></select><select name="birthMonth" required aria-label="ماه تولد"><option value="">ماه</option></select><select name="birthYear" required aria-label="سال تولد"><option value="">سال</option></select></span><input name="birthDateJalali" type="hidden" value=""><small data-birth-status class="drb-inline-status">روز، ماه و سال تولد را جداگانه انتخاب کنید.</small></label>' +
+      '<label class="drb-min-field"><span>کد ملی *</span><input name="nationalId" type="text" required inputmode="numeric" maxlength="10" autocomplete="off"><small data-national-status class="drb-inline-status">کد ملی ۱۰ رقمی را وارد کنید.</small></label></div>' +
       '<div class="drb-min-otp"><label class="drb-min-field"><span>تلفن همراه * <b data-otp-badge>تأیید نشده</b></span><span class="drb-min-phone"><input name="mobile" type="tel" required inputmode="tel" maxlength="11" placeholder="09123456789" autocomplete="tel"><button type="button" data-otp-send>ارسال کد</button></span></label>' +
       '<div class="drb-min-code" hidden><label class="drb-min-field"><span>کد تأیید پیامکی *</span><span class="drb-min-phone"><input name="otp" type="text" inputmode="numeric" maxlength="5" autocomplete="one-time-code"><button type="button" data-otp-verify>تأیید شماره</button></span></label></div></div>' +
       '<section class="drb-min-availability"><h3>انتخاب تاریخ و ساعت نوبت</h3><p class="drb-min-fee" data-fee>در حال دریافت زمان‌های آزاد…</p><div data-availability class="drb-min-slots"></div></section>' +
@@ -91,7 +91,8 @@
     legacy.hidden = true; legacy.parentNode.insertBefore(form, legacy);
     var status = form.querySelector('.drb-min-status'), mobileInput = form.elements.mobile, codeBox = form.querySelector('.drb-min-code'), badge = form.querySelector('[data-otp-badge]');
     var birthDay = form.elements.birthDay, birthMonth = form.elements.birthMonth, birthYear = form.elements.birthYear, birthHidden = form.elements.birthDateJalali;
-    var verificationToken = '', verifiedMobile = '', selectedSlot = null, selectedDateIso = '', paymentConfig = null, patientSessionToken = '', heldBookingId = 0, intakeId = 0, resumeMode = false, bookingDays = [], holidayYears = {}, calendarMonth = Jalali.toJalali(new Date()), availabilityTimer = null, availabilityBusy = false;
+    var birthStatus = form.querySelector('[data-birth-status]'), nationalInput = form.elements.nationalId, nationalStatus = form.querySelector('[data-national-status]');
+    var verificationToken = '', verifiedMobile = '', selectedSlot = null, selectedDateIso = '', paymentConfig = null, patientSessionToken = '', heldBookingId = 0, intakeId = 0, resumeMode = false, bookingDays = [], holidayYears = {}, calendarMonth = tehranJalaliToday(), availabilityTimer = null, availabilityBusy = false, nationalEligible = null, nationalEligibilityTimer = null;
     var submit = form.querySelector('.drb-min-submit');
 
     function message(text,error){ status.textContent=text||''; status.className='drb-min-status'+(error?' is-error':' is-ok'); }
@@ -107,6 +108,15 @@
       }catch(_){}
       return Jalali.toJalali(new Date());
     }
+    function tehranIsoToday(){
+      try{
+        var parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()),out={};
+        parts.forEach(function(x){if(x.type==='year'||x.type==='month'||x.type==='day')out[x.type]=x.value;});
+        if(out.year&&out.month&&out.day)return out.year+'-'+out.month+'-'+out.day;
+      }catch(_){}
+      var j=tehranJalaliToday(),d=Jalali.fromJalali(j.jy,j.jm,j.jd);
+      return isoLocalDate(d);
+    }
     function birthValue(){
       var jy=Number(birthYear.value),jm=Number(birthMonth.value),jd=Number(birthDay.value);
       if(!jy||!jm||!jd||jd>Jalali.monthLength(jy,jm)){birthHidden.value='';return '';}
@@ -115,14 +125,14 @@
     function updateBirthDays(){
       var old=Number(birthDay.value),jy=Number(birthYear.value),jm=Number(birthMonth.value),max=(jy&&jm)?Jalali.monthLength(jy,jm):0,html='<option value="">روز</option>';
       for(var d=1;d<=max;d++)html+='<option value="'+d+'">'+faNum(d)+'</option>';
-      birthDay.innerHTML=html;if(old&&old<=max)birthDay.value=String(old);birthValue();
+      birthDay.innerHTML=html;if(old&&old<=max)birthDay.value=String(old);birthValue();updateBirthEligibility();
     }
     function initBirthSelectors(){
       var nowJ=tehranJalaliToday(),months=Jalali.MONTHS_FA||['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'],years='<option value="">سال</option>',monthsHtml='<option value="">ماه</option>';
-      for(var y=nowJ.jy-18;y>=nowJ.jy-46;y--)years+='<option value="'+y+'">'+faNum(y)+'</option>';
+      for(var y=nowJ.jy;y>=nowJ.jy-100;y--)years+='<option value="'+y+'">'+faNum(y)+'</option>';
       for(var m=1;m<=12;m++)monthsHtml+='<option value="'+m+'">'+months[m-1]+'</option>';
       birthYear.innerHTML=years;birthMonth.innerHTML=monthsHtml;
-      birthYear.addEventListener('change',updateBirthDays);birthMonth.addEventListener('change',updateBirthDays);birthDay.addEventListener('change',birthValue);
+      birthYear.addEventListener('change',updateBirthDays);birthMonth.addEventListener('change',updateBirthDays);birthDay.addEventListener('change',function(){birthValue();updateBirthEligibility();});
     }
     function birthAge(value){
       var p=value.split('/'),jy=Number(p[0]),jm=Number(p[1]),jd=Number(p[2]),todayJ=tehranJalaliToday(),age=todayJ.jy-jy;
@@ -132,6 +142,46 @@
     function validBirthAge(value){
       var age=birthAge(value);
       return age>=18&&age<=45;
+    }
+    function setInlineStatus(el,text,state){
+      if(!el)return;
+      el.textContent=text||'';
+      el.className='drb-inline-status'+(state?' is-'+state:'');
+    }
+    function updateBirthEligibility(){
+      var value=birthValue();
+      if(!value){setInlineStatus(birthStatus,'روز، ماه و سال تولد را کامل انتخاب کنید.','');return;}
+      var age=birthAge(value);
+      if(age<18||age>45){
+        setInlineStatus(birthStatus,'سن شما '+faNum(age)+' سال است؛ پذیرش فقط برای سنین ۱۸ تا ۴۵ سال انجام می‌شود.','error');
+        return;
+      }
+      setInlineStatus(birthStatus,'سن شما '+faNum(age)+' سال است و از نظر سنی واجد شرایط هستید.','ok');
+    }
+    function checkNationalEligibility(){
+      var national=digits(nationalInput.value).replace(/\D/g,'');
+      nationalEligible=null;
+      if(nationalEligibilityTimer)clearTimeout(nationalEligibilityTimer);
+      if(!national){setInlineStatus(nationalStatus,'کد ملی ۱۰ رقمی را وارد کنید.','');return;}
+      if(national.length<10){setInlineStatus(nationalStatus,'کد ملی باید ۱۰ رقم باشد.','');return;}
+      if(!validNationalId(national)){setInlineStatus(nationalStatus,'کد ملی معتبر نیست.','error');return;}
+      setInlineStatus(nationalStatus,'در حال بررسی شرایط رزرو…','');
+      nationalEligibilityTimer=setTimeout(function(){
+        v2Post('/eligibility',{nationalId:national,mobile:normaliseMobile(mobileInput.value)}).then(function(res){
+          var d=(res&&res.data)||{};
+          if(d.eligible===false){
+            nationalEligible=false;
+            setInlineStatus(nationalStatus,d.message||'شما واجد شرایط نیستید.','error');
+            message(d.message||'شما واجد شرایط نیستید.',true);
+          }else{
+            nationalEligible=true;
+            setInlineStatus(nationalStatus,'کد ملی بررسی شد.','ok');
+          }
+        }).catch(function(){
+          nationalEligible=null;
+          setInlineStatus(nationalStatus,'بررسی خودکار انجام نشد؛ در مرحله ثبت نهایی دوباره بررسی می‌شود.','');
+        });
+      },250);
     }
     function escHtml(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c];});}
     function jKey(jy,jm,jd){return jy+'/'+pad2(jm)+'/'+pad2(jd);}
@@ -153,12 +203,13 @@
       panel.innerHTML='<div class="drb-patient-time-head"><strong>'+faDate(iso)+'</strong><small>'+faNum(day.slots.length)+' زمان آزاد</small></div><div class="drb-min-slot-buttons">'+day.slots.map(function(slot){return '<button type="button" class="drb-min-slot" data-day="'+day.id+'" data-start="'+slot.start_at+'">'+faNum(slot.local_time)+'</button>';}).join('')+'</div>';
       panel.querySelectorAll('.drb-min-slot').forEach(function(btn){
         if(previousStart && btn.dataset.start===previousStart){btn.classList.add('is-selected');selectedSlot={openDayId:Number(btn.dataset.day),startAt:btn.dataset.start};}
-        btn.addEventListener('click',function(){panel.querySelectorAll('.drb-min-slot').forEach(function(x){x.classList.remove('is-selected');});btn.classList.add('is-selected');selectedSlot={openDayId:Number(btn.dataset.day),startAt:btn.dataset.start};selectedDateIso=iso;message('تاریخ و ساعت انتخاب شد.',false);});
+        btn.addEventListener('click',function(){panel.querySelectorAll('.drb-min-slot').forEach(function(x){x.classList.remove('is-selected');});btn.classList.add('is-selected');selectedSlot={openDayId:Number(btn.dataset.day),startAt:btn.dataset.start};selectedDateIso=iso;message('تاریخ و ساعت انتخاب شد.',false);if(typeof window.drbTrack==='function')window.drbTrack('booking_slot_selected',{page_path:location.pathname,form_type:'booking',step:'slot'});});
       });
     }
     function renderPatientCalendar(preserveStart){
-      var host=form.querySelector('[data-availability]'),names=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'],map=availableMap(),hm=holidayYears[calendarMonth.jy]||{},len=Jalali.monthLength(calendarMonth.jy,calendarMonth.jm),first=Jalali.fromJalali(calendarMonth.jy,calendarMonth.jm,1),offset=(first.getDay()+1)%7,today=isoLocalDate(new Date()),html='';
-      html+='<div class="drb-patient-cal-toolbar"><button type="button" data-cal-prev aria-label="ماه قبل">→</button><div><strong>'+Jalali.MONTHS_FA[calendarMonth.jm-1]+' '+faNum(calendarMonth.jy)+'</strong><small>تقویم شمسی</small></div><button type="button" data-cal-next aria-label="ماه بعد">←</button></div>';
+      var host=form.querySelector('[data-availability]'),names=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'],map=availableMap(),hm=holidayYears[calendarMonth.jy]||{},len=Jalali.monthLength(calendarMonth.jy,calendarMonth.jm),first=Jalali.fromJalali(calendarMonth.jy,calendarMonth.jm,1),offset=(first.getDay()+1)%7,today=tehranIsoToday(),html='',monthName=Jalali.MONTHS_FA[calendarMonth.jm-1],hasOpen=bookingDays.some(function(row){return row&&row.date>=today&&row.status==='open'&&Array.isArray(row.slots)&&row.slots.length;});
+      html+='<div class="drb-patient-cal-toolbar"><button type="button" data-cal-prev aria-label="ماه قبل">→</button><div><strong>'+monthName+' '+faNum(calendarMonth.jy)+'</strong><small>تقویم شمسی</small></div><button type="button" data-cal-next aria-label="ماه بعد">←</button></div>';
+      if(!hasOpen)html+='<div class="drb-month-full" role="status"><div><strong>ظرفیت '+monthName+' تکمیل است.</strong><span>در این ماه زمان آزادی برای رزرو باقی نمانده است. ماه بعد را بررسی کنید.</span></div><button type="button" data-cal-next-full>رفتن به ماه بعد</button></div>';
       html+='<div class="drb-patient-cal-legend"><span><i class="is-open"></i>روز قابل رزرو</span><span><i class="is-holiday"></i>تعطیل رسمی</span></div>';
       html+='<div class="drb-patient-cal-grid">'+names.map(function(n){return '<div class="drb-patient-weekday">'+n+'</div>';}).join('');
       for(var i=0;i<offset;i++)html+='<div class="drb-patient-cal-day is-empty"></div>';
@@ -171,13 +222,13 @@
         html+='<button type="button" class="'+classes.join(' ')+'" data-date="'+iso+'" '+(available?'':'disabled aria-disabled="true"')+'><span class="day-number">'+faNum(d)+'</span>'+(available?'<span class="day-open">'+faNum(row.slots.length)+' زمان آزاد</span>':'<span class="day-closed">—</span>')+(holidayText?'<span class="day-holiday" title="'+escHtml(holidayText)+'">'+escHtml(holidayText)+'</span>':'')+'</button>';
       }
       for(var t=offset+len;t%7;t++)html+='<div class="drb-patient-cal-day is-empty"></div>';
-      html+='</div><div class="drb-patient-time-panel" data-patient-time-panel><div class="drb-min-no-slots">یک روز سبز را انتخاب کنید تا ساعت‌های آزاد نمایش داده شوند.</div></div>';
+      html+='</div><div class="drb-patient-time-panel" data-patient-time-panel><div class="drb-min-no-slots">'+(hasOpen?'یک روز سبز را انتخاب کنید تا ساعت‌های آزاد نمایش داده شوند.':'این ماه زمان آزادی باقی نمانده است؛ برای مشاهده نوبت‌ها به ماه بعد بروید.')+'</div></div>';
       host.innerHTML=html;
       host.querySelectorAll('.drb-patient-cal-day[data-date]:not([disabled])').forEach(function(btn){btn.addEventListener('click',function(){selectCalendarDay(btn.dataset.date);});});
-      var nowJ=Jalali.toJalali(new Date()),prev=host.querySelector('[data-cal-prev]');
+      var nowJ=tehranJalaliToday(),prev=host.querySelector('[data-cal-prev]');
       prev.disabled=(calendarMonth.jy<nowJ.jy)||(calendarMonth.jy===nowJ.jy&&calendarMonth.jm<=nowJ.jm);
       prev.addEventListener('click',function(){if(prev.disabled)return;calendarMonth.jm--;if(calendarMonth.jm<1){calendarMonth.jm=12;calendarMonth.jy--;}selectedSlot=null;selectedDateIso='';loadAvailability();});
-      host.querySelector('[data-cal-next]').addEventListener('click',function(){calendarMonth.jm++;if(calendarMonth.jm>12){calendarMonth.jm=1;calendarMonth.jy++;}selectedSlot=null;selectedDateIso='';loadAvailability();});
+      host.querySelectorAll('[data-cal-next],[data-cal-next-full]').forEach(function(next){next.addEventListener('click',function(){calendarMonth.jm++;if(calendarMonth.jm>12){calendarMonth.jm=1;calendarMonth.jy++;}selectedSlot=null;selectedDateIso='';loadAvailability();});});
       if(selectedDateIso && availableMap()[selectedDateIso]) selectCalendarDay(selectedDateIso,preserveStart);
     }
     function loadAvailability(silent){
@@ -228,27 +279,37 @@
     }
 
     var params=new URLSearchParams(location.search); var pay=params.get('payment');
-    if(pay==='success'){var ref=params.get('ref');message('پرداخت با موفقیت تأیید شد و نوبت شما ثبت گردید.'+(ref?' کد پیگیری: '+ref:''),false);}
-    else if(pay==='failed') message('پرداخت تأیید نشد. در صورت کسر وجه، وضعیت توسط کلینیک قابل بررسی است.',true);
+    if(pay==='success'){var ref=params.get('ref');message('پرداخت با موفقیت تأیید شد و نوبت شما ثبت گردید.'+(ref?' کد پیگیری: '+ref:''),false);if(typeof window.drbTrack==='function')window.drbTrack('booking_payment_result',{page_path:location.pathname,form_type:'booking',payment_status:'success',result:'success'});}
+    else if(pay==='failed'){message('پرداخت تأیید نشد. در صورت کسر وجه، وضعیت توسط کلینیک قابل بررسی است.',true);if(typeof window.drbTrack==='function')window.drbTrack('booking_payment_result',{page_path:location.pathname,form_type:'booking',payment_status:'failed',result:'failed'});}
 
     initBirthSelectors();
-    mobileInput.addEventListener('input',resetVerification);
-    form.querySelector('[data-otp-send]').addEventListener('click',function(){var mobile=normaliseMobile(mobileInput.value);if(!/^09\d{9}$/.test(mobile))return message('شماره همراه معتبر وارد کنید.',true);this.disabled=true;message('در حال ارسال کد…',false);var b=this;request(api.otpSend,{mobile:mobile}).then(function(data){codeBox.hidden=false;form.elements.otp.focus();message(data.message||'کد تأیید ارسال شد.',false);}).catch(function(e){message(e.message,true);}).finally(function(){b.disabled=false;});});
-    form.querySelector('[data-otp-verify]').addEventListener('click',function(){var mobile=normaliseMobile(mobileInput.value),otp=digits(form.elements.otp.value).replace(/\D/g,'');if(!/^\d{5}$/.test(otp))return message('کد پنج‌رقمی را وارد کنید.',true);this.disabled=true;var b=this;message('در حال تأیید شماره…',false);request(api.otpVerify,{mobile:mobile,otp:otp}).then(function(data){verificationToken=data.verificationToken||'';verifiedMobile=mobile;if(!verificationToken)throw new Error('توکن تأیید دریافت نشد.');badge.textContent='تأیید شد';badge.className='is-verified';message('شماره همراه تأیید شد.',false);}).catch(function(e){resetVerification();message(e.message,true);}).finally(function(){b.disabled=false;});});
+    nationalInput.addEventListener('input',checkNationalEligibility);
+    mobileInput.addEventListener('input',function(){
+      resetVerification();
+      var national=digits(nationalInput.value).replace(/\D/g,'');
+      if(validNationalId(national))checkNationalEligibility();
+    });
+    form.querySelector('[data-otp-send]').addEventListener('click',function(){var mobile=normaliseMobile(mobileInput.value);if(!/^09\d{9}$/.test(mobile))return message('شماره همراه معتبر وارد کنید.',true);if(typeof window.drbTrack==='function')window.drbTrack('booking_otp_requested',{page_path:location.pathname,form_type:'booking',step:'otp'});this.disabled=true;message('در حال ارسال کد…',false);var b=this;request(api.otpSend,{mobile:mobile}).then(function(data){codeBox.hidden=false;form.elements.otp.focus();message(data.message||'کد تأیید ارسال شد.',false);}).catch(function(e){message(e.message,true);}).finally(function(){b.disabled=false;});});
+    form.querySelector('[data-otp-verify]').addEventListener('click',function(){var mobile=normaliseMobile(mobileInput.value),otp=digits(form.elements.otp.value).replace(/\D/g,'');if(!/^\d{5}$/.test(otp))return message('کد پنج‌رقمی را وارد کنید.',true);this.disabled=true;var b=this;message('در حال تأیید شماره…',false);request(api.otpVerify,{mobile:mobile,otp:otp}).then(function(data){verificationToken=data.verificationToken||'';verifiedMobile=mobile;if(!verificationToken)throw new Error('توکن تأیید دریافت نشد.');badge.textContent='تأیید شد';badge.className='is-verified';return v2Post('/recover',{mobile:mobile,verificationToken:verificationToken}).then(function(res){var d=(res&&res.data)||{};if(d.found){verificationToken='';enterResumeMode(d);message('شماره همراه تأیید شد و درخواست قبلی شما بازیابی گردید.',false);}else message('شماره همراه تأیید شد.',false);});}).catch(function(e){resetVerification();message(e.message,true);}).finally(function(){b.disabled=false;});});
 
     function startPayment(){
+      if(typeof window.drbTrack==='function')window.drbTrack('booking_payment_start',{page_path:location.pathname,form_type:'booking',step:'payment'});
       submit.disabled=true; message('در حال اتصال به زرین‌پال…',false);
       return v2Post('/payment',{sessionToken:patientSessionToken,bookingId:heldBookingId}).then(function(res){var url=res.data&&res.data.redirect_url;if(!url)throw new Error('آدرس درگاه پرداخت دریافت نشد.');location.assign(url);}).catch(function(e){message(e.message+' برای تلاش دوباره همین دکمه را بزنید.',true);submit.disabled=false;throw e;});
     }
 
+    var bookingStarted=false;
+    form.addEventListener('focusin',function(){if(bookingStarted)return;bookingStarted=true;if(typeof window.drbTrack==='function')window.drbTrack('booking_form_start',{page_path:location.pathname,form_type:'booking',step:'start'});});
     form.addEventListener('submit',function(event){
       event.preventDefault();
+      if(typeof window.drbTrack==='function')window.drbTrack('booking_submit_attempt',{page_path:location.pathname,form_type:'booking',step:'submit'});
       if(patientSessionToken&&heldBookingId){startPayment().catch(function(){});return;}
       var mobile=normaliseMobile(mobileInput.value),national=digits(form.elements.nationalId.value).replace(/\D/g,''),birth=birthValue();
       if(!resumeMode){
         if(!birth)return message('روز، ماه و سال تولد را کامل انتخاب کنید.',true);
         if(!validBirthAge(birth))return message('پذیرش فقط برای سنین ۱۸ تا ۴۵ سال امکان‌پذیر است.',true);
         if(!validNationalId(national))return message('کد ملی معتبر نیست.',true);
+        if(nationalEligible===false)return message('شما واجد شرایط نیستید.',true);
         if(!form.checkValidity()){form.reportValidity();return;}
         if(!verificationToken||verifiedMobile!==mobile)return message('ابتدا شماره همراه را با کد پیامکی تأیید کنید.',true);
       }

@@ -249,10 +249,304 @@
     }
     var requestUrl = typeof input === 'string' ? input : (input && input.url) ? input.url : '';
     return originalFetch.call(window, input, init).then(function (response) {
+      if (isAppointmentEndpoint(requestUrl) && typeof window.drbTrack === 'function') {
+        window.drbTrack('booking_submit_result', {
+          page_path: location.pathname,
+          form_type: 'booking',
+          result: response.ok ? 'success' : ('http_' + response.status)
+        });
+      }
       return handleAppointmentResponse(requestUrl, response);
     });
   };
 
   // Preserve a backdoor in case a future bundle ships its own nonce handling.
   window.__DRB_FETCH_ORIGINAL__ = originalFetch;
+})();
+
+/**
+ * Force every booking CTA and menu link through the canonical server-rendered
+ * booking page. React Router otherwise renders the legacy bundled form when a
+ * user clicks an internal <Link>, while a direct page load renders the current
+ * OTP/payment booking flow.
+ */
+(function () {
+  'use strict';
+
+  var BOOKING_PATH = '/booking/';
+  var BOOKING_URL = window.location.origin + BOOKING_PATH;
+
+  document.addEventListener('click', function (event) {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    var target = event.target;
+    var link = target && target.closest ? target.closest('a[href]') : null;
+    if (!link) return;
+
+    try {
+      var url = new URL(link.href, window.location.href);
+      var path = url.pathname.replace(/\/+$/, '') + '/';
+      if (url.origin !== window.location.origin || path !== BOOKING_PATH) return;
+      if (window.location.pathname.replace(/\/+$/, '') + '/' === BOOKING_PATH) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      window.location.assign(BOOKING_URL);
+    } catch (ignore) {}
+  }, true);
+})();
+
+/**
+ * Contact-form reliability layer.
+ *
+ * Several compiled React contact/consultation components predate the CRM inbox:
+ * some do not render an email input and one legacy consultation form only flips
+ * a local "success" state without sending a network request. This enhancement
+ * owns submission for contact-like forms, adds the required email field, and
+ * posts a normalized payload to the canonical /drb/v1/contact endpoint.
+ */
+(function () {
+  'use strict';
+
+  if (window.__DRB_CONTACT_FORMS_ENHANCED__) return;
+  window.__DRB_CONTACT_FORMS_ENHANCED__ = true;
+
+  function api() {
+    return window.__DRB_FORMS_API__ && typeof window.__DRB_FORMS_API__ === 'object'
+      ? window.__DRB_FORMS_API__
+      : null;
+  }
+
+  function isVisible(el) {
+    return !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+  }
+
+  function isContactForm(form) {
+    if (!form || form.tagName !== 'FORM') return false;
+    var tel = form.querySelector('input[type="tel"]');
+    var message = form.querySelector('textarea');
+    if (!tel || !message) return false;
+
+    var action = String(form.getAttribute('action') || '');
+    if (/appointment/i.test(action)) return false;
+    if (form.querySelector(
+      'input[name*="national"],input[id*="national"],[data-national-id],' +
+      'input[name*="birth"],select[id*="birth"],[data-birth-date],' +
+      'input[name*="otp"],[data-otp]'
+    )) return false;
+
+    // The public appointment form can contain notes/textarea as well. Its
+    // canonical endpoint and booking-only controls must never be intercepted.
+    var submitText = String((form.querySelector('button[type="submit"],button:not([type])') || {}).textContent || '');
+    if (/رزرو|نوبت|booking|appointment/i.test(submitText) && !/پیام|تماس|مشاوره/i.test(submitText)) return false;
+
+    return true;
+  }
+
+  function fieldWrapperClass(input) {
+    var parent = input && input.parentElement;
+    if (!parent) return '';
+    return parent.className || '';
+  }
+
+  function addRequiredEmail(form) {
+    if (!isContactForm(form)) return;
+
+    var existing = form.querySelector('input[type="email"]');
+    if (existing) {
+      existing.required = true;
+      existing.setAttribute('autocomplete', 'email');
+      existing.setAttribute('inputmode', 'email');
+      existing.setAttribute('data-drb-contact-email', '1');
+      if (!existing.name) existing.name = 'email';
+      return;
+    }
+
+    var tel = form.querySelector('input[type="tel"]');
+    var textarea = form.querySelector('textarea');
+    if (!tel || !textarea) return;
+
+    var wrap = document.createElement('div');
+    wrap.className = fieldWrapperClass(tel);
+    wrap.setAttribute('data-drb-contact-email-wrap', '1');
+
+    var label = document.createElement('label');
+    label.className = 'block text-sm font-bold text-foreground mb-2';
+    label.innerHTML = 'ایمیل <span class="text-red-500">*</span>';
+
+    var input = document.createElement('input');
+    input.type = 'email';
+    input.name = 'email';
+    input.required = true;
+    input.autocomplete = 'email';
+    input.inputMode = 'email';
+    input.dir = 'ltr';
+    input.placeholder = 'name@example.com';
+    input.setAttribute('data-drb-contact-email', '1');
+    input.setAttribute('aria-label', 'ایمیل');
+    input.className = tel.className ||
+      'w-full bg-white border rounded-xl px-4 py-3 focus:outline-none';
+
+    wrap.appendChild(label);
+    wrap.appendChild(input);
+
+    var messageWrap = textarea.parentElement || textarea;
+    messageWrap.parentNode.insertBefore(wrap, messageWrap);
+  }
+
+  function enhance(root) {
+    if (!root) return;
+    if (root.tagName === 'FORM') addRequiredEmail(root);
+    if (root.querySelectorAll) {
+      var forms = root.querySelectorAll('form');
+      for (var i = 0; i < forms.length; i++) addRequiredEmail(forms[i]);
+    }
+  }
+
+  function value(el) {
+    return el ? String(el.value || '').trim() : '';
+  }
+
+  function payloadFor(form) {
+    var tel = form.querySelector('input[type="tel"]');
+    var email = form.querySelector('input[type="email"],[data-drb-contact-email]');
+    var textarea = form.querySelector('textarea');
+    var texts = Array.prototype.filter.call(
+      form.querySelectorAll('input[type="text"],input:not([type])'),
+      function (el) {
+        return isVisible(el) && !/website|honeypot/i.test(String(el.name || '') + String(el.id || ''));
+      }
+    );
+    var name = '';
+    if (texts.length >= 2) name = (value(texts[0]) + ' ' + value(texts[1])).trim();
+    else if (texts.length === 1) name = value(texts[0]);
+
+    var namedName = form.querySelector('input[name="name"],input[name="fullName"]');
+    if (namedName) name = value(namedName);
+
+    var subjectEl = form.querySelector('select[name="subject"],select');
+    var subject = subjectEl ? value(subjectEl) : '';
+
+    return {
+      name: name,
+      phone: value(tel),
+      email: value(email),
+      subject: subject,
+      message: value(textarea),
+      website: ''
+    };
+  }
+
+  function clearInlineState(form) {
+    var old = form.parentElement && form.parentElement.querySelector('[data-drb-contact-state]');
+    if (old) old.remove();
+  }
+
+  function showState(form, ok, message) {
+    clearInlineState(form);
+    var box = document.createElement('div');
+    box.setAttribute('data-drb-contact-state', '1');
+    box.setAttribute('role', ok ? 'status' : 'alert');
+    box.style.marginTop = '12px';
+    box.style.padding = '12px 14px';
+    box.style.borderRadius = '12px';
+    box.style.fontSize = '14px';
+    box.style.lineHeight = '1.9';
+    box.style.textAlign = 'right';
+    box.style.border = ok ? '1px solid #b9dcc5' : '1px solid #efc5c0';
+    box.style.background = ok ? '#eef8f1' : '#fff4f3';
+    box.style.color = ok ? '#185c35' : '#923d36';
+    box.textContent = message;
+    form.insertAdjacentElement('afterend', box);
+  }
+
+  document.addEventListener('focusin', function (event) {
+    var form = event.target && event.target.closest ? event.target.closest('form') : null;
+    if (!isContactForm(form) || form.dataset.drbContactStarted === '1') return;
+    form.dataset.drbContactStarted = '1';
+    if (typeof window.drbTrack === 'function') {
+      window.drbTrack('contact_form_start', { page_path: location.pathname, form_type: 'contact' });
+    }
+  }, true);
+
+  document.addEventListener('submit', function (event) {
+    var form = event.target;
+    if (!isContactForm(form)) return;
+
+    addRequiredEmail(form);
+    if (!form.reportValidity()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
+
+    var config = api();
+    if (!config || !config.contact) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    if (form.dataset.drbContactPosting === '1') return;
+    form.dataset.drbContactPosting = '1';
+
+    var button = form.querySelector('button[type="submit"],button:not([type])');
+    var oldText = button ? button.textContent : '';
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'در حال ارسال…';
+    }
+    clearInlineState(form);
+    if (typeof window.drbTrack === 'function') {
+      window.drbTrack('contact_submit_attempt', { page_path: location.pathname, form_type: 'contact' });
+    }
+
+    window.fetch(config.contact, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payloadFor(form))
+    }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        if (!response.ok) {
+          var msg = data && (data.message || (data.errors && data.errors[0] && data.errors[0].message));
+          throw new Error(msg || 'ارسال پیام انجام نشد.');
+        }
+        return data;
+      });
+    }).then(function () {
+      showState(form, true, 'پیام شما با موفقیت دریافت شد. پاسخ خودکار به ایمیل شما ارسال می‌شود.');
+      if (typeof window.drbTrack === 'function') {
+        window.drbTrack('contact_submit_success', { page_path: location.pathname, form_type: 'contact', result: 'success' });
+      }
+      // Do not force-reset React-controlled fields. Keeping the entered text
+      // visible provides an audit cue to the visitor and avoids state mismatch.
+    }).catch(function (error) {
+      showState(form, false, error && error.message ? error.message : 'ارسال پیام انجام نشد. لطفاً دوباره تلاش کنید.');
+      if (typeof window.drbTrack === 'function') {
+        window.drbTrack('contact_submit_error', { page_path: location.pathname, form_type: 'contact', result: 'error' });
+      }
+    }).finally(function () {
+      delete form.dataset.drbContactPosting;
+      if (button) {
+        button.disabled = false;
+        button.textContent = oldText || 'ارسال پیام';
+      }
+    });
+  }, true);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { enhance(document); });
+  } else {
+    enhance(document);
+  }
+
+  if (typeof MutationObserver === 'function') {
+    var observer = new MutationObserver(function (records) {
+      for (var i = 0; i < records.length; i++) {
+        for (var j = 0; j < records[i].addedNodes.length; j++) {
+          var node = records[i].addedNodes[j];
+          if (node && node.nodeType === 1) enhance(node);
+        }
+      }
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  }
 })();

@@ -89,6 +89,21 @@ add_action('rest_api_init', function() {
         },
     ));
 
+    register_rest_route('drb/v1', '/booking-v2/eligibility', array(
+        'methods' => WP_REST_Server::CREATABLE,
+        'permission_callback' => '__return_true',
+        'callback' => function(WP_REST_Request $request) {
+            if (!drb_v2_nonce_ok($request)) return new WP_Error('invalid_nonce','نشست فرم منقضی شده است.',array('status'=>403));
+            $in = (array)$request->get_json_params();
+            $nationalId = sanitize_text_field((string)($in['nationalId'] ?? $in['national_id'] ?? ''));
+            $mobile = sanitize_text_field((string)($in['mobile'] ?? ''));
+            if ($nationalId === '' && $mobile === '') return new WP_Error('invalid_identifier','کد ملی یا شماره موبایل معتبر نیست.',array('status'=>422));
+            $secret = drb_v2_bridge_secret();
+            if ($secret === '') return new WP_Error('bridge_unconfigured','سامانه نوبت‌دهی موقتاً در دسترس نیست.',array('status'=>503));
+            return drb_v2_remote('POST', '/bookings/eligibility', array('national_id'=>$nationalId,'mobile'=>$mobile), array('X-WordPress-Bridge-Secret'=>$secret));
+        },
+    ));
+
     register_rest_route('drb/v1', '/booking-v2/session', array(
         'methods' => WP_REST_Server::CREATABLE,
         'permission_callback' => '__return_true',
@@ -111,6 +126,35 @@ add_action('rest_api_init', function() {
         },
     ));
 
+    register_rest_route('drb/v1', '/booking-v2/recover', array(
+        'methods' => WP_REST_Server::CREATABLE,
+        'permission_callback' => '__return_true',
+        'callback' => function(WP_REST_Request $request) {
+            if (!drb_v2_nonce_ok($request)) return new WP_Error('invalid_nonce','نشست فرم منقضی شده است.',array('status'=>403));
+            $in = (array)$request->get_json_params();
+            $mobile = sanitize_text_field((string)($in['mobile'] ?? ''));
+            $verification = sanitize_text_field((string)($in['verificationToken'] ?? $in['verification_token'] ?? ''));
+            if ($mobile === '' || !preg_match('/^[a-f0-9]{64}$/', $verification)) return new WP_Error('invalid_recovery','تأیید شماره همراه معتبر نیست.',array('status'=>422));
+            $secret = drb_v2_bridge_secret();
+            if ($secret === '') return new WP_Error('bridge_unconfigured','سامانه نوبت‌دهی موقتاً در دسترس نیست.',array('status'=>503));
+            return drb_v2_remote('POST', '/bookings/recover', array('mobile'=>$mobile,'verification_token'=>$verification), array('X-WordPress-Bridge-Secret'=>$secret));
+        },
+    ));
+
+    register_rest_route('drb/v1', '/booking-v2/resume', array(
+        'methods' => WP_REST_Server::CREATABLE,
+        'permission_callback' => '__return_true',
+        'callback' => function(WP_REST_Request $request) {
+            if (!drb_v2_nonce_ok($request)) return new WP_Error('invalid_nonce','نشست فرم منقضی شده است.',array('status'=>403));
+            $in = (array)$request->get_json_params();
+            $resume = sanitize_text_field((string)($in['resumeToken'] ?? ''));
+            if ($resume === '' || strlen($resume) > 200) return new WP_Error('invalid_resume','لینک تکمیل نوبت معتبر نیست.',array('status'=>422));
+            $secret = drb_v2_bridge_secret();
+            if ($secret === '') return new WP_Error('bridge_unconfigured','سامانه نوبت‌دهی موقتاً در دسترس نیست.',array('status'=>503));
+            return drb_v2_remote('POST', '/bookings/resume', array('resume_token'=>$resume), array('X-WordPress-Bridge-Secret'=>$secret));
+        },
+    ));
+
     register_rest_route('drb/v1', '/booking-v2/hold', array(
         'methods' => WP_REST_Server::CREATABLE,
         'permission_callback' => '__return_true',
@@ -123,6 +167,7 @@ add_action('rest_api_init', function() {
                 'open_day_id' => (int)($in['openDayId'] ?? 0),
                 'start_at' => sanitize_text_field((string)($in['startAt'] ?? '')),
                 'gateway' => 'zarinpal',
+                'intake_id' => (int)($in['intakeId'] ?? 0),
             ), array('Authorization' => 'Bearer ' . $session));
         },
     ));

@@ -2,6 +2,7 @@
 // Patients module routes — appended to shared router (dashboard.drbastaninejad.com)
 
 use App\Controllers\PatientController;
+use App\Controllers\BookingBlacklistController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RbacMiddleware;
 
@@ -23,6 +24,31 @@ $router->post('/api/v1/patients', [PatientController::class, 'store'], [
 ]);
 
 $router->put('/api/v1/patients/{id}', [PatientController::class, 'update'], [
+    AuthMiddleware::class,
+    fn() => new RbacMiddleware('patients.manage'),
+]);
+
+$router->delete('/api/v1/patients/{id}', [PatientController::class, 'destroy'], [
+    AuthMiddleware::class,
+    fn() => new RbacMiddleware('patients.manage'),
+]);
+
+$router->post('/api/v1/patients/{id}/blacklist', [BookingBlacklistController::class, 'blockPatient'], [
+    AuthMiddleware::class,
+    fn() => new RbacMiddleware('patients.manage'),
+]);
+
+$router->delete('/api/v1/patients/{id}/blacklist', [BookingBlacklistController::class, 'unblockPatient'], [
+    AuthMiddleware::class,
+    fn() => new RbacMiddleware('patients.manage'),
+]);
+
+$router->post('/api/v1/patients/{id}/sms', [PatientController::class, 'sendSms'], [
+    AuthMiddleware::class,
+    fn() => new RbacMiddleware('patients.manage'),
+]);
+
+$router->post('/api/v1/patients/bulk-sms', [PatientController::class, 'bulkSms'], [
     AuthMiddleware::class,
     fn() => new RbacMiddleware('patients.manage'),
 ]);
