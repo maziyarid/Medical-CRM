@@ -1,0 +1,51 @@
+/* MAZ//ID · SEO page only. Existing clinic-report styles remain unchanged. */
+.seo-main { max-width: 1500px; margin-inline: auto; }
+.seo-main [hidden] { display: none !important; }
+.seo-skip { position: fixed; inset-inline-start: 1rem; top: -5rem; z-index: 200; padding: .7rem 1rem; background: var(--surface); color: var(--evergreen-dark); }
+.seo-skip:focus { top: 1rem; }
+.seo-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-6); margin-block-end: var(--space-8); }
+.seo-eyebrow { color: var(--evergreen-dark); font-size: .8rem; font-weight: 700; margin-block-end: var(--space-2); }
+.seo-heading h1 { font-size: clamp(1.35rem, 2.5vw, 2rem); line-height: 1.6; margin: 0; }
+.seo-intro, .seo-toolbar p, .seo-source p, .seo-next p, .seo-footer { color: var(--muted); line-height: 1.9; font-size: .9rem; }
+.seo-back { color: var(--evergreen-dark); white-space: nowrap; padding-block: var(--space-3); }
+.seo-state { display: flex; align-items: flex-start; gap: var(--space-4); padding: var(--space-6); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--evergreen-soft); margin-block-end: var(--space-8); }
+.seo-state h2 { font-size: 1.05rem; margin: 0 0 var(--space-2); }
+.seo-state p { margin: 0; line-height: 1.9; }
+.seo-state button { margin-block-start: var(--space-3); min-height: 44px; padding: var(--space-2) var(--space-4); border: 1px solid var(--evergreen-dark); border-radius: var(--radius-sm); background: var(--surface); color: var(--evergreen-dark); font: inherit; cursor: pointer; }
+.seo-status-icon { display: grid; place-items: center; flex: 0 0 40px; height: 40px; font-size: 1.5rem; color: var(--evergreen-dark); border: 1px solid var(--evergreen); border-radius: var(--radius-md); }
+.seo-state[data-state="forbidden"], .seo-state[data-state="unavailable"] { background: var(--warning-soft); }
+.seo-toolbar { display: flex; gap: var(--space-6); justify-content: space-between; align-items: end; padding-block-end: var(--space-6); margin-block-end: var(--space-4); border-block-end: 1px solid var(--border); }
+.seo-toolbar h2, .seo-section-heading h2, .seo-next h2 { font-size: 1.05rem; margin: 0 0 var(--space-2); }
+.seo-toolbar p { margin: 0; }
+.seo-toolbar form { display: flex; align-items: end; gap: var(--space-3); flex-wrap: wrap; }
+.seo-toolbar label { display: grid; gap: var(--space-2); font-size: .8rem; }
+.seo-toolbar select, .seo-toolbar button, .seo-toolbar input { min-height: 44px; padding: .55rem .8rem; border: 1px solid var(--border); border-radius: var(--radius-sm); font: inherit; background: var(--surface); color: var(--graphite); max-width: 100%; }
+.seo-toolbar button { background: var(--evergreen-dark); color: var(--surface); border-color: var(--evergreen-dark); cursor: pointer; }
+.seo-toolbar button:disabled { opacity: .6; cursor: wait; }
+.seo-main :focus-visible { outline: 3px solid var(--evergreen); outline-offset: 3px; }
+.seo-section-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); margin-block: var(--space-6) var(--space-4); }
+.seo-section-heading span { color: var(--muted); font-size: .8rem; }
+.seo-source-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
+.seo-source { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-5); display: flex; flex-direction: column; align-items: start; }
+.seo-source-mark { font: 700 1rem var(--font-en); display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--evergreen-soft); color: var(--evergreen-dark); margin-block-end: var(--space-4); }
+.seo-source h3 { margin: 0; font-size: 1rem; }
+.seo-source p { margin-block: var(--space-3) var(--space-5); flex: 1; }
+.seo-badge { font-size: .73rem; color: var(--muted); background: var(--porcelain); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .3rem .5rem; }
+.seo-next { margin-block-start: var(--space-8); border-inline-start: 3px solid var(--evergreen); padding-inline-start: var(--space-5); }
+.seo-next ol { padding-inline-start: var(--space-5); line-height: 2.2; font-size: .9rem; }
+.seo-footer { font-size: .75rem; margin-block-start: var(--space-8); }
+.seo-metric-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: var(--space-4); margin-block: var(--space-5); }
+.seo-metric-card { min-width: 0; padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.seo-metric-card h3 { font-size: .9rem; margin: 0; }
+.seo-metric-value { display: block; font-size: 1.8rem; margin-block: var(--space-3); }
+.seo-metric-card p, .seo-metric-card small, .seo-report-period, .seo-report-note, .seo-empty { color: var(--muted); font-size: .8rem; line-height: 1.9; overflow-wrap: anywhere; }
+.seo-report-section { margin-block: var(--space-8); }
+.seo-report-section h2 { font-size: 1.05rem; }
+.seo-table-scroll { overflow-x: auto; max-width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.seo-table-scroll table { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.seo-table-scroll caption { text-align: start; padding: var(--space-4); color: var(--muted); }
+.seo-table-scroll th, .seo-table-scroll td { padding: var(--space-3); border-top: 1px solid var(--border); text-align: start; white-space: nowrap; }
+.seo-table-scroll thead { background: var(--evergreen-soft); }
+@media (max-width: 700px) { .seo-metric-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 1100px) { .seo-source-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .seo-toolbar { flex-direction: column; align-items: stretch; } }
+@media (max-width: 560px) { .seo-heading { flex-direction: column; gap: var(--space-3); } .seo-source-grid { grid-template-columns: 1fr; } .seo-state { padding: var(--space-4); } .seo-toolbar form { flex-wrap: wrap; } .seo-toolbar label { flex: 1; } .seo-toolbar button { flex: 1; white-space: nowrap; } .seo-main { padding-bottom: 7rem; } }

@@ -70,10 +70,10 @@
 
   function escapeHtml(value) {
     return String(value == null ? '' : value)
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
   }
 
@@ -120,6 +120,35 @@
     return ({super_admin:'مدیر کل',admin:'مدیر',doctor:'پزشک',receptionist:'منشی',nurse:'پرستار',patient:'بیمار'})[role] || role || 'کارمند';
   }
 
+  // SEO navigation is added only after the server has confirmed staff identity.
+  // Visibility is a convenience; the API independently enforces authorization.
+  function syncSeoNav(user, kind) {
+    var roles = user && Array.isArray(user.roles) ? user.roles : [user && user.role];
+    var allowed = kind === 'staff' && user && user.user_type === 'staff' &&
+      (roles.indexOf('super_admin') !== -1 || roles.indexOf('admin') !== -1);
+    document.querySelectorAll('[data-seo-navigation]').forEach(function (link) { link.remove(); });
+    if (!allowed) return;
+    var active = document.body.getAttribute('data-nav') === 'seo';
+    var makeLink = function (mobile) {
+      var link = document.createElement('a');
+      link.setAttribute('data-seo-navigation', '');
+      link.href = '../staff/seo.html';
+      link.className = (mobile ? '' : 'nav-item') + (active ? ' active' : '');
+      if (active) link.setAttribute('aria-current', 'page');
+      link.innerHTML = ICON.analytics + '<span>سئو و آمار وب‌سایت</span>';
+      return link;
+    };
+    var sidebar = document.querySelector('.sidebar');
+    if (sidebar) sidebar.insertBefore(makeLink(false), sidebar.querySelector('.sidebar-footer'));
+    var bottom = document.querySelector('.bottom-nav');
+    if (bottom) {
+      bottom.appendChild(makeLink(true));
+      // Preserve all five existing mobile destinations; let the sixth scroll
+      // inside the bar rather than widening small screens or replacing a link.
+      bottom.style.overflowX = 'auto';
+    }
+  }
+
   function directToken(scope) {
     try { return sessionStorage.getItem(scope === 'patient' ? 'mz_patient_auth_token' : 'mz_staff_auth_token'); } catch (e) { return null; }
   }
@@ -133,6 +162,7 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (res) {
         var user = res && res.ok !== false ? res.data : null; if (!user) return;
+        syncSeoNav(user, kind);
         var who=document.querySelector('.sidebar-user .who'), avatar=document.querySelector('.sidebar-user .avatar-md');
         var name=user.name || 'حساب کاربری', role=roleLabel(user.role);
         if(who) who.innerHTML=escapeHtml(name)+'<small>'+escapeHtml(role)+'</small>';
