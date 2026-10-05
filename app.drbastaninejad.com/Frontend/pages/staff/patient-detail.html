@@ -200,7 +200,7 @@
             </div>
           </div>
 
-          <!-- In-person recorder: unavailable until secure backend/capture is configured. -->
+          <!-- In-person recorder: server readiness keeps capture fail-closed until all private-service gates pass. -->
           <div id="panel-6" class="tab-panel" role="tabpanel" aria-labelledby="tab-6">
             <section id="session-recorder" aria-label="ضبط و متن جلسه حضوری">
               <p role="status">ضبط جلسه حضوری هنوز فعال نشده است.</p>
@@ -234,7 +234,7 @@
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
     import { Staff, isAuthenticated } from '../../shared/api.js';
-    import { mountRecorderPanel } from '../../assets/js/recording/panel.js';
+    import { mountLiveRecorderPanel } from '../../assets/js/recording/live-panel.js';
 
     // Network-error family from api.js classifyNetworkError().
     function isNetworkError(err) {
@@ -378,7 +378,7 @@
         populateHeader(pt);
         populatePersonal(pt);
         renderTimeline(d.timeline || []);
-        mountRecorderPanel(document.getElementById('session-recorder'), { patientId: String(pt.id) });
+        mountLiveRecorderPanel(document.getElementById('session-recorder'), { patientId: String(pt.id) });
         MAZCRM.states.set(host, 'ready');
       } catch (err) {
         if (err.httpStatus === 401) {
