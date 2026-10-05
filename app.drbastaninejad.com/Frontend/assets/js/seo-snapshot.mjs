@@ -1,10 +1,55 @@
 /* MAZ//ID · Safe presentation projection of canonical ms-robot.reporting.v1. */
-export const SECTION_LABELS = { overview:'نمای کلی', search:'جست‌وجوی گوگل', acquisition:'ورود و بازدید', conversions:'رویدادهای هدف' };
+export const SECTION_LABELS = {
+  overview:'نمای کلی',
+  search:'جست‌وجو',
+  acquisition:'ورود و بازدید',
+  conversions:'رویدادهای هدف',
+  experience:'تجربه کاربری',
+  technical:'خزش و وضعیت فنی',
+  experiments:'آزمایش‌ها'
+};
 export const STATUS_LABELS = { ok:'داده موجود', stale:'داده قدیمی', partial:'داده ناقص', degraded:'اختلال در منبع', no_data:'داده ثبت نشده', unavailable:'داده در دسترس نیست', unknown:'وضعیت نامشخص' };
-export const PROVIDER_LABELS = {gsc:'Google Search Console',ga4:'Google Analytics 4',clarity:'Microsoft Clarity',bing_webmaster:'Bing Webmaster',semrush:'Semrush',mangools:'Mangools',ubersuggest:'Ubersuggest'};
+export const PROVIDER_LABELS = {
+  gsc:'Google Search Console',
+  ga4:'Google Analytics 4',
+  clarity:'Microsoft Clarity',
+  bing_webmaster:'Bing Webmaster',
+  posthog:'PostHog',
+  matomo:'Matomo',
+  hotjar:'Hotjar',
+  optimizely:'Optimizely',
+  semrush:'Semrush',
+  mangools:'Mangools',
+  ubersuggest:'Ubersuggest'
+};
 const RULES = {
-  clicks:['کلیک','count'],impressions:['نمایش','count'],ctr:['نرخ کلیک','ratio'],averagePosition:['میانگین جایگاه','decimal'],
-  users:['کاربران','count'],activeUsers:['کاربران فعال','count'],totalUsers:['کل کاربران','count'],newUsers:['کاربران جدید','count'],sessions:['نشست‌ها','count'],engagedSessions:['نشست‌های دارای تعامل','count'],engagementRate:['نرخ تعامل','ratio'],conversions:['تبدیل‌ها','count'],keyEvents:['رویدادهای کلیدی','count'],
+  clicks:['کلیک','count'],
+  impressions:['نمایش','count'],
+  ctr:['نرخ کلیک','ratio'],
+  averagePosition:['میانگین جایگاه','decimal'],
+  users:['کاربران','count'],
+  activeUsers:['کاربران فعال','count'],
+  totalUsers:['کل کاربران','count'],
+  newUsers:['کاربران جدید','count'],
+  sessions:['نشست‌ها','count'],
+  engagedSessions:['نشست‌های دارای تعامل','count'],
+  engagementRate:['نرخ تعامل','ratio'],
+  bounceRate:['نرخ پرش','ratio'],
+  views:['بازدید صفحات','count'],
+  eventCount:['رویدادها','count'],
+  conversions:['تبدیل‌ها','count'],
+  keyEvents:['رویدادهای کلیدی','count'],
+  engagementTime:['زمان تعامل','duration'],
+  scrollDepth:['عمق پیمایش','ratio'],
+  deadClicks:['کلیک‌های بدون پاسخ','count'],
+  rageClicks:['کلیک‌های عصبی','count'],
+  quickbacks:['بازگشت‌های سریع','count'],
+  excessiveScrolls:['پیمایش بیش از حد','count'],
+  scriptErrors:['خطاهای اسکریپت','count'],
+  errorClicks:['کلیک‌های خطادار','count'],
+  crawledPages:['صفحات خزش‌شده','count'],
+  crawlErrors:['خطاهای خزش','count'],
+  indexedPages:['صفحات ایندکس‌شده','count']
 };
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 export function validDate(value) {
@@ -81,5 +126,6 @@ export function metricComparison(model,section,metric) {
 export function formatMetric(metric) {
   if(metric.value===null)return '—';
   const n=new Intl.NumberFormat('fa-IR',{maximumFractionDigits:metric.unit==='count'?0:2});
+  if(metric.unit==='duration') return n.format(metric.value)+' ثانیه';
   return n.format(metric.unit==='ratio'?metric.value*100:metric.value)+(metric.unit==='ratio'?'٪':'');
 }
