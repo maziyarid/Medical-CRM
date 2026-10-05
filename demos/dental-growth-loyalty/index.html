@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0f6f63">
+  <title>دموی اسمارت طب — CRM دندانپزشکی و باشگاه مشتریان</title>
+  <meta name="description" content="دموی تعاملی اسمارت طب برای CRM و مدیریت مطب دندانپزشکی، همراه با باشگاه مشتریان و اپ عضو.">
+  <link rel="stylesheet" href="./assets/demo.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="ناوبری اصلی">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">S</div>
+        <div>
+          <strong>اسمارت طب</strong>
+          <span>Dental Growth Suite</span>
+        </div>
+      </div>
+
+      <nav class="side-nav" id="sideNav">
+        <button class="nav-item active" data-view="overview">
+          <span class="nav-icon">⌂</span><span>داشبورد</span>
+        </button>
+        <button class="nav-item" data-view="leads">
+          <span class="nav-icon">◎</span><span>سرنخ‌ها و فروش درمان</span>
+        </button>
+        <button class="nav-item" data-view="patients">
+          <span class="nav-icon">◉</span><span>بیماران و پروفایل ۳۶۰</span>
+        </button>
+        <button class="nav-item" data-view="schedule">
+          <span class="nav-icon">▦</span><span>نوبت‌ها و صندلی‌ها</span>
+        </button>
+        <button class="nav-item" data-view="treatment">
+          <span class="nav-icon">◇</span><span>طرح درمان</span>
+        </button>
+        <button class="nav-item" data-view="messages">
+          <span class="nav-icon">✉</span><span>پیام‌ها و پیگیری</span>
+        </button>
+        <button class="nav-item" data-view="automation">
+          <span class="nav-icon">↻</span><span>اتوماسیون و کمپین</span>
+        </button>
+        <button class="nav-item" data-view="loyalty">
+          <span class="nav-icon">★</span><span>باشگاه مشتریان</span>
+        </button>
+        <button class="nav-item" data-view="finance">
+          <span class="nav-icon">◫</span><span>مالی و بیمه</span>
+        </button>
+        <button class="nav-item" data-view="analytics">
+          <span class="nav-icon">⌁</span><span>تحلیل و گزارش</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="demo-badge">نسخه نمایشی · داده ساختگی</div>
+        <button class="ghost-btn" id="resetDemo">بازنشانی دمو</button>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div class="topbar-title">
+          <button class="mobile-menu" id="mobileMenu" aria-label="بازکردن منو">☰</button>
+          <div>
+            <p class="eyebrow">مرکز دندانپزشکی نمونه</p>
+            <h1 id="pageTitle">داشبورد رشد و عملیات</h1>
+          </div>
+        </div>
+        <div class="top-actions">
+          <div class="mode-switch" role="group" aria-label="حالت دمو">
+            <button class="mode-btn active" data-mode="crm">CRM & PMS</button>
+            <button class="mode-btn" data-mode="club">باشگاه مشتریان</button>
+          </div>
+          <button class="icon-btn" aria-label="اعلان‌ها">●</button>
+          <div class="profile-chip">
+            <span class="avatar">م</span>
+            <span><strong>مدیر مجموعه</strong><small>مالک / مدیر کل</small></span>
+          </div>
+        </div>
+      </header>
+
+      <section class="content" id="crmMode">
+        <section class="hero-row">
+          <div class="hero-copy">
+            <span class="status-pill success">وضعیت امروز: روان</span>
+            <h2>از اولین تماس تا درمان، پرداخت و بازگشت بیمار</h2>
+            <p>یک نمای واحد برای جذب بیمار، نوبت‌دهی، فروش درمان، پیگیری، ارتباطات و درآمد.</p>
+          </div>
+          <div class="hero-actions">
+            <button class="primary-btn" data-open="newLead">+ سرنخ جدید</button>
+            <button class="secondary-btn" data-view-jump="schedule">مشاهده برنامه امروز</button>
+          </div>
+        </section>
+
+        <section class="metric-grid" aria-label="شاخص‌های کلیدی">
+          <article class="metric-card">
+            <span>سرنخ‌های جدید</span><strong>۳۸</strong>
+            <small class="up">↑ ۱۴٪ نسبت به هفته قبل</small>
+          </article>
+          <article class="metric-card">
+            <span>ارزش درمان‌های باز</span><strong>۱.۸۲ میلیارد</strong>
+            <small>تومان · ۲۷ پرونده</small>
+          </article>
+          <article class="metric-card">
+            <span>پذیرش طرح درمان</span><strong>۷۲٪</strong>
+            <small class="up">↑ ۶.۴٪ این ماه</small>
+          </article>
+          <article class="metric-card">
+            <span>صندلی‌های پُر امروز</span><strong>۸۶٪</strong>
+            <small>۲ بازه قابل رزرو</small>
+          </article>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="panel panel-wide">
+            <div class="panel-head">
+              <div><p class="eyebrow">فروش درمان</p><h3>پایپ‌لاین موارد باارزش</h3></div>
+              <button class="text-btn" data-view-jump="leads">مشاهده همه</button>
+            </div>
+            <div class="pipeline" id="pipeline">
+              <div class="pipeline-col">
+                <header><span>استعلام</span><b>۱۲</b></header>
+                <div class="lead-card"><strong>ایمپلنت کامل</strong><span>۳۸۰ م.ت</span><small>اینستاگرام · گرم</small></div>
+                <div class="lead-card"><strong>ارتودنسی</strong><span>۱۶۰ م.ت</span><small>گوگل · جدید</small></div>
+              </div>
+              <div class="pipeline-col">
+                <header><span>مشاوره رزرو شده</span><b>۹</b></header>
+                <div class="lead-card accent"><strong>ونیر زیبایی</strong><span>۲۴۰ م.ت</span><small>پیگیری امروز ۱۷:۳۰</small></div>
+                <div class="lead-card"><strong>ایمپلنت تکی</strong><span>۸۴ م.ت</span><small>معرفی بیمار · داغ</small></div>
+              </div>
+              <div class="pipeline-col">
+                <header><span>طرح ارائه‌شده</span><b>۷</b></header>
+                <div class="lead-card"><strong>بازسازی کامل</strong><span>۵۹۰ م.ت</span><small>در انتظار امضا</small></div>
+              </div>
+              <div class="pipeline-col">
+                <header><span>پیش‌پرداخت</span><b>۵</b></header>
+                <div class="lead-card success-card"><strong>ایمپلنت + روکش</strong><span>۳۱۰ م.ت</span><small>پرداخت ۳۰٪ انجام شد</small></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><p class="eyebrow">عملیات امروز</p><h3>ریتم مطب</h3></div></div>
+            <div class="flow-list">
+              <div><span class="dot green"></span><p><strong>۲۶ بیمار</strong><small>برنامه‌ریزی‌شده</small></p><b>۹۱٪ حضور</b></div>
+              <div><span class="dot amber"></span><p><strong>۴ طرح درمان</strong><small>نیازمند پیگیری</small></p><b>۵۱۰ م.ت</b></div>
+              <div><span class="dot blue"></span><p><strong>۷ فرم</strong><small>کامل‌شده پیش از مراجعه</small></p><b>۷/۹</b></div>
+              <div><span class="dot violet"></span><p><strong>۳ فرصت خالی</strong><small>قابل پرکردن از لیست انتظار</small></p><b>امروز</b></div>
+            </div>
+          </article>
+
+          <article class="panel chart-panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">۳۰ روز اخیر</p><h3>تولید، وصول و درمان رزرو‌شده</h3></div>
+              <select aria-label="بازه گزارش"><option>۳۰ روز</option><option>۹۰ روز</option></select>
+            </div>
+            <div class="chart-wrap">
+              <svg viewBox="0 0 740 240" role="img" aria-label="نمودار روند ۳۰ روزه">
+                <defs>
+                  <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#0f806f" stop-opacity=".28"/>
+                    <stop offset="100%" stop-color="#0f806f" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <g class="grid-lines">
+                  <line x1="20" x2="720" y1="45" y2="45"/>
+                  <line x1="20" x2="720" y1="100" y2="100"/>
+                  <line x1="20" x2="720" y1="155" y2="155"/>
+                  <line x1="20" x2="720" y1="210" y2="210"/>
+                </g>
+                <path class="area" d="M20 184 C80 150,100 92,160 128 S250 188,305 112 S385 73,430 125 S520 172,570 106 S660 65,720 84 L720 220 L20 220 Z"/>
+                <path class="line-main" d="M20 184 C80 150,100 92,160 128 S250 188,305 112 S385 73,430 125 S520 172,570 106 S660 65,720 84"/>
+                <path class="line-alt" d="M20 198 C90 175,130 135,190 150 S290 164,344 136 S440 119,500 143 S610 112,720 122"/>
+              </svg>
+              <div class="chart-legend"><span><i class="legend-a"></i>تولید</span><span><i class="legend-b"></i>وصول</span></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><p class="eyebrow">اتصال رشد و وفاداری</p><h3>رخدادهای قابل پاداش</h3></div></div>
+            <div class="event-list">
+              <div><span>✓</span><p><strong>تکمیل مراجعه</strong><small>+ ۱۲۰ امتیاز</small></p></div>
+              <div><span>↗</span><p><strong>معرفی موفق دوست</strong><small>+ ۵۰۰ امتیاز</small></p></div>
+              <div><span>★</span><p><strong>ثبت نظر پس از مراجعه</strong><small>+ ۸۰ امتیاز</small></p></div>
+              <div><span>⌁</span><p><strong>تمدید عضویت</strong><small>مزیت سطح بعدی</small></p></div>
+            </div>
+            <button class="full-btn" data-mode-jump="club">ورود به باشگاه مشتریان</button>
+          </article>
+        </section>
+      </section>
+
+      <section class="content hidden" id="clubMode">
+        <section class="hero-row club-hero">
+          <div class="hero-copy">
+            <span class="status-pill club">Smart Teb Club</span>
+            <h2>باشگاه مشتریان، وفاداری و عضویت</h2>
+            <p>امتیاز، سطوح، پاداش‌ها، معرفی دوستان، مأموریت‌ها و کمپین‌های رفتاری در یک موتور مستقل.</p>
+          </div>
+          <div class="hero-actions">
+            <button class="primary-btn" id="simulateReward">+ ثبت رویداد پاداش</button>
+            <button class="secondary-btn">ساخت کمپین</button>
+          </div>
+        </section>
+
+        <section class="club-layout">
+          <div class="club-admin">
+            <section class="metric-grid">
+              <article class="metric-card"><span>اعضای فعال</span><strong>۱۲۵,۲۳۴</strong><small class="up">+۱,۰۲۴ این ماه</small></article>
+              <article class="metric-card"><span>امتیاز صادرشده</span><strong>۶.۳M</strong><small>مانده تعهد: ۲.۱M</small></article>
+              <article class="metric-card"><span>پاداش مصرف‌شده</span><strong>۱۱,۸۴۰</strong><small>نرخ موفقیت ۸۲٪</small></article>
+              <article class="metric-card"><span>کمپین فعال</span><strong>۶</strong><small class="up">+۱ کمپین جدید</small></article>
+            </section>
+
+            <section class="dashboard-grid club-grid">
+              <article class="panel panel-wide">
+                <div class="panel-head"><div><p class="eyebrow">رشد اعضا</p><h3>اعضای فعال و جدید</h3></div><span class="date-chip">۳۰ روز اخیر</span></div>
+                <div class="club-chart">
+                  <svg viewBox="0 0 740 250" role="img" aria-label="نمودار رشد اعضا">
+                    <g class="grid-lines"><line x1="20" x2="720" y1="45" y2="45"/><line x1="20" x2="720" y1="105" y2="105"/><line x1="20" x2="720" y1="165" y2="165"/><line x1="20" x2="720" y1="225" y2="225"/></g>
+                    <path class="line-main" d="M20 190 C70 122,115 120,158 182 S238 206,282 138 S355 80,405 131 S487 205,540 148 S635 76,720 112"/>
+                    <path class="line-alt" d="M20 210 C85 183,125 160,180 187 S275 180,325 158 S435 146,495 170 S620 132,720 146"/>
+                  </svg>
+                </div>
+              </article>
+
+              <article class="panel">
+                <div class="panel-head"><div><p class="eyebrow">سطوح</p><h3>توزیع اعضا</h3></div></div>
+                <div class="donut-wrap"><div class="donut"><span>۱۲۵K<small>عضو</small></span></div></div>
+                <div class="tier-list"><span><i class="tier t1"></i>سبز ۵۴٪</span><span><i class="tier t2"></i>طلایی ۳۱٪</span><span><i class="tier t3"></i>الماس ۱۵٪</span></div>
+              </article>
+
+              <article class="panel">
+                <div class="panel-head"><div><p class="eyebrow">کمپین‌ها</p><h3>عملکرد جاری</h3></div></div>
+                <div class="campaign-list">
+                  <div><p><strong>بازگشت ۶ ماهه</strong><small>۳,۸۴۰ عضو هدف</small></p><b>۲۸٪</b></div>
+                  <div><p><strong>معرفی دوست</strong><small>۱,۲۹۱ معرفی</small></p><b>۴۱٪</b></div>
+                  <div><p><strong>چالش حضور منظم</strong><small>۸,۹۴۰ شرکت‌کننده</small></p><b>۶۷٪</b></div>
+                </div>
+              </article>
+
+              <article class="panel">
+                <div class="panel-head"><div><p class="eyebrow">پاداش‌ها</p><h3>محبوب‌ترین دسته‌ها</h3></div></div>
+                <div class="bar-list">
+                  <div><span>خدمات پیشگیرانه</span><b style="--v:94%">۹۴٪</b></div>
+                  <div><span>اعتبار کیف پول</span><b style="--v:76%">۷۶٪</b></div>
+                  <div><span>مزایای VIP</span><b style="--v:62%">۶۲٪</b></div>
+                  <div><span>جوایز مناسبتی</span><b style="--v:47%">۴۷٪</b></div>
+                </div>
+              </article>
+            </section>
+          </div>
+
+          <aside class="phone-stage" aria-label="پیش‌نمایش اپ عضو">
+            <div class="phone">
+              <div class="phone-status"><span>9:41</span><span>•••</span></div>
+              <div class="phone-body">
+                <div class="member-card">
+                  <span>سلام، آتنا</span>
+                  <strong>سطح طلایی</strong>
+                  <small>تا سطح الماس ۱,۸۴۰ امتیاز</small>
+                  <div class="progress"><i style="width:68%"></i></div>
+                </div>
+
+                <div class="wallet-card">
+                  <div><small>موجودی امتیاز</small><strong id="memberPoints">۱۰,۸۶۰</strong></div>
+                  <button>افزایش امتیاز</button>
+                </div>
+
+                <div class="quick-grid">
+                  <button><span>◫</span><small>کیف پول</small></button>
+                  <button><span>★</span><small>پاداش‌ها</small></button>
+                  <button><span>♧</span><small>معرفی دوست</small></button>
+                  <button><span>◎</span><small>ماموریت‌ها</small></button>
+                </div>
+
+                <div class="mission-card">
+                  <header><span>ماموریت این هفته</span><b>۳/۵</b></header>
+                  <strong>مراجعه منظم و تکمیل پروفایل</strong>
+                  <p>دو مرحله دیگر تا دریافت ۳۰۰ امتیاز.</p>
+                  <div class="mission-dots"><i class="done"></i><i class="done"></i><i class="done"></i><i></i><i></i></div>
+                </div>
+
+                <div class="reward-card">
+                  <div><small>پاداش پیشنهادی</small><strong>اعتبار خدمات پیشگیرانه</strong><span>۱,۵۰۰ امتیاز</span></div>
+                  <button>دریافت</button>
+                </div>
+
+                <nav class="phone-nav"><span>⌂<small>خانه</small></span><span>▤<small>فروشگاه</small></span><span>★<small>امتیاز</small></span><span>◉<small>پروفایل</small></span></nav>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </section>
+
+      <section class="content hidden" id="genericView">
+        <div class="empty-state">
+          <span class="empty-icon">✦</span>
+          <h2 id="genericTitle">ماژول</h2>
+          <p id="genericDescription">این بخش در حال آماده‌سازی برای نسخه تعاملی کامل است.</p>
+          <div class="module-preview" id="modulePreview"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="leadDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-head"><h3>ثبت سرنخ جدید</h3><button value="cancel" aria-label="بستن">×</button></div>
+      <label>نام مراجعه‌کننده<input value="مراجعه‌کننده نمونه"></label>
+      <label>خدمت موردنظر<select><option>ایمپلنت</option><option>ارتودنسی</option><option>درمان زیبایی</option></select></label>
+      <label>منبع<select><option>گوگل</option><option>اینستاگرام</option><option>معرفی بیمار</option><option>وب‌سایت</option></select></label>
+      <label>ارزش تخمینی<input value="180,000,000"></label>
+      <div class="dialog-actions"><button class="secondary-btn" value="cancel">انصراف</button><button class="primary-btn" value="default" id="saveLead">ثبت در پایپ‌لاین</button></div>
+    </form>
+  </dialog>
+
+  <script src="./assets/demo.js"></script>
+</body>
+</html>
