@@ -99,13 +99,16 @@ test('adversarial identity stays text without an element or handler injection',a
   assert.ok(f.win.document.querySelector('.sidebar-user .who').textContent.includes(value));
   f.win.close();
 });
-test('canonical synthetic report renders real supplied values, comparison and provenance',async()=>{
-  const {snapshotFixture}=await import('./fixtures/reporting-snapshot.mjs');
-  const raw=snapshotFixture();const f=await fixture('admin',[raw]);const doc=f.win.document;
+test('canonical synthetic report renders separated multi-source lanes, comparison and provenance',async()=>{
+  const {multiSourceSnapshotFixture}=await import('./fixtures/reporting-snapshot.mjs');
+  const raw=multiSourceSnapshotFixture();const f=await fixture('admin',[raw]);const doc=f.win.document;
   assert.equal(doc.querySelector('[data-testid="seo-state"]').dataset.state,'ready');
-  assert.equal(doc.querySelectorAll('.seo-metric-card').length,4);
-  assert.equal(doc.querySelector('.seo-metric-value').textContent,'۲۰');
-  assert.equal(doc.querySelectorAll('#seo-rendered-report tbody tr').length,4);
+  assert.equal(doc.querySelectorAll('.seo-provider-line').length,4);
+  assert.ok(doc.querySelector('[data-provider="gsc"]').textContent.includes('۲۰'));
+  assert.ok(doc.querySelector('[data-provider="ga4"]').textContent.includes('۹۵'));
+  assert.ok(doc.querySelector('[data-provider="clarity"]').textContent.includes('۶۱٪'));
+  assert.ok(doc.querySelector('[data-provider="bing_webmaster"]').textContent.includes('۶'));
+  assert.equal(doc.querySelectorAll('#seo-rendered-report tbody tr').length,18);
   assert.ok(doc.querySelector('#seo-rendered-report').textContent.includes('داده مستقیم'));
   assert.ok(doc.querySelector('#seo-rendered-report').textContent.includes('۱۰۰٪'));
   assert.equal(doc.querySelector('#seo-connection-details').hidden,true);
@@ -117,7 +120,7 @@ test('malformed snapshot renders no cards, tables or raw metadata',async()=>{
   const raw=snapshotFixture();raw.sections[0].metrics[0].value='<img src=x onerror=alert(1)>';
   const f=await fixture('admin',[raw]);const doc=f.win.document;
   assert.equal(doc.querySelector('[data-testid="seo-state"]').dataset.state,'unavailable');
-  assert.equal(doc.querySelectorAll('.seo-metric-card,#seo-rendered-report table').length,0);
+  assert.equal(doc.querySelectorAll('.seo-provider-line,#seo-rendered-report table').length,0);
   f.win.close();
 });
 test('invalid historical window leaves controls usable and can recover without sending it',async()=>{
