@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseReportingSnapshot, metricComparison, formatMetric } from '../app.drbastaninejad.com/Frontend/assets/js/seo-snapshot.mjs';
 
-import { snapshotFixture } from './fixtures/reporting-snapshot.mjs';
+import { snapshotFixture, multiSourceSnapshotFixture } from './fixtures/reporting-snapshot.mjs';
 
 test('canonical measured GSC values retain fractions, zeros and provenance',()=>{
   const raw=snapshotFixture();raw.sections[0].metrics[0].value=0;
@@ -54,4 +54,26 @@ test('required canonical envelope fields cannot be omitted or changed to HTTP we
     const raw=snapshotFixture();delete raw[key];assert.equal(parseReportingSnapshot(raw),null);
   }
   const raw=snapshotFixture();raw.etag='W/'+raw.etag;assert.equal(parseReportingSnapshot(raw),null);
+});
+
+
+test('multi-source snapshot keeps same-named metrics separated by provider',()=>{
+  const model=parseReportingSnapshot(multiSourceSnapshotFixture());
+  const search=model.sections.find(section=>section.key==='search');
+  const gscClicks=search.metrics.find(metric=>metric.name==='clicks'&&metric.provider==='gsc');
+  const bingClicks=search.metrics.find(metric=>metric.name==='clicks'&&metric.provider==='bing_webmaster');
+  const acquisition=model.sections.find(section=>section.key==='acquisition');
+  const experience=model.sections.find(section=>section.key==='experience');
+  assert.equal(gscClicks.value,20);
+  assert.equal(bingClicks.value,6);
+  assert.equal(acquisition.metrics.find(metric=>metric.name==='sessions'&&metric.provider==='ga4').value,95);
+  assert.equal(experience.metrics.find(metric=>metric.name==='scrollDepth'&&metric.provider==='clarity').value,0.61);
+  assert.equal(formatMetric(experience.metrics.find(metric=>metric.name==='engagementTime')),'۷۴٫۵ ثانیه');
+});
+
+test('normalized ratio metrics still fail closed above one',()=>{
+  const raw=multiSourceSnapshotFixture();
+  const experience=raw.sections.find(section=>section.key==='experience');
+  experience.metrics.find(metric=>metric.name==='scrollDepth').value=61;
+  assert.equal(parseReportingSnapshot(raw),null);
 });
