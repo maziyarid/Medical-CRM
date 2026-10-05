@@ -60,7 +60,7 @@ function claimJob(PDO $db): ?array
         $db->prepare(
             "UPDATE recording_jobs
              SET status='running',attempts=attempts+1,lease_token=?,
-                 lease_expires_at=DATE_ADD(UTC_TIMESTAMP(), INTERVAL 20 MINUTE),error_code=NULL
+                 lease_expires_at=DATE_ADD(UTC_TIMESTAMP(), INTERVAL 45 MINUTE),error_code=NULL
              WHERE id=?"
         )->execute([$lease, (int)$job['id']]);
         $db->commit();
@@ -146,8 +146,17 @@ try {
     $segments = [];
     $rawParts = [];
 
+    $minRequestIntervalMs = max(0, min(60000, (int)($_ENV['GROQ_MIN_REQUEST_INTERVAL_MS'] ?? 3100)));
+    $lastAsrRequestAt = 0.0;
+
     foreach ($chunks as $chunk) {
         if (!is_file((string)$chunk['storage_path'])) throw new RuntimeException('AUDIO_NOT_READABLE');
+        if ($lastAsrRequestAt > 0 && $minRequestIntervalMs > 0) {
+            $elapsedMs = (microtime(true) - $lastAsrRequestAt) * 1000;
+            $remainingMs = $minRequestIntervalMs - $elapsedMs;
+            if ($remainingMs > 0) usleep((int)ceil($remainingMs * 1000));
+        }
+        $lastAsrRequestAt = microtime(true);
         $result = $asr->transcribeFile((string)$chunk['storage_path'], (string)$chunk['mime_type']);
         $chunkStart = (int)$chunk['start_ms'];
         $chunkEnd = (int)$chunk['end_ms'];
