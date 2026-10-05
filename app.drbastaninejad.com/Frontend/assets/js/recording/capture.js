@@ -5,7 +5,7 @@
  */
 import { RecordingApi, sha256Hex } from './api.js';
 
-export const CAPTURE_SEGMENT_MS = 30000;
+export const CAPTURE_SEGMENT_MS = 55000;
 export const MAX_SESSION_MS = 10800000;
 export const MAX_PENDING_BYTES = 8 * 1024 * 1024;
 export const MAX_SESSION_BYTES = 128 * 1024 * 1024;
