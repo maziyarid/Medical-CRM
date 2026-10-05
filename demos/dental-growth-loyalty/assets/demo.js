@@ -227,7 +227,7 @@
     if (!silent) toast("سرنخ نمونه به پایپ‌لاین اضافه شد.");
   }
 
-  if (state.leadAdded) addSyntheticLead(true);
+  if (state.leadAdded) addSyntheticLead(true, true);
   if (memberPoints) memberPoints.textContent = normaliseDigits(state.points);
 
   sideNav?.addEventListener("click", (event) => {
