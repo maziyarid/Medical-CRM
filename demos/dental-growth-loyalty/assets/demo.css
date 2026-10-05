@@ -175,7 +175,7 @@ dialog::backdrop{background:rgba(12,30,25,.45);backdrop-filter:blur(3px)}
 @media (max-width:980px){
   .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .dashboard-grid,.club-grid{grid-template-columns:1fr}.panel-wide{grid-column:auto}
-  .club-layout{grid-template-columns:1fr}.phone-stage{position:relative;top:auto;padding-top:8px}
+  .club-layout{grid-template-columns:1fr}.phone-stage{position:relative;top:auto;padding-top:8px;order:-1}
   .phone{width:min(360px,100%)}
 }
 @media (max-width:800px){
