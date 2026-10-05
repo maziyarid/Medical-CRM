@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="../../assets/css/base.css"/>
   <link rel="stylesheet" href="../../assets/css/states.css"/>
   <link rel="stylesheet" href="../../assets/css/components.css"/>
+  <link rel="stylesheet" href="../../assets/css/recording.css"/>
   <style>
     /* Patient header card */
     .patient-header {
@@ -135,6 +136,8 @@
                     aria-controls="panel-4">صورتحساب</button>
             <button class="tab" role="tab" id="tab-5" aria-selected="false"
                     aria-controls="panel-5">یادداشت‌های داخلی</button>
+            <button class="tab" role="tab" id="tab-6" aria-selected="false"
+                    aria-controls="panel-6">جلسه حضوری</button>
           </div>
 
           <!-- Panel 0: Timeline -->
@@ -197,6 +200,13 @@
             </div>
           </div>
 
+          <!-- In-person recorder: unavailable until secure backend/capture is configured. -->
+          <div id="panel-6" class="tab-panel" role="tabpanel" aria-labelledby="tab-6">
+            <section id="session-recorder" aria-label="ضبط و متن جلسه حضوری">
+              <p role="status">ضبط جلسه حضوری هنوز فعال نشده است.</p>
+            </section>
+          </div>
+
         </div><!-- .slot-ready -->
 
         <!-- Error -->
@@ -224,6 +234,7 @@
   <script src="../../assets/js/chrome.js"></script>
   <script type="module">
     import { Staff, isAuthenticated } from '../../shared/api.js';
+    import { mountRecorderPanel } from '../../assets/js/recording/panel.js';
 
     // Network-error family from api.js classifyNetworkError().
     function isNetworkError(err) {
@@ -367,6 +378,7 @@
         populateHeader(pt);
         populatePersonal(pt);
         renderTimeline(d.timeline || []);
+        mountRecorderPanel(document.getElementById('session-recorder'), { patientId: String(pt.id) });
         MAZCRM.states.set(host, 'ready');
       } catch (err) {
         if (err.httpStatus === 401) {

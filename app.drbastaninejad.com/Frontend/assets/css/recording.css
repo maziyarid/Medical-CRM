@@ -1,0 +1,22 @@
+/* MAZ//ID · © 2026 Maziyar / Dr. Shahin Bastaninejad */
+.recording-panel { padding:1.5rem; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); }
+.recording-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+.recording-header h3 { margin:0; }
+.recording-status { font-weight:600; line-height:1.8; }
+.recording-muted, .recording-cautions { color:var(--muted); font-size:.875rem; line-height:1.9; }
+.recording-timer { display:block; width:fit-content; margin-block:1rem .25rem; font-size:2.1rem; font-variant-numeric:tabular-nums; letter-spacing:.05em; }
+.recording-consent { display:flex; align-items:flex-start; gap:.6rem; margin-block:1.25rem; line-height:1.8; }
+.recording-consent input { flex-shrink:0; margin-top:.45rem; }
+.recording-actions { display:flex; flex-wrap:wrap; gap:.5rem; }
+.recording-actions button { min-height:44px; }
+.recording-cautions { padding-inline-start:1.3rem; margin-block:1.25rem; }
+.recording-cautions li { margin-block:.35rem; }
+.recording-transcript { border-top:1px solid var(--border); padding-top:1rem; }
+.recording-turns { display:grid; gap:1rem; list-style:none; padding:0; }
+.recording-turn { border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem; display:grid; gap:.6rem; overflow-wrap:anywhere; }
+.recording-turn time { color:var(--muted); font-size:.8rem; text-align:start; }
+.recording-turn label { display:grid; gap:.35rem; font-size:.875rem; }
+.recording-turn textarea, .recording-turn input, .recording-turn select { width:100%; max-width:100%; min-height:44px; font:inherit; }
+.recording-turn textarea { min-height:90px; resize:vertical; }
+.recording-error { color:var(--error, #b42318); font-size:.875rem; }
+@media (max-width:480px) { .recording-panel { padding:1rem; } .recording-actions > button { flex:1 1 45%; } }
