@@ -20,3 +20,27 @@
 .recording-turn textarea { min-height:90px; resize:vertical; }
 .recording-error { color:var(--error, #b42318); font-size:.875rem; }
 @media (max-width:480px) { .recording-panel { padding:1rem; } .recording-actions > button { flex:1 1 45%; } }
+
+.recording-readiness { margin-block:1rem; }
+.recording-consent-box { display:grid; gap:1rem; margin-block:1rem 1.25rem; }
+.recording-consent-box > label:not(.recording-consent) { display:grid; gap:.45rem; font-size:.875rem; font-weight:600; }
+.recording-consent-box input[type="text"] { min-height:44px; width:100%; padding:.65rem .75rem; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface); color:var(--text); font:inherit; }
+.recording-consent-text { padding:1rem; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface-subtle, #f8fafc); line-height:2; white-space:pre-wrap; }
+.recording-review-header { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; margin-block:1rem; }
+.recording-chat { display:grid; gap:1rem; list-style:none; padding:0; margin:0; }
+.recording-chat-turn { width:min(88%, 760px); display:grid; gap:.65rem; padding:1rem; border:1px solid var(--border); border-radius:16px; background:var(--surface); box-shadow:var(--shadow-sm); }
+.recording-chat-turn.role-doctor { margin-inline-end:auto; border-start-start-radius:4px; }
+.recording-chat-turn.role-patient { margin-inline-start:auto; border-start-end-radius:4px; background:var(--surface-subtle, #f8fafc); }
+.recording-chat-turn.role-other, .recording-chat-turn.role-unknown { margin-inline:auto; width:min(94%, 820px); }
+.recording-chat-turn time { direction:ltr; unicode-bidi:isolate; color:var(--muted); font-size:.78rem; }
+.recording-chat-turn select, .recording-chat-turn input, .recording-chat-turn textarea { width:100%; min-height:44px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface); color:var(--text); padding:.6rem .7rem; font:inherit; }
+.recording-chat-turn textarea { min-height:96px; resize:vertical; line-height:1.9; }
+.recording-raw { border:1px dashed var(--border); border-radius:var(--radius-md); padding:.65rem .8rem; }
+.recording-raw summary { cursor:pointer; color:var(--muted); font-size:.82rem; }
+.recording-raw p { margin:.65rem 0 0; white-space:pre-wrap; line-height:1.9; }
+.recording-approval { margin-top:1.25rem; padding:1rem; border:1px solid var(--border); border-radius:var(--radius-md); display:grid; gap:.75rem; }
+.btn-danger { border-color:var(--error, #b42318); color:var(--error, #b42318); background:transparent; }
+@media (max-width:640px) {
+  .recording-chat-turn, .recording-chat-turn.role-other, .recording-chat-turn.role-unknown { width:100%; }
+  .recording-review-header { flex-direction:column; }
+}
