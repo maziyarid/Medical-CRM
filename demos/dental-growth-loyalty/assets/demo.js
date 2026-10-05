@@ -297,4 +297,13 @@
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") sidebar?.classList.remove("open");
   });
+
+  const params = new URLSearchParams(window.location.search);
+  const initialMode = params.get("mode");
+  const initialView = params.get("view");
+  if (initialMode === "club" || initialView === "loyalty") {
+    showClub();
+  } else if (initialView && modules[initialView]) {
+    showGeneric(initialView);
+  }
 })();
