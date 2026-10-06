@@ -29,8 +29,8 @@ if (is_file($envFile)) {
 }
 
 spl_autoload_register(static function (string $class): void {
-    if (!str_starts_with($class, 'App\')) return;
-    $relative = str_replace('\', DIRECTORY_SEPARATOR, substr($class, 4));
+    if (!str_starts_with($class, 'App\\')) return;
+    $relative = str_replace('\\', DIRECTORY_SEPARATOR, substr($class, 4));
     $file = BASE_PATH . '/app/' . $relative . '.php';
     if (is_file($file)) require_once $file;
 });
@@ -99,7 +99,7 @@ function failOrRetry(PDO $db, array $job, Throwable $e): bool
 }
 
 try {
-    $db = AppCoreDatabase::conn();
+    $db = App\Core\Database::conn();
     $job = claimJob($db);
     if ($job === null) {
         fwrite(STDOUT, "recording_jobs=0
@@ -107,7 +107,7 @@ try {
         exit(0);
     }
 
-    $sessions = new AppServicesRecordingSessionService();
+    $sessions = new App\Services\RecordingSessionService();
     $session = $sessions->sessionByIdForWorker((int)$job['session_id']);
 
     if ($session['consent_withdrawn_at'] !== null || in_array($session['status'], ['withdrawn','cancelled'], true)) {
@@ -142,7 +142,7 @@ try {
         throw new RuntimeException('LOCAL_WORKER_HANDOFF_REQUIRED');
     }
 
-    $asr = new AppServicesGroqTranscriptionService();
+    $asr = new App\Services\GroqTranscriptionService();
     $segments = [];
     $rawParts = [];
 
@@ -223,7 +223,7 @@ try {
 
     $machineVersion = $sessions->appendMachineTranscript((int)$session['id'], $provider, $model, $machine);
 
-    $polisher = new AppServicesTranscriptPolisherService();
+    $polisher = new App\Services\TranscriptPolisherService();
     $normalised = $polisher->normalise($machine);
     $normalisedVersion = $sessions->appendDerivedTranscript(
         (int)$session['id'],
