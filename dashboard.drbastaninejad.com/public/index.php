@@ -150,6 +150,7 @@ try {
         'routes.patients',
         'routes.appointments',
         'routes.emr',
+        'routes.recordings',
         'routes.billing',
         'routes.tasks',
         'routes.analytics',
@@ -171,11 +172,14 @@ try {
 
     $message = match ($e->getMessage()) {
         'Request body too large' => 'حجم درخواست بیش از حد مجاز است.',
+        'Recording chunk too large' => 'حجم قطعه صوتی بیش از حد مجاز است.',
+        'Unsupported multipart request' => 'نوع درخواست چندبخشی مجاز نیست.',
         'Malformed JSON' => 'بدنه درخواست JSON نامعتبر است.',
         default => 'خطای داخلی سرور',
     };
     $status = match ($e->getMessage()) {
-        'Request body too large' => 413,
+        'Request body too large', 'Recording chunk too large' => 413,
+        'Unsupported multipart request' => 415,
         'Malformed JSON' => 400,
         default => 500,
     };

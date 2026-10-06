@@ -4,24 +4,11 @@ declare(strict_types=1);
 namespace App\Core;
 
 /**
- * Request — HTTP request value object
+ * Request — HTTP request value object.
  *
- * Populated once by the Router before it calls any controller or middleware.
- * Carries the parsed body, query string, headers, route params, and —
- * after AuthMiddleware runs — the authenticated user context.
- *
- * All property values are read from PHP superglobals + php://input once and
- * frozen for the lifetime of the request.  Controllers and middleware must
- * never read superglobals directly.
- *
- * Properties:
- *   string   $method      Normalised HTTP verb (GET, POST, PATCH, PUT, DELETE)
- *   string   $path        URL path without query string, with leading slash
- *   array    $body        Decoded JSON body (POST / PATCH / PUT) or []
- *   array    $query       Decoded query-string params
- *   array    $headers     All HTTP headers, keys lowercased
- *   array    $params      Route placeholder values (e.g. {id} => '42')
- *   ?array   $user        Set by AuthMiddleware on authenticated requests
+ * JSON remains the default write transport. The only multipart exception is
+ * the bounded, authenticated recorder chunk route; it is intentionally narrow
+ * so increasing recorder capacity cannot expand every API request.
  */
 final class Request
 {
@@ -30,33 +17,26 @@ final class Request
     public array   $body;
     public array   $query;
     public array   $headers;
-    public array   $params  = [];
-    public ?array  $user    = null;
+    public array   $files = [];
+    public array   $params = [];
+    public ?array  $user = null;
 
-    /**
-     * Build a Request from current PHP superglobals.
-     * Called exactly once per request in public/index.php.
-     */
     public static function fromGlobals(): self
     {
         $req = new self();
 
-        // Verb
         $req->method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
-        // Path — strip query string, normalise trailing slash
-        $uri       = $_SERVER['REQUEST_URI'] ?? '/';
-        $path      = parse_url($uri, PHP_URL_PATH) ?? '/';
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $path = parse_url($uri, PHP_URL_PATH) ?? '/';
         $req->path = '/' . trim($path, '/');
         if ($req->path === '') {
             $req->path = '/';
         }
 
-        // Query string
         parse_str($_SERVER['QUERY_STRING'] ?? '', $qs);
         $req->query = $qs;
 
-        // Headers — collect all HTTP_* server vars + CONTENT_TYPE / CONTENT_LENGTH
         $headers = [];
         foreach ($_SERVER as $key => $value) {
             if (str_starts_with($key, 'HTTP_')) {
@@ -64,7 +44,6 @@ final class Request
                 $headers[$name] = $value;
             }
         }
-        // These two are not prefixed with HTTP_ by PHP
         if (isset($_SERVER['CONTENT_TYPE'])) {
             $headers['content-type'] = $_SERVER['CONTENT_TYPE'];
         }
@@ -72,33 +51,41 @@ final class Request
             $headers['content-length'] = $_SERVER['CONTENT_LENGTH'];
         }
         $req->headers = $headers;
-
-        // Body — parse JSON for write verbs; fall back to [] for GET / HEAD
         $req->body = [];
+        $req->files = [];
+
         if (in_array($req->method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-            $maxBytes = max(1024, (int)($_ENV['MAX_BODY_BYTES'] ?? 65536));
-            $length = (int)($headers['content-length'] ?? 0);
-            if ($length > $maxBytes) {
-                throw new \RuntimeException('Request body too large');
-            }
-            $raw = file_get_contents('php://input', false, null, 0, $maxBytes + 1);
-            if (is_string($raw) && strlen($raw) > $maxBytes) {
-                throw new \RuntimeException('Request body too large');
-            }
-            if ($raw !== false && $raw !== '') {
-                $req->body = self::decodeJsonBody($raw);
+            $contentType = strtolower(trim(explode(';', (string)($headers['content-type'] ?? ''))[0]));
+            if ($contentType === 'multipart/form-data') {
+                if (!self::isRecordingChunkPath($req->path) || $req->method !== 'POST') {
+                    throw new \RuntimeException('Unsupported multipart request');
+                }
+                $maxBytes = max(262144, (int)($_ENV['RECORDING_CHUNK_REQUEST_MAX_BYTES'] ?? 3145728));
+                $length = (int)($headers['content-length'] ?? 0);
+                if ($length > $maxBytes) {
+                    throw new \RuntimeException('Recording chunk too large');
+                }
+                $req->body = is_array($_POST) ? $_POST : [];
+                $req->files = self::normaliseFiles($_FILES ?? []);
+            } else {
+                $maxBytes = max(1024, (int)($_ENV['MAX_BODY_BYTES'] ?? 65536));
+                $length = (int)($headers['content-length'] ?? 0);
+                if ($length > $maxBytes) {
+                    throw new \RuntimeException('Request body too large');
+                }
+                $raw = file_get_contents('php://input', false, null, 0, $maxBytes + 1);
+                if (is_string($raw) && strlen($raw) > $maxBytes) {
+                    throw new \RuntimeException('Request body too large');
+                }
+                if ($raw !== false && $raw !== '') {
+                    $req->body = self::decodeJsonBody($raw);
+                }
             }
         }
 
         return $req;
     }
 
-    /**
-     * Decode a JSON object/array body. Empty input is []. Malformed JSON is
-     * never treated as an empty payload.
-     *
-     * @return array<string, mixed>
-     */
     public static function decodeJsonBody(string $raw): array
     {
         $raw = trim($raw);
@@ -114,5 +101,43 @@ final class Request
             throw new \RuntimeException('Malformed JSON');
         }
         return $decoded;
+    }
+
+    private static function isRecordingChunkPath(string $path): bool
+    {
+        return preg_match(
+            '#^/api/v1/patients/[1-9][0-9]{0,15}/recording-sessions/[a-f0-9]{32}/chunks/[0-9]{1,4}$#i',
+            $path
+        ) === 1;
+    }
+
+    /**
+     * Copy only scalar PHP upload metadata. tmp_name is generated by PHP;
+     * original name/type remain untrusted and are never used as storage paths.
+     *
+     * @param array<string,mixed> $files
+     * @return array<string,array{name:string,type:string,tmp_name:string,error:int,size:int}>
+     */
+    private static function normaliseFiles(array $files): array
+    {
+        $out = [];
+        foreach ($files as $field => $file) {
+            if (!is_string($field) || !is_array($file)) {
+                continue;
+            }
+            foreach (['name', 'type', 'tmp_name', 'error', 'size'] as $key) {
+                if (!array_key_exists($key, $file) || is_array($file[$key])) {
+                    continue 2;
+                }
+            }
+            $out[$field] = [
+                'name' => (string)$file['name'],
+                'type' => (string)$file['type'],
+                'tmp_name' => (string)$file['tmp_name'],
+                'error' => (int)$file['error'],
+                'size' => (int)$file['size'],
+            ];
+        }
+        return $out;
     }
 }

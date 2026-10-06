@@ -275,3 +275,119 @@ For a new/empty database use:
 `database/install/drbastaninejad_dash_clean_install.sql`
 
 Target database and user are both `drbastaninejad_dash`. The installer is non-destructive and does not seed patient/staff PII. Existing installations should use numbered additive migrations after taking a backup; never use a destructive schema reset on production clinical data.
+
+## 10. In-person clinical session recorder (RPH-137)
+
+All routes in this section require a **staff** session and the fail-closed
+`super_admin` recorder gate. They are patient + clinic scoped on the server.
+No recorder route writes to EMR automatically.
+
+### GET `/patients/{patientId}/recording-sessions/readiness`
+
+Returns whether all server-side prerequisites are ready before the UI may offer
+real capture. The response contains only configuration state, limits, the active
+consent policy version/text and provider name/model; it never exposes keys.
+
+A recorder remains unavailable while any blocker exists, including disabled
+feature flag, missing schema/private storage, undefined retention, missing
+consent policy or unconfigured transcription provider.
+
+### POST `/patients/{patientId}/recording-sessions`
+
+Persists a consent receipt and creates a private recording session.
+
+```json
+{
+  "consent_acknowledged": true,
+  "policy_version": "clinic-policy-v1",
+  "participants": ["پزشک", "بیمار"]
+}
+```
+
+The server owns patient, clinic and actor identity. The browser cannot override
+them. The server hashes the configured consent text and records policy version,
+participants, actor and time. A checkbox without a server-persisted receipt is
+not sufficient.
+
+### POST `/patients/{patientId}/recording-sessions/{sessionId}/chunks/{sequence}`
+
+Authenticated `multipart/form-data` only. This is the sole multipart exception
+to the otherwise JSON API.
+
+Fields:
+
+- `audio`: one bounded independently decodable browser-recorded audio segment.
+- `start_ms`, `end_ms`: audio-relative offsets.
+- `sha256`: lowercase SHA-256 of the exact uploaded bytes.
+
+Limits are enforced independently by PHP/request parsing and the recording
+service. Current pilot bounds are 2 MiB/chunk, 128 MiB/session, 720 chunks and
+3 hours. Storage paths are server-generated outside public web roots. Repeating
+the same sequence + digest is idempotent; conflicting bytes return 409.
+
+### POST `/patients/{patientId}/recording-sessions/{sessionId}/finalize`
+
+```json
+{"expected_chunks": 42, "audio_duration_ms": 123456}
+```
+
+The server requires every chunk exactly once, validates order/timing/storage and
+creates one durable transcription job. Missing or unsafe capture gaps fail
+closed rather than being silently omitted.
+
+### GET `/patients/{patientId}/recording-sessions/{sessionId}`
+
+Returns private processing state and the latest transcript version when one
+exists. Raw ASR is retained in version history. Speaker identities are not
+inferred automatically.
+
+### PATCH `/patients/{patientId}/recording-sessions/{sessionId}/segments/{segmentId}`
+
+Human review route. Body may contain:
+
+```json
+{
+  "text": "متن اصلاح‌شده",
+  "speaker_role": "doctor",
+  "speaker_name": "پزشک",
+  "expected_version": 3
+}
+```
+
+Allowed roles: `unknown|doctor|patient|other`. Every edit creates a new
+version. Optimistic version checking prevents silently overwriting another
+review.
+
+### POST `/patients/{patientId}/recording-sessions/{sessionId}/approve`
+
+```json
+{"expected_version": 4}
+```
+
+Creates an approved transcript version after explicit human review.
+`auto_write_emr` remains false: approval does not diagnose, prescribe, publish
+to the patient portal or create an EMR note.
+
+### POST `/patients/{patientId}/recording-sessions/{sessionId}/withdraw`
+
+Stops/cancels pending processing and applies the configured consent-withdrawal
+audio policy. Default recorder configuration deletes stored audio on withdrawal.
+Transcript/clinical-retention policy must be approved operationally before
+production capture is enabled.
+
+### Processing and AI safety
+
+- The first external ASR adapter is Groq Whisper; it is unusable unless the
+  server has a key **and** `TRANSCRIPTION_EXTERNAL_AUDIO_ALLOWED=1`.
+- Local deterministic Persian normalisation preserves the raw machine text.
+- Optional OpenRouter reviewer calls require
+  `TRANSCRIPTION_REVIEW_ENABLED=1`,
+  `TRANSCRIPTION_EXTERNAL_TEXT_ALLOWED=1` and
+  `AI_ALLOW_CLINICAL_TEXT=1`.
+- Reviewer proposals never assign speaker identity. The consensus layer accepts
+  only small unanimous changes that preserve numbers and negation; disagreements
+  are left for a human reviewer.
+- All model/provider identities used for a version are retained. A free router
+  is not treated as proof of model diversity.
+- No raw audio, transcript text, API credential or patient identity belongs in
+  background-job logs.

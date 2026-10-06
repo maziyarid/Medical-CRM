@@ -1,0 +1,46 @@
+/* MAZ//ID · © 2026 Maziyar / Dr. Shahin Bastaninejad */
+.recording-panel { padding:1.5rem; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); }
+.recording-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+.recording-header h3 { margin:0; }
+.recording-status { font-weight:600; line-height:1.8; }
+.recording-muted, .recording-cautions { color:var(--muted); font-size:.875rem; line-height:1.9; }
+.recording-timer { display:block; width:fit-content; margin-block:1rem .25rem; font-size:2.1rem; font-variant-numeric:tabular-nums; letter-spacing:.05em; }
+.recording-consent { display:flex; align-items:flex-start; gap:.6rem; margin-block:1.25rem; line-height:1.8; }
+.recording-consent input { flex-shrink:0; margin-top:.45rem; }
+.recording-actions { display:flex; flex-wrap:wrap; gap:.5rem; }
+.recording-actions button { min-height:44px; }
+.recording-cautions { padding-inline-start:1.3rem; margin-block:1.25rem; }
+.recording-cautions li { margin-block:.35rem; }
+.recording-transcript { border-top:1px solid var(--border); padding-top:1rem; }
+.recording-turns { display:grid; gap:1rem; list-style:none; padding:0; }
+.recording-turn { border:1px solid var(--border); border-radius:var(--radius-md); padding:1rem; display:grid; gap:.6rem; overflow-wrap:anywhere; }
+.recording-turn time { color:var(--muted); font-size:.8rem; text-align:start; }
+.recording-turn label { display:grid; gap:.35rem; font-size:.875rem; }
+.recording-turn textarea, .recording-turn input, .recording-turn select { width:100%; max-width:100%; min-height:44px; font:inherit; }
+.recording-turn textarea { min-height:90px; resize:vertical; }
+.recording-error { color:var(--error, #b42318); font-size:.875rem; }
+@media (max-width:480px) { .recording-panel { padding:1rem; } .recording-actions > button { flex:1 1 45%; } }
+
+.recording-readiness { margin-block:1rem; }
+.recording-consent-box { display:grid; gap:1rem; margin-block:1rem 1.25rem; }
+.recording-consent-box > label:not(.recording-consent) { display:grid; gap:.45rem; font-size:.875rem; font-weight:600; }
+.recording-consent-box input[type="text"] { min-height:44px; width:100%; padding:.65rem .75rem; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface); color:var(--text); font:inherit; }
+.recording-consent-text { padding:1rem; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface-subtle, #f8fafc); line-height:2; white-space:pre-wrap; }
+.recording-review-header { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; margin-block:1rem; }
+.recording-chat { display:grid; gap:1rem; list-style:none; padding:0; margin:0; }
+.recording-chat-turn { width:min(88%, 760px); display:grid; gap:.65rem; padding:1rem; border:1px solid var(--border); border-radius:16px; background:var(--surface); box-shadow:var(--shadow-sm); }
+.recording-chat-turn.role-doctor { margin-inline-end:auto; border-start-start-radius:4px; }
+.recording-chat-turn.role-patient { margin-inline-start:auto; border-start-end-radius:4px; background:var(--surface-subtle, #f8fafc); }
+.recording-chat-turn.role-other, .recording-chat-turn.role-unknown { margin-inline:auto; width:min(94%, 820px); }
+.recording-chat-turn time { direction:ltr; unicode-bidi:isolate; color:var(--muted); font-size:.78rem; }
+.recording-chat-turn select, .recording-chat-turn input, .recording-chat-turn textarea { width:100%; min-height:44px; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--surface); color:var(--text); padding:.6rem .7rem; font:inherit; }
+.recording-chat-turn textarea { min-height:96px; resize:vertical; line-height:1.9; }
+.recording-raw { border:1px dashed var(--border); border-radius:var(--radius-md); padding:.65rem .8rem; }
+.recording-raw summary { cursor:pointer; color:var(--muted); font-size:.82rem; }
+.recording-raw p { margin:.65rem 0 0; white-space:pre-wrap; line-height:1.9; }
+.recording-approval { margin-top:1.25rem; padding:1rem; border:1px solid var(--border); border-radius:var(--radius-md); display:grid; gap:.75rem; }
+.btn-danger { border-color:var(--error, #b42318); color:var(--error, #b42318); background:transparent; }
+@media (max-width:640px) {
+  .recording-chat-turn, .recording-chat-turn.role-other, .recording-chat-turn.role-unknown { width:100%; }
+  .recording-review-header { flex-direction:column; }
+}
